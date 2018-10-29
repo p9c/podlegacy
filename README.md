@@ -7,7 +7,6 @@ btcd
 
 btcd is an alternative full node bitcoin implementation written in Go (golang).
 
-<<<<<<< HEAD
 This project is currently under active development and is in a Beta state.  It
 is extremely stable and has been in production use since October 2013.
 
@@ -145,5 +144,3 @@ verify the signature perform the following:
 ## License
 
 btcd is licensed under the [copyfree](http://copyfree.org) ISC License.
-=======
->>>>>>> parent of 69b22c6... v0.0.0 release!
