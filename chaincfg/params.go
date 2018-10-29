@@ -161,7 +161,7 @@ type Params struct {
 	TargetTimespan time.Duration
 
 	// TargetTimePerBlock is the desired amount of time to generate each
-	// block.
+	// block. Same as TargetSpacing in legacy client.
 	TargetTimePerBlock time.Duration
 
 	// RetargetAdjustmentFactor is the adjustment factor used to limit
@@ -225,6 +225,15 @@ type Params struct {
 	// BIP44 coin type used in the hierarchical deterministic path for
 	// address generation.
 	HDCoinType uint32
+
+	// Parallelcoin specific difficulty adjustment parameters
+
+	Interval                int64
+	AveragingInterval       int64
+	AveragingTargetTimespan int64
+	MaxAdjustDown           int64
+	MaxAdjustUp             int64
+	TargetTimespanAdjDown   int64
 }
 
 // MainNetParams defines the network parameters for the main Bitcoin network.
@@ -241,17 +250,17 @@ var MainNetParams = Params{
 	GenesisHash:              &genesisHash,
 	PowLimit:                 mainPowLimit,
 	PowLimitBits:             0x1d00ffff,
-	BIP0034Height:            1000000, // 000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8
-	BIP0065Height:            1000000, // 000000000000000004c2b624ed5d7756c508d90fd0da2c7c679febfa6c4735f0
-	BIP0066Height:            1000000, // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
+	BIP0034Height:            1000000, // Reserved for future change
+	BIP0065Height:            1000000,
+	BIP0066Height:            1000000,
 	CoinbaseMaturity:         100,
 	SubsidyReductionInterval: 250000,
-	TargetTimespan:           30000,           // time.Hour * 24 * 14, // 14 days
-	TargetTimePerBlock:       time.Minute * 5, // 10 minutes
-	RetargetAdjustmentFactor: 2,               // 50% less, 200% more
+	TargetTimespan:           30000,
+	TargetTimePerBlock:       300,
+	RetargetAdjustmentFactor: 2, // 50% less, 200% more (not used in parallelcoin)
 	ReduceMinDifficulty:      false,
 	MinDiffReductionTime:     0,
-	GenerateSupported:        false,
+	GenerateSupported:        true,
 
 	// Checkpoints ordered from oldest to newest.
 	Checkpoints: []Checkpoint{
@@ -303,6 +312,15 @@ var MainNetParams = Params{
 	// BIP44 coin type used in the hierarchical deterministic path for
 	// address generation.
 	HDCoinType: 0,
+
+	// Parallelcoin specific difficulty adjustment parameters
+
+	Interval:                100,
+	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
+	AveragingTargetTimespan: 10 * 300,
+	MaxAdjustDown:           10,
+	MaxAdjustUp:             20,
+	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
 }
 
 // RegressionNetParams defines the network parameters for the regression test
@@ -311,7 +329,7 @@ var MainNetParams = Params{
 var RegressionNetParams = Params{
 	Name:        "regtest",
 	Net:         wire.TestNet,
-	DefaultPort: "18444",
+	DefaultPort: "21047",
 	DNSSeeds:    []DNSSeed{},
 
 	// Chain parameters
@@ -321,14 +339,14 @@ var RegressionNetParams = Params{
 	PowLimitBits:             0x207fffff,
 	CoinbaseMaturity:         100,
 	BIP0034Height:            100000000, // Not active - Permit ver 1 blocks
-	BIP0065Height:            1351,      // Used by regression tests
-	BIP0066Height:            1251,      // Used by regression tests
+	BIP0065Height:            100000000, // Used by regression tests
+	BIP0066Height:            100000000, // Used by regression tests
 	SubsidyReductionInterval: 150,
-	TargetTimespan:           time.Hour * 24 * 14, // 14 days
-	TargetTimePerBlock:       time.Minute * 10,    // 10 minutes
-	RetargetAdjustmentFactor: 4,                   // 25% less, 400% more
+	TargetTimespan:           30000, // 14 days
+	TargetTimePerBlock:       300,   // 5 minutes
+	RetargetAdjustmentFactor: 2,     // 50% less, 200% more
 	ReduceMinDifficulty:      true,
-	MinDiffReductionTime:     time.Minute * 20, // TargetTimePerBlock * 2
+	MinDiffReductionTime:     time.Minute * 10, // TargetTimePerBlock * 2
 	GenerateSupported:        true,
 
 	// Checkpoints ordered from oldest to newest.
@@ -366,9 +384,9 @@ var RegressionNetParams = Params{
 	Bech32HRPSegwit: "bcrt", // always bcrt for reg test net
 
 	// Address encoding magics
-	PubKeyHashAddrID: 0x6f, // starts with m or n
-	ScriptHashAddrID: 0xc4, // starts with 2
-	PrivateKeyID:     0xef, // starts with 9 (uncompressed) or c (compressed)
+	PubKeyHashAddrID: 0x00,
+	ScriptHashAddrID: 0x05,
+	PrivateKeyID:     0x80,
 
 	// BIP32 hierarchical deterministic extended key magics
 	HDPrivateKeyID: [4]byte{0x04, 0x35, 0x83, 0x94}, // starts with tprv
@@ -377,6 +395,15 @@ var RegressionNetParams = Params{
 	// BIP44 coin type used in the hierarchical deterministic path for
 	// address generation.
 	HDCoinType: 1,
+
+	// Parallelcoin specific difficulty adjustment parameters
+
+	Interval:                100,
+	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
+	AveragingTargetTimespan: 10 * 300,
+	MaxAdjustDown:           10,
+	MaxAdjustUp:             20,
+	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
 }
 
 // TestNet3Params defines the network parameters for the test Bitcoin network
@@ -385,12 +412,9 @@ var RegressionNetParams = Params{
 var TestNet3Params = Params{
 	Name:        "testnet3",
 	Net:         wire.TestNet3,
-	DefaultPort: "18333",
-	DNSSeeds: []DNSSeed{
-		{"testnet-seed.bitcoin.jonasschnelli.ch", true},
-		{"testnet-seed.bitcoin.schildbach.de", false},
-		{"seed.tbtc.petertodd.org", true},
-		{"testnet-seed.bluematt.me", false},
+	DefaultPort: "31047",
+	DNSSeeds:    []DNSSeed{
+		// {"testnet-seed.bitcoin.jonasschnelli.ch", true},
 	},
 
 	// Chain parameters
@@ -398,31 +422,21 @@ var TestNet3Params = Params{
 	GenesisHash:              &testNet3GenesisHash,
 	PowLimit:                 testNet3PowLimit,
 	PowLimitBits:             0x1d00ffff,
-	BIP0034Height:            21111,  // 0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8
-	BIP0065Height:            581885, // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
-	BIP0066Height:            330776, // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
+	BIP0034Height:            1000000, // 0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8
+	BIP0065Height:            1000000, // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
+	BIP0066Height:            1000000, // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
 	CoinbaseMaturity:         100,
-	SubsidyReductionInterval: 210000,
-	TargetTimespan:           time.Hour * 24 * 14, // 14 days
-	TargetTimePerBlock:       time.Minute * 10,    // 10 minutes
-	RetargetAdjustmentFactor: 4,                   // 25% less, 400% more
+	SubsidyReductionInterval: 250000,
+	TargetTimespan:           30000,
+	TargetTimePerBlock:       300,
+	RetargetAdjustmentFactor: 2,
 	ReduceMinDifficulty:      true,
-	MinDiffReductionTime:     time.Minute * 20, // TargetTimePerBlock * 2
+	MinDiffReductionTime:     time.Minute * 10, // TargetTimePerBlock * 2
 	GenerateSupported:        false,
 
 	// Checkpoints ordered from oldest to newest.
 	Checkpoints: []Checkpoint{
-		{546, newHashFromStr("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")},
-		{100000, newHashFromStr("00000000009e2958c15ff9290d571bf9459e93b19765c6801ddeccadbb160a1e")},
-		{200000, newHashFromStr("0000000000287bffd321963ef05feab753ebe274e1d78b2fd4e2bfe9ad3aa6f2")},
-		{300001, newHashFromStr("0000000000004829474748f3d1bc8fcf893c88be255e6d7f571c548aff57abf4")},
-		{400002, newHashFromStr("0000000005e2c73b8ecb82ae2dbc2e8274614ebad7172b53528aba7501f5a089")},
-		{500011, newHashFromStr("00000000000929f63977fbac92ff570a9bd9e7715401ee96f2848f7b07750b02")},
-		{600002, newHashFromStr("000000000001f471389afd6ee94dcace5ccc44adc18e8bff402443f034b07240")},
-		{700000, newHashFromStr("000000000000406178b12a4dea3b27e13b3c4fe4510994fd667d7c1e6a3f4dc1")},
-		{800010, newHashFromStr("000000000017ed35296433190b6829db01e657d80631d43f5983fa403bfdb4c1")},
-		{900000, newHashFromStr("0000000000356f8d8924556e765b7a94aaebc6b5c8685dcfa2b1ee8b41acd89b")},
-		{1000007, newHashFromStr("00000000001ccb893d8a1f25b70ad173ce955e5f50124261bbbc50379a612ddf")},
+		// {546, newHashFromStr("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")},
 	},
 
 	// Consensus rule change deployments.
@@ -457,11 +471,11 @@ var TestNet3Params = Params{
 	Bech32HRPSegwit: "tb", // always tb for test net
 
 	// Address encoding magics
-	PubKeyHashAddrID:        0x6f, // starts with m or n
-	ScriptHashAddrID:        0xc4, // starts with 2
+	PubKeyHashAddrID:        18,   // starts with m or n
+	ScriptHashAddrID:        188,  // starts with 2
 	WitnessPubKeyHashAddrID: 0x03, // starts with QW
 	WitnessScriptHashAddrID: 0x28, // starts with T7n
-	PrivateKeyID:            0xef, // starts with 9 (uncompressed) or c (compressed)
+	PrivateKeyID:            239,  // starts with 9 (uncompressed) or c (compressed)
 
 	// BIP32 hierarchical deterministic extended key magics
 	HDPrivateKeyID: [4]byte{0x04, 0x35, 0x83, 0x94}, // starts with tprv
@@ -470,6 +484,15 @@ var TestNet3Params = Params{
 	// BIP44 coin type used in the hierarchical deterministic path for
 	// address generation.
 	HDCoinType: 1,
+
+	// Parallelcoin specific difficulty adjustment parameters
+
+	Interval:                100,
+	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
+	AveragingTargetTimespan: 10 * 300,
+	MaxAdjustDown:           10,
+	MaxAdjustUp:             20,
+	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
 }
 
 // SimNetParams defines the network parameters for the simulation test Bitcoin
@@ -495,11 +518,11 @@ var SimNetParams = Params{
 	BIP0066Height:            0, // Always active on simnet
 	CoinbaseMaturity:         100,
 	SubsidyReductionInterval: 210000,
-	TargetTimespan:           time.Hour * 24 * 14, // 14 days
-	TargetTimePerBlock:       time.Minute * 10,    // 10 minutes
-	RetargetAdjustmentFactor: 4,                   // 25% less, 400% more
+	TargetTimespan:           30000, // 14 days
+	TargetTimePerBlock:       300,   // 10 minutes
+	RetargetAdjustmentFactor: 2,     // 25% less, 400% more
 	ReduceMinDifficulty:      true,
-	MinDiffReductionTime:     time.Minute * 20, // TargetTimePerBlock * 2
+	MinDiffReductionTime:     time.Minute * 10, // TargetTimePerBlock * 2
 	GenerateSupported:        true,
 
 	// Checkpoints ordered from oldest to newest.
@@ -550,6 +573,15 @@ var SimNetParams = Params{
 	// BIP44 coin type used in the hierarchical deterministic path for
 	// address generation.
 	HDCoinType: 115, // ASCII for s
+
+	// Parallelcoin specific difficulty adjustment parameters
+
+	Interval:                100,
+	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
+	AveragingTargetTimespan: 10 * 300,
+	MaxAdjustDown:           10,
+	MaxAdjustUp:             20,
+	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
 }
 
 var (

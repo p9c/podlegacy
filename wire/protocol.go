@@ -150,13 +150,13 @@ const (
 	MainNet BitcoinNet = 0xffac08cd //0xd9b4bef9
 
 	// TestNet represents the regression test network.
-	TestNet BitcoinNet = 0xcd88a1f0 //0xdab5bffa
+	TestNet BitcoinNet = 0xcd99a1f0 //0xdab5bffa
 
 	// TestNet3 represents the test network (version 3).
-	TestNet3 BitcoinNet = 0x8899b208 //0x0709110b
+	TestNet3 BitcoinNet = 0xcd88a1f0 //0x0709110b
 
 	// SimNet represents the simulation test network.
-	SimNet BitcoinNet = 0xcd99a1f0 //0x12141c16
+	SimNet BitcoinNet = 0x8899b208 //0x12141c16
 )
 
 // bnStrings is a map of bitcoin networks back to their constant names for
