@@ -38,7 +38,7 @@ const (
 	defaultDataDirname          = "data"
 	defaultLogLevel             = "info"
 	defaultLogDirname           = "logs"
-	defaultLogFilename          = "btcd.log"
+	defaultLogFilename          = "pod.log"
 	defaultMaxPeers             = 125
 	defaultBanDuration          = time.Hour * 24
 	defaultBanThreshold         = 100
@@ -57,7 +57,7 @@ const (
 	////////////////////////////////////////////////////////////////////////////
 
 	defaultBlockMinSize          = 0
-	defaultBlockMaxSize          = 750000
+	defaultBlockMaxSize          = 2000000
 	defaultBlockMinWeight        = 0
 	defaultBlockMaxWeight        = 3000000
 	blockMaxSizeMin              = 1000

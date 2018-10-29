@@ -55,7 +55,7 @@ var genesisCoinbaseTx = wire.MsgTx{
 
 // genesisHash is the hash of the first block in the block chain for the main
 // network (genesis block).
-var genesisHash = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet happy.
+var genesisHash = chainhash.Hash([chainhash.HashSize]byte{
 	0xc7, 0xcc, 0x40, 0xc7, 0xc5, 0x4f, 0xd1, 0x39,
 	0x1d, 0xdf, 0x3a, 0xe7, 0xcf, 0x98, 0xf2, 0x8b,
 	0x23, 0xcf, 0xfd, 0x0c, 0x66, 0xd3, 0x04, 0xc9,
@@ -66,7 +66,7 @@ var genesisHash = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet happy.
 
 // genesisMerkleRoot is the hash of the first transaction in the genesis block
 // for the main network.
-var genesisMerkleRoot = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet happy.
+var genesisMerkleRoot = chainhash.Hash([chainhash.HashSize]byte{
 	0xc8, 0x43, 0xea, 0xe4, 0x65, 0x8e, 0x3a, 0x51,
 	0xd2, 0xf2, 0x80, 0xc3, 0x63, 0x76, 0xce, 0x56,
 	0xdc, 0x71, 0xa6, 0xc7, 0x0e, 0x4b, 0x1c, 0x5a,
@@ -89,7 +89,7 @@ var genesisBlock = wire.MsgBlock{
 
 // regTestGenesisHash is the hash of the first block in the block chain for the
 // regression test network (genesis block).
-var regTestGenesisHash = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet happy.
+var regTestGenesisHash = chainhash.Hash([chainhash.HashSize]byte{
 	0x81, 0x91, 0x37, 0x60, 0xab, 0x59, 0x85, 0x57,
 	0x7b, 0x23, 0x4d, 0xf6, 0xe2, 0x65, 0xba, 0x6b,
 	0x48, 0x7e, 0x66, 0x25, 0xc8, 0x52, 0x2a, 0xdc,
@@ -117,7 +117,7 @@ var regTestGenesisBlock = wire.MsgBlock{
 
 // testNet3GenesisHash is the hash of the first block in the block chain for the
 // test network (version 3).
-var testNet3GenesisHash = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet happy.
+var testNet3GenesisHash = chainhash.Hash([chainhash.HashSize]byte{
 	0xdf, 0x0c, 0xb3, 0x5f, 0x69, 0x72, 0x75, 0xe1,
 	0x8f, 0x66, 0xa2, 0x7d, 0xc8, 0xbb, 0x12, 0xfa,
 	0x85, 0x4d, 0xed, 0x22, 0x2c, 0x0c, 0x1b, 0xf9,
@@ -145,7 +145,7 @@ var testNet3GenesisBlock = wire.MsgBlock{
 
 // simNetGenesisHash is the hash of the first block in the block chain for the
 // simulation test network.
-var simNetGenesisHash = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet happy.
+var simNetGenesisHash = chainhash.Hash([chainhash.HashSize]byte{
 	0xdf, 0x0c, 0xb3, 0x5f, 0x69, 0x72, 0x75, 0xe1,
 	0x8f, 0x66, 0xa2, 0x7d, 0xc8, 0xbb, 0x12, 0xfa,
 	0x85, 0x4d, 0xed, 0x22, 0x2c, 0x0c, 0x1b, 0xf9,
