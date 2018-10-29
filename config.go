@@ -34,21 +34,26 @@ import (
 )
 
 const (
-	defaultConfigFilename        = "pod.conf"
-	defaultDataDirname           = "data"
-	defaultLogLevel              = "info"
-	defaultLogDirname            = "logs"
-	defaultLogFilename           = "btcd.log"
-	defaultMaxPeers              = 125
-	defaultBanDuration           = time.Hour * 24
-	defaultBanThreshold          = 100
-	defaultConnectTimeout        = time.Second * 30
-	defaultMaxRPCClients         = 10
-	defaultMaxRPCWebsockets      = 25
-	defaultMaxRPCConcurrentReqs  = 20
-	defaultDbType                = "ffldb"
-	defaultFreeTxRelayLimit      = 15.0
-	defaultTrickleInterval       = peer.DefaultTrickleInterval
+	defaultConfigFilename       = "pod.conf"
+	defaultDataDirname          = "data"
+	defaultLogLevel             = "info"
+	defaultLogDirname           = "logs"
+	defaultLogFilename          = "btcd.log"
+	defaultMaxPeers             = 125
+	defaultBanDuration          = time.Hour * 24
+	defaultBanThreshold         = 100
+	defaultConnectTimeout       = time.Second * 30
+	defaultMaxRPCClients        = 10
+	defaultMaxRPCWebsockets     = 25
+	defaultMaxRPCConcurrentReqs = 20
+	defaultDbType               = "ffldb"
+	defaultFreeTxRelayLimit     = 15.0
+	defaultTrickleInterval      = peer.DefaultTrickleInterval
+
+	////////////////////////////////////////////////////////////////////////////
+	// CHECK ALL THESE WILL COMPLY WITH PARALLELCOIN CONSENSUS !!!!!!!!!!!!!1 //
+	////////////////////////////////////////////////////////////////////////////
+
 	defaultBlockMinSize          = 0
 	defaultBlockMaxSize          = 750000
 	defaultBlockMinWeight        = 0
