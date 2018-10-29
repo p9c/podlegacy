@@ -51,6 +51,8 @@ const (
 	defaultTrickleInterval      = peer.DefaultTrickleInterval
 
 	////////////////////////////////////////////////////////////////////////////
+	// TODO:                                                                  //
+	//                                                                        //
 	// CHECK ALL THESE WILL COMPLY WITH PARALLELCOIN CONSENSUS !!!!!!!!!!!!!1 //
 	////////////////////////////////////////////////////////////////////////////
 
