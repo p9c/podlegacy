@@ -10,7 +10,7 @@ import (
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/btcutil"
 )
 
 // BehaviorFlags is a bitmask defining tweaks to the normal behavior when

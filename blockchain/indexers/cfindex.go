@@ -12,9 +12,9 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/gcs"
-	"github.com/btcsuite/btcutil/gcs/builder"
+	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/btcutil/gcs"
+	"github.com/parallelcointeam/btcutil/gcs/builder"
 )
 
 const (

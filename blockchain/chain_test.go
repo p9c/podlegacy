@@ -12,7 +12,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/btcutil"
 )
 
 // TestHaveBlock tests the HaveBlock API to ensure proper functionality.

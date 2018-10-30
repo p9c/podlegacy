@@ -13,7 +13,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/btcutil"
 )
 
 // This example demonstrates creating a script which pays to a bitcoin address.

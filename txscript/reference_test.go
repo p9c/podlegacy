@@ -17,7 +17,7 @@ import (
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/btcutil"
 )
 
 // scriptTestName returns a descriptive test name for the given reference script

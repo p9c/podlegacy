@@ -290,7 +290,7 @@ information.
     * [mempool](https://github.com/parallelcointeam/pod/tree/master/mempool) -
       Package mempool provides a policy-enforced pool of unmined bitcoin
       transactions.
-    * [btcutil](https://github.com/btcsuite/btcutil) - Provides Bitcoin-specific
+    * [btcutil](https://github.com/parallelcointeam/btcutil) - Provides Bitcoin-specific
       convenience functions and types
     * [chainhash](https://github.com/parallelcointeam/pod/tree/master/chaincfg/chainhash) -
       Provides a generic hash type and associated functions that allows the

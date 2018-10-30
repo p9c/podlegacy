@@ -18,7 +18,7 @@ import (
 	"github.com/parallelcointeam/pod/mempool"
 	peerpkg "github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/btcutil"
 )
 
 const (

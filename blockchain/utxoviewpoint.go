@@ -11,7 +11,7 @@ import (
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/btcutil"
 )
 
 // txoFlags is a bitmask defining additional information and state for a

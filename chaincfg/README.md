@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 )
 

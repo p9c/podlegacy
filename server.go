@@ -36,8 +36,8 @@ import (
 	"github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/bloom"
+	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/btcutil/bloom"
 )
 
 const (

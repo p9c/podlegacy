@@ -15,7 +15,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/database/ffldb"
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/btcutil"
 )
 
 // dbType is the database type name for this driver.

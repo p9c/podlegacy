@@ -11,7 +11,7 @@ import (
 	"github.com/parallelcointeam/pod/btcec"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/btcutil"
 )
 
 // RawTxInWitnessSignature returns the serialized ECDA signature for the input

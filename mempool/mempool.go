@@ -20,7 +20,7 @@ import (
 	"github.com/parallelcointeam/pod/mining"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/btcutil"
 )
 
 const (

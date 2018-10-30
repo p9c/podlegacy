@@ -17,8 +17,8 @@ import (
 	"github.com/parallelcointeam/pod/rpcclient"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/hdkeychain"
+	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/btcutil/hdkeychain"
 )
 
 var (
