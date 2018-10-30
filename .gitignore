@@ -32,3 +32,4 @@ _cgo_export.*
 _testmain.go
 
 *.exe
+docker/legacy/data/*
