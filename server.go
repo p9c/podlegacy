@@ -22,6 +22,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/btcutil/bloom"
 	"github.com/parallelcointeam/pod/addrmgr"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/blockchain/indexers"
@@ -36,8 +38,6 @@ import (
 	"github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
-	"github.com/parallelcointeam/btcutil/bloom"
 )
 
 const (
@@ -600,13 +600,14 @@ func (sp *serverPeer) OnBlock(_ *peer.Peer, msg *wire.MsgBlock, buf []byte) {
 // accordingly.  We pass the message down to blockmanager which will call
 // QueueMessage with any appropriate responses.
 func (sp *serverPeer) OnInv(_ *peer.Peer, msg *wire.MsgInv) {
+	fmt.Println("Received Invs")
 	if !cfg.BlocksOnly {
 		if len(msg.InvList) > 0 {
 			sp.server.syncManager.QueueInv(msg, sp.Peer)
 		}
 		return
 	}
-
+	fmt.Println("Processing Invs")
 	newInv := wire.NewMsgInvSizeHint(uint(len(msg.InvList)))
 	for _, invVect := range msg.InvList {
 		if invVect.Type == wire.InvTypeTx {
