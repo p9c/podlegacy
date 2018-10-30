@@ -346,3 +346,17 @@ func (bi *blockIndex) flushToDB() error {
 	bi.Unlock()
 	return err
 }
+
+// GetAlgo returns the algorithm of a block node
+func (node *blockNode) GetAlgo() int32 {
+	return node.version
+}
+
+// GetPrevWithSameAlgo returns the previous block from the current with the same algorithm
+func (node *blockNode) GetPrevWithSameAlgo() *blockNode {
+	prev := node.RelativeAncestor(1)
+	for node.version != prev.version {
+		prev = node.RelativeAncestor(1)
+	}
+	return prev
+}

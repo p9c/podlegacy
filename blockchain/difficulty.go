@@ -251,21 +251,30 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		return lastNode.bits, nil
 	}
 
-	// Get the block node at the previous retarget (targetTimespan days
-	// worth of blocks).
-	firstNode := lastNode.RelativeAncestor(b.blocksPerRetarget - 1)
+	// // Get the block node at the previous retarget (targetTimespan days
+	// // worth of blocks).
+	// firstNode := lastNode.RelativeAncestor(b.blocksPerRetarget - 1)
+	// if firstNode == nil {
+	// 	return 0, AssertError("unable to obtain previous retarget block")
+	// }
+
+	indexPrev := lastNode.GetPrevWithSameAlgo()
+	firstNode := indexPrev
+	for i := int64(0); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
+		firstNode = firstNode.GetPrevWithSameAlgo()
+	}
 	if firstNode == nil {
-		return 0, AssertError("unable to obtain previous retarget block")
+		return b.chainParams.PowLimitBits, nil
 	}
 
 	// Limit the amount of adjustment that can occur to the previous
 	// difficulty.
 	actualTimespan := lastNode.timestamp - firstNode.timestamp
 	adjustedTimespan := actualTimespan
-	if actualTimespan < b.minRetargetTimespan {
-		adjustedTimespan = b.minRetargetTimespan
-	} else if actualTimespan > b.maxRetargetTimespan {
-		adjustedTimespan = b.maxRetargetTimespan
+	if actualTimespan < b.chainParams.MinActualTimespan {
+		adjustedTimespan = b.chainParams.MinActualTimespan
+	} else if actualTimespan > b.chainParams.MaxActualTimespan {
+		adjustedTimespan = b.chainParams.MaxActualTimespan
 	}
 
 	// Calculate new target difficulty as:

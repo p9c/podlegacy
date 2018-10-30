@@ -31,7 +31,7 @@ var (
 
 	// mainPowLimit is the highest proof of work value a Parallelcoin block can
 	// have for the main network.  It is the maximum target / 2^160
-	mainPowLimit = allOnes.Lsh(&allOnes, 20)
+	mainPowLimit = allOnes.Rsh(&allOnes, 10)
 
 	// regressionPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the regression test network.  It is the value 2^255 - 1, all ones, 256 bits.
@@ -39,7 +39,7 @@ var (
 
 	// testNet3PowLimit is the highest proof of work value a Bitcoin block
 	// can have for the test network (version 3).  It is the maximum target / 2^160
-	testNet3PowLimit = allOnes.Lsh(&allOnes, 20)
+	testNet3PowLimit = allOnes.Rsh(&allOnes, 10)
 
 	// simNetPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the simulation test network.  It is the value 2^255 - 1, all ones, 256 bits.
@@ -234,6 +234,8 @@ type Params struct {
 	MaxAdjustDown           int64
 	MaxAdjustUp             int64
 	TargetTimespanAdjDown   int64
+	MinActualTimespan       int64
+	MaxActualTimespan       int64
 }
 
 // MainNetParams defines the network parameters for the main Bitcoin network.
@@ -321,6 +323,8 @@ var MainNetParams = Params{
 	MaxAdjustDown:           10,
 	MaxAdjustUp:             20,
 	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
+	MinActualTimespan:       10 * 300 * (100 - 20) / 100,
+	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
 }
 
 // RegressionNetParams defines the network parameters for the regression test
@@ -404,6 +408,8 @@ var RegressionNetParams = Params{
 	MaxAdjustDown:           10,
 	MaxAdjustUp:             20,
 	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
+	MinActualTimespan:       10 * 300 * (100 - 20) / 100,
+	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
 }
 
 // TestNet3Params defines the network parameters for the test Bitcoin network
@@ -493,6 +499,8 @@ var TestNet3Params = Params{
 	MaxAdjustDown:           10,
 	MaxAdjustUp:             20,
 	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
+	MinActualTimespan:       10 * 300 * (100 - 20) / 100,
+	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
 }
 
 // SimNetParams defines the network parameters for the simulation test Bitcoin
@@ -582,6 +590,8 @@ var SimNetParams = Params{
 	MaxAdjustDown:           10,
 	MaxAdjustUp:             20,
 	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
+	MinActualTimespan:       10 * 300 * (100 - 20) / 100,
+	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
 }
 
 var (
