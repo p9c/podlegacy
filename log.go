@@ -22,7 +22,7 @@ import (
 	"github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/txscript"
 
-	"github.com/btcsuite/btclog"
+	"github.com/parallelcointeam/btclog"
 	"github.com/jrick/logrotate/rotator"
 )
 

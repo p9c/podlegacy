@@ -12,7 +12,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btclog"
+	"github.com/parallelcointeam/btclog"
 )
 
 const (

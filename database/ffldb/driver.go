@@ -9,7 +9,7 @@ import (
 
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/btclog"
+	"github.com/parallelcointeam/btclog"
 )
 
 var log = btclog.Disabled

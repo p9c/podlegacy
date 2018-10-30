@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/parallelcointeam/pod/database"
-	"github.com/btcsuite/btclog"
+	"github.com/parallelcointeam/btclog"
 	flags "github.com/jessevdk/go-flags"
 )
 
