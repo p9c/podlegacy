@@ -255,8 +255,8 @@ var MainNetParams = Params{
 	BIP0066Height:            1000000,
 	CoinbaseMaturity:         100,
 	SubsidyReductionInterval: 250000,
-	TargetTimespan:           30000,
-	TargetTimePerBlock:       300,
+	TargetTimespan:           time.Second * 30000,
+	TargetTimePerBlock:       time.Second * 300,
 	RetargetAdjustmentFactor: 2, // 50% less, 200% more (not used in parallelcoin)
 	ReduceMinDifficulty:      false,
 	MinDiffReductionTime:     0,
@@ -342,11 +342,11 @@ var RegressionNetParams = Params{
 	BIP0065Height:            100000000, // Used by regression tests
 	BIP0066Height:            100000000, // Used by regression tests
 	SubsidyReductionInterval: 150,
-	TargetTimespan:           30000, // 14 days
-	TargetTimePerBlock:       300,   // 5 minutes
-	RetargetAdjustmentFactor: 2,     // 50% less, 200% more
+	TargetTimespan:           time.Second * 30000, // 14 days
+	TargetTimePerBlock:       time.Second * 300,   // 5 minutes
+	RetargetAdjustmentFactor: 2,                   // 50% less, 200% more
 	ReduceMinDifficulty:      true,
-	MinDiffReductionTime:     time.Minute * 10, // TargetTimePerBlock * 2
+	MinDiffReductionTime:     300 * 2,
 	GenerateSupported:        true,
 
 	// Checkpoints ordered from oldest to newest.
@@ -427,8 +427,8 @@ var TestNet3Params = Params{
 	BIP0066Height:            1000000, // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
 	CoinbaseMaturity:         100,
 	SubsidyReductionInterval: 250000,
-	TargetTimespan:           30000,
-	TargetTimePerBlock:       300,
+	TargetTimespan:           time.Second * 30000,
+	TargetTimePerBlock:       time.Second * 300,
 	RetargetAdjustmentFactor: 2,
 	ReduceMinDifficulty:      true,
 	MinDiffReductionTime:     time.Minute * 10, // TargetTimePerBlock * 2
@@ -518,9 +518,9 @@ var SimNetParams = Params{
 	BIP0066Height:            0, // Always active on simnet
 	CoinbaseMaturity:         100,
 	SubsidyReductionInterval: 210000,
-	TargetTimespan:           30000, // 14 days
-	TargetTimePerBlock:       300,   // 10 minutes
-	RetargetAdjustmentFactor: 2,     // 25% less, 400% more
+	TargetTimespan:           time.Second * 30000, // 14 days
+	TargetTimePerBlock:       time.Second * 300,   // 10 minutes
+	RetargetAdjustmentFactor: 2,                   // 25% less, 400% more
 	ReduceMinDifficulty:      true,
 	MinDiffReductionTime:     time.Minute * 10, // TargetTimePerBlock * 2
 	GenerateSupported:        true,

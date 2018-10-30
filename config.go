@@ -20,9 +20,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/parallelcointeam/btcutil"
 	"github.com/btcsuite/go-socks/socks"
 	flags "github.com/jessevdk/go-flags"
+	"github.com/parallelcointeam/btcutil"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
@@ -56,9 +56,9 @@ const (
 	// CHECK ALL THESE WILL COMPLY WITH PARALLELCOIN CONSENSUS !!!!!!!!!!!!!1 //
 	////////////////////////////////////////////////////////////////////////////
 
-	defaultBlockMinSize          = 0
-	defaultBlockMaxSize          = 2000000
-	defaultBlockMinWeight        = 0
+	defaultBlockMinSize          = 80
+	defaultBlockMaxSize          = 200000
+	defaultBlockMinWeight        = 10
 	defaultBlockMaxWeight        = 3000000
 	blockMaxSizeMin              = 1000
 	blockMaxSizeMax              = blockchain.MaxBlockBaseSize - 1000
