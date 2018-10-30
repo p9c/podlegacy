@@ -7,15 +7,16 @@ package blockchain
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"sync"
 	"time"
 
+	"github.com/parallelcointeam/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
 )
 
 const (
@@ -1005,6 +1006,8 @@ func dbPutBestState(dbTx database.Tx, snapshot *BestState, workSum *big.Int) err
 func (b *BlockChain) createChainState() error {
 	// Create a new node from the genesis block and set it as the best node.
 	genesisBlock := btcutil.NewBlock(b.chainParams.GenesisBlock)
+	xx, _ := genesisBlock.Bytes()
+	log.Trace(hex.EncodeToString(xx))
 	genesisBlock.SetHeight(0)
 	header := &genesisBlock.MsgBlock().Header
 	node := newBlockNode(header, nil)
@@ -1173,6 +1176,8 @@ func (b *BlockChain) initChainState() error {
 			var parent *blockNode
 			if lastNode == nil {
 				blockHash := header.BlockHash()
+				fmt.Println("header", header)
+				fmt.Println("blockHash", blockHash)
 				if !blockHash.IsEqual(b.chainParams.GenesisHash) {
 					return AssertError(fmt.Sprintf("initChainState: Expected "+
 						"first entry in block index to be genesis block, "+
