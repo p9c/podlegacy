@@ -11,11 +11,11 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/parallelcointeam/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
 )
 
 const (
@@ -654,6 +654,10 @@ func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode 
 		}
 		blockDifficulty := header.Bits
 		if blockDifficulty != expectedDifficulty {
+			fmt.Println("block difficulty   ", blockDifficulty, CompactToBig(blockDifficulty))
+			fmt.Println("expected difficulty", expectedDifficulty, CompactToBig(expectedDifficulty))
+			// fmt.Println("                   ", CompactToBig(blockDifficulty).Div(CompactToBig(blockDifficulty), CompactToBig(expectedDifficulty)))
+			// fmt.Println("                   ", CompactToBig(expectedDifficulty).Div(CompactToBig(expectedDifficulty), CompactToBig(blockDifficulty)))
 			str := "block difficulty of %d is not the expected value of %d"
 			str = fmt.Sprintf(str, blockDifficulty, expectedDifficulty)
 			return ruleError(ErrUnexpectedDifficulty, str)

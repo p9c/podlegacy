@@ -355,6 +355,9 @@ func (node *blockNode) GetAlgo() int32 {
 // GetPrevWithSameAlgo returns the previous block from the current with the same algorithm
 func (node *blockNode) GetPrevWithSameAlgo() *blockNode {
 	prev := node.RelativeAncestor(1)
+	if prev == nil {
+		return prev
+	}
 	for node.version != prev.version {
 		prev = node.RelativeAncestor(1)
 	}

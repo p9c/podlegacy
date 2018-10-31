@@ -11,12 +11,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/parallelcointeam/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
 )
 
 const (
@@ -1745,8 +1745,8 @@ func New(config *Config) (*BlockChain, error) {
 	}
 
 	params := config.ChainParams
-	targetTimespan := int64(params.TargetTimespan / time.Second)
-	targetTimePerBlock := int64(params.TargetTimePerBlock / time.Second)
+	targetTimespan := int64(params.TargetTimespan)
+	targetTimePerBlock := int64(params.TargetTimePerBlock)
 	adjustmentFactor := params.RetargetAdjustmentFactor
 	b := BlockChain{
 		checkpoints:         config.Checkpoints,

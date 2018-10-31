@@ -31,7 +31,7 @@ var (
 
 	// mainPowLimit is the highest proof of work value a Parallelcoin block can
 	// have for the main network.  It is the maximum target / 2^160
-	mainPowLimit = allOnes.Rsh(&allOnes, 10)
+	mainPowLimit = allOnes.Rsh(&allOnes, 8)
 
 	// regressionPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the regression test network.  It is the value 2^255 - 1, all ones, 256 bits.
@@ -39,7 +39,7 @@ var (
 
 	// testNet3PowLimit is the highest proof of work value a Bitcoin block
 	// can have for the test network (version 3).  It is the maximum target / 2^160
-	testNet3PowLimit = allOnes.Rsh(&allOnes, 10)
+	testNet3PowLimit = allOnes.Rsh(&allOnes, 8)
 
 	// simNetPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the simulation test network.  It is the value 2^255 - 1, all ones, 256 bits.
@@ -158,11 +158,11 @@ type Params struct {
 	// before the block difficulty requirement is examined to determine how
 	// it should be changed in order to maintain the desired block
 	// generation rate.
-	TargetTimespan time.Duration
+	TargetTimespan int64
 
 	// TargetTimePerBlock is the desired amount of time to generate each
 	// block. Same as TargetSpacing in legacy client.
-	TargetTimePerBlock time.Duration
+	TargetTimePerBlock int64
 
 	// RetargetAdjustmentFactor is the adjustment factor used to limit
 	// the minimum and maximum amount of adjustment that can occur between
@@ -251,14 +251,14 @@ var MainNetParams = Params{
 	GenesisBlock:             &genesisBlock,
 	GenesisHash:              &genesisHash,
 	PowLimit:                 mainPowLimit,
-	PowLimitBits:             0x1d00ffff,
+	PowLimitBits:             0x1e0fffff,
 	BIP0034Height:            1000000, // Reserved for future change
 	BIP0065Height:            1000000,
 	BIP0066Height:            1000000,
 	CoinbaseMaturity:         100,
 	SubsidyReductionInterval: 250000,
-	TargetTimespan:           time.Second * 30000,
-	TargetTimePerBlock:       time.Second * 300,
+	TargetTimespan:           30000,
+	TargetTimePerBlock:       300,
 	RetargetAdjustmentFactor: 2, // 50% less, 200% more (not used in parallelcoin)
 	ReduceMinDifficulty:      false,
 	MinDiffReductionTime:     0,
@@ -319,12 +319,12 @@ var MainNetParams = Params{
 
 	Interval:                100,
 	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
-	AveragingTargetTimespan: 10 * 300,
+	AveragingTargetTimespan: 3000,
 	MaxAdjustDown:           10,
 	MaxAdjustUp:             20,
-	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
-	MinActualTimespan:       10 * 300 * (100 - 20) / 100,
-	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
+	TargetTimespanAdjDown:   3000 * (100 + 10) / 100,
+	MinActualTimespan:       3000 * (100 - 20) / 100,
+	MaxActualTimespan:       3000 * (100 + 10) / 100,
 }
 
 // RegressionNetParams defines the network parameters for the regression test
@@ -346,9 +346,9 @@ var RegressionNetParams = Params{
 	BIP0065Height:            100000000, // Used by regression tests
 	BIP0066Height:            100000000, // Used by regression tests
 	SubsidyReductionInterval: 150,
-	TargetTimespan:           time.Second * 30000, // 14 days
-	TargetTimePerBlock:       time.Second * 300,   // 5 minutes
-	RetargetAdjustmentFactor: 2,                   // 50% less, 200% more
+	TargetTimespan:           30000, // 14 days
+	TargetTimePerBlock:       300,   // 5 minutes
+	RetargetAdjustmentFactor: 2,     // 50% less, 200% more
 	ReduceMinDifficulty:      true,
 	MinDiffReductionTime:     300 * 2,
 	GenerateSupported:        true,
@@ -433,8 +433,8 @@ var TestNet3Params = Params{
 	BIP0066Height:            1000000, // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
 	CoinbaseMaturity:         100,
 	SubsidyReductionInterval: 250000,
-	TargetTimespan:           time.Second * 30000,
-	TargetTimePerBlock:       time.Second * 300,
+	TargetTimespan:           30000,
+	TargetTimePerBlock:       300,
 	RetargetAdjustmentFactor: 2,
 	ReduceMinDifficulty:      true,
 	MinDiffReductionTime:     time.Minute * 10, // TargetTimePerBlock * 2
@@ -526,9 +526,9 @@ var SimNetParams = Params{
 	BIP0066Height:            0, // Always active on simnet
 	CoinbaseMaturity:         100,
 	SubsidyReductionInterval: 210000,
-	TargetTimespan:           time.Second * 30000, // 14 days
-	TargetTimePerBlock:       time.Second * 300,   // 10 minutes
-	RetargetAdjustmentFactor: 2,                   // 25% less, 400% more
+	TargetTimespan:           30000, // 14 days
+	TargetTimePerBlock:       300,   // 10 minutes
+	RetargetAdjustmentFactor: 2,     // 25% less, 400% more
 	ReduceMinDifficulty:      true,
 	MinDiffReductionTime:     time.Minute * 10, // TargetTimePerBlock * 2
 	GenerateSupported:        true,
