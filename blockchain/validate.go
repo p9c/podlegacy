@@ -306,7 +306,13 @@ func CheckTransactionSanity(tx *btcutil.Tx) error {
 //    difficulty is not performed.
 func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags BehaviorFlags) error {
 	// The target difficulty must be larger than zero.
+	pl := powLimit
+
 	target := CompactToBig(header.Bits)
+	if header.Version == 514 {
+		pl = chaincfg.MainPowLimit
+		target = pl
+	}
 	if target.Sign() <= 0 {
 		str := fmt.Sprintf("block target difficulty of %064x is too low",
 			target)
@@ -314,9 +320,9 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 	}
 
 	// The target difficulty must be less than the maximum allowed.
-	if target.Cmp(powLimit) > 0 {
+	if target.Cmp(pl) > 0 {
 		str := fmt.Sprintf("block target difficulty of %064x is "+
-			"higher than max of %064x", target, powLimit)
+			"higher than max of %064x", target, pl)
 		return ruleError(ErrUnexpectedDifficulty, str)
 	}
 

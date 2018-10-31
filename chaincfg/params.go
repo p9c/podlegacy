@@ -31,7 +31,8 @@ var (
 
 	// mainPowLimit is the highest proof of work value a Parallelcoin block can
 	// have for the main network.  It is the maximum target / 2^160
-	mainPowLimit = allOnes.Rsh(&allOnes, 8)
+	mainPowLimit = allOnes.Rsh(&allOnes, 0)
+	MainPowLimit = mainPowLimit
 
 	// regressionPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the regression test network.  It is the value 2^255 - 1, all ones, 256 bits.
@@ -39,7 +40,7 @@ var (
 
 	// testNet3PowLimit is the highest proof of work value a Bitcoin block
 	// can have for the test network (version 3).  It is the maximum target / 2^160
-	testNet3PowLimit = allOnes.Rsh(&allOnes, 8)
+	testNet3PowLimit = allOnes.Rsh(&allOnes, 0)
 
 	// simNetPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the simulation test network.  It is the value 2^255 - 1, all ones, 256 bits.
