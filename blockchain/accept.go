@@ -22,7 +22,7 @@ import (
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags) (bool, error) {
-	fmt.Println("maybeAcceptBlock")
+	// fmt.Println("maybeAcceptBlock")
 	// The height of this block is one more than the referenced previous
 	// block.
 	prevHash := &block.MsgBlock().Header.PrevBlock
@@ -40,26 +40,38 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 
 	// TODO
 	// To deal with multiple mining algorithms, we must check first the block header version.
-	fmt.Println("block version   ", block.MsgBlock().Header.Version)
-	fmt.Println("prevnode version", prevNode.version)
-	// fmt.Println("prev with same  ", prevNode.GetPrevWithAlgo(block.MsgBlock().Header.Version))
 	// Rather than pass the direct previous by height, we look for the previous of the same algorithm and pass that.
+	var DoNotCheckPow bool
+	var pn *blockNode
 	if prevNode.version != block.MsgBlock().Header.Version {
-		prevNode = prevNode.GetPrevWithAlgo(block.MsgBlock().Header.Version)
+		var i int64
+		pn = prevNode
+		for ; i < b.chainParams.AveragingInterval-1; i++ {
+			pn = pn.GetPrevWithAlgo(block.MsgBlock().Header.Version)
+			// fmt.Println("pn ", pn)
+			if pn == nil {
+				// fmt.Println("passed genesis looking for previous of algo")
+				break
+			}
+		}
+		// fmt.Println("stepped back", i, "blocks to genesis")
 	}
 
 	var err error
-	if prevNode == nil {
-		fmt.Println("not enough blocks for adjustment")
+	if pn == nil {
+		// fmt.Println("not enough blocks for adjustment")
+		// DoNotCheckPow = true
 		// return true, err
 	} else {
 		// The block must pass all of the validation rules which depend on the
 		// position of the block within the block chain.
-		err = b.checkBlockContext(block, prevNode, flags)
+		// fmt.Println("enough blocks for adjustment")
+		err = b.checkBlockContext(block, prevNode, flags, DoNotCheckPow)
 		if err != nil {
 			return false, err
 		}
 	}
+
 	// Insert the block into the database if it's not already there.  Even
 	// though it is possible the block will ultimately fail to connect, it
 	// has already passed all proof-of-work and validity tests which means
@@ -72,7 +84,7 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	err = b.db.Update(func(dbTx database.Tx) error {
 		return dbStoreBlock(dbTx, block)
 	})
-	fmt.Println("adding block", err)
+	// fmt.Println("adding block", err)
 	if err != nil {
 		return false, err
 	}

@@ -6,6 +6,7 @@ package netsync
 
 import (
 	"container/list"
+	"fmt"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -576,6 +577,7 @@ func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
 		if _, ok := err.(blockchain.RuleError); ok {
 			log.Infof("Rejected block %v from %s: %v", blockHash,
 				peer, err)
+			fmt.Println("height", bmsg.block.Height())
 		} else {
 			log.Errorf("Failed to process block %v: %v",
 				blockHash, err)

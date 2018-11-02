@@ -5,6 +5,7 @@
 package chaincfg
 
 import (
+	"encoding/hex"
 	"errors"
 	"math"
 	"math/big"
@@ -18,8 +19,8 @@ import (
 // These variables are the chain proof-of-work limit parameters for each default
 // network.
 var (
-	// allOnes is 32 bytes of 0xff, the maximum target
-	allOnes = func() big.Int {
+	// AllOnes is 32 bytes of 0xff, the maximum target
+	AllOnes = func() big.Int {
 		b := big.NewInt(1)
 		t := make([]byte, 32)
 		for i := range t {
@@ -31,20 +32,29 @@ var (
 
 	// mainPowLimit is the highest proof of work value a Parallelcoin block can
 	// have for the main network.  It is the maximum target / 2^160
-	mainPowLimit = allOnes.Rsh(&allOnes, 0)
-	MainPowLimit = mainPowLimit
-
+	mainPowLimit = func() big.Int {
+		mplb, _ := hex.DecodeString("00000fffff000000000000000000000000000000000000000000000000000000")
+		return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
+	}()
+	MainPowLimit     = mainPowLimit
+	MainPowLimitBits = uint32(0x1e0fffff)
+	scryptPowLimit   = func() big.Int {
+		mplb, _ := hex.DecodeString("fffff00000000000000000000000000000000000000000000000000000000000")
+		return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
+	}()
+	ScryptPowLimit     = scryptPowLimit
+	ScryptPowLimitBits = uint32(0x1e0fffff)
 	// regressionPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the regression test network.  It is the value 2^255 - 1, all ones, 256 bits.
-	regressionPowLimit = &allOnes
+	regressionPowLimit = &AllOnes
 
 	// testNet3PowLimit is the highest proof of work value a Bitcoin block
 	// can have for the test network (version 3).  It is the maximum target / 2^160
-	testNet3PowLimit = allOnes.Rsh(&allOnes, 0)
+	testNet3PowLimit = mainPowLimit
 
 	// simNetPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the simulation test network.  It is the value 2^255 - 1, all ones, 256 bits.
-	simNetPowLimit = &allOnes
+	simNetPowLimit = &AllOnes
 )
 
 // Checkpoint identifies a known good point in the block chain.  Using
@@ -237,6 +247,9 @@ type Params struct {
 	TargetTimespanAdjDown   int64
 	MinActualTimespan       int64
 	MaxActualTimespan       int64
+	// PowLimit defines the highest allowed proof of work value for a scrypt block as a uint256.
+	ScryptPowLimit     *big.Int
+	ScryptPowLimitBits uint32
 }
 
 // MainNetParams defines the network parameters for the main Bitcoin network.
@@ -251,9 +264,9 @@ var MainNetParams = Params{
 	// Chain parameters
 	GenesisBlock:             &genesisBlock,
 	GenesisHash:              &genesisHash,
-	PowLimit:                 mainPowLimit,
-	PowLimitBits:             0x1e0fffff,
-	BIP0034Height:            1000000, // Reserved for future change
+	PowLimit:                 &mainPowLimit,
+	PowLimitBits:             MainPowLimitBits, //0x1e0fffff,
+	BIP0034Height:            1000000,          // Reserved for future change
 	BIP0065Height:            1000000,
 	BIP0066Height:            1000000,
 	CoinbaseMaturity:         100,
@@ -326,6 +339,8 @@ var MainNetParams = Params{
 	TargetTimespanAdjDown:   3000 * (100 + 10) / 100,
 	MinActualTimespan:       3000 * (100 - 20) / 100,
 	MaxActualTimespan:       3000 * (100 + 10) / 100,
+	ScryptPowLimit:          &scryptPowLimit,
+	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
 
 // RegressionNetParams defines the network parameters for the regression test
@@ -411,6 +426,8 @@ var RegressionNetParams = Params{
 	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
 	MinActualTimespan:       10 * 300 * (100 - 20) / 100,
 	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
+	ScryptPowLimit:          &scryptPowLimit,
+	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
 
 // TestNet3Params defines the network parameters for the test Bitcoin network
@@ -427,7 +444,7 @@ var TestNet3Params = Params{
 	// Chain parameters
 	GenesisBlock:             &testNet3GenesisBlock,
 	GenesisHash:              &testNet3GenesisHash,
-	PowLimit:                 testNet3PowLimit,
+	PowLimit:                 &testNet3PowLimit,
 	PowLimitBits:             0x1d00ffff,
 	BIP0034Height:            1000000, // 0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8
 	BIP0065Height:            1000000, // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
@@ -502,6 +519,8 @@ var TestNet3Params = Params{
 	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
 	MinActualTimespan:       10 * 300 * (100 - 20) / 100,
 	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
+	ScryptPowLimit:          &scryptPowLimit,
+	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
 
 // SimNetParams defines the network parameters for the simulation test Bitcoin
@@ -593,6 +612,8 @@ var SimNetParams = Params{
 	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
 	MinActualTimespan:       10 * 300 * (100 - 20) / 100,
 	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
+	ScryptPowLimit:          &scryptPowLimit,
+	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
 
 var (

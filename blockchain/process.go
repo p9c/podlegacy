@@ -6,9 +6,11 @@ package blockchain
 
 import (
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 )
@@ -48,7 +50,7 @@ func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 	err := b.db.View(func(dbTx database.Tx) error {
 		var err error
 		exists, err = dbTx.HasBlock(hash)
-		fmt.Println("HasBlock", exists, err)
+		// fmt.Println("HasBlock", exists, err)
 		if err != nil || !exists {
 			return err
 		}
@@ -64,7 +66,7 @@ func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 		// directly.
 		_, err = dbFetchHeightByHash(dbTx, hash)
 		if isNotInMainChainErr(err) {
-			fmt.Println("is not on main chain")
+			// fmt.Println("is not on main chain")
 			exists = false
 			return nil
 		}
@@ -83,7 +85,7 @@ func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) error {
-	fmt.Println("processOrphans")
+	// fmt.Println("processOrphans")
 	// Start with processing at least the passed hash.  Leave a little room
 	// for additional orphan blocks that need to be processed without
 	// needing to grow the array in the common case.
@@ -143,7 +145,6 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bool, bool, error) {
-	fmt.Println("ProcessBlock")
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
 
@@ -169,7 +170,31 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	}
 
 	// Perform preliminary sanity checks on the block and its transactions.
-	err = checkBlockSanity(block, b.chainParams.PowLimit, b.timeSource, flags)
+	var DoNotCheckPow bool
+	var pl *big.Int
+	ph := &block.MsgBlock().Header.PrevBlock
+	pn := b.index.LookupNode(ph)
+	if pn == nil {
+		// fmt.Println("did not find???")
+		DoNotCheckPow = true
+	}
+	pb := pn.GetPrevWithAlgo(block.MsgBlock().Header.Version)
+	if pb == nil {
+		// fmt.Println("not enough prior blocks on algo")
+		pl = &chaincfg.AllOnes
+		DoNotCheckPow = true
+	} else {
+		switch block.MsgBlock().Header.Version {
+		case 2:
+			// fmt.Println("sha256d pow block")
+			pl = b.chainParams.PowLimit
+		case 514:
+			// fmt.Println("scrypt pow block")
+			pl = b.chainParams.ScryptPowLimit
+		}
+	}
+
+	err = checkBlockSanity(block, pl, b.timeSource, flags, DoNotCheckPow)
 	if err != nil {
 		return false, false, err
 	}
@@ -216,9 +241,9 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 
 	// Handle orphan blocks.
 	prevHash := &blockHeader.PrevBlock
-	fmt.Println("prevHash", prevHash)
+	// fmt.Println("prevHash", prevHash)
 	prevHashExists, err := b.blockExists(prevHash)
-	fmt.Println("prevHashExists", prevHashExists)
+	// fmt.Println("prevHashExists", prevHashExists)
 	if err != nil {
 		return false, false, err
 	}
@@ -232,7 +257,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	// The block has passed all context independent checks and appears sane
 	// enough to potentially accept it into the block chain.
 	isMainChain, err := b.maybeAcceptBlock(block, flags)
-	fmt.Println("mainchain?", isMainChain)
+	// fmt.Println("mainchain?", isMainChain)
 	if err != nil {
 		return false, false, err
 	}
@@ -242,7 +267,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	// there are no more.
 	err = b.processOrphans(blockHash, flags)
 	if err != nil {
-		fmt.Println("is orphaned")
+		// fmt.Println("is orphaned")
 		return false, false, err
 	}
 

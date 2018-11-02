@@ -305,12 +305,14 @@ func CheckTransactionSanity(tx *btcutil.Tx) error {
 //  - BFNoPoWCheck: The check to ensure the block hash is less than the target
 //    difficulty is not performed.
 func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags BehaviorFlags) error {
+	// fmt.Println("checkProofOfWork")
 	// The target difficulty must be larger than zero.
 	pl := powLimit
 
 	target := CompactToBig(header.Bits)
 	if header.Version == 514 {
-		pl = chaincfg.MainPowLimit
+
+		pl = &chaincfg.ScryptPowLimit
 		target = pl
 	}
 	if target.Sign() <= 0 {
@@ -330,6 +332,7 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 	// to avoid proof of work checks is set.
 	if flags&BFNoPoWCheck != BFNoPoWCheck {
 		// The block hash must be less than the claimed target.
+		// Unless there is less than 10 previous with the same version (algo)...
 		hash := header.BlockHash()
 		hashNum := HashToBig(&hash)
 		if hashNum.Cmp(target) > 0 {
@@ -434,6 +437,7 @@ func CountP2SHSigOps(tx *btcutil.Tx, isCoinBaseTx bool, utxoView *UtxoViewpoint)
 // The flags do not modify the behavior of this function directly, however they
 // are needed to pass along to checkProofOfWork.
 func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags) error {
+	// fmt.Println("checkBlockHeaderSanity")
 	// Ensure the proof of work bits in the block header is in min/max range
 	// and the block hash is less than the target value described by the
 	// bits.
@@ -470,7 +474,8 @@ func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSou
 //
 // The flags do not modify the behavior of this function directly, however they
 // are needed to pass along to checkBlockHeaderSanity.
-func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags) error {
+func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags, DoNotCheckPow bool) error {
+	// fmt.Println("checkBlockSanity")
 	msgBlock := block.MsgBlock()
 	header := &msgBlock.Header
 	err := checkBlockHeaderSanity(header, powLimit, timeSource, flags)
@@ -577,8 +582,8 @@ func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource Median
 
 // CheckBlockSanity performs some preliminary checks on a block to ensure it is
 // sane before continuing with block processing.  These checks are context free.
-func CheckBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource) error {
-	return checkBlockSanity(block, powLimit, timeSource, BFNone)
+func CheckBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, DoNotCheckPow bool) error {
+	return checkBlockSanity(block, powLimit, timeSource, BFNone, DoNotCheckPow)
 }
 
 // ExtractCoinbaseHeight attempts to extract the height of the block from the
@@ -648,6 +653,9 @@ func checkSerializedHeight(coinbaseTx *btcutil.Tx, wantHeight int32) error {
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode *blockNode, flags BehaviorFlags) error {
+	if prevNode == nil {
+		return nil
+	}
 	fastAdd := flags&BFFastAdd == BFFastAdd
 	if !fastAdd {
 		// Ensure the difficulty specified in the block header matches
@@ -660,8 +668,9 @@ func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode 
 		}
 		blockDifficulty := header.Bits
 		if blockDifficulty != expectedDifficulty {
-			fmt.Println("block difficulty   ", blockDifficulty, CompactToBig(blockDifficulty))
-			fmt.Println("expected difficulty", expectedDifficulty, CompactToBig(expectedDifficulty))
+			// fmt.Printf("block difficulty    %08x, %d\n", blockDifficulty, CompactToBig(blockDifficulty))
+			// fmt.Printf("expected difficulty %08x, %d\n", expectedDifficulty, CompactToBig(expectedDifficulty))
+
 			// fmt.Println("                   ", CompactToBig(blockDifficulty).Div(CompactToBig(blockDifficulty), CompactToBig(expectedDifficulty)))
 			// fmt.Println("                   ", CompactToBig(expectedDifficulty).Div(CompactToBig(expectedDifficulty), CompactToBig(blockDifficulty)))
 			str := "block difficulty of %d is not the expected value of %d"
@@ -733,7 +742,8 @@ func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode 
 // for how the flags modify its behavior.
 //
 // This function MUST be called with the chain state lock held (for writes).
-func (b *BlockChain) checkBlockContext(block *btcutil.Block, prevNode *blockNode, flags BehaviorFlags) error {
+func (b *BlockChain) checkBlockContext(block *btcutil.Block, prevNode *blockNode, flags BehaviorFlags, DoNotCheckPow bool) error {
+	// fmt.Println("checkBlockContext")
 	// Perform all block header related validation checks.
 	header := &block.MsgBlock().Header
 	err := b.checkBlockHeaderContext(header, prevNode, flags)
@@ -1270,12 +1280,12 @@ func (b *BlockChain) CheckConnectBlockTemplate(block *btcutil.Block) error {
 		return ruleError(ErrPrevBlockNotBest, str)
 	}
 
-	err := checkBlockSanity(block, b.chainParams.PowLimit, b.timeSource, flags)
+	err := checkBlockSanity(block, b.chainParams.PowLimit, b.timeSource, flags, true)
 	if err != nil {
 		return err
 	}
 
-	err = b.checkBlockContext(block, tip, flags)
+	err = b.checkBlockContext(block, tip, flags, true)
 	if err != nil {
 		return err
 	}

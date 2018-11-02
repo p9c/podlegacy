@@ -5,7 +5,6 @@
 package blockchain
 
 import (
-	"fmt"
 	"math/big"
 	"sort"
 	"sync"
@@ -355,16 +354,20 @@ func (node *blockNode) GetAlgo() int32 {
 
 // GetPrevWithAlgo returns the previous block from the current with the same algorithm
 func (node *blockNode) GetPrevWithAlgo(algo int32) (prev *blockNode) {
+	if node == nil {
+		return nil
+	}
+	if node.GetAlgo() == algo {
+		return node
+	}
 	prev = node.RelativeAncestor(1)
-	counter := 1
 	if prev == nil {
 		return
 	}
 	for algo != prev.version {
 		prev = prev.RelativeAncestor(1)
-		counter++
 		if prev == nil {
-			fmt.Println("passed genesis block")
+			// fmt.Println("passed genesis block")
 			return
 		}
 	}

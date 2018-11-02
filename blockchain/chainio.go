@@ -1176,8 +1176,8 @@ func (b *BlockChain) initChainState() error {
 			var parent *blockNode
 			if lastNode == nil {
 				blockHash := header.BlockHash()
-				fmt.Println("header", header)
-				fmt.Println("blockHash", blockHash)
+				// fmt.Println("header", header)
+				// fmt.Println("blockHash", blockHash)
 				if !blockHash.IsEqual(b.chainParams.GenesisHash) {
 					return AssertError(fmt.Sprintf("initChainState: Expected "+
 						"first entry in block index to be genesis block, "+

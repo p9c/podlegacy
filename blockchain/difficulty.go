@@ -220,11 +220,28 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
 func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo int32) (uint32, error) {
-	// Genesis block.
-	if lastNode == nil {
-		return b.chainParams.PowLimitBits, nil
+	var powLimit *big.Int
+	var powLimitBits uint32
+	switch algo {
+	case 2:
+		powLimit = b.chainParams.PowLimit
+		powLimitBits = b.chainParams.PowLimitBits
+	case 514:
+		powLimit = b.chainParams.ScryptPowLimit
+		powLimitBits = b.chainParams.ScryptPowLimitBits
 	}
 
+	// Genesis block.
+	if lastNode == nil {
+		return powLimitBits, nil
+	}
+
+	prevNode := lastNode
+	// fmt.Printf("lastNode bits %08x %d %d\n", prevNode.bits, prevNode.height, prevNode.version)
+	if prevNode.version != algo {
+		prevNode = prevNode.GetPrevWithAlgo(algo)
+	}
+	// fmt.Printf("prevNode bits %08x %d %d\n", prevNode.bits, prevNode.height, prevNode.version)
 	// Return the previous block's difficulty requirements if this block
 	// is not at a difficulty retarget interval.
 	// if (lastNode.height+1)%b.blocksPerRetarget != 0 {
@@ -258,48 +275,54 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	// 	return 0, AssertError("unable to obtain previous retarget block")
 	// }
 
-	firstNode := lastNode
-	for i := int64(0); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
-		firstNode = firstNode.GetPrevWithAlgo(algo)
+	firstNode := prevNode.GetPrevWithAlgo(algo) //.RelativeAncestor(1)
+	for i := int64(1); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
+		firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo)
 	}
 	if firstNode == nil {
-		return b.chainParams.PowLimitBits, nil
+		fmt.Println("setting minimum diff", algo)
+		return powLimitBits, nil
 	}
+	// fmt.Printf("firstNode bits %08x %d %d\n", firstNode.bits, firstNode.height, firstNode.version)
 
 	// Limit the amount of adjustment that can occur to the previous
 	// difficulty.
-	actualTimespan := lastNode.timestamp - firstNode.timestamp
+	actualTimespan := prevNode.timestamp - firstNode.timestamp
+	// fmt.Println("actual timespan  ", actualTimespan)
+
 	adjustedTimespan := actualTimespan
 	if actualTimespan < b.chainParams.MinActualTimespan {
-		fmt.Println("less than min actual timespan")
+		// fmt.Println("less than min actual timespan")
 		adjustedTimespan = b.chainParams.MinActualTimespan
 	} else if actualTimespan > b.chainParams.MaxActualTimespan {
-		fmt.Println("more than max actual timespan")
-		adjustedTimespan = b.chainParams.MinActualTimespan
+		// fmt.Println("more than max actual timespan")
+		adjustedTimespan = b.chainParams.MaxActualTimespan
 	}
-	fmt.Println("AAAAAAAAAAAA height", lastNode.height, firstNode.version, lastNode.timestamp,
-		firstNode.timestamp, actualTimespan, adjustedTimespan, b.chainParams.MinActualTimespan, b.chainParams.MaxActualTimespan)
 
 	// Calculate new target difficulty as:
 	//  currentDifficulty * (adjustedTimespan / targetTimespan)
 	// The result uses integer division which means it will be slightly
 	// rounded down.  Bitcoind also uses integer division to calculate this
 	// result.
-	oldTarget := CompactToBig(lastNode.bits)
-	fmt.Println("oldTarget          ", lastNode.bits, oldTarget)
+
+	// This has to be the lastNode of the same algorithm (version number)
+
+	oldTarget := CompactToBig(prevNode.bits)
+	// fmt.Printf("OldTarget %d %064x\n", lastNode.bits, OldTarget)
+	// oldTarget := CompactToBig(ln.bits)
+	// fmt.Printf("oldTarget           %08x, %d\n", prevNode.bits, oldTarget)
 	newTarget := new(big.Int).Mul(oldTarget, big.NewInt(adjustedTimespan))
-	fmt.Println("adjusted timespan  ", adjustedTimespan)
-	fmt.Println("newTarget          ", newTarget)
+	// fmt.Println("adjusted timespan  ", adjustedTimespan)
 	newTarget = newTarget.Div(newTarget, big.NewInt(b.chainParams.AveragingTargetTimespan))
-	fmt.Println("averaging timespan ", b.chainParams.AveragingTargetTimespan)
-	fmt.Println("newTarget          ", BigToCompact(newTarget), newTarget)
+	// fmt.Println("averaging timespan ", b.chainParams.AveragingTargetTimespan)
+	// fmt.Printf("newTarget           %08x %064x\n", BigToCompact(newTarget), newTarget)
 	// fmt.Println("newTarget-oldTarget", newTarget.Sub(newTarget, oldTarget))
 	// fmt.Println("oldTarget-newTarget", oldTarget.Sub(oldTarget, newTarget))
 
 	// Limit new value to the proof of work limit.
-	if newTarget.Cmp(b.chainParams.PowLimit) > 0 {
-		fmt.Println("hit limit", b.chainParams.PowLimit)
-		newTarget.Set(b.chainParams.PowLimit)
+	if newTarget.Cmp(powLimit) > 0 {
+		// fmt.Println("hit limit", powLimit)
+		newTarget.Set(powLimit)
 	}
 
 	// Log new target difficulty and return it.  The new target logging is
@@ -308,7 +331,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	// precision.
 	newTargetBits := BigToCompact(newTarget)
 	log.Debugf("Difficulty retarget at block height %d", lastNode.height+1)
-	log.Debugf("Old target %08x (%064x)", lastNode.bits, oldTarget)
+	log.Debugf("Old target %08x (%064x)", prevNode.bits, oldTarget)
 	log.Debugf("New target %08x (%064x)", newTargetBits, CompactToBig(newTargetBits))
 	log.Debugf("Actual timespan %v, adjusted timespan %v, target timespan %v",
 		actualTimespan,
