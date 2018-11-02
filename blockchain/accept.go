@@ -42,16 +42,24 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	// To deal with multiple mining algorithms, we must check first the block header version.
 	fmt.Println("block version   ", block.MsgBlock().Header.Version)
 	fmt.Println("prevnode version", prevNode.version)
-	fmt.Println("prev with same  ", prevNode.GetPrevWithAlgo())
-	// Rather than pass the direct previous by height, we look for the previous of the same algorithm and pass that
-
-	// The block must pass all of the validation rules which depend on the
-	// position of the block within the block chain.
-	err := b.checkBlockContext(block, prevNode, flags)
-	if err != nil {
-		return false, err
+	// fmt.Println("prev with same  ", prevNode.GetPrevWithAlgo(block.MsgBlock().Header.Version))
+	// Rather than pass the direct previous by height, we look for the previous of the same algorithm and pass that.
+	if prevNode.version != block.MsgBlock().Header.Version {
+		prevNode = prevNode.GetPrevWithAlgo(block.MsgBlock().Header.Version)
 	}
 
+	var err error
+	if prevNode == nil {
+		fmt.Println("not enough blocks for adjustment")
+		return true, err
+	} else {
+		// The block must pass all of the validation rules which depend on the
+		// position of the block within the block chain.
+		err = b.checkBlockContext(block, prevNode, flags)
+		if err != nil {
+			return false, err
+		}
+	}
 	// Insert the block into the database if it's not already there.  Even
 	// though it is possible the block will ultimately fail to connect, it
 	// has already passed all proof-of-work and validity tests which means

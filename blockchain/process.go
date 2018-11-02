@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/parallelcointeam/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/btcutil"
 )
 
 // BehaviorFlags is a bitmask defining tweaks to the normal behavior when
@@ -81,6 +81,7 @@ func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) error {
+	fmt.Println("processOrphans")
 	// Start with processing at least the passed hash.  Leave a little room
 	// for additional orphan blocks that need to be processed without
 	// needing to grow the array in the common case.
@@ -140,6 +141,7 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bool, bool, error) {
+	fmt.Println("ProcessBlock")
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
 
