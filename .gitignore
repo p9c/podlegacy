@@ -33,3 +33,5 @@ _testmain.go
 
 *.exe
 docker/legacy/data/*
+pod
+

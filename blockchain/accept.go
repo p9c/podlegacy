@@ -7,8 +7,8 @@ package blockchain
 import (
 	"fmt"
 
-	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/database"
 )
 
 // maybeAcceptBlock potentially accepts a block into the block chain and, if
@@ -22,6 +22,7 @@ import (
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags) (bool, error) {
+	fmt.Println("maybeAcceptBlock")
 	// The height of this block is one more than the referenced previous
 	// block.
 	prevHash := &block.MsgBlock().Header.PrevBlock
@@ -36,6 +37,13 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 
 	blockHeight := prevNode.height + 1
 	block.SetHeight(blockHeight)
+
+	// TODO
+	// To deal with multiple mining algorithms, we must check first the block header version.
+	fmt.Println("block version   ", block.MsgBlock().Header.Version)
+	fmt.Println("prevnode version", prevNode.version)
+	fmt.Println("prev with same  ", prevNode.GetPrevWithAlgo())
+	// Rather than pass the direct previous by height, we look for the previous of the same algorithm and pass that
 
 	// The block must pass all of the validation rules which depend on the
 	// position of the block within the block chain.

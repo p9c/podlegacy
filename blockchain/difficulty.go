@@ -260,7 +260,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 
 	firstNode := lastNode
 	for i := int64(0); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
-		firstNode = firstNode.GetPrevWithSameAlgo()
+		firstNode = firstNode.GetPrevWithAlgo()
 	}
 	if firstNode == nil {
 		return b.chainParams.PowLimitBits, nil
@@ -277,7 +277,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		fmt.Println("more than max actual timespan")
 		adjustedTimespan = b.chainParams.MinActualTimespan
 	}
-	fmt.Println("AAAAAAAAAAAA", lastNode.timestamp, firstNode.timestamp, actualTimespan, adjustedTimespan, b.chainParams.MinActualTimespan, b.chainParams.MaxActualTimespan)
+	fmt.Println("AAAAAAAAAAAA height", lastNode.height, firstNode.version, lastNode.timestamp,
+		firstNode.timestamp, actualTimespan, adjustedTimespan, b.chainParams.MinActualTimespan, b.chainParams.MaxActualTimespan)
 
 	// Calculate new target difficulty as:
 	//  currentDifficulty * (adjustedTimespan / targetTimespan)
