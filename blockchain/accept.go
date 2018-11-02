@@ -51,7 +51,7 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	var err error
 	if prevNode == nil {
 		fmt.Println("not enough blocks for adjustment")
-		return true, err
+		// return true, err
 	} else {
 		// The block must pass all of the validation rules which depend on the
 		// position of the block within the block chain.
@@ -72,6 +72,7 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	err = b.db.Update(func(dbTx database.Tx) error {
 		return dbStoreBlock(dbTx, block)
 	})
+	fmt.Println("adding block", err)
 	if err != nil {
 		return false, err
 	}
