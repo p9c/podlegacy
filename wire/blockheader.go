@@ -6,10 +6,12 @@ package wire
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"time"
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"golang.org/x/crypto/scrypt"
 )
 
 // MaxBlockHeaderPayload is the maximum number of bytes a block header can be.
@@ -45,15 +47,66 @@ type BlockHeader struct {
 const blockHeaderLen = 80
 
 // BlockHash computes the block identifier hash for the given block header.
-func (h *BlockHeader) BlockHash() chainhash.Hash {
+func (h *BlockHeader) BlockHash() (out chainhash.Hash) {
 	// Encode the header and double sha256 everything prior to the number of
 	// transactions.  Ignore the error returns since there is no way the
 	// encode could fail except being out of memory which would cause a
 	// run-time panic.
 	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
 	_ = writeBlockHeader(buf, 0, h)
+	// switch h.Version {
+	// case 2:
+	out = chainhash.DoubleHashH(buf.Bytes())
+	// case 514:
+	// 	b := buf.Bytes()
+	// 	c := make([]byte, len(b))
+	// 	for i := range b {
+	// 		c[i] = b[len(b)-1-i]
+	// 	}
+	// 	dk, err := scrypt.Key(c, c, 1024, 1, 1, 32)
+	// 	if err != nil {
+	// 		fmt.Println(fmt.Errorf("Unable to generate scrypt key: %s", err))
+	// 		return
+	// 	}
 
-	return chainhash.DoubleHashH(buf.Bytes())
+	// 	for i := range dk {
+	// 		out[i] = dk[len(dk)-1-i]
+	// 	}
+	// }
+	return
+}
+
+// BlockHashWithAlgos computes the block identifier hash for the given block header. This function is additional because the sync manager and the parallelcoin protocol only use SHA256D hashes for inventories and calculating the scrypt (or other) hash for these blocks when requested via that route causes an 'unrequested block' error.
+func (h *BlockHeader) BlockHashWithAlgos() (out chainhash.Hash) {
+	// Encode the header and double sha256 everything prior to the number of
+	// transactions.  Ignore the error returns since there is no way the
+	// encode could fail except being out of memory which would cause a
+	// run-time panic.
+	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
+	_ = writeBlockHeader(buf, 0, h)
+	switch h.Version {
+	case 2:
+		out = chainhash.DoubleHashH(buf.Bytes())
+	case 514:
+		// b := chainhash.DoubleHashH(buf.Bytes())
+		b := buf.Bytes()
+		c := make([]byte, len(b))
+		// for i := range b {
+		// 	c[i] = b[len(b)-1-i]
+		// }
+		copy(c, b[:])
+		dk, err := scrypt.Key(c, c, 1024, 1, 1, 32)
+		if err != nil {
+			fmt.Println(fmt.Errorf("Unable to generate scrypt key: %s", err))
+			return
+		}
+
+		for i := range dk {
+			out[i] = dk[len(dk)-1-i]
+		}
+		copy(out[:], dk)
+	}
+	return
 }
 
 // BtcDecode decodes r using the bitcoin protocol encoding into the receiver.

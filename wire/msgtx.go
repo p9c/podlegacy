@@ -304,11 +304,12 @@ func (msg *MsgTx) AddTxOut(to *TxOut) {
 }
 
 // TxHash generates the Hash for the transaction.
-func (msg *MsgTx) TxHash() chainhash.Hash {
+func (msg *MsgTx) TxHash() (out chainhash.Hash) {
 	// Encode the transaction and calculate double sha256 on the result.
 	// Ignore the error returns since the only way the encode could fail
 	// is being out of memory or due to nil pointers, both of which would
 	// cause a run-time panic.
+	// Version 2 blocks are SHA256D, version 514 is Scrypt
 	buf := bytes.NewBuffer(make([]byte, 0, msg.SerializeSizeStripped()))
 	_ = msg.SerializeNoWitness(buf)
 	return chainhash.DoubleHashH(buf.Bytes())

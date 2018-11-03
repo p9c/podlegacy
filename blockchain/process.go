@@ -151,7 +151,8 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	fastAdd := flags&BFFastAdd == BFFastAdd
 
 	blockHash := block.Hash()
-	log.Tracef("Processing block %v", blockHash)
+	blockHashWithAlgo := block.MsgBlock().BlockHashWithAlgos()
+	log.Tracef("Processing block %v", blockHashWithAlgo)
 
 	// The block must not already exist in the main chain or side chains.
 	exists, err := b.blockExists(blockHash)
@@ -159,13 +160,13 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 		return false, false, err
 	}
 	if exists {
-		str := fmt.Sprintf("already have block %v", blockHash)
+		str := fmt.Sprintf("already have block %v", blockHashWithAlgo)
 		return false, false, ruleError(ErrDuplicateBlock, str)
 	}
 
 	// The block must not already exist as an orphan.
 	if _, exists := b.orphans[*blockHash]; exists {
-		str := fmt.Sprintf("already have block (orphan) %v", blockHash)
+		str := fmt.Sprintf("already have block (orphan) %v", blockHashWithAlgo)
 		return false, false, ruleError(ErrDuplicateBlock, str)
 	}
 
@@ -215,7 +216,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 		checkpointTime := time.Unix(checkpointNode.timestamp, 0)
 		if blockHeader.Timestamp.Before(checkpointTime) {
 			str := fmt.Sprintf("block %v has timestamp %v before "+
-				"last checkpoint timestamp %v", blockHash,
+				"last checkpoint timestamp %v", blockHashWithAlgo,
 				blockHeader.Timestamp, checkpointTime)
 			return false, false, ruleError(ErrCheckpointTimeTooOld, str)
 		}
@@ -248,7 +249,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 		return false, false, err
 	}
 	if !prevHashExists {
-		log.Infof("Adding orphan block %v with parent %v", blockHash, prevHash)
+		log.Infof("Adding orphan block %v with parent %v", blockHashWithAlgo, prevHash)
 		b.addOrphanBlock(block)
 
 		return false, true, nil
@@ -271,6 +272,6 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 		return false, false, err
 	}
 
-	log.Debugf("Accepted block %v", blockHash)
+	log.Debugf("Accepted block %v", blockHashWithAlgo)
 	return isMainChain, false, nil
 }

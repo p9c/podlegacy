@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/parallelcointeam/btclog"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btclog"
 )
 
 const (
@@ -178,7 +178,7 @@ func messageSummary(msg wire.Message) string {
 
 	case *wire.MsgBlock:
 		header := &msg.Header
-		return fmt.Sprintf("hash %s, ver %d, %d tx, %s", msg.BlockHash(),
+		return fmt.Sprintf("hash %s, ver %d, %d tx, %s", msg.BlockHashWithAlgos(),
 			header.Version, len(msg.Transactions), header.Timestamp)
 
 	case *wire.MsgInv:

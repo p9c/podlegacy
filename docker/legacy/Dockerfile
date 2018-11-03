@@ -59,8 +59,8 @@ RUN mkdir /root/.parallelcoin
 
 # RUN ls -la
 
-# CMD /usr/local/bin/parallelcoind -txindex -printtoconsole -debug -debugnet -rpcuser=user -rpcpassword=pa55word
+CMD /usr/local/bin/parallelcoind -txindex -printtoconsole -debug -debugnet -rpcuser=user -rpcpassword=pa55word
 
-CMD tail -f /dev/null
+#CMD tail -f /dev/null
 
 
