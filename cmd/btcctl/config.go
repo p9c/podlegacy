@@ -13,9 +13,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/parallelcointeam/pod/btcjson"
-	"github.com/parallelcointeam/btcutil"
 	flags "github.com/jessevdk/go-flags"
+	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/btcjson"
 )
 
 const (
@@ -26,10 +26,10 @@ const (
 )
 
 var (
-	btcdHomeDir           = btcutil.AppDataDir("btcd", false)
-	btcctlHomeDir         = btcutil.AppDataDir("btcctl", false)
+	btcdHomeDir           = btcutil.AppDataDir("pod", false)
+	btcctlHomeDir         = btcutil.AppDataDir("podctl", false)
 	btcwalletHomeDir      = btcutil.AppDataDir("btcwallet", false)
-	defaultConfigFile     = filepath.Join(btcctlHomeDir, "btcctl.conf")
+	defaultConfigFile     = filepath.Join(btcctlHomeDir, "podctl.conf")
 	defaultRPCServer      = "localhost"
 	defaultRPCCertFile    = filepath.Join(btcdHomeDir, "rpc.cert")
 	defaultWalletCertFile = filepath.Join(btcwalletHomeDir, "rpc.cert")
@@ -118,21 +118,21 @@ func normalizeAddress(addr string, useTestNet3, useSimNet, useWallet bool) strin
 		switch {
 		case useTestNet3:
 			if useWallet {
-				defaultPort = "18332"
+				defaultPort = "21548"
 			} else {
-				defaultPort = "18334"
+				defaultPort = "21048"
 			}
 		case useSimNet:
 			if useWallet {
-				defaultPort = "18554"
+				defaultPort = "31548"
 			} else {
-				defaultPort = "18556"
+				defaultPort = "31048"
 			}
 		default:
 			if useWallet {
-				defaultPort = "8332"
+				defaultPort = "11548"
 			} else {
-				defaultPort = "8334"
+				defaultPort = "11048"
 			}
 		}
 

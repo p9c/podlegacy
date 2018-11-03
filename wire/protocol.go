@@ -13,7 +13,11 @@ import (
 // XXX pedro: we will probably need to bump this.
 const (
 	// ProtocolVersion is the latest protocol version this package supports.
-	ProtocolVersion uint32 = 70013
+	ProtocolVersion uint32 = 70014
+
+	// TacVersion supports the new TaC orchestration and service advertising
+	// protocol introduced with the Parallelcoin Pod
+	TacVersion uint32 = 70014
 
 	// MultipleAddressVersion is the protocol version which added multiple
 	// addresses per message (pver >= MultipleAddressVersion).
@@ -86,6 +90,12 @@ const (
 	// SFNode2X is a flag used to indicate a peer is running the Segwit2X
 	// software.
 	SFNode2X
+
+	// SFtacNode is a flag used to indicate a peer supports the Telemetry
+	// and Control protocol, for remote control and monitoring of apps
+	// running on the network, as well as advertising available APIs the
+	// application understands and offers as a service.
+	SFtacNode
 )
 
 // Map of service flags back to their constant names for pretty printing.
