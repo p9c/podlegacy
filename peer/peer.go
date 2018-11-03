@@ -18,12 +18,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/btcsuite/go-socks/socks"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/btcsuite/go-socks/socks"
-	"github.com/davecgh/go-spew/spew"
 )
 
 const (
@@ -36,7 +36,7 @@ const (
 
 	// MinAcceptableProtocolVersion is the lowest protocol version that a
 	// connected peer may support.
-	MinAcceptableProtocolVersion = wire.MultipleAddressVersion
+	MinAcceptableProtocolVersion = 1 // wire.MultipleAddressVersion
 
 	// outputBufferSize is the number of elements the output channels use.
 	outputBufferSize = 50
