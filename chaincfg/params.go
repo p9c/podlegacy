@@ -257,8 +257,12 @@ var MainNetParams = Params{
 	Name:        "mainnet",
 	Net:         wire.MainNet,
 	DefaultPort: "11047",
-	DNSSeeds:    []DNSSeed{
-		// {"seed.bitcoin.sipa.be", true},
+	DNSSeeds: []DNSSeed{
+		{"seed1.parallelcoin.info", true},
+		{"seed2.parallelcoin.info", true},
+		{"seed3.parallelcoin.info", true},
+		{"seed4.parallelcoin.info", true},
+		{"seed5.parallelcoin.info", true},
 	},
 
 	// Chain parameters

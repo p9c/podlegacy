@@ -5,7 +5,6 @@
 package blockchain
 
 import (
-	"fmt"
 	"math/big"
 	"time"
 
@@ -280,7 +279,6 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo)
 	}
 	if firstNode == nil {
-		fmt.Println("setting minimum diff", algo)
 		return powLimitBits, nil
 	}
 	// fmt.Printf("firstNode bits %08x %d %d\n", firstNode.bits, firstNode.height, firstNode.version)
