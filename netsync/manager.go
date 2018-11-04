@@ -151,7 +151,7 @@ type SyncManager struct {
 	chain          *blockchain.BlockChain
 	txMemPool      *mempool.TxPool
 	chainParams    *chaincfg.Params
-	progressLogger *blockProgressLogger
+	progressLogger *BlockProgressLogger
 	msgChan        chan interface{}
 	wg             sync.WaitGroup
 	quit           chan struct{}
@@ -232,7 +232,7 @@ func (sm *SyncManager) startSync() {
 	// that we fully validate all blockchain data.
 	segwitActive, err := sm.chain.IsDeploymentActive(chaincfg.DeploymentSegwit)
 	if err != nil {
-		log.Errorf("Unable to query for segwit soft-fork state: %v", err)
+		Log.Errorf("Unable to query for segwit soft-fork state: %v", err)
 		return
 	}
 
@@ -244,7 +244,7 @@ func (sm *SyncManager) startSync() {
 		}
 
 		if segwitActive && !peer.IsWitnessEnabled() {
-			log.Debugf("peer %v not witness enabled, skipping", peer)
+			Log.Debugf("peer %v not witness enabled, skipping", peer)
 			continue
 		}
 
@@ -273,12 +273,12 @@ func (sm *SyncManager) startSync() {
 
 		locator, err := sm.chain.LatestBlockLocator()
 		if err != nil {
-			log.Errorf("Failed to get block locator for the "+
+			Log.Errorf("Failed to get block locator for the "+
 				"latest block: %v", err)
 			return
 		}
 
-		log.Infof("Syncing to block height %d from peer %v",
+		Log.Infof("Syncing to block height %d from peer %v",
 			bestPeer.LastBlock(), bestPeer.Addr())
 
 		// When the current height is less than a known checkpoint we
@@ -304,7 +304,7 @@ func (sm *SyncManager) startSync() {
 
 			bestPeer.PushGetHeadersMsg(locator, sm.nextCheckpoint.Hash)
 			sm.headersFirstMode = true
-			log.Infof("Downloading headers for blocks %d to "+
+			Log.Infof("Downloading headers for blocks %d to "+
 				"%d from peer %s", best.Height+1,
 				sm.nextCheckpoint.Height, bestPeer.Addr())
 		} else {
@@ -312,7 +312,7 @@ func (sm *SyncManager) startSync() {
 		}
 		sm.syncPeer = bestPeer
 	} else {
-		log.Warnf("No sync peer candidates available")
+		Log.Warnf("No sync peer candidates available")
 	}
 }
 
@@ -339,7 +339,7 @@ func (sm *SyncManager) isSyncCandidate(peer *peerpkg.Peer) bool {
 		// activated, then the peer must also be upgraded.
 		segwitActive, err := sm.chain.IsDeploymentActive(chaincfg.DeploymentSegwit)
 		if err != nil {
-			log.Errorf("Unable to query for segwit "+
+			Log.Errorf("Unable to query for segwit "+
 				"soft-fork state: %v", err)
 		}
 		nodeServices := peer.Services()
@@ -362,7 +362,7 @@ func (sm *SyncManager) handleNewPeerMsg(peer *peerpkg.Peer) {
 		return
 	}
 
-	log.Infof("New valid peer %s (%s)", peer, peer.UserAgent())
+	Log.Infof("New valid peer %s (%s)", peer, peer.UserAgent())
 
 	// Initialize the peer state
 	isSyncCandidate := sm.isSyncCandidate(peer)
@@ -385,14 +385,14 @@ func (sm *SyncManager) handleNewPeerMsg(peer *peerpkg.Peer) {
 func (sm *SyncManager) handleDonePeerMsg(peer *peerpkg.Peer) {
 	state, exists := sm.peerStates[peer]
 	if !exists {
-		log.Warnf("Received done peer message for unknown peer %s", peer)
+		Log.Warnf("Received done peer message for unknown peer %s", peer)
 		return
 	}
 
 	// Remove the peer from the list of candidate peers.
 	delete(sm.peerStates, peer)
 
-	log.Infof("Lost peer %s", peer)
+	Log.Infof("Lost peer %s", peer)
 
 	// Remove requested transactions from the global map so that they will
 	// be fetched from elsewhere next time we get an inv.
@@ -426,7 +426,7 @@ func (sm *SyncManager) handleTxMsg(tmsg *txMsg) {
 	peer := tmsg.peer
 	state, exists := sm.peerStates[peer]
 	if !exists {
-		log.Warnf("Received tx message from unknown peer %s", peer)
+		Log.Warnf("Received tx message from unknown peer %s", peer)
 		return
 	}
 
@@ -444,7 +444,7 @@ func (sm *SyncManager) handleTxMsg(tmsg *txMsg) {
 	// send a reject message here because if the transaction was already
 	// rejected, the transaction was unsolicited.
 	if _, exists = sm.rejectedTxns[*txHash]; exists {
-		log.Debugf("Ignoring unsolicited previously rejected "+
+		Log.Debugf("Ignoring unsolicited previously rejected "+
 			"transaction %v from %s", txHash, peer)
 		return
 	}
@@ -472,10 +472,10 @@ func (sm *SyncManager) handleTxMsg(tmsg *txMsg) {
 		// so log it as such.  Otherwise, something really did go wrong,
 		// so log it as an actual error.
 		if _, ok := err.(mempool.RuleError); ok {
-			log.Debugf("Rejected transaction %v from %s: %v",
+			Log.Debugf("Rejected transaction %v from %s: %v",
 				txHash, peer, err)
 		} else {
-			log.Errorf("Failed to process transaction %v: %v",
+			Log.Errorf("Failed to process transaction %v: %v",
 				txHash, err)
 		}
 
@@ -512,11 +512,11 @@ func (sm *SyncManager) current() bool {
 
 // handleBlockMsg handles block messages from all peers.
 func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
-	log.Debug("handleBlockMsg")
+	Log.Debug("handleBlockMsg")
 	peer := bmsg.peer
 	state, exists := sm.peerStates[peer]
 	if !exists {
-		log.Warnf("Received block message from unknown peer %s", peer)
+		Log.Warnf("Received block message from unknown peer %s", peer)
 		return
 	}
 
@@ -529,7 +529,7 @@ func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
 		// mode in this case so the chain code is actually fed the
 		// duplicate blocks.
 		if sm.chainParams != &chaincfg.RegressionNetParams {
-			log.Warnf("Got unrequested block %v from %s -- "+
+			Log.Warnf("Got unrequested block %v from %s -- "+
 				"disconnecting", blockHash, peer.Addr())
 			peer.Disconnect()
 			return
@@ -575,11 +575,11 @@ func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
 		// it as such.  Otherwise, something really did go wrong, so log
 		// it as an actual error.
 		if _, ok := err.(blockchain.RuleError); ok {
-			log.Infof("Rejected block %v from %s: %v", blockHash,
+			Log.Infof("Rejected block %v from %s: %v", blockHash,
 				peer, err)
 			fmt.Println("height", bmsg.block.Height())
 		} else {
-			log.Errorf("Failed to process block %v: %v",
+			Log.Errorf("Failed to process block %v: %v",
 				blockHash, err)
 		}
 		if dbErr, ok := err.(database.Error); ok && dbErr.ErrorCode ==
@@ -618,10 +618,10 @@ func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
 			coinbaseTx := bmsg.block.Transactions()[0]
 			cbHeight, err := blockchain.ExtractCoinbaseHeight(coinbaseTx)
 			if err != nil {
-				log.Warnf("Unable to extract height from "+
+				Log.Warnf("Unable to extract height from "+
 					"coinbase tx: %v", err)
 			} else {
-				log.Debugf("Extracted height of %v from "+
+				Log.Debugf("Extracted height of %v from "+
 					"orphan block", cbHeight)
 				heightUpdate = cbHeight
 				blkHashUpdate = blockHash
@@ -631,7 +631,7 @@ func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
 		orphanRoot := sm.chain.GetOrphanRoot(blockHash)
 		locator, err := sm.chain.LatestBlockLocator()
 		if err != nil {
-			log.Warnf("Failed to get block locator for the "+
+			Log.Warnf("Failed to get block locator for the "+
 				"latest block: %v", err)
 		} else {
 			peer.PushGetBlocksMsg(locator, orphanRoot)
@@ -690,11 +690,11 @@ func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
 		locator := blockchain.BlockLocator([]*chainhash.Hash{prevHash})
 		err := peer.PushGetHeadersMsg(locator, sm.nextCheckpoint.Hash)
 		if err != nil {
-			log.Warnf("Failed to send getheaders message to "+
+			Log.Warnf("Failed to send getheaders message to "+
 				"peer %s: %v", peer.Addr(), err)
 			return
 		}
-		log.Infof("Downloading headers for blocks %d to %d from "+
+		Log.Infof("Downloading headers for blocks %d to %d from "+
 			"peer %s", prevHeight+1, sm.nextCheckpoint.Height,
 			sm.syncPeer.Addr())
 		return
@@ -705,11 +705,11 @@ func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
 	// from the block after this one up to the end of the chain (zero hash).
 	sm.headersFirstMode = false
 	sm.headerList.Init()
-	log.Infof("Reached the final checkpoint -- switching to normal mode")
+	Log.Infof("Reached the final checkpoint -- switching to normal mode")
 	locator := blockchain.BlockLocator([]*chainhash.Hash{blockHash})
 	err = peer.PushGetBlocksMsg(locator, &zeroHash)
 	if err != nil {
-		log.Warnf("Failed to send getblocks message to peer %s: %v",
+		Log.Warnf("Failed to send getblocks message to peer %s: %v",
 			peer.Addr(), err)
 		return
 	}
@@ -720,7 +720,7 @@ func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
 func (sm *SyncManager) fetchHeaderBlocks() {
 	// Nothing to do if there is no start header.
 	if sm.startHeader == nil {
-		log.Warnf("fetchHeaderBlocks called with no start header")
+		Log.Warnf("fetchHeaderBlocks called with no start header")
 		return
 	}
 
@@ -732,14 +732,14 @@ func (sm *SyncManager) fetchHeaderBlocks() {
 	for e := sm.startHeader; e != nil; e = e.Next() {
 		node, ok := e.Value.(*headerNode)
 		if !ok {
-			log.Warn("Header list node type is not a headerNode")
+			Log.Warn("Header list node type is not a headerNode")
 			continue
 		}
 
 		iv := wire.NewInvVect(wire.InvTypeBlock, node.hash)
 		haveInv, err := sm.haveInventory(iv)
 		if err != nil {
-			log.Warnf("Unexpected failure when checking for "+
+			Log.Warnf("Unexpected failure when checking for "+
 				"existing inventory during header block "+
 				"fetch: %v", err)
 		}
@@ -775,7 +775,7 @@ func (sm *SyncManager) handleHeadersMsg(hmsg *headersMsg) {
 	peer := hmsg.peer
 	_, exists := sm.peerStates[peer]
 	if !exists {
-		log.Warnf("Received headers message from unknown peer %s", peer)
+		Log.Warnf("Received headers message from unknown peer %s", peer)
 		return
 	}
 
@@ -783,7 +783,7 @@ func (sm *SyncManager) handleHeadersMsg(hmsg *headersMsg) {
 	msg := hmsg.headers
 	numHeaders := len(msg.Headers)
 	if !sm.headersFirstMode {
-		log.Warnf("Got %d unrequested headers from %s -- "+
+		Log.Warnf("Got %d unrequested headers from %s -- "+
 			"disconnecting", numHeaders, peer.Addr())
 		peer.Disconnect()
 		return
@@ -805,7 +805,7 @@ func (sm *SyncManager) handleHeadersMsg(hmsg *headersMsg) {
 		// Ensure there is a previous header to compare against.
 		prevNodeEl := sm.headerList.Back()
 		if prevNodeEl == nil {
-			log.Warnf("Header list does not contain a previous" +
+			Log.Warnf("Header list does not contain a previous" +
 				"element as expected -- disconnecting peer")
 			peer.Disconnect()
 			return
@@ -822,7 +822,7 @@ func (sm *SyncManager) handleHeadersMsg(hmsg *headersMsg) {
 				sm.startHeader = e
 			}
 		} else {
-			log.Warnf("Received block header that does not "+
+			Log.Warnf("Received block header that does not "+
 				"properly connect to the chain from peer %s "+
 				"-- disconnecting", peer.Addr())
 			peer.Disconnect()
@@ -833,11 +833,11 @@ func (sm *SyncManager) handleHeadersMsg(hmsg *headersMsg) {
 		if node.height == sm.nextCheckpoint.Height {
 			if node.hash.IsEqual(sm.nextCheckpoint.Hash) {
 				receivedCheckpoint = true
-				log.Infof("Verified downloaded block "+
+				Log.Infof("Verified downloaded block "+
 					"header against checkpoint at height "+
 					"%d/hash %s", node.height, node.hash)
 			} else {
-				log.Warnf("Block header at height %d/hash "+
+				Log.Warnf("Block header at height %d/hash "+
 					"%s from peer %s does NOT match "+
 					"expected checkpoint hash of %s -- "+
 					"disconnecting", node.height,
@@ -858,7 +858,7 @@ func (sm *SyncManager) handleHeadersMsg(hmsg *headersMsg) {
 		// the next header links properly, it must be removed before
 		// fetching the blocks.
 		sm.headerList.Remove(sm.headerList.Front())
-		log.Infof("Received %v block headers: Fetching blocks",
+		Log.Infof("Received %v block headers: Fetching blocks",
 			sm.headerList.Len())
 		sm.progressLogger.SetLastLogTime(time.Now())
 		sm.fetchHeaderBlocks()
@@ -871,7 +871,7 @@ func (sm *SyncManager) handleHeadersMsg(hmsg *headersMsg) {
 	locator := blockchain.BlockLocator([]*chainhash.Hash{finalHash})
 	err := peer.PushGetHeadersMsg(locator, sm.nextCheckpoint.Hash)
 	if err != nil {
-		log.Warnf("Failed to send getheaders message to "+
+		Log.Warnf("Failed to send getheaders message to "+
 			"peer %s: %v", peer.Addr(), err)
 		return
 	}
@@ -931,11 +931,11 @@ func (sm *SyncManager) haveInventory(invVect *wire.InvVect) (bool, error) {
 // handleInvMsg handles inv messages from all peers.
 // We examine the inventory advertised by the remote peer and act accordingly.
 func (sm *SyncManager) handleInvMsg(imsg *invMsg) {
-	log.Debug("handleInvMsg")
+	Log.Debug("handleInvMsg")
 	peer := imsg.peer
 	state, exists := sm.peerStates[peer]
 	if !exists {
-		log.Warnf("Received inv message from unknown peer %s", peer)
+		Log.Warnf("Received inv message from unknown peer %s", peer)
 		return
 	}
 
@@ -1001,7 +1001,7 @@ func (sm *SyncManager) handleInvMsg(imsg *invMsg) {
 		// Request the inventory if we don't already have it.
 		haveInv, err := sm.haveInventory(iv)
 		if err != nil {
-			log.Warnf("Unexpected failure when checking for "+
+			Log.Warnf("Unexpected failure when checking for "+
 				"existing inventory during inv message "+
 				"processing: %v", err)
 			continue
@@ -1048,7 +1048,7 @@ func (sm *SyncManager) handleInvMsg(imsg *invMsg) {
 				orphanRoot := sm.chain.GetOrphanRoot(&iv.Hash)
 				locator, err := sm.chain.LatestBlockLocator()
 				if err != nil {
-					log.Errorf("PEER: Failed to get block "+
+					Log.Errorf("PEER: Failed to get block "+
 						"locator for the latest block: "+
 						"%v", err)
 					continue
@@ -1211,7 +1211,7 @@ out:
 				<-msg.unpause
 
 			default:
-				log.Warnf("Invalid message type in block "+
+				Log.Warnf("Invalid message type in block "+
 					"handler: %T", msg)
 			}
 
@@ -1221,7 +1221,7 @@ out:
 	}
 
 	sm.wg.Done()
-	log.Trace("Block handler done")
+	Log.Trace("Block handler done")
 }
 
 // handleBlockchainNotification handles notifications from blockchain.  It does
@@ -1240,7 +1240,7 @@ func (sm *SyncManager) handleBlockchainNotification(notification *blockchain.Not
 
 		block, ok := notification.Data.(*btcutil.Block)
 		if !ok {
-			log.Warnf("Chain accepted notification is not a block.")
+			Log.Warnf("Chain accepted notification is not a block.")
 			break
 		}
 
@@ -1252,7 +1252,7 @@ func (sm *SyncManager) handleBlockchainNotification(notification *blockchain.Not
 	case blockchain.NTBlockConnected:
 		block, ok := notification.Data.(*btcutil.Block)
 		if !ok {
-			log.Warnf("Chain connected notification is not a block.")
+			Log.Warnf("Chain connected notification is not a block.")
 			break
 		}
 
@@ -1290,7 +1290,7 @@ func (sm *SyncManager) handleBlockchainNotification(notification *blockchain.Not
 	case blockchain.NTBlockDisconnected:
 		block, ok := notification.Data.(*btcutil.Block)
 		if !ok {
-			log.Warnf("Chain disconnected notification is not a block.")
+			Log.Warnf("Chain disconnected notification is not a block.")
 			break
 		}
 
@@ -1389,7 +1389,7 @@ func (sm *SyncManager) Start() {
 		return
 	}
 
-	log.Trace("Starting sync manager")
+	Log.Trace("Starting sync manager")
 	sm.wg.Add(1)
 	go sm.blockHandler()
 }
@@ -1398,12 +1398,12 @@ func (sm *SyncManager) Start() {
 // handlers and waiting for them to finish.
 func (sm *SyncManager) Stop() error {
 	if atomic.AddInt32(&sm.shutdown, 1) != 1 {
-		log.Warnf("Sync manager is already in the process of " +
+		Log.Warnf("Sync manager is already in the process of " +
 			"shutting down")
 		return nil
 	}
 
-	log.Infof("Sync manager shutting down")
+	Log.Infof("Sync manager shutting down")
 	close(sm.quit)
 	sm.wg.Wait()
 	return nil
@@ -1455,7 +1455,7 @@ func New(config *Config) (*SyncManager, error) {
 		requestedTxns:   make(map[chainhash.Hash]struct{}),
 		requestedBlocks: make(map[chainhash.Hash]struct{}),
 		peerStates:      make(map[*peerpkg.Peer]*peerSyncState),
-		progressLogger:  newBlockProgressLogger("Processed", log),
+		progressLogger:  newBlockProgressLogger("Processed", Log),
 		msgChan:         make(chan interface{}, config.MaxPeers*3),
 		headerList:      list.New(),
 		quit:            make(chan struct{}),
@@ -1470,7 +1470,7 @@ func New(config *Config) (*SyncManager, error) {
 			sm.resetHeaderState(&best.Hash, best.Height)
 		}
 	} else {
-		log.Info("Checkpoints are disabled")
+		Log.Info("Checkpoints are disabled")
 	}
 
 	sm.chain.Subscribe(sm.handleBlockchainNotification)
