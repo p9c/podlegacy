@@ -25,11 +25,11 @@ type BlockProgressLogger struct {
 	sync.Mutex
 }
 
-// newBlockProgressLogger returns a new block progress logger.
+// NewBlockProgressLogger returns a new block progress logger.
 // The progress message is templated as follows:
 //  {progressAction} {numProcessed} {blocks|block} in the last {timePeriod}
 //  ({numTxs}, height {lastBlockHeight}, {lastBlockTimeStamp})
-func newBlockProgressLogger(progressMessage string, logger btclog.Logger) *BlockProgressLogger {
+func NewBlockProgressLogger(progressMessage string, logger btclog.Logger) *BlockProgressLogger {
 	return &BlockProgressLogger{
 		lastBlockLogTime: time.Now(),
 		progressAction:   progressMessage,

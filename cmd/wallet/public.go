@@ -7,6 +7,7 @@ import (
 	"github.com/parallelcointeam/btcutil"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/netsync"
 	peerpkg "github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/wire"
 )
@@ -156,7 +157,7 @@ func New(config *Config) (*SyncManager, error) {
 		requestedTxns:   make(map[chainhash.Hash]struct{}),
 		requestedBlocks: make(map[chainhash.Hash]struct{}),
 		peerStates:      make(map[*peerpkg.Peer]*peerSyncState),
-		progressLogger:  newBlockProgressLogger("Processed", log),
+		progressLogger:  netsync.NewBlockProgressLogger("Processed", log),
 		msgChan:         make(chan interface{}, config.MaxPeers*3),
 		headerList:      list.New(),
 		quit:            make(chan struct{}),

@@ -6,6 +6,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/parallelcointeam/pod/database"
+	"github.com/parallelcointeam/pod/mempool"
+
 	"github.com/parallelcointeam/btcutil"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/chaincfg"

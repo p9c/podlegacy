@@ -8,11 +8,11 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/parallelcointeam/btcutil"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
 )
 
 var (
@@ -395,7 +395,7 @@ func (m *Manager) Init(chain *blockchain.BlockChain, interrupt <-chan struct{}) 
 	}
 
 	// Create a progress logger for the indexing process below.
-	progressLogger := newBlockProgressLogger("Indexed", log)
+	progressLogger := NewBlockProgressLogger("Indexed", log)
 
 	// At this point, one or more indexes are behind the current best chain
 	// tip and need to be caught up, so log the details and loop through
