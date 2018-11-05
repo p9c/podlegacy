@@ -920,7 +920,7 @@ func loadConfig() (*config, []string, error) {
 			"localhost": {},
 			"127.0.0.1": {},
 			"::1":       {},
-			// "0.0.0.0":   {},
+			"0.0.0.0":   {},
 		}
 		for _, addr := range cfg.RPCListeners {
 			host, _, err := net.SplitHostPort(addr)

@@ -10,12 +10,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/parallelcointeam/btcutil"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
 )
 
 const (
@@ -848,12 +848,13 @@ mempoolLoop:
 		return nil, err
 	}
 
-	// Calculate the next expected block version based on the state of the
-	// rule change deployments.
-	nextBlockVersion, err := g.chain.CalcNextBlockVersion()
-	if err != nil {
-		return nil, err
-	}
+	// // Calculate the next expected block version based on the state of the
+	// // rule change deployments.
+	// nextBlockVersion, err := g.chain.CalcNextBlockVersion()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	nextBlockVersion := int32(2)
 
 	// Create a new block ready to be solved.
 	merkles := blockchain.BuildMerkleTreeStore(blockTxns, false)

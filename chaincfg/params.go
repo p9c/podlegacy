@@ -39,7 +39,7 @@ var (
 	MainPowLimit     = mainPowLimit
 	MainPowLimitBits = uint32(0x1e0fffff)
 	scryptPowLimit   = func() big.Int {
-		mplb, _ := hex.DecodeString("fffff00000000000000000000000000000000000000000000000000000000000")
+		mplb, _ := hex.DecodeString("00000fffff000000000000000000000000000000000000000000000000000000")
 		return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
 	}()
 	ScryptPowLimit     = scryptPowLimit
@@ -454,7 +454,7 @@ var TestNet3Params = Params{
 	BIP0065Height:            1000000, // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
 	BIP0066Height:            1000000, // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
 	CoinbaseMaturity:         100,
-	SubsidyReductionInterval: 250000,
+	SubsidyReductionInterval: 150,
 	TargetTimespan:           30000,
 	TargetTimePerBlock:       300,
 	RetargetAdjustmentFactor: 2,

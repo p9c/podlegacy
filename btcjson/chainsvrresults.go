@@ -36,6 +36,9 @@ type GetBlockVerboseResult struct {
 	Height        int64         `json:"height"`
 	Version       int32         `json:"version"`
 	VersionHex    string        `json:"versionHex"`
+	PowAlgoID     int32         `json:"pow_algo_id"`
+	PowAlgo       string        `json:"pow_algo"`
+	PowHash       string        `json:"pow_hash"`
 	MerkleRoot    string        `json:"merkleroot"`
 	Tx            []string      `json:"tx,omitempty"`
 	RawTx         []TxRawResult `json:"rawtx,omitempty"`

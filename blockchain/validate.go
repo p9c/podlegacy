@@ -40,7 +40,7 @@ const (
 
 	// baseSubsidy is the starting subsidy amount for mined blocks.  This
 	// value is halved every SubsidyHalvingInterval blocks.
-	baseSubsidy = 50 * btcutil.SatoshiPerBitcoin
+	baseSubsidy = 2 * btcutil.SatoshiPerBitcoin
 )
 
 var (
@@ -191,13 +191,43 @@ func isBIP0030Node(node *blockNode) bool {
 //
 // At the target block generation rate for the main network, this is
 // approximately every 4 years.
-func CalcBlockSubsidy(height int32, chainParams *chaincfg.Params) int64 {
+func CalcBlockSubsidy(height int32, chainParams *chaincfg.Params) (subsidy int64) {
+	subsidy = baseSubsidy
 	if chainParams.SubsidyReductionInterval == 0 {
-		return baseSubsidy
+		return
+	}
+	// fmt.Println("SUBSIDY", subsidy)
+	subsidy = int64(uint64(subsidy) >> (uint64(height) / uint64(chainParams.SubsidyReductionInterval)))
+	// fmt.Println("SUBSIDY", subsidy)
+
+	if height < 999 {
+		subsidy = subsidy / 100
+		// fmt.Println("BEFORE 999", subsidy)
+	}
+	if subsidy < baseSubsidy/100 {
+		subsidy = baseSubsidy / 100
+		// fmt.Println("LOWER THAN MINIMUM", subsidy)
 	}
 
+	/*
+		static const int64 nStartSubsidy = 2 * COIN;
+		static const int64 nMinSubsidy = 0.02 * COIN;
+		   int64 static GetBlockValue(int nHeight, int64 nFees)
+		   {
+		       int64 nSubsidy = nStartSubsidy;
+
+		   	if(nHeight < 999) {nSubsidy = .02 * COIN;}
+
+		       nSubsidy >>= (nHeight / Params().SubsidyHalvingInterval());
+
+		       if (nSubsidy < nMinSubsidy){nSubsidy = nMinSubsidy;}
+
+		       return nSubsidy + nFees;
+		   }
+	*/
+
 	// Equivalent to: baseSubsidy / 2^(height/subsidyHalvingInterval)
-	return baseSubsidy >> uint(height/chainParams.SubsidyReductionInterval)
+	return
 }
 
 // CheckTransactionSanity performs some preliminary checks on a transaction to
@@ -307,12 +337,15 @@ func CheckTransactionSanity(tx *btcutil.Tx) error {
 func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags BehaviorFlags) error {
 	// fmt.Println("checkProofOfWork")
 	// The target difficulty must be larger than zero.
+	if powLimit == nil {
+		powLimit = CompactToBig(chaincfg.MainPowLimitBits)
+	}
 	pl := powLimit
-
+	// fmt.Printf("powlimit %064x\n", powLimit)
 	target := CompactToBig(header.Bits)
+	// fmt.Printf("target %064x\n", target)
 	if header.Version == 514 {
-
-		pl = &chaincfg.ScryptPowLimit
+		pl = CompactToBig(chaincfg.ScryptPowLimitBits)
 		target = pl
 	}
 	if target.Sign() <= 0 {
@@ -333,7 +366,7 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 	if flags&BFNoPoWCheck != BFNoPoWCheck {
 		// The block hash must be less than the claimed target.
 		// Unless there is less than 10 previous with the same version (algo)...
-		hash := header.BlockHash()
+		hash := header.BlockHashWithAlgos()
 		hashNum := HashToBig(&hash)
 		if hashNum.Cmp(target) > 0 {
 			str := fmt.Sprintf("block hash of %064x is higher than "+
