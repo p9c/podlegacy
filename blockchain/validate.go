@@ -337,17 +337,21 @@ func CheckTransactionSanity(tx *btcutil.Tx) error {
 func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags BehaviorFlags) error {
 	// fmt.Println("checkProofOfWork")
 	// The target difficulty must be larger than zero.
+	var pl *big.Int
 	if powLimit == nil {
-		powLimit = CompactToBig(chaincfg.MainPowLimitBits)
+		if header.Version == 2 {
+			fmt.Println("sha256d block")
+			pl = CompactToBig(chaincfg.MainPowLimitBits)
+		} else if header.Version == 514 {
+			fmt.Println("scrypt block")
+			pl = CompactToBig(chaincfg.ScryptPowLimitBits)
+		}
+	} else {
+		pl = powLimit
 	}
-	pl := powLimit
 	// fmt.Printf("powlimit %064x\n", powLimit)
 	target := CompactToBig(header.Bits)
-	// fmt.Printf("target %064x\n", target)
-	if header.Version == 514 {
-		pl = CompactToBig(chaincfg.ScryptPowLimitBits)
-		target = pl
-	}
+
 	if target.Sign() <= 0 {
 		str := fmt.Sprintf("block target difficulty of %064x is too low",
 			target)
