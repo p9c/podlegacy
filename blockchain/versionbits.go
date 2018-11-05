@@ -270,32 +270,34 @@ func (b *BlockChain) warnUnknownRuleActivations(node *blockNode) error {
 //
 // This function MUST be called with the chain state lock held (for writes)
 func (b *BlockChain) warnUnknownVersions(node *blockNode) error {
-	// Nothing to do if already warned.
-	if b.unknownVersionsWarned {
-		return nil
-	}
+	// We don't use version numbers the same way in Parallelcoin so this is irrelevant.
 
-	// Warn if enough previous blocks have unexpected versions.
-	numUpgraded := uint32(0)
-	for i := uint32(0); i < unknownVerNumToCheck && node != nil; i++ {
-		expectedVersion, err := b.calcNextBlockVersion(node.parent)
-		if err != nil {
-			return err
-		}
-		if expectedVersion > vbLegacyBlockVersion &&
-			(node.version & ^expectedVersion) != 0 {
+	// // Nothing to do if already warned.
+	// if b.unknownVersionsWarned {
+	// 	return nil
+	// }
 
-			numUpgraded++
-		}
+	// // Warn if enough previous blocks have unexpected versions.
+	// numUpgraded := uint32(0)
+	// for i := uint32(0); i < unknownVerNumToCheck && node != nil; i++ {
+	// 	expectedVersion, err := b.calcNextBlockVersion(node.parent)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if expectedVersion > vbLegacyBlockVersion &&
+	// 		(node.version & ^expectedVersion) != 0 {
 
-		node = node.parent
-	}
-	if numUpgraded > unknownVerWarnNum {
-		log.Warn("Unknown block versions are being mined, so new " +
-			"rules might be in effect.  Are you running the " +
-			"latest version of the software?")
-		b.unknownVersionsWarned = true
-	}
+	// 		numUpgraded++
+	// 	}
+
+	// 	node = node.parent
+	// }
+	// if numUpgraded > unknownVerWarnNum {
+	// 	log.Warn("Unknown block versions are being mined, so new " +
+	// 		"rules might be in effect.  Are you running the " +
+	// 		"latest version of the software?")
+	// 	b.unknownVersionsWarned = true
+	// }
 
 	return nil
 }
