@@ -1,146 +1,46 @@
-btcd
-====
+# Parallelcoin Pod - complete base package for the Parallelcoin network
 
-[![Build Status](https://travis-ci.org/btcsuite/btcd.png?branch=master)](https://travis-ci.org/btcsuite/btcd)
-[![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org)
-[![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/parallelcointeam/pod)
+Parallelcoin is a bitcoin fork which adds the ability to be mined by more than
+one proof of work algorithm. Specifically it currently supports SHA256D and
+Scrypt, but more are planned for an upcoming hardfork.
 
-btcd is an alternative full node bitcoin implementation written in Go (golang).
+Parallelcoin development is moving in the direction of expanding the connectivity
+of nodes and creating a mesh network upon which many other applications can be
+linked together. Atomic swaps, decentralised, federated and democratic applications
+like distributed exchanges, messaging systems, marketplaces, and file sharing
+applications will become possible.
 
-This project is currently under active development and is in a Beta state.  It
-is extremely stable and has been in production use since October 2013.
+Currently there is now a fully functional full node, which can be used to mine DUO
+or support any application needing raw blockchain data.
 
-It properly downloads, validates, and serves the block chain using the exact
-rules (including consensus bugs) for block acceptance as Bitcoin Core.  We have
-taken great care to avoid btcd causing a fork to the block chain.  It includes a
-full block validation testing framework which contains all of the 'official'
-block acceptance tests (and some additional ones) that is run on every pull
-request to help ensure it properly follows consensus.  Also, it passes all of
-the JSON test data in the Bitcoin Core code.
+The immediate current development work is focusing on building a light wallet node
+that protects privacy by using a form of onion routing for message broadcasts where
+the swarm of wallet users route each other's transactions to prevent geographical
+location of holders of the secret keys. In order to implement this, an
+interconnection protocol will be developed that enables also remote control of 
+virtually anything that can be linked to the node, and the discovery of service
+providers on the network including detailed information about the enabled API calls
+that they support.
 
-It also properly relays newly mined blocks, maintains a transaction pool, and
-relays individual transactions that have not yet made it into a block.  It
-ensures all individual transactions admitted to the pool follow the rules
-required by the block chain and also includes more strict checks which filter
-transactions based on miner requirements ("standard" transactions).
+## Building
 
-One key difference between btcd and Bitcoin Core is that btcd does *NOT* include
-wallet functionality and this was a very intentional design decision.  See the
-blog entry [here](https://blog.conformal.com/btcd-not-your-moms-bitcoin-daemon)
-for more details.  This means you can't actually make or receive payments
-directly with btcd.  That functionality is provided by the
-[btcwallet](https://github.com/btcsuite/btcwallet) and
-[Paymetheus](https://github.com/btcsuite/Paymetheus) (Windows-only) projects
-which are both under active development.
+Pretty much you can install it directly, once you have a functioning Go installation,
+like this:
 
-## Requirements
+    go get github.com/parallelcointeam/duo/cmd/pod
 
-[Go](http://golang.org) 1.8 or newer.
+to install 'pod' which will then be available in your GOBIN folder (defaults to 
+home/go/bin), and you can run it and it will immediately start synchronising to the
+network.
 
-## Installation
+The `podctl` program allows you to send and receive JSONRPC requests, and can be
+installed like this:
 
-#### Windows - MSI Available
+    go get github.com/parallelcointeam/duo/cmd/podctl
 
-https://github.com/parallelcointeam/pod/releases
+Use the argument `--help` to get information about available commands and configuration.
 
-#### Linux/BSD/MacOSX/POSIX - Build from Source
-
-- Install Go according to the installation instructions here:
-  http://golang.org/doc/install
-
-- Ensure Go was installed properly and is a supported version:
-
-```bash
-$ go version
-$ go env GOROOT GOPATH
-```
-
-NOTE: The `GOROOT` and `GOPATH` above must not be the same path.  It is
-recommended that `GOPATH` is set to a directory in your home directory such as
-`~/goprojects` to avoid write permission issues.  It is also recommended to add
-`$GOPATH/bin` to your `PATH` at this point.
-
-- Run the following commands to obtain btcd, all dependencies, and install it:
-
-```bash
-$ go get -u github.com/Masterminds/glide
-$ git clone https://github.com/parallelcointeam/pod $GOPATH/src/github.com/parallelcointeam/pod
-$ cd $GOPATH/src/github.com/parallelcointeam/pod
-$ glide install
-$ go install . ./cmd/...
-```
-
-- btcd (and utilities) will now be installed in ```$GOPATH/bin```.  If you did
-  not already add the bin directory to your system path during Go installation,
-  we recommend you do so now.
-
-## Updating
-
-#### Windows
-
-Install a newer MSI
-
-#### Linux/BSD/MacOSX/POSIX - Build from Source
-
-- Run the following commands to update btcd, all dependencies, and install it:
-
-```bash
-$ cd $GOPATH/src/github.com/parallelcointeam/pod
-$ git pull && glide install
-$ go install . ./cmd/...
-```
-
-## Getting Started
-
-btcd has several configuration options available to tweak how it runs, but all
-of the basic operations described in the intro section work with zero
-configuration.
-
-#### Windows (Installed from MSI)
-
-Launch btcd from your Start menu.
-
-#### Linux/BSD/POSIX/Source
-
-```bash
-$ ./btcd
-```
-
-## IRC
-
-- irc.freenode.net
-- channel #btcd
-- [webchat](https://webchat.freenode.net/?channels=btcd)
-
-## Issue Tracker
-
-The [integrated github issue tracker](https://github.com/parallelcointeam/pod/issues)
-is used for this project.
-
-## Documentation
-
-The documentation is a work-in-progress.  It is located in the [docs](https://github.com/parallelcointeam/pod/tree/master/docs) folder.
-
-## GPG Verification Key
-
-All official release tags are signed by Conformal so users can ensure the code
-has not been tampered with and is coming from the btcsuite developers.  To
-verify the signature perform the following:
-
-- Download the Conformal public key:
-  https://raw.githubusercontent.com/btcsuite/btcd/master/release/GIT-GPG-KEY-conformal.txt
-
-- Import the public key into your GPG keyring:
-  ```bash
-  gpg --import GIT-GPG-KEY-conformal.txt
-  ```
-
-- Verify the release tag with the following command where `TAG_NAME` is a
-  placeholder for the specific tag:
-  ```bash
-  git tag -v TAG_NAME
-  ```
-
-## License
-
-btcd is licensed under the [copyfree](http://copyfree.org) ISC License.
+In `cmd/pod/sample-pod.conf` you find a full annotated configuration, copy this to the
+folder `home/.pod/pod.conf` to configure the launch settings. `podctl` also has a 
+configuration that you can find in `home/.podctl`, which allows you to set the RPC
+endpoint and other things.
