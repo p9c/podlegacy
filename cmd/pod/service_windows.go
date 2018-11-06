@@ -17,15 +17,15 @@ import (
 
 const (
 	// svcName is the name of btcd service.
-	svcName = "btcdsvc"
+	svcName = "podsvc"
 
 	// svcDisplayName is the service name that will be shown in the windows
 	// services list.  Not the svcName is the "real" name which is used
 	// to control the service.  This is only for display purposes.
-	svcDisplayName = "Btcd Service"
+	svcDisplayName = "Pod Service"
 
 	// svcDesc is the description of the service.
-	svcDesc = "Downloads and stays synchronized with the bitcoin block " +
+	svcDesc = "Downloads and stays synchronized with the parallelcoin block " +
 		"chain and provides chain services to applications."
 )
 
@@ -44,15 +44,15 @@ func logServiceStartOfDay(srvr *server) {
 	elog.Info(1, message)
 }
 
-// btcdService houses the main service handler which handles all service
+// podService houses the main service handler which handles all service
 // updates and launching btcdMain.
-type btcdService struct{}
+type podService struct{}
 
 // Execute is the main entry point the winsvc package calls when receiving
 // information from the Windows service control manager.  It launches the
 // long-running btcdMain (which is the real meat of btcd), handles service
 // change requests, and notifies the service control manager of changes.
-func (s *btcdService) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (bool, uint32) {
+func (s *podService) Execute(args []string, r <-chan svc.ChangeRequest, changes chan<- svc.Status) (bool, uint32) {
 	// Service start is pending.
 	const cmdsAccepted = svc.AcceptStop | svc.AcceptShutdown
 	changes <- svc.Status{State: svc.StartPending}
@@ -291,7 +291,7 @@ func serviceMain() (bool, error) {
 	}
 	defer elog.Close()
 
-	err = svc.Run(svcName, &btcdService{})
+	err = svc.Run(svcName, &podService{})
 	if err != nil {
 		elog.Error(1, fmt.Sprintf("Service start failed: %v", err))
 		return true, err

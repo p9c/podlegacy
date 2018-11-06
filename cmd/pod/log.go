@@ -22,8 +22,8 @@ import (
 	"github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/txscript"
 
-	"github.com/parallelcointeam/btclog"
 	"github.com/jrick/logrotate/rotator"
+	"github.com/parallelcointeam/btclog"
 )
 
 // logWriter implements an io.Writer that outputs to both standard output and
@@ -58,7 +58,7 @@ var (
 	amgrLog = backendLog.Logger("AMGR")
 	cmgrLog = backendLog.Logger("CMGR")
 	bcdbLog = backendLog.Logger("BCDB")
-	btcdLog = backendLog.Logger("BTCD")
+	btcdLog = backendLog.Logger("POD")
 	chanLog = backendLog.Logger("CHAN")
 	discLog = backendLog.Logger("DISC")
 	indxLog = backendLog.Logger("INDX")
