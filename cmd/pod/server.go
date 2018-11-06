@@ -37,6 +37,7 @@ import (
 	"github.com/parallelcointeam/pod/netsync"
 	"github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/txscript"
+	"github.com/parallelcointeam/pod/upnp"
 	"github.com/parallelcointeam/pod/wire"
 )
 
@@ -225,7 +226,7 @@ type server struct {
 	peerHeightsUpdate    chan updatePeerHeightsMsg
 	wg                   sync.WaitGroup
 	quit                 chan struct{}
-	nat                  NAT
+	nat                  upnp.NAT
 	db                   database.DB
 	timeSource           blockchain.MedianTimeSource
 	services             wire.ServiceFlag
@@ -2549,7 +2550,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 	amgr := addrmgr.New(cfg.DataDir, btcdLookup)
 
 	var listeners []net.Listener
-	var nat NAT
+	var nat upnp.NAT
 	if !cfg.DisableListen {
 		var err error
 		listeners, nat, err = initListeners(amgr, listenAddrs, services)
@@ -2863,7 +2864,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 // initListeners initializes the configured net listeners and adds any bound
 // addresses to the address manager. Returns the listeners and a NAT interface,
 // which is non-nil if UPnP is in use.
-func initListeners(amgr *addrmgr.AddrManager, listenAddrs []string, services wire.ServiceFlag) ([]net.Listener, NAT, error) {
+func initListeners(amgr *addrmgr.AddrManager, listenAddrs []string, services wire.ServiceFlag) ([]net.Listener, upnp.NAT, error) {
 	// Listen for TCP connections at the configured addresses
 	netAddrs, err := parseListeners(listenAddrs)
 	if err != nil {
@@ -2880,7 +2881,7 @@ func initListeners(amgr *addrmgr.AddrManager, listenAddrs []string, services wir
 		listeners = append(listeners, listener)
 	}
 
-	var nat NAT
+	var nat upnp.NAT
 	if len(cfg.ExternalIPs) != 0 {
 		defaultPort, err := strconv.ParseUint(activeNetParams.DefaultPort, 10, 16)
 		if err != nil {
@@ -2918,7 +2919,7 @@ func initListeners(amgr *addrmgr.AddrManager, listenAddrs []string, services wir
 	} else {
 		if cfg.Upnp {
 			var err error
-			nat, err = Discover()
+			nat, err = upnp.Discover()
 			if err != nil {
 				srvrLog.Warnf("Can't discover upnp: %v", err)
 			}
