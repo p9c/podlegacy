@@ -1,3 +1,9 @@
+# The Parallelcoin Pod
+
+Parallelcoin is a cryptocurrency forked from Bitcoin in mid 2014 that enables mining with more than one algorithm, specifically SHA256D and Scrypt. This repository contains the new full node client for the network, which is currenntly in early alpha testing, but usable, and later will be added a free-standing light wallet server, as well as multiple GUI front-ends for different platforms.
+
+With the new wallet, and thereafter, there will be a new peer to peer client protocol added to the network which allows wallets to obfuscate the origins of transactions made by users, but this protocol will extend to form the basis of an interconnect system and because it is based on Bitcoin's protocol, it should be simple to turn this into a kind of 'structure gel' (a fictional nanotech substance that forms necessary interconnect circuitry between components, from the game SOMA), which hopefully will have significant adoption and knit together at least several cryptocurrency networks into a single pool, making the implementation of atomic swaps simple and eliminating the market's dependence on centralised exchanges.
+
 ### Table of Contents
 1. [About](#About)
 2. [Getting Started](#GettingStarted)
@@ -25,15 +31,17 @@
 
 ### 1. About
 
-btcd is a full node bitcoin implementation written in [Go](http://golang.org),
-licensed under the [copyfree](http://www.copyfree.org) ISC License.
+pod is is a full node parallelcoin implementation written in [Go](http://golang.org),
+licensed under the [copyfree](http://www.copyfree.org) ISC License and [unlicence](https://unlicence.org).
+
+Along with pod are a suite of necessary accessory applications, for now there is podctl but a wallet is under development.
 
 This project is currently under active development and is in a Beta state.  It
 is extremely stable and has been in production use since October 2013.
 
 It properly downloads, validates, and serves the block chain using the exact
-rules (including consensus bugs) for block acceptance as Bitcoin Core.  We have
-taken great care to avoid btcd causing a fork to the block chain.  It includes a
+rules (including consensus bugs) for block acceptance as Parallelcoin parallelcoind.  We have
+taken great care to avoid pod causing a fork to the block chain.  It includes a
 full block validation testing framework which contains all of the 'official'
 block acceptance tests (and some additional ones) that is run on every pull
 request to help ensure it properly follows consensus.  Also, it passes all of
@@ -45,7 +53,7 @@ ensures all individual transactions admitted to the pool follow the rules
 required by the block chain and also includes more strict checks which filter
 transactions based on miner requirements ("standard" transactions).
 
-One key difference between btcd and Bitcoin Core is that btcd does *NOT* include
+One key difference between pod and Bitcoin Core is that btcd does *NOT* include
 wallet functionality and this was a very intentional design decision.  See the
 blog entry [here](https://blog.conformal.com/btcd-not-your-moms-bitcoin-daemon)
 for more details.  This means you can't actually make or receive payments
@@ -59,6 +67,10 @@ which are both under active development.
 ### 2. Getting Started
 
 <a name="Installation" />
+
+You can find already compiled binaries in the 'releases' section https://github.com/parallelcointeam/pod/releases
+
+Normally there will be builds for significant milestone versions for virtually every platform, windows, android, mac, linux, openbsd, freebsd there, these have no dependencies other than the relevant system's base installation normal. In the future there will be front-ends with installers or packaging available as well. The front ends will be available for every major platform, either as at minimum a progressive web app, and ideally, native apps that use the built in webview renderer.
 
 **2.1 Installation**
 
