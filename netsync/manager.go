@@ -236,6 +236,7 @@ func (sm *SyncManager) startSync() {
 		return
 	}
 
+	var bestMicros int64
 	best := sm.chain.BestSnapshot()
 	var bestPeer *peerpkg.Peer
 	for peer, state := range sm.peerStates {
@@ -261,7 +262,16 @@ func (sm *SyncManager) startSync() {
 
 		// TODO(davec): Use a better algorithm to choose the best peer.
 		// For now, just pick the first available candidate.
-		bestPeer = peer
+		// UPDATE: This will now pick the candidate with the lowest recent ping
+		if bestPeer == nil {
+			// Any peer is fine if none else pass
+			bestPeer = peer
+			bestMicros = peer.LastPingMicros()
+		}
+		if peer.LastPingMicros() > bestMicros {
+			bestMicros = peer.LastPingMicros()
+			bestPeer = peer
+		}
 	}
 
 	// Start syncing from the best peer if one was selected.

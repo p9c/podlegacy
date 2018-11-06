@@ -1,8 +1,5 @@
-// Copyright (c) 2013-2017 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
-
-package main
+// Package blocksync is a library for fetching blocks and synchronising to the best block. Blocks are not stored after retrieval, unless the caller is storing them. Neither does this library perform the consistency checks beyond ensuring the blocks join to the main chain and their hashes and PoWs are correct. It just asks for blocks from peers, downloads them, and returns the queue to be processed which invokes the request for the next ones until the best block is reached.
+package blocksync
 
 import (
 	"container/list"
@@ -22,6 +19,32 @@ import (
 	peerpkg "github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/wire"
 )
+
+// PeerNotifier exposes methods to notify peers of status changes to
+// transactions, blocks, etc. Currently server (in the main package) implements
+// this interface.
+type PeerNotifier interface {
+	AnnounceNewTransactions(newTxs []*mempool.TxDesc)
+
+	UpdatePeerHeights(latestBlkHash *chainhash.Hash, latestHeight int32, updateSource *peerpkg.Peer)
+
+	RelayInventory(invVect *wire.InvVect, data interface{})
+
+	TransactionConfirmed(tx *btcutil.Tx)
+}
+
+// Config is a configuration struct used to initialize a new SyncManager.
+type Config struct {
+	PeerNotifier PeerNotifier
+	Chain        *blockchain.BlockChain
+	TxMemPool    *mempool.TxPool
+	ChainParams  *chaincfg.Params
+
+	DisableCheckpoints bool
+	MaxPeers           int
+
+	FeeEstimator *mempool.FeeEstimator
+}
 
 const (
 	// minInFlightBlocks is the minimum number of blocks that should be
@@ -131,7 +154,7 @@ type headerNode struct {
 	hash   *chainhash.Hash
 }
 
-// peerSyncState stores additional information that the BlockSyncManager tracks
+// peerSyncState stores additional information that the Manager tracks
 // about a peer.
 type peerSyncState struct {
 	syncCandidate   bool
@@ -140,12 +163,12 @@ type peerSyncState struct {
 	requestedBlocks map[chainhash.Hash]struct{}
 }
 
-// BlockSyncManager is used to communicate block related messages with peers. The
-// BlockSyncManager is started as by executing Start() in a goroutine. Once started,
+// Manager is used to communicate block related messages with peers. The
+// Manager is started as by executing Start() in a goroutine. Once started,
 // it selects peers to sync from and starts the initial block download. Once the
-// chain is in sync, the BlockSyncManager handles incoming block and header
+// chain is in sync, the Manager handles incoming block and header
 // notifications and relays announcements of new blocks to peers.
-type BlockSyncManager struct {
+type Manager struct {
 	peerNotifier   PeerNotifier
 	started        int32
 	shutdown       int32
@@ -176,7 +199,7 @@ type BlockSyncManager struct {
 
 // // resetHeaderState sets the headers-first mode state to values appropriate for
 // // syncing from a new peer.
-// func (bsm *BlockSyncManager) resetHeaderState(newestHash *chainhash.Hash, newestHeight int32) {
+// func (bsm *Manager) resetHeaderState(newestHash *chainhash.Hash, newestHeight int32) {
 // 	bsm.headersFirstMode = false
 // 	bsm.headerList.Init()
 // 	bsm.startHeader = nil
@@ -194,7 +217,7 @@ type BlockSyncManager struct {
 // // It returns nil when there is not one either because the height is already
 // // later than the final checkpoint or some other reason such as disabled
 // // checkpoints.
-// func (bsm *BlockSyncManager) findNextHeaderCheckpoint(height int32) *chaincfg.Checkpoint {
+// func (bsm *Manager) findNextHeaderCheckpoint(height int32) *chaincfg.Checkpoint {
 // 	checkpoints := bsm.chain.Checkpoints()
 // 	if len(checkpoints) == 0 {
 // 		return nil
@@ -222,7 +245,7 @@ type BlockSyncManager struct {
 // download/sync the blockchain from.  When syncing is already running, it
 // simply returns.  It also examines the candidates for any which are no longer
 // candidates and removes them as needed.
-func (bsm *BlockSyncManager) startSync() {
+func (bsm *Manager) startSync() {
 	// Return now if we're already syncing.
 	if bsm.syncPeer != nil {
 		return
@@ -237,6 +260,7 @@ func (bsm *BlockSyncManager) startSync() {
 	// 	return
 	// }
 
+	var bestMicros int64
 	best := bsm.chain.BestSnapshot()
 	var bestPeer *peerpkg.Peer
 	for peer, state := range bsm.peerStates {
@@ -262,7 +286,12 @@ func (bsm *BlockSyncManager) startSync() {
 
 		// TODO(davec): Use a better algorithm to choose the best peer.
 		// For now, just pick the first available candidate.
-		bestPeer = peer
+		// For example: ping and/or connection speed
+		// UPDATE: This will now pick the candidate with the lowest recent ping
+		if peer.LastPingMicros() > bestMicros {
+			bestMicros = peer.LastPingMicros()
+			bestPeer = peer
+		}
 	}
 
 	// Start syncing from the best peer if one was selected.
@@ -299,18 +328,18 @@ func (bsm *BlockSyncManager) startSync() {
 		// and fully validate them.  Finally, regression test mode does
 		// not support the headers-first approach so do normal block
 		// downloads when in regression test mode.
-		if bsm.nextCheckpoint != nil &&
-			best.Height < bsm.nextCheckpoint.Height &&
-			bsm.chainParams != &chaincfg.RegressionNetParams {
+		// if bsm.nextCheckpoint != nil &&
+		// 	best.Height < bsm.nextCheckpoint.Height &&
+		// 	bsm.chainParams != &chaincfg.RegressionNetParams {
 
-			bestPeer.PushGetHeadersMsg(locator, bsm.nextCheckpoint.Hash)
-			bsm.headersFirstMode = true
-			Log.Infof("Downloading headers for blocks %d to "+
-				"%d from peer %s", best.Height+1,
-				bsm.nextCheckpoint.Height, bestPeer.Addr())
-		} else {
-			bestPeer.PushGetBlocksMsg(locator, &zeroHash)
-		}
+		// 	bestPeer.PushGetHeadersMsg(locator, bsm.nextCheckpoint.Hash)
+		// 	bsm.headersFirstMode = true
+		// 	Log.Infof("Downloading headers for blocks %d to "+
+		// 		"%d from peer %s", best.Height+1,
+		// 		bsm.nextCheckpoint.Height, bestPeer.Addr())
+		// } else {
+		bestPeer.PushGetBlocksMsg(locator, &zeroHash)
+		// }
 		bsm.syncPeer = bestPeer
 	} else {
 		Log.Warnf("No sync peer candidates available")
@@ -319,7 +348,7 @@ func (bsm *BlockSyncManager) startSync() {
 
 // isSyncCandidate returns whether or not the peer is a candidate to consider
 // syncing from.
-func (bsm *BlockSyncManager) isSyncCandidate(peer *peerpkg.Peer) bool {
+func (bsm *Manager) isSyncCandidate(peer *peerpkg.Peer) bool {
 	// Typically a peer is not a candidate for sync if it's not a full node,
 	// however regression test is special in that the regression tool is
 	// not a full node and still needs to be considered a sync candidate.
@@ -357,7 +386,7 @@ func (bsm *BlockSyncManager) isSyncCandidate(peer *peerpkg.Peer) bool {
 // handleNewPeerMsg deals with new peers that have signalled they may
 // be considered as a sync peer (they have already successfully negotiated).  It
 // also starts syncing if needed.  It is invoked from the syncHandler goroutine.
-func (bsm *BlockSyncManager) handleNewPeerMsg(peer *peerpkg.Peer) {
+func (bsm *Manager) handleNewPeerMsg(peer *peerpkg.Peer) {
 	// Ignore if in the process of shutting down.
 	if atomic.LoadInt32(&bsm.shutdown) != 0 {
 		return
@@ -383,7 +412,7 @@ func (bsm *BlockSyncManager) handleNewPeerMsg(peer *peerpkg.Peer) {
 // removes the peer as a candidate for syncing and in the case where it was
 // the current sync peer, attempts to select a new best peer to sync from.  It
 // is invoked from the syncHandler goroutine.
-func (bsm *BlockSyncManager) handleDonePeerMsg(peer *peerpkg.Peer) {
+func (bsm *Manager) handleDonePeerMsg(peer *peerpkg.Peer) {
 	state, exists := bsm.peerStates[peer]
 	if !exists {
 		Log.Warnf("Received done peer message for unknown peer %s", peer)
@@ -423,7 +452,7 @@ func (bsm *BlockSyncManager) handleDonePeerMsg(peer *peerpkg.Peer) {
 }
 
 // handleTxMsg handles transaction messages from all peers.
-func (bsm *BlockSyncManager) handleTxMsg(tmsg *txMsg) {
+func (bsm *Manager) handleTxMsg(tmsg *txMsg) {
 	peer := tmsg.peer
 	state, exists := bsm.peerStates[peer]
 	if !exists {
@@ -492,7 +521,7 @@ func (bsm *BlockSyncManager) handleTxMsg(tmsg *txMsg) {
 
 // current returns true if we believe we are synced with our peers, false if we
 // still have blocks to check
-func (bsm *BlockSyncManager) current() bool {
+func (bsm *Manager) current() bool {
 	if !bsm.chain.IsCurrent() {
 		return false
 	}
@@ -512,7 +541,7 @@ func (bsm *BlockSyncManager) current() bool {
 }
 
 // handleBlockMsg handles block messages from all peers.
-func (bsm *BlockSyncManager) handleBlockMsg(bmsg *blockMsg) {
+func (bsm *Manager) handleBlockMsg(bmsg *blockMsg) {
 	Log.Debug("handleBlockMsg")
 	peer := bmsg.peer
 	state, exists := bsm.peerStates[peer]
@@ -718,7 +747,7 @@ func (bsm *BlockSyncManager) handleBlockMsg(bmsg *blockMsg) {
 
 // // fetchHeaderBlocks creates and sends a request to the syncPeer for the next
 // // list of blocks to be downloaded based on the current list of headers.
-// func (bsm *BlockSyncManager) fetchHeaderBlocks() {
+// func (bsm *Manager) fetchHeaderBlocks() {
 // 	// Nothing to do if there is no start header.
 // 	if bsm.startHeader == nil {
 // 		Log.Warnf("fetchHeaderBlocks called with no start header")
@@ -772,7 +801,7 @@ func (bsm *BlockSyncManager) handleBlockMsg(bmsg *blockMsg) {
 
 // // handleHeadersMsg handles block header messages from all peers.  Headers are
 // // requested when performing a headers-first sync.
-// func (bsm *BlockSyncManager) handleHeadersMsg(hmsg *headersMsg) {
+// func (bsm *Manager) handleHeadersMsg(hmsg *headersMsg) {
 // 	peer := hmsg.peer
 // 	_, exists := bsm.peerStates[peer]
 // 	if !exists {
@@ -883,7 +912,7 @@ func (bsm *BlockSyncManager) handleBlockMsg(bmsg *blockMsg) {
 // inventory can be when it is in different states such as blocks that are part
 // of the main chain, on a side chain, in the orphan pool, and transactions that
 // are in the memory pool (either the main pool or orphan pool).
-func (bsm *BlockSyncManager) haveInventory(invVect *wire.InvVect) (bool, error) {
+func (bsm *Manager) haveInventory(invVect *wire.InvVect) (bool, error) {
 	switch invVect.Type {
 	case wire.InvTypeWitnessBlock:
 		fallthrough
@@ -931,7 +960,7 @@ func (bsm *BlockSyncManager) haveInventory(invVect *wire.InvVect) (bool, error) 
 
 // handleInvMsg handles inv messages from all peers.
 // We examine the inventory advertised by the remote peer and act accordingly.
-func (bsm *BlockSyncManager) handleInvMsg(imsg *invMsg) {
+func (bsm *Manager) handleInvMsg(imsg *invMsg) {
 	Log.Debug("handleInvMsg")
 	peer := imsg.peer
 	state, exists := bsm.peerStates[peer]
@@ -1135,7 +1164,7 @@ func (bsm *BlockSyncManager) handleInvMsg(imsg *invMsg) {
 // limitMap is a helper function for maps that require a maximum limit by
 // evicting a random transaction if adding a new value would cause it to
 // overflow the maximum allowed.
-func (bsm *BlockSyncManager) limitMap(m map[chainhash.Hash]struct{}, limit int) {
+func (bsm *Manager) limitMap(m map[chainhash.Hash]struct{}, limit int) {
 	if len(m)+1 > limit {
 		// Remove a random entry from the map.  For most compilers, Go's
 		// range statement iterates starting at a random item although
@@ -1156,7 +1185,7 @@ func (bsm *BlockSyncManager) limitMap(m map[chainhash.Hash]struct{}, limit int) 
 // single thread without needing to lock memory data structures.  This is
 // important because the sync manager controls which blocks are needed and how
 // the fetching should proceed.
-func (bsm *BlockSyncManager) blockHandler() {
+func (bsm *Manager) blockHandler() {
 out:
 	for {
 		select {
@@ -1228,7 +1257,7 @@ out:
 // handleBlockchainNotification handles notifications from blockchain.  It does
 // things such as request orphan block parents and relay accepted blocks to
 // connected peers.
-func (bsm *BlockSyncManager) handleBlockchainNotification(notification *blockchain.Notification) {
+func (bsm *Manager) handleBlockchainNotification(notification *blockchain.Notification) {
 	switch notification.Type {
 	// A block has been accepted into the block chain.  Relay it to other
 	// peers.
@@ -1316,7 +1345,7 @@ func (bsm *BlockSyncManager) handleBlockchainNotification(notification *blockcha
 }
 
 // NewPeer informs the sync manager of a newly active peer.
-func (bsm *BlockSyncManager) NewPeer(peer *peerpkg.Peer) {
+func (bsm *Manager) NewPeer(peer *peerpkg.Peer) {
 	// Ignore if we are shutting down.
 	if atomic.LoadInt32(&bsm.shutdown) != 0 {
 		return
@@ -1327,7 +1356,7 @@ func (bsm *BlockSyncManager) NewPeer(peer *peerpkg.Peer) {
 // QueueTx adds the passed transaction message and peer to the block handling
 // queue. Responds to the done channel argument after the tx message is
 // processed.
-func (bsm *BlockSyncManager) QueueTx(tx *btcutil.Tx, peer *peerpkg.Peer, done chan struct{}) {
+func (bsm *Manager) QueueTx(tx *btcutil.Tx, peer *peerpkg.Peer, done chan struct{}) {
 	// Don't accept more transactions if we're shutting down.
 	if atomic.LoadInt32(&bsm.shutdown) != 0 {
 		done <- struct{}{}
@@ -1340,7 +1369,7 @@ func (bsm *BlockSyncManager) QueueTx(tx *btcutil.Tx, peer *peerpkg.Peer, done ch
 // QueueBlock adds the passed block message and peer to the block handling
 // queue. Responds to the done channel argument after the block message is
 // processed.
-func (bsm *BlockSyncManager) QueueBlock(block *btcutil.Block, peer *peerpkg.Peer, done chan struct{}) {
+func (bsm *Manager) QueueBlock(block *btcutil.Block, peer *peerpkg.Peer, done chan struct{}) {
 	// Don't accept more blocks if we're shutting down.
 	if atomic.LoadInt32(&bsm.shutdown) != 0 {
 		done <- struct{}{}
@@ -1351,7 +1380,7 @@ func (bsm *BlockSyncManager) QueueBlock(block *btcutil.Block, peer *peerpkg.Peer
 }
 
 // QueueInv adds the passed inv message and peer to the block handling queue.
-func (bsm *BlockSyncManager) QueueInv(inv *wire.MsgInv, peer *peerpkg.Peer) {
+func (bsm *Manager) QueueInv(inv *wire.MsgInv, peer *peerpkg.Peer) {
 	// No channel handling here because peers do not need to block on inv
 	// messages.
 	if atomic.LoadInt32(&bsm.shutdown) != 0 {
@@ -1363,7 +1392,7 @@ func (bsm *BlockSyncManager) QueueInv(inv *wire.MsgInv, peer *peerpkg.Peer) {
 
 // QueueHeaders adds the passed headers message and peer to the block handling
 // queue.
-func (bsm *BlockSyncManager) QueueHeaders(headers *wire.MsgHeaders, peer *peerpkg.Peer) {
+func (bsm *Manager) QueueHeaders(headers *wire.MsgHeaders, peer *peerpkg.Peer) {
 	// No channel handling here because peers do not need to block on
 	// headers messages.
 	if atomic.LoadInt32(&bsm.shutdown) != 0 {
@@ -1374,7 +1403,7 @@ func (bsm *BlockSyncManager) QueueHeaders(headers *wire.MsgHeaders, peer *peerpk
 }
 
 // DonePeer informs the blockmanager that a peer has disconnected.
-func (bsm *BlockSyncManager) DonePeer(peer *peerpkg.Peer) {
+func (bsm *Manager) DonePeer(peer *peerpkg.Peer) {
 	// Ignore if we are shutting down.
 	if atomic.LoadInt32(&bsm.shutdown) != 0 {
 		return
@@ -1384,7 +1413,7 @@ func (bsm *BlockSyncManager) DonePeer(peer *peerpkg.Peer) {
 }
 
 // Start begins the core block handler which processes block and inv messages.
-func (bsm *BlockSyncManager) Start() {
+func (bsm *Manager) Start() {
 	// Already started?
 	if atomic.AddInt32(&bsm.started, 1) != 1 {
 		return
@@ -1397,7 +1426,7 @@ func (bsm *BlockSyncManager) Start() {
 
 // Stop gracefully shuts down the sync manager by stopping all asynchronous
 // handlers and waiting for them to finish.
-func (bsm *BlockSyncManager) Stop() error {
+func (bsm *Manager) Stop() error {
 	if atomic.AddInt32(&bsm.shutdown, 1) != 1 {
 		Log.Warnf("Sync manager is already in the process of " +
 			"shutting down")
@@ -1411,7 +1440,7 @@ func (bsm *BlockSyncManager) Stop() error {
 }
 
 // SyncPeerID returns the ID of the current sync peer, or 0 if there is none.
-func (bsm *BlockSyncManager) SyncPeerID() int32 {
+func (bsm *Manager) SyncPeerID() int32 {
 	reply := make(chan int32)
 	bsm.msgChan <- getSyncPeerMsg{reply: reply}
 	return <-reply
@@ -1419,7 +1448,7 @@ func (bsm *BlockSyncManager) SyncPeerID() int32 {
 
 // ProcessBlock makes use of ProcessBlock on an internal instance of a block
 // chain.
-func (bsm *BlockSyncManager) ProcessBlock(block *btcutil.Block, flags blockchain.BehaviorFlags) (bool, error) {
+func (bsm *Manager) ProcessBlock(block *btcutil.Block, flags blockchain.BehaviorFlags) (bool, error) {
 	reply := make(chan processBlockResponse, 1)
 	bsm.msgChan <- processBlockMsg{block: block, flags: flags, reply: reply}
 	response := <-reply
@@ -1428,7 +1457,7 @@ func (bsm *BlockSyncManager) ProcessBlock(block *btcutil.Block, flags blockchain
 
 // IsCurrent returns whether or not the sync manager believes it is synced with
 // the connected peers.
-func (bsm *BlockSyncManager) IsCurrent() bool {
+func (bsm *Manager) IsCurrent() bool {
 	reply := make(chan bool)
 	bsm.msgChan <- isCurrentMsg{reply: reply}
 	return <-reply
@@ -1438,16 +1467,16 @@ func (bsm *BlockSyncManager) IsCurrent() bool {
 //
 // Note that while paused, all peer and block processing is halted.  The
 // message sender should avoid pausing the sync manager for long durations.
-func (bsm *BlockSyncManager) Pause() chan<- struct{} {
+func (bsm *Manager) Pause() chan<- struct{} {
 	c := make(chan struct{})
 	bsm.msgChan <- pauseMsg{c}
 	return c
 }
 
-// New constructs a new BlockSyncManager. Use Start to begin processing asynchronous
+// New constructs a new Manager. Use Start to begin processing asynchronous
 // block, tx, and inv updates.
-func New(config *Config) (*BlockSyncManager, error) {
-	bsm := BlockSyncManager{
+func New(config *Config) (*Manager, error) {
+	bsm := Manager{
 		peerNotifier:    config.PeerNotifier,
 		chain:           config.Chain,
 		txMemPool:       config.TxMemPool,
