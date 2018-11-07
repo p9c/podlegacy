@@ -5,6 +5,7 @@
 package server
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 )
@@ -30,10 +31,16 @@ func InterruptListener() <-chan struct{} {
 		// channel to notify the caller.
 		select {
 		case sig := <-interruptChannel:
+			if PodLog != nil {
+				fmt.Println()
+			}
 			PodLog.Infof("Received signal (%s).  Shutting down...",
 				sig)
 
 		case <-shutdownRequestChannel:
+			if PodLog != nil {
+				fmt.Println()
+			}
 			PodLog.Info("Shutdown requested.  Shutting down...")
 		}
 		close(c)

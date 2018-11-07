@@ -48,9 +48,9 @@ type Server struct {
 	txMemPool            *mempool.TxPool
 	cpuMiner             *cpuminer.CPUMiner
 	modifyRebroadcastInv chan interface{}
-	newPeers             chan *ServerPeer
-	donePeers            chan *ServerPeer
-	banPeers             chan *ServerPeer
+	newPeers             chan *Peer
+	donePeers            chan *Peer
+	banPeers             chan *Peer
 	query                chan interface{}
 	relayInv             chan relayMsg
 	broadcast            chan broadcastMsg
@@ -80,9 +80,9 @@ type Server struct {
 	cfCheckptCachesMtx sync.RWMutex
 }
 
-// ServerPeer extends the peer to maintain state shared by the server and
+// Peer extends the peer to maintain state shared by the server and
 // the blockmanager.
-type ServerPeer struct {
+type Peer struct {
 	// The following variables must only be used atomically
 	feeFilter int64
 
@@ -328,7 +328,7 @@ type getConnCountMsg struct {
 }
 
 type getPeersMsg struct {
-	reply chan []*ServerPeer
+	reply chan []*Peer
 }
 
 type getOutboundGroup struct {
@@ -337,11 +337,11 @@ type getOutboundGroup struct {
 }
 
 type getAddedNodesMsg struct {
-	reply chan []*ServerPeer
+	reply chan []*Peer
 }
 
 type disconnectNodeMsg struct {
-	cmp   func(*ServerPeer) bool
+	cmp   func(*Peer) bool
 	reply chan error
 }
 
@@ -352,7 +352,7 @@ type connectNodeMsg struct {
 }
 
 type removeNodeMsg struct {
-	cmp   func(*ServerPeer) bool
+	cmp   func(*Peer) bool
 	reply chan error
 }
 
@@ -360,7 +360,7 @@ type removeNodeMsg struct {
 // to all connected peers except specified excluded peers.
 type broadcastMsg struct {
 	message      wire.Message
-	excludePeers []*ServerPeer
+	excludePeers []*Peer
 }
 
 // broadcastInventoryAdd is a type used to declare that the InvVect it contains
@@ -393,9 +393,9 @@ type updatePeerHeightsMsg struct {
 // peerState maintains state of inbound, persistent, outbound peers as well
 // as banned peers and outbound groups.
 type peerState struct {
-	inboundPeers    map[int32]*ServerPeer
-	outboundPeers   map[int32]*ServerPeer
-	persistentPeers map[int32]*ServerPeer
+	inboundPeers    map[int32]*Peer
+	outboundPeers   map[int32]*Peer
+	persistentPeers map[int32]*Peer
 	banned          map[string]time.Time
 	outboundGroups  map[string]int
 }

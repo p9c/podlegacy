@@ -2,7 +2,7 @@
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
-package server
+package main
 
 import (
 	"bufio"
@@ -27,29 +27,32 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/connmgr"
 	"github.com/parallelcointeam/pod/database"
-	_ "github.com/parallelcointeam/pod/database/ffldb"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/peer"
+	svr "github.com/parallelcointeam/pod/server"
 	"github.com/parallelcointeam/pod/utils"
 )
 
-const (
-	defaultConfigFilename       = "pod.conf"
-	defaultDataDirname          = "data"
-	defaultLogLevel             = "info"
-	defaultLogDirname           = "logs"
-	defaultLogFilename          = "pod.log"
-	defaultMaxPeers             = 125
-	defaultBanDuration          = time.Hour * 24
-	defaultBanThreshold         = 100
-	defaultConnectTimeout       = time.Second * 30
-	defaultMaxRPCClients        = 10
-	defaultMaxRPCWebsockets     = 25
-	defaultMaxRPCConcurrentReqs = 20
-	defaultDbType               = "ffldb"
-	defaultFreeTxRelayLimit     = 15.0
-	defaultTrickleInterval      = peer.DefaultTrickleInterval
+var (
+	Cfg *Config
+)
 
+const (
+	defaultConfigFilename        = "sac.conf"
+	defaultDataDirname           = "data"
+	defaultLogLevel              = "info"
+	defaultLogDirname            = "logs"
+	defaultLogFilename           = "sac.log"
+	defaultMaxPeers              = 125
+	defaultBanDuration           = time.Hour * 24
+	defaultBanThreshold          = 100
+	defaultConnectTimeout        = time.Second * 30
+	defaultMaxRPCClients         = 10
+	defaultMaxRPCWebsockets      = 25
+	defaultMaxRPCConcurrentReqs  = 20
+	defaultDbType                = "badger"
+	defaultFreeTxRelayLimit      = 15.0
+	defaultTrickleInterval       = peer.DefaultTrickleInterval
 	defaultBlockMinSize          = 80
 	defaultBlockMaxSize          = 200000
 	defaultBlockMinWeight        = 10
@@ -62,13 +65,13 @@ const (
 	defaultMaxOrphanTransactions = 100
 	defaultMaxOrphanTxSize       = 100000
 	defaultSigCacheMaxSize       = 100000
-	sampleConfigFilename         = "sample-pod.conf"
+	sampleConfigFilename         = "sample-sac.conf"
 	defaultTxIndex               = false
 	defaultAddrIndex             = false
 )
 
 var (
-	defaultHomeDir     = utils.AppDataDir("pod", false)
+	defaultHomeDir     = utils.AppDataDir("sac", false)
 	defaultConfigFile  = filepath.Join(defaultHomeDir, defaultConfigFilename)
 	defaultDataDir     = filepath.Join(defaultHomeDir, defaultDataDirname)
 	knownDbTypes       = database.SupportedDrivers()
@@ -216,8 +219,8 @@ func ValidLogLevel(logLevel string) bool {
 // logging purposes.
 func SupportedSubsystems() []string {
 	// Convert the subsystemLoggers map keys to a slice.
-	subsystems := make([]string, 0, len(SubsystemLoggers))
-	for subsysID := range SubsystemLoggers {
+	subsystems := make([]string, 0, len(svr.SubsystemLoggers))
+	for subsysID := range svr.SubsystemLoggers {
 		subsystems = append(subsystems, subsysID)
 	}
 
@@ -240,7 +243,7 @@ func ParseAndSetDebugLevels(debugLevel string) error {
 		}
 
 		// Change the logging level for all subsystems.
-		SetLogLevels(debugLevel)
+		svr.SetLogLevels(debugLevel)
 
 		return nil
 	}
@@ -259,7 +262,7 @@ func ParseAndSetDebugLevels(debugLevel string) error {
 		subsysID, logLevel := fields[0], fields[1]
 
 		// Validate subsystem.
-		if _, exists := SubsystemLoggers[subsysID]; !exists {
+		if _, exists := svr.SubsystemLoggers[subsysID]; !exists {
 			str := "The specified subsystem [%v] is invalid -- " +
 				"supported subsytems %v"
 			return fmt.Errorf(str, subsysID, SupportedSubsystems())
@@ -271,7 +274,7 @@ func ParseAndSetDebugLevels(debugLevel string) error {
 			return fmt.Errorf(str, logLevel)
 		}
 
-		SetLogLevel(subsysID, logLevel)
+		svr.SetLogLevel(subsysID, logLevel)
 	}
 
 	return nil
@@ -454,7 +457,7 @@ func LoadConfig() (*Config, []string, error) {
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
 	usageMessage := fmt.Sprintf("Use %s -h to show usage", appName)
 	if preCfg.ShowVersion {
-		fmt.Println(appName, "version", Version())
+		fmt.Println(appName, "version", svr.Version())
 		os.Exit(0)
 	}
 
@@ -535,16 +538,16 @@ func LoadConfig() (*Config, []string, error) {
 	// while we're at it
 	if Cfg.TestNet3 {
 		numNets++
-		ActiveNetParams = &TestNet3Params
+		svr.ActiveNetParams = &svr.TestNet3Params
 	}
 	if Cfg.RegressionTest {
 		numNets++
-		ActiveNetParams = &RegressionNetParams
+		svr.ActiveNetParams = &svr.RegressionNetParams
 	}
 	if Cfg.SimNet {
 		numNets++
 		// Also disable dns seeding on the simulation test network.
-		ActiveNetParams = &SimNetParams
+		svr.ActiveNetParams = &svr.SimNetParams
 		Cfg.DisableDNSSeed = true
 	}
 	if numNets > 1 {
@@ -560,7 +563,7 @@ func LoadConfig() (*Config, []string, error) {
 	// according to the default of the active network. The set
 	// configuration value takes precedence over the default value for the
 	// selected network.
-	relayNonStd := ActiveNetParams.RelayNonStdTxs
+	relayNonStd := svr.ActiveNetParams.RelayNonStdTxs
 	switch {
 	case Cfg.RelayNonStd && Cfg.RejectNonStd:
 		str := "%s: rejectnonstd and relaynonstd cannot be used " +
@@ -583,12 +586,12 @@ func LoadConfig() (*Config, []string, error) {
 	// means each individual piece of serialized data does not have to
 	// worry about changing names per network and such.
 	Cfg.DataDir = CleanAndExpandPath(Cfg.DataDir)
-	Cfg.DataDir = filepath.Join(Cfg.DataDir, NetName(ActiveNetParams))
+	Cfg.DataDir = filepath.Join(Cfg.DataDir, svr.NetName(svr.ActiveNetParams))
 
 	// Append the network type to the log directory so it is "namespaced"
 	// per network in the same fashion as the data directory.
 	Cfg.LogDir = CleanAndExpandPath(Cfg.LogDir)
-	Cfg.LogDir = filepath.Join(Cfg.LogDir, NetName(ActiveNetParams))
+	Cfg.LogDir = filepath.Join(Cfg.LogDir, svr.NetName(svr.ActiveNetParams))
 
 	// Special show command to list supported subsystems and exit.
 	if Cfg.DebugLevel == "show" {
@@ -598,7 +601,7 @@ func LoadConfig() (*Config, []string, error) {
 
 	// Initialize log rotation.  After log rotation has been initialized, the
 	// logger variables may be used.
-	InitLogRotator(filepath.Join(Cfg.LogDir, defaultLogFilename))
+	svr.InitLogRotator(filepath.Join(Cfg.LogDir, defaultLogFilename))
 
 	// Parse, validate, and set debug log level(s).
 	if err := ParseAndSetDebugLevels(Cfg.DebugLevel); err != nil {
@@ -697,7 +700,7 @@ func LoadConfig() (*Config, []string, error) {
 	// we are to connect to.
 	if len(Cfg.Listeners) == 0 {
 		Cfg.Listeners = []string{
-			net.JoinHostPort("", ActiveNetParams.DefaultPort),
+			net.JoinHostPort("", svr.ActiveNetParams.DefaultPort),
 		}
 	}
 
@@ -728,7 +731,7 @@ func LoadConfig() (*Config, []string, error) {
 	}
 
 	if Cfg.DisableRPC {
-		PodLog.Infof("RPC service is disabled")
+		svr.PodLog.Infof("RPC service is disabled")
 	}
 
 	// Default RPC to listen on localhost only.
@@ -739,7 +742,7 @@ func LoadConfig() (*Config, []string, error) {
 		}
 		Cfg.RPCListeners = make([]string, 0, len(addrs))
 		for _, addr := range addrs {
-			addr = net.JoinHostPort(addr, ActiveNetParams.RpcPort)
+			addr = net.JoinHostPort(addr, svr.ActiveNetParams.RpcPort)
 			Cfg.RPCListeners = append(Cfg.RPCListeners, addr)
 		}
 	}
@@ -868,7 +871,7 @@ func LoadConfig() (*Config, []string, error) {
 	// Check mining addresses are valid and saved parsed versions.
 	Cfg.miningAddrs = make([]utils.Address, 0, len(Cfg.MiningAddrs))
 	for _, strAddr := range Cfg.MiningAddrs {
-		addr, err := utils.DecodeAddress(strAddr, ActiveNetParams.Params)
+		addr, err := utils.DecodeAddress(strAddr, svr.ActiveNetParams.Params)
 		if err != nil {
 			str := "%s: mining address '%s' failed to decode: %v"
 			err := fmt.Errorf(str, funcName, strAddr, err)
@@ -876,7 +879,7 @@ func LoadConfig() (*Config, []string, error) {
 			fmt.Fprintln(os.Stderr, usageMessage)
 			return nil, nil, err
 		}
-		if !addr.IsForNet(ActiveNetParams.Params) {
+		if !addr.IsForNet(svr.ActiveNetParams.Params) {
 			str := "%s: mining address '%s' is on the wrong network"
 			err := fmt.Errorf(str, funcName, strAddr)
 			fmt.Fprintln(os.Stderr, err)
@@ -900,12 +903,12 @@ func LoadConfig() (*Config, []string, error) {
 	// Add default port to all listener addresses if needed and remove
 	// duplicate addresses.
 	Cfg.Listeners = NormalizeAddresses(Cfg.Listeners,
-		ActiveNetParams.DefaultPort)
+		svr.ActiveNetParams.DefaultPort)
 
 	// Add default port to all rpc listener addresses if needed and remove
 	// duplicate addresses.
 	Cfg.RPCListeners = NormalizeAddresses(Cfg.RPCListeners,
-		ActiveNetParams.RpcPort)
+		svr.ActiveNetParams.RpcPort)
 
 	// Only allow TLS to be disabled if the RPC is bound to localhost
 	// addresses.
@@ -941,9 +944,9 @@ func LoadConfig() (*Config, []string, error) {
 	// Add default port to all added peer addresses if needed and remove
 	// duplicate addresses.
 	Cfg.AddPeers = NormalizeAddresses(Cfg.AddPeers,
-		ActiveNetParams.DefaultPort)
+		svr.ActiveNetParams.DefaultPort)
 	Cfg.ConnectPeers = NormalizeAddresses(Cfg.ConnectPeers,
-		ActiveNetParams.DefaultPort)
+		svr.ActiveNetParams.DefaultPort)
 
 	// --noonion and --onion do not mix.
 	if Cfg.NoOnion && Cfg.OnionProxy != "" {
@@ -1082,7 +1085,7 @@ func LoadConfig() (*Config, []string, error) {
 	// done.  This prevents the warning on help messages and invalid
 	// options.  Note this should go directly before the return.
 	if configFileError != nil {
-		PodLog.Warnf("%v", configFileError)
+		svr.PodLog.Warnf("%v", configFileError)
 	}
 
 	return &Cfg, remainingArgs, nil
@@ -1155,12 +1158,12 @@ func createDefaultConfigFile(destinationPath string) error {
 	return nil
 }
 
-// btcdDial connects to the address on the named network using the appropriate
+// Dial connects to the address on the named network using the appropriate
 // dial function depending on the address and configuration options.  For
 // example, .onion addresses will be dialed using the onion specific proxy if
 // one was specified, but will otherwise use the normal dial function (which
 // could itself use a proxy or not).
-func btcdDial(addr net.Addr) (net.Conn, error) {
+func Dial(addr net.Addr) (net.Conn, error) {
 	if strings.Contains(addr.String(), ".onion:") {
 		return Cfg.oniondial(addr.Network(), addr.String(),
 			defaultConnectTimeout)

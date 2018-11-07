@@ -18,7 +18,7 @@ import (
 
 // rpcPeer provides a peer for use with the RPC server and implements the
 // rpcserverPeer interface.
-type rpcPeer ServerPeer
+type rpcPeer Peer
 
 // Ensure rpcPeer implements the rpcserverPeer interface.
 var _ rpcserverPeer = (*rpcPeer)(nil)
@@ -31,7 +31,7 @@ func (p *rpcPeer) ToPeer() *peer.Peer {
 	if p == nil {
 		return nil
 	}
-	return (*ServerPeer)(p).Peer
+	return (*Peer)(p).Peer
 }
 
 // IsTxRelayDisabled returns whether or not the peer has disabled transaction
@@ -40,7 +40,7 @@ func (p *rpcPeer) ToPeer() *peer.Peer {
 // This function is safe for concurrent access and is part of the rpcserverPeer
 // interface implementation.
 func (p *rpcPeer) IsTxRelayDisabled() bool {
-	return (*ServerPeer)(p).disableRelayTx
+	return (*Peer)(p).disableRelayTx
 }
 
 // BanScore returns the current integer value that represents how close the peer
@@ -49,7 +49,7 @@ func (p *rpcPeer) IsTxRelayDisabled() bool {
 // This function is safe for concurrent access and is part of the rpcserverPeer
 // interface implementation.
 func (p *rpcPeer) BanScore() uint32 {
-	return (*ServerPeer)(p).banScore.Int()
+	return (*Peer)(p).banScore.Int()
 }
 
 // FeeFilter returns the requested current minimum fee rate for which
@@ -58,7 +58,7 @@ func (p *rpcPeer) BanScore() uint32 {
 // This function is safe for concurrent access and is part of the rpcserverPeer
 // interface implementation.
 func (p *rpcPeer) FeeFilter() int64 {
-	return atomic.LoadInt64(&(*ServerPeer)(p).feeFilter)
+	return atomic.LoadInt64(&(*Peer)(p).feeFilter)
 }
 
 // Ensure RPCConnManager implements the rpcserverConnManager interface.
@@ -90,7 +90,7 @@ func (cm *RPCConnManager) Connect(addr string, permanent bool) error {
 func (cm *RPCConnManager) RemoveByID(id int32) error {
 	replyChan := make(chan error)
 	cm.server.query <- removeNodeMsg{
-		cmp:   func(sp *ServerPeer) bool { return sp.ID() == id },
+		cmp:   func(sp *Peer) bool { return sp.ID() == id },
 		reply: replyChan,
 	}
 	return <-replyChan
@@ -105,7 +105,7 @@ func (cm *RPCConnManager) RemoveByID(id int32) error {
 func (cm *RPCConnManager) RemoveByAddr(addr string) error {
 	replyChan := make(chan error)
 	cm.server.query <- removeNodeMsg{
-		cmp:   func(sp *ServerPeer) bool { return sp.Addr() == addr },
+		cmp:   func(sp *Peer) bool { return sp.Addr() == addr },
 		reply: replyChan,
 	}
 	return <-replyChan
@@ -120,7 +120,7 @@ func (cm *RPCConnManager) RemoveByAddr(addr string) error {
 func (cm *RPCConnManager) DisconnectByID(id int32) error {
 	replyChan := make(chan error)
 	cm.server.query <- disconnectNodeMsg{
-		cmp:   func(sp *ServerPeer) bool { return sp.ID() == id },
+		cmp:   func(sp *Peer) bool { return sp.ID() == id },
 		reply: replyChan,
 	}
 	return <-replyChan
@@ -135,7 +135,7 @@ func (cm *RPCConnManager) DisconnectByID(id int32) error {
 func (cm *RPCConnManager) DisconnectByAddr(addr string) error {
 	replyChan := make(chan error)
 	cm.server.query <- disconnectNodeMsg{
-		cmp:   func(sp *ServerPeer) bool { return sp.Addr() == addr },
+		cmp:   func(sp *Peer) bool { return sp.Addr() == addr },
 		reply: replyChan,
 	}
 	return <-replyChan
@@ -163,7 +163,7 @@ func (cm *RPCConnManager) NetTotals() (uint64, uint64) {
 // This function is safe for concurrent access and is part of the
 // rpcserverConnManager interface implementation.
 func (cm *RPCConnManager) ConnectedPeers() []rpcserverPeer {
-	replyChan := make(chan []*ServerPeer)
+	replyChan := make(chan []*Peer)
 	cm.server.query <- getPeersMsg{reply: replyChan}
 	serverPeers := <-replyChan
 
@@ -181,7 +181,7 @@ func (cm *RPCConnManager) ConnectedPeers() []rpcserverPeer {
 // This function is safe for concurrent access and is part of the
 // rpcserverConnManager interface implementation.
 func (cm *RPCConnManager) PersistentPeers() []rpcserverPeer {
-	replyChan := make(chan []*ServerPeer)
+	replyChan := make(chan []*Peer)
 	cm.server.query <- getAddedNodesMsg{reply: replyChan}
 	serverPeers := <-replyChan
 

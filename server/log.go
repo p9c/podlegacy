@@ -43,7 +43,7 @@ func (LogWriter) Write(p []byte) (n int, err error) {
 //
 // Loggers can not be used before the log rotator has been initialized with a
 // log file.  This must be performed early during application startup by calling
-// initLogRotator.
+// InitLogRotator.
 var (
 	// BackendLog is the logging backend used to create all subsystem loggers.
 	// The backend must not be used before the log rotator has been initialized,
@@ -58,7 +58,7 @@ var (
 	AmgrLog = BackendLog.Logger("AMGR")
 	CmgrLog = BackendLog.Logger("CMGR")
 	BcdbLog = BackendLog.Logger("BCDB")
-	PodLog  = BackendLog.Logger("POD")
+	PodLog  = BackendLog.Logger(" POD")
 	ChanLog = BackendLog.Logger("CHAN")
 	DiscLog = BackendLog.Logger("DISC")
 	IndxLog = BackendLog.Logger("INDX")
@@ -105,10 +105,10 @@ var SubsystemLoggers = map[string]Log.Logger{
 	"TXMP": TxmpLog,
 }
 
-// initLogRotator initializes the logging rotater to write logs to logFile and
+// InitLogRotator initializes the logging rotater to write logs to logFile and
 // create roll files in the same directory.  It must be called before the
 // package-global log rotater variables are used.
-func initLogRotator(logFile string) {
+func InitLogRotator(logFile string) {
 	logDir, _ := filepath.Split(logFile)
 	err := os.MkdirAll(logDir, 0700)
 	if err != nil {
@@ -124,10 +124,10 @@ func initLogRotator(logFile string) {
 	LogRotator = r
 }
 
-// setLogLevel sets the logging level for provided subsystem.  Invalid
+// SetLogLevel sets the logging level for provided subsystem.  Invalid
 // subsystems are ignored.  Uninitialized subsystems are dynamically created as
 // needed.
-func setLogLevel(subsystemID string, logLevel string) {
+func SetLogLevel(subsystemID string, logLevel string) {
 	// Ignore invalid subsystems.
 	logger, ok := SubsystemLoggers[subsystemID]
 	if !ok {
@@ -139,29 +139,29 @@ func setLogLevel(subsystemID string, logLevel string) {
 	logger.SetLevel(level)
 }
 
-// setLogLevels sets the log level for all subsystem loggers to the passed
+// SetLogLevels sets the log level for all subsystem loggers to the passed
 // level.  It also dynamically creates the subsystem loggers as needed, so it
 // can be used to initialize the logging system.
-func setLogLevels(logLevel string) {
+func SetLogLevels(logLevel string) {
 	// Configure all sub-systems with the new logging level.  Dynamically
 	// create loggers as needed.
 	for subsystemID := range SubsystemLoggers {
-		setLogLevel(subsystemID, logLevel)
+		SetLogLevel(subsystemID, logLevel)
 	}
 }
 
-// directionString is a helper function that returns a string that represents
+// DirectionString is a helper function that returns a string that represents
 // the direction of a connection (inbound or outbound).
-func directionString(inbound bool) string {
+func DirectionString(inbound bool) string {
 	if inbound {
 		return "inbound"
 	}
 	return "outbound"
 }
 
-// pickNoun returns the singular or plural form of a noun depending
+// PickNoun returns the singular or plural form of a noun depending
 // on the count n.
-func pickNoun(n uint64, singular, plural string) string {
+func PickNoun(n uint64, singular, plural string) string {
 	if n == 1 {
 		return singular
 	}

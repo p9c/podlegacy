@@ -2,7 +2,7 @@
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
-package server
+package main
 
 import (
 	"bufio"
@@ -30,6 +30,7 @@ import (
 	_ "github.com/parallelcointeam/pod/database/ffldb"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/peer"
+	svr "github.com/parallelcointeam/pod/server"
 	"github.com/parallelcointeam/pod/utils"
 )
 
@@ -216,8 +217,8 @@ func ValidLogLevel(logLevel string) bool {
 // logging purposes.
 func SupportedSubsystems() []string {
 	// Convert the subsystemLoggers map keys to a slice.
-	subsystems := make([]string, 0, len(SubsystemLoggers))
-	for subsysID := range SubsystemLoggers {
+	subsystems := make([]string, 0, len(svr.SubsystemLoggers))
+	for subsysID := range svr.SubsystemLoggers {
 		subsystems = append(subsystems, subsysID)
 	}
 
@@ -240,7 +241,7 @@ func ParseAndSetDebugLevels(debugLevel string) error {
 		}
 
 		// Change the logging level for all subsystems.
-		SetLogLevels(debugLevel)
+		setLogLevels(debugLevel)
 
 		return nil
 	}
@@ -259,7 +260,7 @@ func ParseAndSetDebugLevels(debugLevel string) error {
 		subsysID, logLevel := fields[0], fields[1]
 
 		// Validate subsystem.
-		if _, exists := SubsystemLoggers[subsysID]; !exists {
+		if _, exists := svr.SubsystemLoggers[subsysID]; !exists {
 			str := "The specified subsystem [%v] is invalid -- " +
 				"supported subsytems %v"
 			return fmt.Errorf(str, subsysID, SupportedSubsystems())
@@ -271,7 +272,7 @@ func ParseAndSetDebugLevels(debugLevel string) error {
 			return fmt.Errorf(str, logLevel)
 		}
 
-		SetLogLevel(subsysID, logLevel)
+		setLogLevel(subsysID, logLevel)
 	}
 
 	return nil
@@ -598,7 +599,7 @@ func LoadConfig() (*Config, []string, error) {
 
 	// Initialize log rotation.  After log rotation has been initialized, the
 	// logger variables may be used.
-	InitLogRotator(filepath.Join(Cfg.LogDir, defaultLogFilename))
+	initLogRotator(filepath.Join(Cfg.LogDir, defaultLogFilename))
 
 	// Parse, validate, and set debug log level(s).
 	if err := ParseAndSetDebugLevels(Cfg.DebugLevel); err != nil {
@@ -739,7 +740,7 @@ func LoadConfig() (*Config, []string, error) {
 		}
 		Cfg.RPCListeners = make([]string, 0, len(addrs))
 		for _, addr := range addrs {
-			addr = net.JoinHostPort(addr, ActiveNetParams.RpcPort)
+			addr = net.JoinHostPort(addr, ActiveNetParams.rpcPort)
 			Cfg.RPCListeners = append(Cfg.RPCListeners, addr)
 		}
 	}
@@ -905,7 +906,7 @@ func LoadConfig() (*Config, []string, error) {
 	// Add default port to all rpc listener addresses if needed and remove
 	// duplicate addresses.
 	Cfg.RPCListeners = NormalizeAddresses(Cfg.RPCListeners,
-		ActiveNetParams.RpcPort)
+		ActiveNetParams.rpcPort)
 
 	// Only allow TLS to be disabled if the RPC is bound to localhost
 	// addresses.

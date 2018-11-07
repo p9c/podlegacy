@@ -32,11 +32,47 @@ var (
 	cfg *svr.Config
 )
 
-// winServiceMain is only invoked on Windows.  It detects when btcd is running
+// winServiceMain is only invoked on Windows.  It detects when pod is running
 // as a service and reacts accordingly.
 var winServiceMain func() (bool, error)
 
-// Main is the real main function for btcd.  It is necessary to work around
+func main() {
+	// Use all processor cores.
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// Block and transaction processing can cause bursty allocations.  This
+	// limits the garbage collector from excessively overallocating during
+	// bursts.  This value was arrived at with the help of profiling live
+	// usage.
+	debug.SetGCPercent(10)
+
+	// Up some limits.
+	if err := limits.SetLimits(); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to set limits: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Call serviceMain on Windows to handle running as a service.  When
+	// the return isService flag is true, exit now since we ran as a
+	// service.  Otherwise, just fall through to normal operation.
+	if runtime.GOOS == "windows" {
+		isService, err := winServiceMain()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		if isService {
+			os.Exit(0)
+		}
+	}
+
+	// Work around defer not working after os.Exit()
+	if err := Main(nil); err != nil {
+		os.Exit(1)
+	}
+}
+
+// Main is the real main function for pod.  It is necessary to work around
 // the fact that deferred functions do not run when os.Exit() is called.  The
 // optional serverChan parameter is mainly used by the service code to be
 // notified with the server once it is setup so it can gracefully stop it when
@@ -248,6 +284,8 @@ func warnMultipleDBs() {
 	}
 }
 
+// TODO: change to fit wallet database
+
 // loadBlockDB loads (or creates when needed) the block database taking into
 // account the selected database backend and returns a handle to it.  It also
 // contains additional logic such warning the user if there are multiple
@@ -299,40 +337,4 @@ func loadBlockDB() (database.DB, error) {
 
 	svr.PodLog.Info("Block database loaded")
 	return db, nil
-}
-
-func main() {
-	// Use all processor cores.
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	// Block and transaction processing can cause bursty allocations.  This
-	// limits the garbage collector from excessively overallocating during
-	// bursts.  This value was arrived at with the help of profiling live
-	// usage.
-	debug.SetGCPercent(10)
-
-	// Up some limits.
-	if err := limits.SetLimits(); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to set limits: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Call serviceMain on Windows to handle running as a service.  When
-	// the return isService flag is true, exit now since we ran as a
-	// service.  Otherwise, just fall through to normal operation.
-	if runtime.GOOS == "windows" {
-		isService, err := winServiceMain()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		if isService {
-			os.Exit(0)
-		}
-	}
-
-	// Work around defer not working after os.Exit()
-	if err := Main(nil); err != nil {
-		os.Exit(1)
-	}
 }

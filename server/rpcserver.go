@@ -999,7 +999,7 @@ func handleGetAddedNodeInfo(s *RPCServer, cmd interface{}, closeChan <-chan stru
 			addr.Address = ip
 			addr.Connected = "false"
 			if ip == host && peer.Connected() {
-				addr.Connected = directionString(peer.Inbound())
+				addr.Connected = DirectionString(peer.Inbound())
 			}
 			addrs = append(addrs, addr)
 		}
