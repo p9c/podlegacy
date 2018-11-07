@@ -75,6 +75,7 @@ func (b *BlockProgressLogger) LogBlockHeight(block *btcutil.Block) {
 	b.lastBlockLogTime = now
 }
 
+// SetLastLogTime sets the last log time
 func (b *BlockProgressLogger) SetLastLogTime(time time.Time) {
 	b.lastBlockLogTime = time
 }
