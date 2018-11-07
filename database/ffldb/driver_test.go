@@ -15,7 +15,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/database/ffldb"
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 )
 
 // dbType is the database type name for this driver.
@@ -171,7 +171,7 @@ func TestPersistence(t *testing.T) {
 		"b1key2": "foo2",
 		"b1key3": "foo3",
 	}
-	genesisBlock := btcutil.NewBlock(chaincfg.MainNetParams.GenesisBlock)
+	genesisBlock := utils.NewBlock(chaincfg.MainNetParams.GenesisBlock)
 	genesisHash := chaincfg.MainNetParams.GenesisHash
 	err = db.Update(func(tx database.Tx) error {
 		metadataBucket := tx.Metadata()

@@ -17,7 +17,7 @@ import (
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 )
 
 // scriptTestName returns a descriptive test name for the given reference script
@@ -353,7 +353,7 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 
 		var (
 			witness  wire.TxWitness
-			inputAmt btcutil.Amount
+			inputAmt utils.Amount
 		)
 
 		// When the first field of the test data is a slice it contains
@@ -373,7 +373,7 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 				continue
 			}
 
-			inputAmt, err = btcutil.NewAmount(witnessData[len(witnessData)-1].(float64))
+			inputAmt, err = utils.NewAmount(witnessData[len(witnessData)-1].(float64))
 			if err != nil {
 				t.Errorf("%s: can't parse input amt: %v",
 					name, err)
@@ -553,7 +553,7 @@ testloop:
 			continue
 		}
 
-		tx, err := btcutil.NewTxFromBytes(serializedTx)
+		tx, err := utils.NewTxFromBytes(serializedTx)
 		if err != nil {
 			t.Errorf("bad test (arg 2 not msgtx %v) %d: %v", err,
 				i, test)
@@ -708,7 +708,7 @@ testloop:
 			continue
 		}
 
-		tx, err := btcutil.NewTxFromBytes(serializedTx)
+		tx, err := utils.NewTxFromBytes(serializedTx)
 		if err != nil {
 			t.Errorf("bad test (arg 2 not msgtx %v) %d: %v", err,
 				i, test)

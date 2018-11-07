@@ -13,7 +13,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 )
 
 // TestSequenceLocksActive tests the SequenceLockActive function to ensure it
@@ -87,7 +87,7 @@ func TestCheckConnectBlockTemplate(t *testing.T) {
 		"blk_3A.dat.bz2",
 	}
 
-	var blocks []*btcutil.Block
+	var blocks []*utils.Block
 	for _, file := range testFiles {
 		blockTmp, err := loadBlocks(file)
 		if err != nil {
@@ -132,7 +132,7 @@ func TestCheckConnectBlockTemplate(t *testing.T) {
 	// Block 4 should connect even if proof of work is invalid.
 	invalidPowBlock := *blocks[4].MsgBlock()
 	invalidPowBlock.Header.Nonce++
-	err = chain.CheckConnectBlockTemplate(btcutil.NewBlock(&invalidPowBlock))
+	err = chain.CheckConnectBlockTemplate(utils.NewBlock(&invalidPowBlock))
 	if err != nil {
 		t.Fatalf("CheckConnectBlockTemplate: Received unexpected error on "+
 			"block 4 with bad nonce: %v", err)
@@ -141,7 +141,7 @@ func TestCheckConnectBlockTemplate(t *testing.T) {
 	// Invalid block building on chain tip should fail to connect.
 	invalidBlock := *blocks[4].MsgBlock()
 	invalidBlock.Header.Bits--
-	err = chain.CheckConnectBlockTemplate(btcutil.NewBlock(&invalidBlock))
+	err = chain.CheckConnectBlockTemplate(utils.NewBlock(&invalidBlock))
 	if err == nil {
 		t.Fatal("CheckConnectBlockTemplate: Did not received expected error " +
 			"on block 4 with invalid difficulty bits")
@@ -152,7 +152,7 @@ func TestCheckConnectBlockTemplate(t *testing.T) {
 // as expected.
 func TestCheckBlockSanity(t *testing.T) {
 	powLimit := chaincfg.MainNetParams.PowLimit
-	block := btcutil.NewBlock(&Block100000)
+	block := utils.NewBlock(&Block100000)
 	timeSource := NewMedianTime()
 	err := CheckBlockSanity(block, powLimit, timeSource)
 	if err != nil {
@@ -213,7 +213,7 @@ func TestCheckSerializedHeight(t *testing.T) {
 	for i, test := range tests {
 		msgTx := coinbaseTx.Copy()
 		msgTx.TxIn[0].SignatureScript = test.sigScript
-		tx := btcutil.NewTx(msgTx)
+		tx := utils.NewTx(msgTx)
 
 		err := checkSerializedHeight(tx, test.wantHeight)
 		if reflect.TypeOf(err) != reflect.TypeOf(test.err) {

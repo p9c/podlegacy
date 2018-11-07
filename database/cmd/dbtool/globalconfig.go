@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	btcdHomeDir     = btcutil.AppDataDir("pod", false)
+	btcdHomeDir     = utils.AppDataDir("pod", false)
 	knownDbTypes    = database.SupportedDrivers()
 	activeNetParams = &chaincfg.MainNetParams
 

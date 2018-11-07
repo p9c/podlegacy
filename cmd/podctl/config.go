@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/JSON"
 )
 
@@ -26,9 +26,9 @@ const (
 )
 
 var (
-	btcdHomeDir           = btcutil.AppDataDir("pod", false)
-	btcctlHomeDir         = btcutil.AppDataDir("podctl", false)
-	btcwalletHomeDir      = btcutil.AppDataDir("btcwallet", false)
+	btcdHomeDir           = utils.AppDataDir("pod", false)
+	btcctlHomeDir         = utils.AppDataDir("podctl", false)
+	btcwalletHomeDir      = utils.AppDataDir("btcwallet", false)
 	defaultConfigFile     = filepath.Join(btcctlHomeDir, "podctl.conf")
 	defaultRPCServer      = "localhost"
 	defaultRPCCertFile    = filepath.Join(btcdHomeDir, "rpc.cert")

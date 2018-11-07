@@ -11,7 +11,7 @@ import (
 
 	"github.com/parallelcointeam/pod/JSON"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 )
 
 // FutureGenerateResult is a future promise to deliver the result of a
@@ -394,7 +394,7 @@ func (r FutureSubmitBlockResult) Receive() error {
 // returned instance.
 //
 // See SubmitBlock for the blocking version and more details.
-func (c *Client) SubmitBlockAsync(block *btcutil.Block, options *JSON.SubmitBlockOptions) FutureSubmitBlockResult {
+func (c *Client) SubmitBlockAsync(block *utils.Block, options *JSON.SubmitBlockOptions) FutureSubmitBlockResult {
 	blockHex := ""
 	if block != nil {
 		blockBytes, err := block.Bytes()
@@ -410,7 +410,7 @@ func (c *Client) SubmitBlockAsync(block *btcutil.Block, options *JSON.SubmitBloc
 }
 
 // SubmitBlock attempts to submit a new block into the bitcoin network.
-func (c *Client) SubmitBlock(block *btcutil.Block, options *JSON.SubmitBlockOptions) error {
+func (c *Client) SubmitBlock(block *utils.Block, options *JSON.SubmitBlockOptions) error {
 	return c.SubmitBlockAsync(block, options).Receive()
 }
 

@@ -7,7 +7,7 @@ package blockchain
 import (
 	"fmt"
 
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/database"
 )
 
@@ -21,7 +21,7 @@ import (
 // their documentation for how the flags modify their behavior.
 //
 // This function MUST be called with the chain state lock held (for writes).
-func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags) (bool, error) {
+func (b *BlockChain) maybeAcceptBlock(block *utils.Block, flags BehaviorFlags) (bool, error) {
 	// fmt.Println("maybeAcceptBlock")
 	// The height of this block is one more than the referenced previous
 	// block.

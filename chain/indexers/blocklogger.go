@@ -10,7 +10,7 @@ import (
 
 	"github.com/parallelcointeam/pod/Log"
 
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 )
 
 // blockProgressLogger provides periodic logging for other services in order
@@ -41,7 +41,7 @@ func NewBlockProgressLogger(progressMessage string, logger Log.Logger) *blockPro
 // LogBlockHeight logs a new block height as an information message to show
 // progress to the user. In order to prevent spam, it limits logging to one
 // message every 10 seconds with duration and totals included.
-func (b *blockProgressLogger) LogBlockHeight(block *btcutil.Block) {
+func (b *blockProgressLogger) LogBlockHeight(block *utils.Block) {
 	b.Lock()
 	defer b.Unlock()
 

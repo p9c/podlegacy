@@ -15,7 +15,7 @@ import (
 	"github.com/parallelcointeam/pod/JSON"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 )
 
 // FutureDebugLevelResult is a future promise to deliver the result of a
@@ -128,7 +128,7 @@ func (r FutureListAddressTransactionsResult) Receive() ([]JSON.ListTransactionsR
 // See ListAddressTransactions for the blocking version and more details.
 //
 // NOTE: This is a btcd extension.
-func (c *Client) ListAddressTransactionsAsync(addresses []btcutil.Address, account string) FutureListAddressTransactionsResult {
+func (c *Client) ListAddressTransactionsAsync(addresses []utils.Address, account string) FutureListAddressTransactionsResult {
 	// Convert addresses to strings.
 	addrs := make([]string, 0, len(addresses))
 	for _, addr := range addresses {
@@ -142,7 +142,7 @@ func (c *Client) ListAddressTransactionsAsync(addresses []btcutil.Address, accou
 // with the provided addresses.
 //
 // NOTE: This is a btcwallet extension.
-func (c *Client) ListAddressTransactions(addresses []btcutil.Address, account string) ([]JSON.ListTransactionsResult, error) {
+func (c *Client) ListAddressTransactions(addresses []utils.Address, account string) ([]JSON.ListTransactionsResult, error) {
 	return c.ListAddressTransactionsAsync(addresses, account).Receive()
 }
 

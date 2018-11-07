@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/utils"
 	"github.com/parallelcointeam/pod/chaincfg"
 )
 
@@ -45,7 +45,7 @@ func main() {
 
 	// Create and print new payment address, specific to the active network.
 	pubKeyHash := make([]byte, 20)
-	addr, err := btcutil.NewAddressPubKeyHash(pubKeyHash, chainParams)
+	addr, err := utils.NewAddressPubKeyHash(pubKeyHash, chainParams)
 	if err != nil {
 		log.Fatal(err)
 	}

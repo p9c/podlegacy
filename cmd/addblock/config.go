@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	btcdHomeDir     = btcutil.AppDataDir("pod", false)
+	btcdHomeDir     = utils.AppDataDir("pod", false)
 	defaultDataDir  = filepath.Join(btcdHomeDir, "data")
 	knownDbTypes    = database.SupportedDrivers()
 	activeNetParams = &chaincfg.MainNetParams

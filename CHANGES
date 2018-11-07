@@ -468,9 +468,9 @@ Changes in 0.9.0 (Sat Sep 20 2014)
       and TLS certificates needed to communicate with btcd and btcwallet on
       the simulation test network
   - Notable developer-related package changes:
-    - Provide a new bloom package in btcutil which allows creating and
+    - Provide a new bloom package in utils which allows creating and
       working with BIP0037 bloom filters
-    - Provide a new hdkeychain package in btcutil which allows working with
+    - Provide a new hdkeychain package in utils which allows working with
       BIP0032 hierarchical deterministic key chains
     - Introduce a new btcnet package which houses network parameters
     - Provide new simnet network (--simnet) which is useful for private

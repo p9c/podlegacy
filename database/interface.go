@@ -8,7 +8,7 @@
 package database
 
 import (
-	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 )
 
@@ -227,7 +227,7 @@ type Tx interface {
 	//   - ErrTxClosed if the transaction has already been closed
 	//
 	// Other errors are possible depending on the implementation.
-	StoreBlock(block *btcutil.Block) error
+	StoreBlock(block *utils.Block) error
 
 	// HasBlock returns whether or not a block with the given hash exists
 	// in the database.
