@@ -10,15 +10,15 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/parallelcointeam/pod/blockchain"
-	"github.com/parallelcointeam/pod/btcec"
+	"github.com/parallelcointeam/pod/chain"
+	"github.com/parallelcointeam/pod/ecc"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/rpcclient"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
-	"github.com/parallelcointeam/btcutil/hdkeychain"
+	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/Util/hdkeychain"
 )
 
 var (
@@ -71,7 +71,7 @@ type undoEntry struct {
 // wallet functionality to the harness. The wallet uses a hard-coded HD key
 // hierarchy which promotes reproducibility between harness test runs.
 type memWallet struct {
-	coinbaseKey  *btcec.PrivateKey
+	coinbaseKey  *ecc.PrivateKey
 	coinbaseAddr btcutil.Address
 
 	// hdRoot is the root master private key for the wallet.
@@ -581,7 +581,7 @@ func (m *memWallet) ConfirmedBalance() btcutil.Amount {
 }
 
 // keyToAddr maps the passed private to corresponding p2pkh address.
-func keyToAddr(key *btcec.PrivateKey, net *chaincfg.Params) (btcutil.Address, error) {
+func keyToAddr(key *ecc.PrivateKey, net *chaincfg.Params) (btcutil.Address, error) {
 	serializedKey := key.PubKey().SerializeCompressed()
 	pubKeyAddr, err := btcutil.NewAddressPubKey(serializedKey, net)
 	if err != nil {

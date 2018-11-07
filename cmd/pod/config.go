@@ -22,8 +22,8 @@ import (
 
 	"github.com/btcsuite/go-socks/socks"
 	flags "github.com/jessevdk/go-flags"
-	"github.com/parallelcointeam/btcutil"
-	"github.com/parallelcointeam/pod/blockchain"
+	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/chain"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/connmgr"

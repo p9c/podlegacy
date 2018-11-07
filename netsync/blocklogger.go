@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/parallelcointeam/btclog"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Log"
+	"github.com/parallelcointeam/pod/Util"
 )
 
 // BlockProgressLogger provides periodic logging for other services in order
@@ -20,7 +20,7 @@ type BlockProgressLogger struct {
 	receivedLogTx     int64
 	lastBlockLogTime  time.Time
 
-	subsystemLogger btclog.Logger
+	subsystemLogger Log.Logger
 	progressAction  string
 	sync.Mutex
 }
@@ -29,7 +29,7 @@ type BlockProgressLogger struct {
 // The progress message is templated as follows:
 //  {progressAction} {numProcessed} {blocks|block} in the last {timePeriod}
 //  ({numTxs}, height {lastBlockHeight}, {lastBlockTimeStamp})
-func NewBlockProgressLogger(progressMessage string, logger btclog.Logger) *BlockProgressLogger {
+func NewBlockProgressLogger(progressMessage string, logger Log.Logger) *BlockProgressLogger {
 	return &BlockProgressLogger{
 		lastBlockLogTime: time.Now(),
 		progressAction:   progressMessage,

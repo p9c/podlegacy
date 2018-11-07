@@ -4,22 +4,22 @@
 
 package netsync
 
-import "github.com/parallelcointeam/btclog"
+import "github.com/parallelcointeam/pod/Log"
 
 // Log is a logger that is initialized with no output filters.  This
 // means the package will not perform any logging by default until the caller
 // requests it.
-var Log btclog.Logger
+var log Log.Logger
 
 // DisableLog disables all library log output.  Logging output is disabled
 // by default until either UseLogger or SetLogWriter are called.
 func DisableLog() {
-	Log = btclog.Disabled
+	log = Log.Disabled
 }
 
 // UseLogger uses a specified Logger to output package logging info.
 // This should be used in preference to SetLogWriter if the caller is also
-// using btclog.
-func UseLogger(logger btclog.Logger) {
-	Log = logger
+// using Log.
+func UseLogger(logger Log.Logger) {
+	log = logger
 }

@@ -12,15 +12,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/parallelcointeam/pod/blockchain"
-	"github.com/parallelcointeam/pod/blockchain/indexers"
-	"github.com/parallelcointeam/pod/btcjson"
+	"github.com/parallelcointeam/pod/chain"
+	"github.com/parallelcointeam/pod/chain/indexers"
+	"github.com/parallelcointeam/pod/JSON"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/mining"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 )
 
 const (
@@ -1171,14 +1171,14 @@ func (mp *TxPool) MiningDescs() []*mining.TxDesc {
 }
 
 // RawMempoolVerbose returns all of the entries in the mempool as a fully
-// populated btcjson result.
+// populated JSON result.
 //
 // This function is safe for concurrent access.
-func (mp *TxPool) RawMempoolVerbose() map[string]*btcjson.GetRawMempoolVerboseResult {
+func (mp *TxPool) RawMempoolVerbose() map[string]*JSON.GetRawMempoolVerboseResult {
 	mp.mtx.RLock()
 	defer mp.mtx.RUnlock()
 
-	result := make(map[string]*btcjson.GetRawMempoolVerboseResult,
+	result := make(map[string]*JSON.GetRawMempoolVerboseResult,
 		len(mp.pool))
 	bestHeight := mp.cfg.BestHeight()
 
@@ -1194,7 +1194,7 @@ func (mp *TxPool) RawMempoolVerbose() map[string]*btcjson.GetRawMempoolVerboseRe
 				bestHeight+1)
 		}
 
-		mpd := &btcjson.GetRawMempoolVerboseResult{
+		mpd := &JSON.GetRawMempoolVerboseResult{
 			Size:             int32(tx.MsgTx().SerializeSize()),
 			Vsize:            int32(GetTxVirtualSize(tx)),
 			Fee:              btcutil.Amount(desc.Fee).ToBTC(),

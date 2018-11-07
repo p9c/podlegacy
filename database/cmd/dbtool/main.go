@@ -10,9 +10,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/btclog"
 	flags "github.com/jessevdk/go-flags"
+	"github.com/parallelcointeam/pod/Log"
+	"github.com/parallelcointeam/pod/database"
 )
 
 const (
@@ -21,7 +21,7 @@ const (
 )
 
 var (
-	log             btclog.Logger
+	log             Log.Logger
 	shutdownChannel = make(chan error)
 )
 
@@ -61,11 +61,11 @@ func loadBlockDB() (database.DB, error) {
 // around the fact that deferred functions do not run when os.Exit() is called.
 func realMain() error {
 	// Setup logging.
-	backendLogger := btclog.NewBackend(os.Stdout)
+	backendLogger := Log.NewBackend(os.Stdout)
 	defer os.Stdout.Sync()
 	log = backendLogger.Logger("MAIN")
 	dbLog := backendLogger.Logger("BCDB")
-	dbLog.SetLevel(btclog.LevelDebug)
+	dbLog.SetLevel(Log.LevelDebug)
 	database.UseLogger(dbLog)
 
 	// Setup the parser options and commands.

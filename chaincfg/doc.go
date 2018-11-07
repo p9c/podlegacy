@@ -25,7 +25,7 @@
 //          "fmt"
 //          "log"
 //
-//          "github.com/parallelcointeam/btcutil"
+//          "github.com/parallelcointeam/pod/Util"
 //          "github.com/parallelcointeam/pod/chaincfg"
 //  )
 //

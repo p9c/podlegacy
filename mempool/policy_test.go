@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/parallelcointeam/pod/btcec"
+	"github.com/parallelcointeam/pod/ecc"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 )
 
 // TestCalcMinRequiredTxRelayFee tests the calcMinRequiredTxRelayFee API.
@@ -98,7 +98,7 @@ func TestCalcMinRequiredTxRelayFee(t *testing.T) {
 func TestCheckPkScriptStandard(t *testing.T) {
 	var pubKeys [][]byte
 	for i := 0; i < 4; i++ {
-		pk, err := btcec.NewPrivateKey(btcec.S256())
+		pk, err := ecc.NewPrivateKey(ecc.S256())
 		if err != nil {
 			t.Fatalf("TestCheckPkScriptStandard NewPrivateKey failed: %v",
 				err)

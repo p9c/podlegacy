@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/parallelcointeam/pod/btcec"
+	"github.com/parallelcointeam/pod/ecc"
 	"github.com/parallelcointeam/pod/wire"
 )
 
@@ -114,7 +114,7 @@ const (
 )
 
 // halforder is used to tame ECDSA malleability (see BIP0062).
-var halfOrder = new(big.Int).Rsh(btcec.S256().N, 1)
+var halfOrder = new(big.Int).Rsh(ecc.S256().N, 1)
 
 // Engine is the virtual machine that executes scripts.
 type Engine struct {
@@ -584,7 +584,7 @@ func (vm *Engine) checkHashTypeEncoding(hashType SigHashType) error {
 // the strict encoding requirements if enabled.
 func (vm *Engine) checkPubKeyEncoding(pubKey []byte) error {
 	if vm.hasFlag(ScriptVerifyWitnessPubKeyType) &&
-		vm.isWitnessVersionActive(0) && !btcec.IsCompressedPubKey(pubKey) {
+		vm.isWitnessVersionActive(0) && !ecc.IsCompressedPubKey(pubKey) {
 
 		str := "only uncompressed keys are accepted post-segwit"
 		return scriptError(ErrWitnessPubKeyType, str)

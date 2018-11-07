@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/rpcclient"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 	"github.com/davecgh/go-spew/spew"
 )
 

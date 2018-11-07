@@ -14,15 +14,15 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/parallelcointeam/btcutil"
-	"github.com/parallelcointeam/pod/btcjson"
+	"github.com/parallelcointeam/pod/Util"
+	"github.com/parallelcointeam/pod/JSON"
 )
 
 const (
 	// unusableFlags are the command usage flags which this utility are not
 	// able to use.  In particular it doesn't support websockets and
 	// consequently notifications.
-	unusableFlags = btcjson.UFWebsocketOnly | btcjson.UFNotification
+	unusableFlags = JSON.UFWebsocketOnly | JSON.UFNotification
 )
 
 var (
@@ -45,10 +45,10 @@ func listCommands() {
 	)
 
 	// Get a list of registered commands and categorize and filter them.
-	cmdMethods := btcjson.RegisteredCmdMethods()
+	cmdMethods := JSON.RegisteredCmdMethods()
 	categorized := make([][]string, numCategories)
 	for _, method := range cmdMethods {
-		flags, err := btcjson.MethodUsageFlags(method)
+		flags, err := JSON.MethodUsageFlags(method)
 		if err != nil {
 			// This should never happen since the method was just
 			// returned from the package, but be safe.
@@ -60,7 +60,7 @@ func listCommands() {
 			continue
 		}
 
-		usage, err := btcjson.MethodUsageText(method)
+		usage, err := JSON.MethodUsageText(method)
 		if err != nil {
 			// This should never happen since the method was just
 			// returned from the package, but be safe.
@@ -69,7 +69,7 @@ func listCommands() {
 
 		// Categorize the command based on the usage flags.
 		category := categoryChain
-		if flags&btcjson.UFWalletOnly != 0 {
+		if flags&JSON.UFWalletOnly != 0 {
 			category = categoryWallet
 		}
 		categorized[category] = append(categorized[category], usage)

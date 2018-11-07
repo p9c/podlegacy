@@ -9,9 +9,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/parallelcointeam/pod/btcjson"
+	"github.com/parallelcointeam/pod/JSON"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 )
 
 // FutureGenerateResult is a future promise to deliver the result of a
@@ -52,7 +52,7 @@ func (r FutureGenerateResult) Receive() ([]*chainhash.Hash, error) {
 //
 // See Generate for the blocking version and more details.
 func (c *Client) GenerateAsync(numBlocks uint32) FutureGenerateResult {
-	cmd := btcjson.NewGenerateCmd(numBlocks)
+	cmd := JSON.NewGenerateCmd(numBlocks)
 	return c.sendCmd(cmd)
 }
 
@@ -89,7 +89,7 @@ func (r FutureGetGenerateResult) Receive() (bool, error) {
 //
 // See GetGenerate for the blocking version and more details.
 func (c *Client) GetGenerateAsync() FutureGetGenerateResult {
-	cmd := btcjson.NewGetGenerateCmd()
+	cmd := JSON.NewGetGenerateCmd()
 	return c.sendCmd(cmd)
 }
 
@@ -115,7 +115,7 @@ func (r FutureSetGenerateResult) Receive() error {
 //
 // See SetGenerate for the blocking version and more details.
 func (c *Client) SetGenerateAsync(enable bool, numCPUs int) FutureSetGenerateResult {
-	cmd := btcjson.NewSetGenerateCmd(enable, &numCPUs)
+	cmd := JSON.NewSetGenerateCmd(enable, &numCPUs)
 	return c.sendCmd(cmd)
 }
 
@@ -153,7 +153,7 @@ func (r FutureGetHashesPerSecResult) Receive() (int64, error) {
 //
 // See GetHashesPerSec for the blocking version and more details.
 func (c *Client) GetHashesPerSecAsync() FutureGetHashesPerSecResult {
-	cmd := btcjson.NewGetHashesPerSecCmd()
+	cmd := JSON.NewGetHashesPerSecCmd()
 	return c.sendCmd(cmd)
 }
 
@@ -170,14 +170,14 @@ type FutureGetMiningInfoResult chan *response
 
 // Receive waits for the response promised by the future and returns the mining
 // information.
-func (r FutureGetMiningInfoResult) Receive() (*btcjson.GetMiningInfoResult, error) {
+func (r FutureGetMiningInfoResult) Receive() (*JSON.GetMiningInfoResult, error) {
 	res, err := receiveFuture(r)
 	if err != nil {
 		return nil, err
 	}
 
 	// Unmarshal result as a getmininginfo result object.
-	var infoResult btcjson.GetMiningInfoResult
+	var infoResult JSON.GetMiningInfoResult
 	err = json.Unmarshal(res, &infoResult)
 	if err != nil {
 		return nil, err
@@ -192,12 +192,12 @@ func (r FutureGetMiningInfoResult) Receive() (*btcjson.GetMiningInfoResult, erro
 //
 // See GetMiningInfo for the blocking version and more details.
 func (c *Client) GetMiningInfoAsync() FutureGetMiningInfoResult {
-	cmd := btcjson.NewGetMiningInfoCmd()
+	cmd := JSON.NewGetMiningInfoCmd()
 	return c.sendCmd(cmd)
 }
 
 // GetMiningInfo returns mining information.
-func (c *Client) GetMiningInfo() (*btcjson.GetMiningInfoResult, error) {
+func (c *Client) GetMiningInfo() (*JSON.GetMiningInfoResult, error) {
 	return c.GetMiningInfoAsync().Receive()
 }
 
@@ -230,7 +230,7 @@ func (r FutureGetNetworkHashPS) Receive() (int64, error) {
 //
 // See GetNetworkHashPS for the blocking version and more details.
 func (c *Client) GetNetworkHashPSAsync() FutureGetNetworkHashPS {
-	cmd := btcjson.NewGetNetworkHashPSCmd(nil, nil)
+	cmd := JSON.NewGetNetworkHashPSCmd(nil, nil)
 	return c.sendCmd(cmd)
 }
 
@@ -249,7 +249,7 @@ func (c *Client) GetNetworkHashPS() (int64, error) {
 //
 // See GetNetworkHashPS2 for the blocking version and more details.
 func (c *Client) GetNetworkHashPS2Async(blocks int) FutureGetNetworkHashPS {
-	cmd := btcjson.NewGetNetworkHashPSCmd(&blocks, nil)
+	cmd := JSON.NewGetNetworkHashPSCmd(&blocks, nil)
 	return c.sendCmd(cmd)
 }
 
@@ -270,7 +270,7 @@ func (c *Client) GetNetworkHashPS2(blocks int) (int64, error) {
 //
 // See GetNetworkHashPS3 for the blocking version and more details.
 func (c *Client) GetNetworkHashPS3Async(blocks, height int) FutureGetNetworkHashPS {
-	cmd := btcjson.NewGetNetworkHashPSCmd(&blocks, &height)
+	cmd := JSON.NewGetNetworkHashPSCmd(&blocks, &height)
 	return c.sendCmd(cmd)
 }
 
@@ -290,14 +290,14 @@ type FutureGetWork chan *response
 
 // Receive waits for the response promised by the future and returns the hash
 // data to work on.
-func (r FutureGetWork) Receive() (*btcjson.GetWorkResult, error) {
+func (r FutureGetWork) Receive() (*JSON.GetWorkResult, error) {
 	res, err := receiveFuture(r)
 	if err != nil {
 		return nil, err
 	}
 
 	// Unmarshal result as a getwork result object.
-	var result btcjson.GetWorkResult
+	var result JSON.GetWorkResult
 	err = json.Unmarshal(res, &result)
 	if err != nil {
 		return nil, err
@@ -312,14 +312,14 @@ func (r FutureGetWork) Receive() (*btcjson.GetWorkResult, error) {
 //
 // See GetWork for the blocking version and more details.
 func (c *Client) GetWorkAsync() FutureGetWork {
-	cmd := btcjson.NewGetWorkCmd(nil)
+	cmd := JSON.NewGetWorkCmd(nil)
 	return c.sendCmd(cmd)
 }
 
 // GetWork returns hash data to work on.
 //
 // See GetWorkSubmit to submit the found solution.
-func (c *Client) GetWork() (*btcjson.GetWorkResult, error) {
+func (c *Client) GetWork() (*JSON.GetWorkResult, error) {
 	return c.GetWorkAsync().Receive()
 }
 
@@ -351,7 +351,7 @@ func (r FutureGetWorkSubmit) Receive() (bool, error) {
 //
 // See GetWorkSubmit for the blocking version and more details.
 func (c *Client) GetWorkSubmitAsync(data string) FutureGetWorkSubmit {
-	cmd := btcjson.NewGetWorkCmd(&data)
+	cmd := JSON.NewGetWorkCmd(&data)
 	return c.sendCmd(cmd)
 }
 
@@ -394,7 +394,7 @@ func (r FutureSubmitBlockResult) Receive() error {
 // returned instance.
 //
 // See SubmitBlock for the blocking version and more details.
-func (c *Client) SubmitBlockAsync(block *btcutil.Block, options *btcjson.SubmitBlockOptions) FutureSubmitBlockResult {
+func (c *Client) SubmitBlockAsync(block *btcutil.Block, options *JSON.SubmitBlockOptions) FutureSubmitBlockResult {
 	blockHex := ""
 	if block != nil {
 		blockBytes, err := block.Bytes()
@@ -405,12 +405,12 @@ func (c *Client) SubmitBlockAsync(block *btcutil.Block, options *btcjson.SubmitB
 		blockHex = hex.EncodeToString(blockBytes)
 	}
 
-	cmd := btcjson.NewSubmitBlockCmd(blockHex, options)
+	cmd := JSON.NewSubmitBlockCmd(blockHex, options)
 	return c.sendCmd(cmd)
 }
 
 // SubmitBlock attempts to submit a new block into the bitcoin network.
-func (c *Client) SubmitBlock(block *btcutil.Block, options *btcjson.SubmitBlockOptions) error {
+func (c *Client) SubmitBlock(block *btcutil.Block, options *JSON.SubmitBlockOptions) error {
 	return c.SubmitBlockAsync(block, options).Receive()
 }
 

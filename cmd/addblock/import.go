@@ -11,12 +11,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/parallelcointeam/pod/blockchain"
-	"github.com/parallelcointeam/pod/blockchain/indexers"
+	"github.com/parallelcointeam/pod/chain"
+	"github.com/parallelcointeam/pod/chain/indexers"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 )
 
 var zeroHash = chainhash.Hash{}

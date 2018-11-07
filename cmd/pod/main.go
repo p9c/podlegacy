@@ -15,7 +15,7 @@ import (
 	"runtime/debug"
 	"runtime/pprof"
 
-	"github.com/parallelcointeam/pod/blockchain/indexers"
+	"github.com/parallelcointeam/pod/chain/indexers"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/limits"
 )

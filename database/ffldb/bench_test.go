@@ -11,7 +11,7 @@ import (
 
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 )
 
 // BenchmarkBlockHeader benchmarks how long it takes to load the mainnet genesis

@@ -5,7 +5,7 @@
 package mempool
 
 import (
-	"github.com/parallelcointeam/pod/blockchain"
+	"github.com/parallelcointeam/pod/chain"
 	"github.com/parallelcointeam/pod/wire"
 )
 

@@ -11,12 +11,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/parallelcointeam/pod/blockchain"
+	"github.com/parallelcointeam/pod/chain"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 )
 
 // solveBlock attempts to find a nonce which makes the passed block header hash

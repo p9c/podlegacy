@@ -9,11 +9,10 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/parallelcointeam/pod/blockchain"
-	"github.com/parallelcointeam/pod/blockchain/indexers"
+	"github.com/parallelcointeam/pod/chain"
+	"github.com/parallelcointeam/pod/chain/indexers"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/limits"
-	"github.com/parallelcointeam/btclog"
 )
 
 const (
@@ -23,7 +22,7 @@ const (
 
 var (
 	cfg *config
-	log btclog.Logger
+	log Log.Logger
 )
 
 // loadBlockDB opens the block database and returns a handle to it.
@@ -69,7 +68,7 @@ func realMain() error {
 	cfg = tcfg
 
 	// Setup logging.
-	backendLogger := btclog.NewBackend(os.Stdout)
+	backendLogger := Log.NewBackend(os.Stdout)
 	defer os.Stdout.Sync()
 	log = backendLogger.Logger("MAIN")
 	database.UseLogger(backendLogger.Logger("BCDB"))

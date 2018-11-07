@@ -14,14 +14,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/parallelcointeam/pod/blockchain"
-	"github.com/parallelcointeam/pod/btcec"
+	"github.com/parallelcointeam/pod/chain"
+	"github.com/parallelcointeam/pod/ecc"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/integration/rpctest"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 )
 
 const (
@@ -31,11 +31,11 @@ const (
 // makeTestOutput creates an on-chain output paying to a freshly generated
 // p2pkh output with the specified amount.
 func makeTestOutput(r *rpctest.Harness, t *testing.T,
-	amt btcutil.Amount) (*btcec.PrivateKey, *wire.OutPoint, []byte, error) {
+	amt btcutil.Amount) (*ecc.PrivateKey, *wire.OutPoint, []byte, error) {
 
 	// Create a fresh key, then send some coins to an address spendable by
 	// that key.
-	key, err := btcec.NewPrivateKey(btcec.S256())
+	key, err := ecc.NewPrivateKey(ecc.S256())
 	if err != nil {
 		return nil, nil, nil, err
 	}

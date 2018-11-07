@@ -1,6 +1,6 @@
 package: github.com/parallelcointeam/pod
 import:
-- package: github.com/parallelcointeam/btclog
+- package: github.com/parallelcointeam/Log
 - package: github.com/parallelcointeam/btcutil
   version: ab6388e0c60ae4834a1f57511e20c17b5f78be4b
   subpackages:

@@ -12,7 +12,7 @@ import (
 
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 )
 
 // mustParseShortForm parses the passed short form script and returns the

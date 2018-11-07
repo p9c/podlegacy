@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 	"github.com/parallelcointeam/pod/rpcclient"
 	"github.com/parallelcointeam/pod/wire"
 )

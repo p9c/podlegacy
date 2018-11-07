@@ -9,7 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/parallelcointeam/btclog"
+	"github.com/parallelcointeam/pod/Log"
+
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
@@ -24,7 +25,7 @@ const (
 // log is a logger that is initialized with no output filters.  This
 // means the package will not perform any logging by default until the caller
 // requests it.
-var log btclog.Logger
+var log Log.Logger
 
 // The default amount of logging is none.
 func init() {
@@ -34,11 +35,11 @@ func init() {
 // DisableLog disables all library log output.  Logging output is disabled
 // by default until UseLogger is called.
 func DisableLog() {
-	log = btclog.Disabled
+	log = Log.Disabled
 }
 
 // UseLogger uses a specified Logger to output package logging info.
-func UseLogger(logger btclog.Logger) {
+func UseLogger(logger Log.Logger) {
 	log = logger
 }
 

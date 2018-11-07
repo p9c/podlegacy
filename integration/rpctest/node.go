@@ -15,7 +15,7 @@ import (
 	"time"
 
 	rpc "github.com/parallelcointeam/pod/rpcclient"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/Util"
 )
 
 // nodeConfig contains all the args, and data required to launch a btcd process
