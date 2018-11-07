@@ -15,8 +15,8 @@ import (
 	"runtime/debug"
 	"runtime/pprof"
 
-	"github.com/parallelcointeam/pod/database/lite"
 	"github.com/parallelcointeam/pod/limits"
+	"github.com/parallelcointeam/pod/lite"
 	svr "github.com/parallelcointeam/pod/server"
 )
 
@@ -25,10 +25,6 @@ const (
 	// database type is appended to this value to form the full block
 	// database name.
 	blockDbNamePrefix = "lite"
-)
-
-var (
-	cfg *svr.Config
 )
 
 // winServiceMain is only invoked on Windows.  It detects when pod is running
@@ -79,11 +75,11 @@ func main() {
 func Main(serverChan chan<- *svr.Server) error {
 	// Load configuration and parse command line.  This function also
 	// initializes logging and configures it accordingly.
-	tcfg, _, err := svr.LoadConfig()
+	tcfg, _, err := LoadConfig()
 	if err != nil {
 		return err
 	}
-	cfg = tcfg
+	Cfg = tcfg
 	defer func() {
 		if svr.LogRotator != nil {
 			svr.LogRotator.Close()
@@ -100,9 +96,9 @@ func Main(serverChan chan<- *svr.Server) error {
 	svr.PodLog.Infof("Version %s", svr.Version())
 
 	// Enable http profiling server if requested.
-	if cfg.Profile != "" {
+	if Cfg.Profile != "" {
 		go func() {
-			listenAddr := net.JoinHostPort("", cfg.Profile)
+			listenAddr := net.JoinHostPort("", Cfg.Profile)
 			svr.PodLog.Infof("Profile server listening on %s", listenAddr)
 			profileRedirect := http.RedirectHandler("/debug/pprof",
 				http.StatusSeeOther)
@@ -112,8 +108,8 @@ func Main(serverChan chan<- *svr.Server) error {
 	}
 
 	// Write cpu profile if requested.
-	if cfg.CPUProfile != "" {
-		f, err := os.Create(cfg.CPUProfile)
+	if Cfg.CPUProfile != "" {
+		f, err := os.Create(Cfg.CPUProfile)
 		if err != nil {
 			svr.PodLog.Errorf("Unable to create cpu profile: %v", err)
 			return err
@@ -181,7 +177,7 @@ func Main(serverChan chan<- *svr.Server) error {
 	// }
 
 	svr.PodLog.Infof("Starting up...")
-	// Create server and start it.
+	//Create server and start it.
 	// svr.Cfg = cfg
 	// server, err := svr.New(cfg.Listeners, db, svr.ActiveNetParams.Params,
 	// 	interrupt)
@@ -215,7 +211,7 @@ func Main(serverChan chan<- *svr.Server) error {
 // in regression test mode and it already exists.
 func removeRegressionDB(dbPath string) error {
 	// Don't do anything if not in regression test mode.
-	if !cfg.RegressionTest {
+	if !Cfg.RegressionTest {
 		return nil
 	}
 
@@ -246,7 +242,7 @@ func blockDbPath(dbType string) string {
 	if dbType == "sqlite" {
 		dbName = dbName + ".db"
 	}
-	dbPath := filepath.Join(cfg.DataDir, dbName)
+	dbPath := filepath.Join(Cfg.DataDir, dbName)
 	return dbPath
 }
 
@@ -280,22 +276,22 @@ func LoadLiteDB() (*lite.DB, error) {
 	removeRegressionDB(dbPath)
 
 	svr.PodLog.Infof("Loading block database from '%s'", dbPath)
-	db, err := lite.New(dbPath).Open()
+	db, err := lite.New(dbPath)
 	// db, err := database.Open(cfg.DbType, dbPath, svr.ActiveNetParams.Net)
 	if err != nil {
-		// Return the error if it's not because the database doesn't
-		// exist.
-		if dbErr, ok := err.(lite.Error); !ok || dbErr.ErrorCode !=
-			lite.ErrDbDoesNotExist {
-			return nil, err
-		}
+		// // Return the error if it's not because the database doesn't
+		// // exist.
+		// if dbErr, ok := err.(lite.Error); !ok || dbErr.ErrorCode !=
+		// 	lite.ErrDbDoesNotExist {
+		// 	return nil, err
+		// }
 
 		// Create the db if it does not exist.
-		err = os.MkdirAll(cfg.DataDir, 0700)
+		err = os.MkdirAll(Cfg.DataDir, 0700)
 		if err != nil {
 			return nil, err
 		}
-		db, err = db.Create(dbPath)
+		err = db.Create(dbPath)
 		if err != nil {
 			return nil, err
 		}

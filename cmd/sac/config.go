@@ -611,15 +611,15 @@ func LoadConfig() (*Config, []string, error) {
 		return nil, nil, err
 	}
 
-	// Validate database type.
-	if !ValidDbType(Cfg.DbType) {
-		str := "%s: The specified database type [%v] is invalid -- " +
-			"supported types %v"
-		err := fmt.Errorf(str, funcName, Cfg.DbType, knownDbTypes)
-		fmt.Fprintln(os.Stderr, err)
-		fmt.Fprintln(os.Stderr, usageMessage)
-		return nil, nil, err
-	}
+	// // Validate database type.
+	// if !ValidDbType(Cfg.DbType) {
+	// 	str := "%s: The specified database type [%v] is invalid -- " +
+	// 		"supported types %v"
+	// 	err := fmt.Errorf(str, funcName, Cfg.DbType, knownDbTypes)
+	// 	fmt.Fprintln(os.Stderr, err)
+	// 	fmt.Fprintln(os.Stderr, usageMessage)
+	// 	return nil, nil, err
+	// }
 
 	// Validate profile port number
 	if Cfg.Profile != "" {
