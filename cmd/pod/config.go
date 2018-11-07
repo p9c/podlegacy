@@ -22,7 +22,6 @@ import (
 
 	"github.com/btcsuite/go-socks/socks"
 	flags "github.com/jessevdk/go-flags"
-	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/chain"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
@@ -31,6 +30,7 @@ import (
 	_ "github.com/parallelcointeam/pod/database/ffldb"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/peer"
+	"github.com/parallelcointeam/pod/utils"
 )
 
 const (
@@ -49,12 +49,6 @@ const (
 	defaultDbType               = "ffldb"
 	defaultFreeTxRelayLimit     = 15.0
 	defaultTrickleInterval      = peer.DefaultTrickleInterval
-
-	////////////////////////////////////////////////////////////////////////////
-	// TODO:                                                                  //
-	//                                                                        //
-	// CHECK ALL THESE WILL COMPLY WITH PARALLELCOIN CONSENSUS !!!!!!!!!!!!!1 //
-	////////////////////////////////////////////////////////////////////////////
 
 	defaultBlockMinSize          = 80
 	defaultBlockMaxSize          = 200000
@@ -98,7 +92,7 @@ func minUint32(a, b uint32) uint32 {
 
 // config defines the configuration options for btcd.
 //
-// See loadConfig for details on the configuration load process.
+// See LoadConfig for details on the configuration load process.
 type config struct {
 	ShowVersion          bool          `short:"V" long:"version" description:"Display version information and exit"`
 	ConfigFile           string        `short:"C" long:"configfile" description:"Path to configuration file"`
@@ -395,7 +389,7 @@ func newConfigParser(cfg *config, so *serviceOptions, options flags.Options) *fl
 	return parser
 }
 
-// loadConfig initializes and parses the config using a config file and command
+// LoadConfig initializes and parses the config using a config file and command
 // line options.
 //
 // The configuration proceeds as follows:
@@ -407,7 +401,7 @@ func newConfigParser(cfg *config, so *serviceOptions, options flags.Options) *fl
 // The above results in btcd functioning properly without any config settings
 // while still allowing the user to override settings with config files and
 // command line options.  Command line options always take precedence.
-func loadConfig() (*config, []string, error) {
+func LoadConfig() (*config, []string, error) {
 	// Default config.
 	cfg := config{
 		ConfigFile:           defaultConfigFile,
@@ -516,7 +510,7 @@ func loadConfig() (*config, []string, error) {
 	}
 
 	// Create the home directory if it doesn't already exist.
-	funcName := "loadConfig"
+	funcName := "LoadConfig"
 	err = os.MkdirAll(defaultHomeDir, 0700)
 	if err != nil {
 		// Show a nicer error message if it's because a symlink is
@@ -1094,7 +1088,7 @@ func loadConfig() (*config, []string, error) {
 	return &cfg, remainingArgs, nil
 }
 
-// createDefaultConfig copies the file sample-btcd.conf to the given destination path,
+// createDefaultConfig copies the file sample-pod.conf to the given destination path,
 // and populates it with some randomly generated RPC username and password.
 func createDefaultConfigFile(destinationPath string) error {
 	// Create the destination directory if it does not exists

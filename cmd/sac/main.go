@@ -18,6 +18,7 @@ import (
 	"github.com/parallelcointeam/pod/chain/indexers"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/limits"
+	. "github.com/parallelcointeam/pod/server"
 )
 
 const (
@@ -29,6 +30,7 @@ const (
 
 var (
 	cfg *config
+	_   = server
 )
 
 // winServiceMain is only invoked on Windows.  It detects when btcd is running
@@ -43,7 +45,7 @@ var winServiceMain func() (bool, error)
 func btcdMain(serverChan chan<- *server) error {
 	// Load configuration and parse command line.  This function also
 	// initializes logging and configures it accordingly.
-	tcfg, _, err := loadConfig()
+	tcfg, _, err := LoadConfig()
 	if err != nil {
 		return err
 	}

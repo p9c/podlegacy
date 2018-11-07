@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/wire"
 )
 
@@ -33,7 +33,7 @@ var (
 
 // config defines the configuration options for findcheckpoint.
 //
-// See loadConfig for details on the configuration load process.
+// See LoadConfig for details on the configuration load process.
 type config struct {
 	DataDir        string `short:"b" long:"datadir" description:"Location of the btcd data directory"`
 	DbType         string `long:"dbtype" description:"Database backend to use for the Block Chain"`
@@ -73,8 +73,8 @@ func netName(chainParams *chaincfg.Params) string {
 	}
 }
 
-// loadConfig initializes and parses the config using command line options.
-func loadConfig() (*config, []string, error) {
+// LoadConfig initializes and parses the config using command line options.
+func LoadConfig() (*config, []string, error) {
 	// Default config.
 	cfg := config{
 		DataDir:       defaultDataDir,
@@ -93,7 +93,7 @@ func loadConfig() (*config, []string, error) {
 	}
 
 	// Multiple networks can't be selected simultaneously.
-	funcName := "loadConfig"
+	funcName := "LoadConfig"
 	numNets := 0
 	// Count number of network flags passed; assign active network params
 	// while we're at it
@@ -122,7 +122,7 @@ func loadConfig() (*config, []string, error) {
 	if !validDbType(cfg.DbType) {
 		str := "%s: The specified database type [%v] is invalid -- " +
 			"supported types %v"
-		err := fmt.Errorf(str, "loadConfig", cfg.DbType, knownDbTypes)
+		err := fmt.Errorf(str, "LoadConfig", cfg.DbType, knownDbTypes)
 		fmt.Fprintln(os.Stderr, err)
 		parser.WriteHelp(os.Stderr)
 		return nil, nil, err
@@ -140,7 +140,7 @@ func loadConfig() (*config, []string, error) {
 	if cfg.NumCandidates < minCandidates || cfg.NumCandidates > maxCandidates {
 		str := "%s: The specified number of candidates is out of " +
 			"range -- parsed [%v]"
-		err = fmt.Errorf(str, "loadConfig", cfg.NumCandidates)
+		err = fmt.Errorf(str, "LoadConfig", cfg.NumCandidates)
 		fmt.Fprintln(os.Stderr, err)
 		parser.WriteHelp(os.Stderr)
 		return nil, nil, err

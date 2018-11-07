@@ -14,8 +14,8 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/JSON"
+	"github.com/parallelcointeam/pod/utils"
 )
 
 const (
@@ -90,7 +90,7 @@ func listCommands() {
 
 // config defines the configuration options for btcctl.
 //
-// See loadConfig for details on the configuration load process.
+// See LoadConfig for details on the configuration load process.
 type config struct {
 	ShowVersion   bool   `short:"V" long:"version" description:"Display version information and exit"`
 	ListCommands  bool   `short:"l" long:"listcommands" description:"List all of the supported commands and exit"`
@@ -155,7 +155,7 @@ func cleanAndExpandPath(path string) string {
 	return filepath.Clean(os.ExpandEnv(path))
 }
 
-// loadConfig initializes and parses the config using a config file and command
+// LoadConfig initializes and parses the config using a config file and command
 // line options.
 //
 // The configuration proceeds as follows:
@@ -167,7 +167,7 @@ func cleanAndExpandPath(path string) string {
 // The above results in functioning properly without any config settings
 // while still allowing the user to override settings with config files and
 // command line options.  Command line options always take precedence.
-func loadConfig() (*config, []string, error) {
+func LoadConfig() (*config, []string, error) {
 	// Default config.
 	cfg := config{
 		ConfigFile: defaultConfigFile,
@@ -257,7 +257,7 @@ func loadConfig() (*config, []string, error) {
 	if numNets > 1 {
 		str := "%s: The testnet and simnet params can't be used " +
 			"together -- choose one of the two"
-		err := fmt.Errorf(str, "loadConfig")
+		err := fmt.Errorf(str, "LoadConfig")
 		fmt.Fprintln(os.Stderr, err)
 		return nil, nil, err
 	}

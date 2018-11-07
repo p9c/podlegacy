@@ -134,7 +134,7 @@ func showCandidate(candidateNum int, checkpoint *chaincfg.Checkpoint) {
 
 func main() {
 	// Load configuration and parse command line.
-	tcfg, _, err := loadConfig()
+	tcfg, _, err := LoadConfig()
 	if err != nil {
 		return
 	}

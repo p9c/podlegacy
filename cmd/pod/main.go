@@ -43,7 +43,7 @@ var winServiceMain func() (bool, error)
 func btcdMain(serverChan chan<- *server) error {
 	// Load configuration and parse command line.  This function also
 	// initializes logging and configures it accordingly.
-	tcfg, _, err := loadConfig()
+	tcfg, _, err := LoadConfig()
 	if err != nil {
 		return err
 	}

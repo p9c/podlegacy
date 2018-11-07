@@ -47,7 +47,7 @@ func usage(errorMessage string) {
 }
 
 func main() {
-	cfg, args, err := loadConfig()
+	cfg, args, err := LoadConfig()
 	if err != nil {
 		os.Exit(1)
 	}
