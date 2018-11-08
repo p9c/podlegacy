@@ -51,7 +51,7 @@ func TestCreateDefaultConfigFile(t *testing.T) {
 		os.Remove(tmpDir)
 	}()
 
-	err = createDefaultConfigFile(testpath)
+	err = CreateDefaultConfigFile(testpath)
 
 	if err != nil {
 		t.Fatalf("Failed to create a default config file: %v", err)

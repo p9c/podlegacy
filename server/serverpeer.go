@@ -28,39 +28,39 @@ func NewServerPeer(s *Server, isPersistent bool) *Peer {
 	}
 }
 
-// newestBlock returns the current best block hash and height using the format
+// NewestBlock returns the current best block hash and height using the format
 // required by the configuration for the peer package.
-func (sp *Peer) newestBlock() (*chainhash.Hash, int32, error) {
+func (sp *Peer) NewestBlock() (*chainhash.Hash, int32, error) {
 	best := sp.server.chain.BestSnapshot()
 	return &best.Hash, best.Height, nil
 }
 
-// addKnownAddresses adds the given addresses to the set of known addresses to
+// AddKnownAddresses adds the given addresses to the set of known addresses to
 // the peer to prevent sending duplicate addresses.
-func (sp *Peer) addKnownAddresses(addresses []*wire.NetAddress) {
+func (sp *Peer) AddKnownAddresses(addresses []*wire.NetAddress) {
 	for _, na := range addresses {
 		sp.knownAddresses[addrmgr.NetAddressKey(na)] = struct{}{}
 	}
 }
 
-// addressKnown true if the given address is already known to the peer.
-func (sp *Peer) addressKnown(na *wire.NetAddress) bool {
+// AddressKnown true if the given address is already known to the peer.
+func (sp *Peer) AddressKnown(na *wire.NetAddress) bool {
 	_, exists := sp.knownAddresses[addrmgr.NetAddressKey(na)]
 	return exists
 }
 
-// setDisableRelayTx toggles relaying of transactions for the given peer.
+// SetDisableRelayTx toggles relaying of transactions for the given peer.
 // It is safe for concurrent access.
-func (sp *Peer) setDisableRelayTx(disable bool) {
+func (sp *Peer) SetDisableRelayTx(disable bool) {
 	sp.relayMtx.Lock()
 	sp.disableRelayTx = disable
 	sp.relayMtx.Unlock()
 }
 
-// relayTxDisabled returns whether or not relaying of transactions for the given
+// RelayTxDisabled returns whether or not relaying of transactions for the given
 // peer is disabled.
 // It is safe for concurrent access.
-func (sp *Peer) relayTxDisabled() bool {
+func (sp *Peer) RelayTxDisabled() bool {
 	sp.relayMtx.Lock()
 	isDisabled := sp.disableRelayTx
 	sp.relayMtx.Unlock()
@@ -74,7 +74,7 @@ func (sp *Peer) pushAddrMsg(addresses []*wire.NetAddress) {
 	// Filter addresses already known to the peer.
 	addrs := make([]*wire.NetAddress, 0, len(addresses))
 	for _, addr := range addresses {
-		if !sp.addressKnown(addr) {
+		if !sp.AddressKnown(addr) {
 			addrs = append(addrs, addr)
 		}
 	}
@@ -84,15 +84,15 @@ func (sp *Peer) pushAddrMsg(addresses []*wire.NetAddress) {
 		sp.Disconnect()
 		return
 	}
-	sp.addKnownAddresses(known)
+	sp.AddKnownAddresses(known)
 }
 
-// addBanScore increases the persistent and decaying ban score fields by the
+// AddBanScore increases the persistent and decaying ban score fields by the
 // values passed as parameters. If the resulting score exceeds half of the ban
 // threshold, a warning is logged including the reason provided. Further, if
 // the score is above the ban threshold, the peer will be banned and
 // disconnected.
-func (sp *Peer) addBanScore(persistent, transient uint32, reason string) {
+func (sp *Peer) AddBanScore(persistent, transient uint32, reason string) {
 	// No warning is logged and no score is calculated if banning is disabled.
 	if Cfg.DisableBanning {
 		return
@@ -155,7 +155,7 @@ func (sp *Peer) OnVersion(_ *peer.Peer, msg *wire.MsgVersion) *wire.MsgReject {
 
 	// Reject outbound peers that are not full nodes.
 	wantServices := wire.SFNodeNetwork
-	if !isInbound && !hasServices(msg.Services, wantServices) {
+	if !isInbound && !HasServices(msg.Services, wantServices) {
 		missingServices := wantServices & ^msg.Services
 		SrvrLog.Debugf("Rejecting peer %s with services %v due to not "+
 			"providing desired services %v", sp.Peer, msg.Services,
@@ -222,7 +222,7 @@ func (sp *Peer) OnVersion(_ *peer.Peer, msg *wire.MsgVersion) *wire.MsgReject {
 
 	// Choose whether or not to relay transactions before a filter command
 	// is received.
-	sp.setDisableRelayTx(msg.DisableRelayTx)
+	sp.SetDisableRelayTx(msg.DisableRelayTx)
 
 	// Add valid peer to the server.
 	sp.server.AddPeer(sp)
@@ -247,7 +247,7 @@ func (sp *Peer) OnMemPool(_ *peer.Peer, msg *wire.MsgMemPool) {
 	// The ban score accumulates and passes the ban threshold if a burst of
 	// mempool messages comes from a peer. The score decays each minute to
 	// half of its value.
-	sp.addBanScore(0, 33, "mempool")
+	sp.AddBanScore(0, 33, "mempool")
 
 	// Generate inventory message with the available transactions in the
 	// transaction memory pool.  Limit it to the max allowed inventory
@@ -372,7 +372,7 @@ func (sp *Peer) OnHeaders(_ *peer.Peer, msg *wire.MsgHeaders) {
 	sp.server.syncManager.QueueHeaders(msg, sp.Peer)
 }
 
-// handleGetData is invoked when a peer receives a getdata bitcoin message and
+// OnGetData is invoked when a peer receives a getdata bitcoin message and
 // is used to deliver block and transaction information.
 func (sp *Peer) OnGetData(_ *peer.Peer, msg *wire.MsgGetData) {
 	numAdded := 0
@@ -386,7 +386,7 @@ func (sp *Peer) OnGetData(_ *peer.Peer, msg *wire.MsgGetData) {
 	// bursts of small requests are not penalized as that would potentially ban
 	// peers performing IBD.
 	// This incremental score decays each minute to half of its value.
-	sp.addBanScore(0, uint32(length)*99/wire.MaxInvPerMsg, "getdata")
+	sp.AddBanScore(0, uint32(length)*99/wire.MaxInvPerMsg, "getdata")
 
 	// We wait on this wait channel periodically to prevent queuing
 	// far more data than we can send in a reasonable time, wasting memory.
@@ -407,17 +407,17 @@ func (sp *Peer) OnGetData(_ *peer.Peer, msg *wire.MsgGetData) {
 		var err error
 		switch iv.Type {
 		case wire.InvTypeWitnessTx:
-			err = sp.server.pushTxMsg(sp, &iv.Hash, c, waitChan, wire.WitnessEncoding)
+			err = sp.server.PushTxMsg(sp, &iv.Hash, c, waitChan, wire.WitnessEncoding)
 		case wire.InvTypeTx:
-			err = sp.server.pushTxMsg(sp, &iv.Hash, c, waitChan, wire.BaseEncoding)
+			err = sp.server.PushTxMsg(sp, &iv.Hash, c, waitChan, wire.BaseEncoding)
 		case wire.InvTypeWitnessBlock:
-			err = sp.server.pushBlockMsg(sp, &iv.Hash, c, waitChan, wire.WitnessEncoding)
+			err = sp.server.PushBlockMsg(sp, &iv.Hash, c, waitChan, wire.WitnessEncoding)
 		case wire.InvTypeBlock:
-			err = sp.server.pushBlockMsg(sp, &iv.Hash, c, waitChan, wire.BaseEncoding)
+			err = sp.server.PushBlockMsg(sp, &iv.Hash, c, waitChan, wire.BaseEncoding)
 		case wire.InvTypeFilteredWitnessBlock:
-			err = sp.server.pushMerkleBlockMsg(sp, &iv.Hash, c, waitChan, wire.WitnessEncoding)
+			err = sp.server.PushMerkleBlockMsg(sp, &iv.Hash, c, waitChan, wire.WitnessEncoding)
 		case wire.InvTypeFilteredBlock:
-			err = sp.server.pushMerkleBlockMsg(sp, &iv.Hash, c, waitChan, wire.BaseEncoding)
+			err = sp.server.PushMerkleBlockMsg(sp, &iv.Hash, c, waitChan, wire.BaseEncoding)
 		default:
 			PeerLog.Warnf("Unknown type in inventory request %d",
 				iv.Type)
@@ -844,17 +844,17 @@ func (sp *Peer) OnGetCFCheckpt(_ *peer.Peer, msg *wire.MsgGetCFCheckpt) {
 	sp.QueueMessage(checkptMsg, nil)
 }
 
-// enforceNodeBloomFlag disconnects the peer if the server is not configured to
+// EnforceNodeBloomFlag disconnects the peer if the server is not configured to
 // allow bloom filters.  Additionally, if the peer has negotiated to a protocol
 // version  that is high enough to observe the bloom filter service support bit,
 // it will be banned since it is intentionally violating the protocol.
-func (sp *Peer) enforceNodeBloomFlag(cmd string) bool {
+func (sp *Peer) EnforceNodeBloomFlag(cmd string) bool {
 	if sp.server.services&wire.SFNodeBloom != wire.SFNodeBloom {
 		// Ban the peer if the protocol version is high enough that the
 		// peer is knowingly violating the protocol and banning is
 		// enabled.
 		//
-		// NOTE: Even though the addBanScore function already examines
+		// NOTE: Even though the AddBanScore function already examines
 		// whether or not banning is enabled, it is checked here as well
 		// to ensure the violation is logged and the peer is
 		// disconnected regardless.
@@ -863,7 +863,7 @@ func (sp *Peer) enforceNodeBloomFlag(cmd string) bool {
 
 			// Disconnect the peer regardless of whether it was
 			// banned.
-			sp.addBanScore(100, 0, cmd)
+			sp.AddBanScore(100, 0, cmd)
 			sp.Disconnect()
 			return false
 		}
@@ -902,7 +902,7 @@ func (sp *Peer) OnFeeFilter(_ *peer.Peer, msg *wire.MsgFeeFilter) {
 func (sp *Peer) OnFilterAdd(_ *peer.Peer, msg *wire.MsgFilterAdd) {
 	// Disconnect and/or ban depending on the node bloom services flag and
 	// negotiated protocol version.
-	if !sp.enforceNodeBloomFlag(msg.Command()) {
+	if !sp.EnforceNodeBloomFlag(msg.Command()) {
 		return
 	}
 
@@ -923,7 +923,7 @@ func (sp *Peer) OnFilterAdd(_ *peer.Peer, msg *wire.MsgFilterAdd) {
 func (sp *Peer) OnFilterClear(_ *peer.Peer, msg *wire.MsgFilterClear) {
 	// Disconnect and/or ban depending on the node bloom services flag and
 	// negotiated protocol version.
-	if !sp.enforceNodeBloomFlag(msg.Command()) {
+	if !sp.EnforceNodeBloomFlag(msg.Command()) {
 		return
 	}
 
@@ -945,11 +945,11 @@ func (sp *Peer) OnFilterClear(_ *peer.Peer, msg *wire.MsgFilterClear) {
 func (sp *Peer) OnFilterLoad(_ *peer.Peer, msg *wire.MsgFilterLoad) {
 	// Disconnect and/or ban depending on the node bloom services flag and
 	// negotiated protocol version.
-	if !sp.enforceNodeBloomFlag(msg.Command()) {
+	if !sp.EnforceNodeBloomFlag(msg.Command()) {
 		return
 	}
 
-	sp.setDisableRelayTx(false)
+	sp.SetDisableRelayTx(false)
 
 	sp.filter.Reload(msg)
 }
@@ -1029,7 +1029,7 @@ func (sp *Peer) OnAddr(_ *peer.Peer, msg *wire.MsgAddr) {
 		}
 
 		// Add address to known addresses for this peer.
-		sp.addKnownAddresses([]*wire.NetAddress{na})
+		sp.AddKnownAddresses([]*wire.NetAddress{na})
 	}
 
 	// Add addresses to server address manager.  The address manager handles

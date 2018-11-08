@@ -16,32 +16,32 @@ import (
 )
 
 const (
-	// svcName is the name of btcd service.
-	svcName = "podsvc"
+	// SvcName is the name of btcd service.
+	SvcName = "podsvc"
 
-	// svcDisplayName is the service name that will be shown in the windows
-	// services list.  Not the svcName is the "real" name which is used
+	// SvcDisplayName is the service name that will be shown in the windows
+	// services list.  Not the SvcName is the "real" name which is used
 	// to control the service.  This is only for display purposes.
-	svcDisplayName = "Pod Service"
+	SvcDisplayName = "Pod Service"
 
-	// svcDesc is the description of the service.
-	svcDesc = "Downloads and stays synchronized with the parallelcoin block " +
+	// SvcDesc is the description of the service.
+	SvcDesc = "Downloads and stays synchronized with the parallelcoin block " +
 		"chain and provides chain services to applications."
 )
 
-// elog is used to send messages to the Windows event log.
-var elog *eventlog.Log
+// Elog is used to send messages to the Windows event log.
+var Elog *eventlog.Log
 
-// logServiceStartOfDay logs information about btcd when the main server has
+// LogServiceStartOfDay logs information about btcd when the main server has
 // been started to the Windows event log.
-func logServiceStartOfDay(srvr *server) {
+func LogServiceStartOfDay(srvr *server) {
 	var message string
 	message += fmt.Sprintf("Version %s\n", version())
 	message += fmt.Sprintf("Configuration directory: %s\n", defaultHomeDir)
 	message += fmt.Sprintf("Configuration file: %s\n", cfg.ConfigFile)
 	message += fmt.Sprintf("Data directory: %s\n", cfg.DataDir)
 
-	elog.Info(1, message)
+	Elog.Info(1, message)
 }
 
 // podService houses the main service handler which handles all service
@@ -89,17 +89,17 @@ loop:
 				shutdownRequestChannel <- struct{}{}
 
 			default:
-				elog.Error(1, fmt.Sprintf("Unexpected control "+
+				Elog.Error(1, fmt.Sprintf("Unexpected control "+
 					"request #%d.", c))
 			}
 
 		case srvr := <-serverChan:
 			mainServer = srvr
-			logServiceStartOfDay(mainServer)
+			LogServiceStartOfDay(mainServer)
 
 		case err := <-doneChan:
 			if err != nil {
-				elog.Error(1, err.Error())
+				Elog.Error(1, err.Error())
 			}
 			break loop
 		}
@@ -110,10 +110,10 @@ loop:
 	return false, 0
 }
 
-// installService attempts to install the btcd service.  Typically this should
+// InstallService attempts to install the btcd service.  Typically this should
 // be done by the msi installer, but it is provided here since it can be useful
 // for development.
-func installService() error {
+func InstallService() error {
 	// Get the path of the current executable.  This is needed because
 	// os.Args[0] can vary depending on how the application was launched.
 	// For example, under cmd.exe it will only be the name of the app
@@ -135,16 +135,16 @@ func installService() error {
 	defer serviceManager.Disconnect()
 
 	// Ensure the service doesn't already exist.
-	service, err := serviceManager.OpenService(svcName)
+	service, err := serviceManager.OpenService(SvcName)
 	if err == nil {
 		service.Close()
-		return fmt.Errorf("service %s already exists", svcName)
+		return fmt.Errorf("service %s already exists", SvcName)
 	}
 
 	// Install the service.
-	service, err = serviceManager.CreateService(svcName, exePath, mgr.Config{
-		DisplayName: svcDisplayName,
-		Description: svcDesc,
+	service, err = serviceManager.CreateService(SvcName, exePath, mgr.Config{
+		DisplayName: SvcDisplayName,
+		Description: SvcDesc,
 	})
 	if err != nil {
 		return err
@@ -154,16 +154,16 @@ func installService() error {
 	// Support events to the event log using the standard "standard" Windows
 	// EventCreate.exe message file.  This allows easy logging of custom
 	// messges instead of needing to create our own message catalog.
-	eventlog.Remove(svcName)
+	eventlog.Remove(SvcName)
 	eventsSupported := uint32(eventlog.Error | eventlog.Warning | eventlog.Info)
-	return eventlog.InstallAsEventCreate(svcName, eventsSupported)
+	return eventlog.InstallAsEventCreate(SvcName, eventsSupported)
 }
 
-// removeService attempts to uninstall the btcd service.  Typically this should
+// RemoveService attempts to uninstall the btcd service.  Typically this should
 // be done by the msi uninstaller, but it is provided here since it can be
 // useful for development.  Not the eventlog entry is intentionally not removed
 // since it would invalidate any existing event log messages.
-func removeService() error {
+func RemoveService() error {
 	// Connect to the windows service manager.
 	serviceManager, err := mgr.Connect()
 	if err != nil {
@@ -172,9 +172,9 @@ func removeService() error {
 	defer serviceManager.Disconnect()
 
 	// Ensure the service exists.
-	service, err := serviceManager.OpenService(svcName)
+	service, err := serviceManager.OpenService(SvcName)
 	if err != nil {
-		return fmt.Errorf("service %s is not installed", svcName)
+		return fmt.Errorf("service %s is not installed", SvcName)
 	}
 	defer service.Close()
 
@@ -182,8 +182,8 @@ func removeService() error {
 	return service.Delete()
 }
 
-// startService attempts to start the btcd service.
-func startService() error {
+// StartService attempts to start the btcd service.
+func StartService() error {
 	// Connect to the windows service manager.
 	serviceManager, err := mgr.Connect()
 	if err != nil {
@@ -191,7 +191,7 @@ func startService() error {
 	}
 	defer serviceManager.Disconnect()
 
-	service, err := serviceManager.OpenService(svcName)
+	service, err := serviceManager.OpenService(SvcName)
 	if err != nil {
 		return fmt.Errorf("could not access service: %v", err)
 	}
@@ -205,10 +205,10 @@ func startService() error {
 	return nil
 }
 
-// controlService allows commands which change the status of the service.  It
+// ControlService allows commands which change the status of the service.  It
 // also waits for up to 10 seconds for the service to change to the passed
 // state.
-func controlService(c svc.Cmd, to svc.State) error {
+func ControlService(c svc.Cmd, to svc.State) error {
 	// Connect to the windows service manager.
 	serviceManager, err := mgr.Connect()
 	if err != nil {
@@ -216,7 +216,7 @@ func controlService(c svc.Cmd, to svc.State) error {
 	}
 	defer serviceManager.Disconnect()
 
-	service, err := serviceManager.OpenService(svcName)
+	service, err := serviceManager.OpenService(SvcName)
 	if err != nil {
 		return fmt.Errorf("could not access service: %v", err)
 	}
@@ -245,23 +245,23 @@ func controlService(c svc.Cmd, to svc.State) error {
 	return nil
 }
 
-// performServiceCommand attempts to run one of the supported service commands
+// PerformServiceCommand attempts to run one of the supported service commands
 // provided on the command line via the service command flag.  An appropriate
 // error is returned if an invalid command is specified.
-func performServiceCommand(command string) error {
+func PerformServiceCommand(command string) error {
 	var err error
 	switch command {
 	case "install":
-		err = installService()
+		err = InstallService()
 
 	case "remove":
-		err = removeService()
+		err = RemoveService()
 
 	case "start":
-		err = startService()
+		err = StartService()
 
 	case "stop":
-		err = controlService(svc.Stop, svc.Stopped)
+		err = ControlService(svc.Stop, svc.Stopped)
 
 	default:
 		err = fmt.Errorf("invalid service command [%s]", command)
@@ -270,11 +270,11 @@ func performServiceCommand(command string) error {
 	return err
 }
 
-// serviceMain checks whether we're being invoked as a service, and if so uses
+// ServiceMain checks whether we're being invoked as a service, and if so uses
 // the service control manager to start the long-running server.  A flag is
 // returned to the caller so the application can determine whether to exit (when
 // running as a service) or launch in normal interactive mode.
-func serviceMain() (bool, error) {
+func ServiceMain() (bool, error) {
 	// Don't run as a service if we're running interactively (or that can't
 	// be determined due to an error).
 	isInteractive, err := svc.IsAnInteractiveSession()
@@ -285,15 +285,15 @@ func serviceMain() (bool, error) {
 		return false, nil
 	}
 
-	elog, err = eventlog.Open(svcName)
+	Elog, err = eventlog.Open(SvcName)
 	if err != nil {
 		return false, err
 	}
-	defer elog.Close()
+	defer Elog.Close()
 
-	err = svc.Run(svcName, &podService{})
+	err = svc.Run(SvcName, &podService{})
 	if err != nil {
-		elog.Error(1, fmt.Sprintf("Service start failed: %v", err))
+		Elog.Error(1, fmt.Sprintf("Service start failed: %v", err))
 		return true, err
 	}
 
@@ -302,6 +302,6 @@ func serviceMain() (bool, error) {
 
 // Set windows specific functions to real functions.
 func init() {
-	runServiceCommand = performServiceCommand
-	winServiceMain = serviceMain
+	runServiceCommand = PerformServiceCommand
+	winServiceMain = ServiceMain
 }

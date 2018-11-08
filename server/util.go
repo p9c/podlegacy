@@ -8,10 +8,10 @@ import (
 	"github.com/parallelcointeam/pod/wire"
 )
 
-// randomUint16Number returns a random uint16 in a specified input range.  Note
+// RandomUint16Number returns a random uint16 in a specified input range.  Note
 // that the range is in zeroth ordering; if you pass it 1800, you will get
 // values from 0 to 1800.
-func randomUint16Number(max uint16) uint16 {
+func RandomUint16Number(max uint16) uint16 {
 	// In order to avoid modulo bias and ensure every possible outcome in
 	// [0, max) has equal probability, the random number must be sampled
 	// from a random source that has a range limited to a multiple of the
@@ -26,8 +26,8 @@ func randomUint16Number(max uint16) uint16 {
 	}
 }
 
-// hasServices returns whether or not the provided advertised service flags have
+// HasServices returns whether or not the provided advertised service flags have
 // all of the provided desired service flags set.
-func hasServices(advertised, desired wire.ServiceFlag) bool {
+func HasServices(advertised, desired wire.ServiceFlag) bool {
 	return advertised&desired == desired
 }

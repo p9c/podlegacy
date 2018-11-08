@@ -12,5 +12,5 @@ import (
 )
 
 func init() {
-	interruptSignals = []os.Signal{os.Interrupt, syscall.SIGTERM}
+	InterruptSignals = []os.Signal{os.Interrupt, syscall.SIGTERM}
 }

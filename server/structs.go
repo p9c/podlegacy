@@ -52,9 +52,9 @@ type Server struct {
 	donePeers            chan *Peer
 	banPeers             chan *Peer
 	query                chan interface{}
-	relayInv             chan relayMsg
-	broadcast            chan broadcastMsg
-	peerHeightsUpdate    chan updatePeerHeightsMsg
+	relayInv             chan RelayMsg
+	broadcast            chan BroadcastMsg
+	peerHeightsUpdate    chan UpdatePeerHeightsMsg
 	wg                   sync.WaitGroup
 	quit                 chan struct{}
 	nat                  upnp.NAT
@@ -106,7 +106,7 @@ type Peer struct {
 }
 
 // RPCConnManager provides a connection manager for use with the RPC server and
-// implements the rpcserverConnManager interface.
+// implements the RPCServerConnManager interface.
 type RPCConnManager struct {
 	server *Server
 }
@@ -115,16 +115,16 @@ type RPCConnManager struct {
 type RPCServer struct {
 	started                int32
 	shutdown               int32
-	cfg                    rpcserverConfig
+	cfg                    RPCServerConfig
 	authsha                [sha256.Size]byte
 	limitauthsha           [sha256.Size]byte
-	ntfnMgr                *wsNotificationManager
+	ntfnMgr                *WsNotificationManager
 	numClients             int32
 	statusLines            map[int]string
 	statusLock             sync.RWMutex
 	wg                     sync.WaitGroup
-	gbtWorkState           *gbtWorkState
-	helpCacher             *helpCacher
+	GbtWorkState           *GbtWorkState
+	HelpCacher             *HelpCacher
 	requestProcessShutdown chan struct{}
 	quit                   chan int
 }
@@ -156,8 +156,8 @@ type RPCServerSyncManager interface {
 	LocateHeaders(locators []*chainhash.Hash, hashStop *chainhash.Hash) []wire.BlockHeader
 }
 
-// rpcserverConfig is a descriptor containing the RPC server configuration.
-type rpcserverConfig struct {
+// RPCServerConfig is a descriptor containing the RPC server configuration.
+type RPCServerConfig struct {
 	// Listeners defines a slice of listeners for which the RPC server will
 	// take ownership of and accept connections.  Since the RPC server takes
 	// ownership of these listeners, they will be closed when the RPC server
@@ -172,7 +172,7 @@ type rpcserverConfig struct {
 	// provides the RPC server with a means to do things such as add,
 	// remove, connect, disconnect, and query peers as well as other
 	// connection-related data and tasks.
-	ConnMgr rpcserverConnManager
+	ConnMgr RPCServerConnManager
 
 	// SyncMgr defines the sync manager for the RPC server to use.
 	SyncMgr RPCServerSyncManager
@@ -206,11 +206,11 @@ type rpcserverConfig struct {
 	FeeEstimator *mempool.FeeEstimator
 }
 
-// rpcserverPeer represents a peer for use with the RPC server.
+// RPCServerPeer represents a peer for use with the RPC server.
 //
 // The interface contract requires that all of these methods are safe for
 // concurrent access.
-type rpcserverPeer interface {
+type RPCServerPeer interface {
 	// ToPeer returns the underlying peer instance.
 	ToPeer() *peer.Peer
 
@@ -227,12 +227,12 @@ type rpcserverPeer interface {
 	FeeFilter() int64
 }
 
-// rpcserverConnManager represents a connection manager for use with the RPC
+// RPCServerConnManager represents a connection manager for use with the RPC
 // server.
 //
 // The interface contract requires that all of these methods are safe for
 // concurrent access.
-type rpcserverConnManager interface {
+type RPCServerConnManager interface {
 	// Connect adds the provided address as a new outbound peer.  The
 	// permanent flag indicates whether or not to make the peer persistent
 	// and reconnect if the connection is lost.  Attempting to connect to an
@@ -268,11 +268,11 @@ type rpcserverConnManager interface {
 	NetTotals() (uint64, uint64)
 
 	// ConnectedPeers returns an array consisting of all connected peers.
-	ConnectedPeers() []rpcserverPeer
+	ConnectedPeers() []RPCServerPeer
 
 	// PersistentPeers returns an array consisting of all the persistent
 	// peers.
-	PersistentPeers() []rpcserverPeer
+	PersistentPeers() []RPCServerPeer
 
 	// BroadcastMessage sends the provided message to all currently
 	// connected peers.
@@ -288,7 +288,7 @@ type rpcserverConnManager interface {
 	RelayTransactions(txns []*mempool.TxDesc)
 }
 
-// wsNotificationManager is a connection and notification manager used for
+// WsNotificationManager is a connection and notification manager used for
 // websockets.  It allows websocket clients to register for notifications they
 // are interested in.  When an event happens elsewhere in the code such as
 // transactions being added to the memory pool or block connects/disconnects,
@@ -296,7 +296,7 @@ type rpcserverConnManager interface {
 // figure out which websocket clients need to be notified based on what they
 // have registered for and notifies them accordingly.  It is also used to keep
 // track of all connected websocket clients.
-type wsNotificationManager struct {
+type WsNotificationManager struct {
 	// server is the RPC server the notification manager is associated with.
 	server *RPCServer
 
@@ -323,76 +323,83 @@ type CfHeaderKV struct {
 	filterHeader chainhash.Hash
 }
 
-type getConnCountMsg struct {
+// GetConnCountMsg is
+type GetConnCountMsg struct {
 	reply chan int32
 }
 
-type getPeersMsg struct {
+// GetPeersMsg is
+type GetPeersMsg struct {
 	reply chan []*Peer
 }
 
-type getOutboundGroup struct {
+// GetOutboundGroup is
+type GetOutboundGroup struct {
 	key   string
 	reply chan int
 }
 
-type getAddedNodesMsg struct {
+// GetAddedNodesMsg is
+type GetAddedNodesMsg struct {
 	reply chan []*Peer
 }
 
-type disconnectNodeMsg struct {
+// DisconnectNodeMsg is
+type DisconnectNodeMsg struct {
 	cmp   func(*Peer) bool
 	reply chan error
 }
 
-type connectNodeMsg struct {
+// ConnectNodeMsg is
+type ConnectNodeMsg struct {
 	addr      string
 	permanent bool
 	reply     chan error
 }
 
-type removeNodeMsg struct {
+// RemoveNodeMsg is
+type RemoveNodeMsg struct {
 	cmp   func(*Peer) bool
 	reply chan error
 }
 
-// broadcastMsg provides the ability to house a bitcoin message to be broadcast
+// BroadcastMsg provides the ability to house a bitcoin message to be broadcast
 // to all connected peers except specified excluded peers.
-type broadcastMsg struct {
+type BroadcastMsg struct {
 	message      wire.Message
 	excludePeers []*Peer
 }
 
-// broadcastInventoryAdd is a type used to declare that the InvVect it contains
+// BroadcastInventoryAdd is a type used to declare that the InvVect it contains
 // needs to be added to the rebroadcast map
-type broadcastInventoryAdd relayMsg
+type BroadcastInventoryAdd RelayMsg
 
-// broadcastInventoryDel is a type used to declare that the InvVect it contains
+// BroadcastInventoryDel is a type used to declare that the InvVect it contains
 // needs to be removed from the rebroadcast map
-type broadcastInventoryDel *wire.InvVect
+type BroadcastInventoryDel *wire.InvVect
 
-// relayMsg packages an inventory vector along with the newly discovered
+// RelayMsg packages an inventory vector along with the newly discovered
 // inventory so the relay has access to that information.
-type relayMsg struct {
+type RelayMsg struct {
 	invVect *wire.InvVect
 	data    interface{}
 }
 
-// updatePeerHeightsMsg is a message sent from the blockmanager to the server
+// UpdatePeerHeightsMsg is a message sent from the blockmanager to the server
 // after a new block has been accepted. The purpose of the message is to update
 // the heights of peers that were known to announce the block before we
 // connected it to the main chain or recognized it as an orphan. With these
 // updates, peer heights will be kept up to date, allowing for fresh data when
 // selecting sync peer candidacy.
-type updatePeerHeightsMsg struct {
+type UpdatePeerHeightsMsg struct {
 	newHash    *chainhash.Hash
 	newHeight  int32
 	originPeer *peer.Peer
 }
 
-// peerState maintains state of inbound, persistent, outbound peers as well
+// PeerState maintains state of inbound, persistent, outbound peers as well
 // as banned peers and outbound groups.
-type peerState struct {
+type PeerState struct {
 	inboundPeers    map[int32]*Peer
 	outboundPeers   map[int32]*Peer
 	persistentPeers map[int32]*Peer
@@ -400,9 +407,9 @@ type peerState struct {
 	outboundGroups  map[string]int
 }
 
-// gbtWorkState houses state that is used in between multiple RPC invocations to
+// GbtWorkState houses state that is used in between multiple RPC invocations to
 // getblocktemplate.
-type gbtWorkState struct {
+type GbtWorkState struct {
 	sync.Mutex
 	lastTxUpdate  time.Time
 	lastGenerated time.Time
@@ -413,9 +420,9 @@ type gbtWorkState struct {
 	timeSource    blockchain.MedianTimeSource
 }
 
-// helpCacher provides a concurrent safe type that provides help and usage for
+// HelpCacher provides a concurrent safe type that provides help and usage for
 // the RPC server commands and caches the results for future calls.
-type helpCacher struct {
+type HelpCacher struct {
 	sync.Mutex
 	usage      string
 	methodHelp map[string]string

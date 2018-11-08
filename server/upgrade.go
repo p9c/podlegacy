@@ -66,7 +66,7 @@ func UpgradeDbPathNet(oldDbPath, netName string) error {
 		// The new database name is based on the database type and
 		// resides in a directory named after the network type.
 		newDbRoot := filepath.Join(filepath.Dir(Cfg.DataDir), netName)
-		newDbName := blockDbNamePrefix + "_" + oldDbType
+		newDbName := BlockDbNamePrefix + "_" + oldDbType
 		if oldDbType == "sqlite" {
 			newDbName = newDbName + ".db"
 		}

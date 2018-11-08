@@ -742,7 +742,7 @@ func LoadConfig() (*Config, []string, error) {
 		}
 		Cfg.RPCListeners = make([]string, 0, len(addrs))
 		for _, addr := range addrs {
-			addr = net.JoinHostPort(addr, svr.ActiveNetParams.RpcPort)
+			addr = net.JoinHostPort(addr, svr.ActiveNetParams.RPCPort)
 			Cfg.RPCListeners = append(Cfg.RPCListeners, addr)
 		}
 	}
@@ -908,7 +908,7 @@ func LoadConfig() (*Config, []string, error) {
 	// Add default port to all rpc listener addresses if needed and remove
 	// duplicate addresses.
 	Cfg.RPCListeners = NormalizeAddresses(Cfg.RPCListeners,
-		svr.ActiveNetParams.RpcPort)
+		svr.ActiveNetParams.RPCPort)
 
 	// Only allow TLS to be disabled if the RPC is bound to localhost
 	// addresses.

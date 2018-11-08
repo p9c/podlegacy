@@ -13,8 +13,8 @@ import (
 	"github.com/parallelcointeam/pod/JSON"
 )
 
-// helpDescsEnUS defines the English descriptions used for the help strings.
-var helpDescsEnUS = map[string]string{
+// HelpDescsEnUS defines the English descriptions used for the help strings.
+var HelpDescsEnUS = map[string]string{
 	// DebugLevelCmd help.
 	"debuglevel--synopsis": "Dynamically changes the debug logging level.\n" +
 		"The levelspec can either a debug level or of the form:\n" +
@@ -669,10 +669,10 @@ var helpDescsEnUS = map[string]string{
 	"versionresult-buildmetadata": "Metadata about the current build",
 }
 
-// rpcResultTypes specifies the result types that each RPC command can return.
+// RPCResultTypes specifies the result types that each RPC command can return.
 // This information is used to generate the help.  Each result type must be a
 // pointer to the type (or nil to indicate no return value).
-var rpcResultTypes = map[string][]interface{}{
+var RPCResultTypes = map[string][]interface{}{
 	"addnode":               nil,
 	"createrawtransaction":  {(*string)(nil)},
 	"debuglevel":            {(*string)(nil), (*string)(nil)},
@@ -735,10 +735,10 @@ var rpcResultTypes = map[string][]interface{}{
 	"rescanblocks":              {(*[]JSON.RescannedBlock)(nil)},
 }
 
-// rpcMethodHelp returns an RPC help string for the provided method.
+// RPCMethodHelp returns an RPC help string for the provided method.
 //
 // This function is safe for concurrent access.
-func (c *helpCacher) rpcMethodHelp(method string) (string, error) {
+func (c *HelpCacher) RPCMethodHelp(method string) (string, error) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -748,14 +748,14 @@ func (c *helpCacher) rpcMethodHelp(method string) (string, error) {
 	}
 
 	// Look up the result types for the method.
-	resultTypes, ok := rpcResultTypes[method]
+	resultTypes, ok := RPCResultTypes[method]
 	if !ok {
 		return "", errors.New("no result types specified for method " +
 			method)
 	}
 
 	// Generate, cache, and return the help.
-	help, err := JSON.GenerateHelp(method, helpDescsEnUS, resultTypes...)
+	help, err := JSON.GenerateHelp(method, HelpDescsEnUS, resultTypes...)
 	if err != nil {
 		return "", err
 	}
@@ -763,10 +763,10 @@ func (c *helpCacher) rpcMethodHelp(method string) (string, error) {
 	return help, nil
 }
 
-// rpcUsage returns one-line usage for all support RPC commands.
+// RPCUsage returns one-line usage for all support RPC commands.
 //
 // This function is safe for concurrent access.
-func (c *helpCacher) rpcUsage(includeWebsockets bool) (string, error) {
+func (c *HelpCacher) RPCUsage(includeWebsockets bool) (string, error) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -776,8 +776,8 @@ func (c *helpCacher) rpcUsage(includeWebsockets bool) (string, error) {
 	}
 
 	// Generate a list of one-line usage for every command.
-	usageTexts := make([]string, 0, len(rpcHandlers))
-	for k := range rpcHandlers {
+	usageTexts := make([]string, 0, len(RPCHandlers))
+	for k := range RPCHandlers {
 		usage, err := JSON.MethodUsageText(k)
 		if err != nil {
 			return "", err
@@ -787,7 +787,7 @@ func (c *helpCacher) rpcUsage(includeWebsockets bool) (string, error) {
 
 	// Include websockets commands if requested.
 	if includeWebsockets {
-		for k := range wsHandlers {
+		for k := range WsHandlers {
 			usage, err := JSON.MethodUsageText(k)
 			if err != nil {
 				return "", err
@@ -801,10 +801,10 @@ func (c *helpCacher) rpcUsage(includeWebsockets bool) (string, error) {
 	return c.usage, nil
 }
 
-// newHelpCacher returns a new instance of a help cacher which provides help and
+// NewHelpCacher returns a new instance of a help cacher which provides help and
 // usage for the RPC server commands and caches the results for future calls.
-func newHelpCacher() *helpCacher {
-	return &helpCacher{
+func NewHelpCacher() *HelpCacher {
+	return &HelpCacher{
 		methodHelp: make(map[string]string),
 	}
 }

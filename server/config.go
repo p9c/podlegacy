@@ -27,6 +27,8 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/connmgr"
 	"github.com/parallelcointeam/pod/database"
+
+	// This is imported because...
 	_ "github.com/parallelcointeam/pod/database/ffldb"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/peer"
@@ -476,7 +478,7 @@ func LoadConfig() (*Config, []string, error) {
 		defaultConfigFile {
 
 		if _, err := os.Stat(preCfg.ConfigFile); os.IsNotExist(err) {
-			err := createDefaultConfigFile(preCfg.ConfigFile)
+			err := CreateDefaultConfigFile(preCfg.ConfigFile)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error creating a "+
 					"default config file: %v\n", err)
@@ -739,7 +741,7 @@ func LoadConfig() (*Config, []string, error) {
 		}
 		Cfg.RPCListeners = make([]string, 0, len(addrs))
 		for _, addr := range addrs {
-			addr = net.JoinHostPort(addr, ActiveNetParams.RpcPort)
+			addr = net.JoinHostPort(addr, ActiveNetParams.RPCPort)
 			Cfg.RPCListeners = append(Cfg.RPCListeners, addr)
 		}
 	}
@@ -905,7 +907,7 @@ func LoadConfig() (*Config, []string, error) {
 	// Add default port to all rpc listener addresses if needed and remove
 	// duplicate addresses.
 	Cfg.RPCListeners = NormalizeAddresses(Cfg.RPCListeners,
-		ActiveNetParams.RpcPort)
+		ActiveNetParams.RPCPort)
 
 	// Only allow TLS to be disabled if the RPC is bound to localhost
 	// addresses.
@@ -1088,9 +1090,9 @@ func LoadConfig() (*Config, []string, error) {
 	return &Cfg, remainingArgs, nil
 }
 
-// createDefaultConfig copies the file sample-pod.conf to the given destination path,
+// CreateDefaultConfigFile copies the file sample-pod.conf to the given destination path,
 // and populates it with some randomly generated RPC username and password.
-func createDefaultConfigFile(destinationPath string) error {
+func CreateDefaultConfigFile(destinationPath string) error {
 	// Create the destination directory if it does not exists
 	err := os.MkdirAll(filepath.Dir(destinationPath), 0700)
 	if err != nil {
@@ -1155,12 +1157,12 @@ func createDefaultConfigFile(destinationPath string) error {
 	return nil
 }
 
-// btcdDial connects to the address on the named network using the appropriate
+// Dial connects to the address on the named network using the appropriate
 // dial function depending on the address and configuration options.  For
 // example, .onion addresses will be dialed using the onion specific proxy if
 // one was specified, but will otherwise use the normal dial function (which
 // could itself use a proxy or not).
-func btcdDial(addr net.Addr) (net.Conn, error) {
+func Dial(addr net.Addr) (net.Conn, error) {
 	if strings.Contains(addr.String(), ".onion:") {
 		return Cfg.oniondial(addr.Network(), addr.String(),
 			defaultConnectTimeout)
