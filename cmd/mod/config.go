@@ -165,9 +165,9 @@ type Config struct {
 	DropAddrIndex        bool          `long:"dropaddrindex" description:"Deletes the address-based transaction index from the database on start up and then exits."`
 	RelayNonStd          bool          `long:"relaynonstd" description:"Relay non-standard transactions regardless of the default settings for the active network."`
 	RejectNonStd         bool          `long:"rejectnonstd" description:"Reject non-standard transactions regardless of the default settings for the active network."`
-	lookup               func(string) ([]net.IP, error)
-	oniondial            func(string, string, time.Duration) (net.Conn, error)
-	dial                 func(string, string, time.Duration) (net.Conn, error)
+	Lookup               func(string) ([]net.IP, error)
+	Oniondial            func(string, string, time.Duration) (net.Conn, error)
+	Dial                 func(string, string, time.Duration) (net.Conn, error)
 	addCheckpoints       []chaincfg.Checkpoint
 	miningAddrs          []utils.Address
 	minRelayTxFee        utils.Amount
@@ -241,7 +241,7 @@ func ParseAndSetDebugLevels(debugLevel string) error {
 		}
 
 		// Change the logging level for all subsystems.
-		setLogLevels(debugLevel)
+		svr.SetLogLevels(debugLevel)
 
 		return nil
 	}
@@ -272,7 +272,7 @@ func ParseAndSetDebugLevels(debugLevel string) error {
 			return fmt.Errorf(str, logLevel)
 		}
 
-		setLogLevel(subsysID, logLevel)
+		svr.SetLogLevel(subsysID, logLevel)
 	}
 
 	return nil
@@ -455,7 +455,7 @@ func LoadConfig() (*Config, []string, error) {
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
 	usageMessage := fmt.Sprintf("Use %s -h to show usage", appName)
 	if preCfg.ShowVersion {
-		fmt.Println(appName, "version", Version())
+		fmt.Println(appName, "version", svr.Version())
 		os.Exit(0)
 	}
 
@@ -536,16 +536,16 @@ func LoadConfig() (*Config, []string, error) {
 	// while we're at it
 	if Cfg.TestNet3 {
 		numNets++
-		ActiveNetParams = &TestNet3Params
+		svr.ActiveNetParams = &svr.TestNet3Params
 	}
 	if Cfg.RegressionTest {
 		numNets++
-		ActiveNetParams = &RegressionNetParams
+		svr.ActiveNetParams = &svr.RegressionNetParams
 	}
 	if Cfg.SimNet {
 		numNets++
 		// Also disable dns seeding on the simulation test network.
-		ActiveNetParams = &SimNetParams
+		svr.ActiveNetParams = &svr.SimNetParams
 		Cfg.DisableDNSSeed = true
 	}
 	if numNets > 1 {
@@ -561,7 +561,7 @@ func LoadConfig() (*Config, []string, error) {
 	// according to the default of the active network. The set
 	// configuration value takes precedence over the default value for the
 	// selected network.
-	relayNonStd := ActiveNetParams.RelayNonStdTxs
+	relayNonStd := svr.ActiveNetParams.RelayNonStdTxs
 	switch {
 	case Cfg.RelayNonStd && Cfg.RejectNonStd:
 		str := "%s: rejectnonstd and relaynonstd cannot be used " +
@@ -584,12 +584,12 @@ func LoadConfig() (*Config, []string, error) {
 	// means each individual piece of serialized data does not have to
 	// worry about changing names per network and such.
 	Cfg.DataDir = CleanAndExpandPath(Cfg.DataDir)
-	Cfg.DataDir = filepath.Join(Cfg.DataDir, NetName(ActiveNetParams))
+	Cfg.DataDir = filepath.Join(Cfg.DataDir, svr.NetName(svr.ActiveNetParams))
 
 	// Append the network type to the log directory so it is "namespaced"
 	// per network in the same fashion as the data directory.
 	Cfg.LogDir = CleanAndExpandPath(Cfg.LogDir)
-	Cfg.LogDir = filepath.Join(Cfg.LogDir, NetName(ActiveNetParams))
+	Cfg.LogDir = filepath.Join(Cfg.LogDir, svr.NetName(svr.ActiveNetParams))
 
 	// Special show command to list supported subsystems and exit.
 	if Cfg.DebugLevel == "show" {
@@ -599,7 +599,7 @@ func LoadConfig() (*Config, []string, error) {
 
 	// Initialize log rotation.  After log rotation has been initialized, the
 	// logger variables may be used.
-	initLogRotator(filepath.Join(Cfg.LogDir, defaultLogFilename))
+	svr.InitLogRotator(filepath.Join(Cfg.LogDir, defaultLogFilename))
 
 	// Parse, validate, and set debug log level(s).
 	if err := ParseAndSetDebugLevels(Cfg.DebugLevel); err != nil {
@@ -698,7 +698,7 @@ func LoadConfig() (*Config, []string, error) {
 	// we are to connect to.
 	if len(Cfg.Listeners) == 0 {
 		Cfg.Listeners = []string{
-			net.JoinHostPort("", ActiveNetParams.DefaultPort),
+			net.JoinHostPort("", svr.ActiveNetParams.DefaultPort),
 		}
 	}
 
@@ -729,7 +729,7 @@ func LoadConfig() (*Config, []string, error) {
 	}
 
 	if Cfg.DisableRPC {
-		PodLog.Infof("RPC service is disabled")
+		svr.PodLog.Infof("RPC service is disabled")
 	}
 
 	// Default RPC to listen on localhost only.
@@ -740,7 +740,7 @@ func LoadConfig() (*Config, []string, error) {
 		}
 		Cfg.RPCListeners = make([]string, 0, len(addrs))
 		for _, addr := range addrs {
-			addr = net.JoinHostPort(addr, ActiveNetParams.rpcPort)
+			addr = net.JoinHostPort(addr, svr.ActiveNetParams.RPCPort)
 			Cfg.RPCListeners = append(Cfg.RPCListeners, addr)
 		}
 	}
@@ -869,7 +869,7 @@ func LoadConfig() (*Config, []string, error) {
 	// Check mining addresses are valid and saved parsed versions.
 	Cfg.miningAddrs = make([]utils.Address, 0, len(Cfg.MiningAddrs))
 	for _, strAddr := range Cfg.MiningAddrs {
-		addr, err := utils.DecodeAddress(strAddr, ActiveNetParams.Params)
+		addr, err := utils.DecodeAddress(strAddr, svr.ActiveNetParams.Params)
 		if err != nil {
 			str := "%s: mining address '%s' failed to decode: %v"
 			err := fmt.Errorf(str, funcName, strAddr, err)
@@ -877,7 +877,7 @@ func LoadConfig() (*Config, []string, error) {
 			fmt.Fprintln(os.Stderr, usageMessage)
 			return nil, nil, err
 		}
-		if !addr.IsForNet(ActiveNetParams.Params) {
+		if !addr.IsForNet(svr.ActiveNetParams.Params) {
 			str := "%s: mining address '%s' is on the wrong network"
 			err := fmt.Errorf(str, funcName, strAddr)
 			fmt.Fprintln(os.Stderr, err)
@@ -901,12 +901,12 @@ func LoadConfig() (*Config, []string, error) {
 	// Add default port to all listener addresses if needed and remove
 	// duplicate addresses.
 	Cfg.Listeners = NormalizeAddresses(Cfg.Listeners,
-		ActiveNetParams.DefaultPort)
+		svr.ActiveNetParams.DefaultPort)
 
 	// Add default port to all rpc listener addresses if needed and remove
 	// duplicate addresses.
 	Cfg.RPCListeners = NormalizeAddresses(Cfg.RPCListeners,
-		ActiveNetParams.rpcPort)
+		svr.ActiveNetParams.RPCPort)
 
 	// Only allow TLS to be disabled if the RPC is bound to localhost
 	// addresses.
@@ -942,9 +942,9 @@ func LoadConfig() (*Config, []string, error) {
 	// Add default port to all added peer addresses if needed and remove
 	// duplicate addresses.
 	Cfg.AddPeers = NormalizeAddresses(Cfg.AddPeers,
-		ActiveNetParams.DefaultPort)
+		svr.ActiveNetParams.DefaultPort)
 	Cfg.ConnectPeers = NormalizeAddresses(Cfg.ConnectPeers,
-		ActiveNetParams.DefaultPort)
+		svr.ActiveNetParams.DefaultPort)
 
 	// --noonion and --onion do not mix.
 	if Cfg.NoOnion && Cfg.OnionProxy != "" {
@@ -975,14 +975,14 @@ func LoadConfig() (*Config, []string, error) {
 		return nil, nil, err
 	}
 
-	// Setup dial and DNS resolution (lookup) functions depending on the
+	// Setup Dial and DNS resolution (Lookup) functions depending on the
 	// specified options.  The default is to use the standard
 	// net.DialTimeout function as well as the system DNS resolver.  When a
-	// proxy is specified, the dial function is set to the proxy specific
-	// dial function and the lookup is set to use tor (unless --noonion is
+	// proxy is specified, the Dial function is set to the proxy specific
+	// Dial function and the Lookup is set to use tor (unless --noonion is
 	// specified in which case the system DNS resolver is used).
-	Cfg.dial = net.DialTimeout
-	Cfg.lookup = net.LookupIP
+	Cfg.Dial = net.DialTimeout
+	Cfg.Lookup = net.LookupIP
 	if Cfg.Proxy != "" {
 		_, _, err := net.SplitHostPort(Cfg.Proxy)
 		if err != nil {
@@ -1011,23 +1011,23 @@ func LoadConfig() (*Config, []string, error) {
 			Password:     Cfg.ProxyPass,
 			TorIsolation: torIsolation,
 		}
-		Cfg.dial = proxy.DialTimeout
+		Cfg.Dial = proxy.DialTimeout
 
 		// Treat the proxy as tor and perform DNS resolution through it
 		// unless the --noonion flag is set or there is an
 		// onion-specific proxy configured.
 		if !Cfg.NoOnion && Cfg.OnionProxy == "" {
-			Cfg.lookup = func(host string) ([]net.IP, error) {
+			Cfg.Lookup = func(host string) ([]net.IP, error) {
 				return connmgr.TorLookupIP(host, Cfg.Proxy)
 			}
 		}
 	}
 
-	// Setup onion address dial function depending on the specified options.
-	// The default is to use the same dial function selected above.  However,
-	// when an onion-specific proxy is specified, the onion address dial
+	// Setup onion address Dial function depending on the specified options.
+	// The default is to use the same Dial function selected above.  However,
+	// when an onion-specific proxy is specified, the onion address Dial
 	// function is set to use the onion-specific proxy while leaving the
-	// normal dial function as selected above.  This allows .onion address
+	// normal Dial function as selected above.  This allows .onion address
 	// traffic to be routed through a different proxy than normal traffic.
 	if Cfg.OnionProxy != "" {
 		_, _, err := net.SplitHostPort(Cfg.OnionProxy)
@@ -1048,7 +1048,7 @@ func LoadConfig() (*Config, []string, error) {
 				"credentials ")
 		}
 
-		Cfg.oniondial = func(network, addr string, timeout time.Duration) (net.Conn, error) {
+		Cfg.Oniondial = func(network, addr string, timeout time.Duration) (net.Conn, error) {
 			proxy := &socks.Proxy{
 				Addr:         Cfg.OnionProxy,
 				Username:     Cfg.OnionProxyUser,
@@ -1063,18 +1063,18 @@ func LoadConfig() (*Config, []string, error) {
 		// not a tor proxy, so override the DNS resolution to use the
 		// onion-specific proxy.
 		if Cfg.Proxy != "" {
-			Cfg.lookup = func(host string) ([]net.IP, error) {
+			Cfg.Lookup = func(host string) ([]net.IP, error) {
 				return connmgr.TorLookupIP(host, Cfg.OnionProxy)
 			}
 		}
 	} else {
-		Cfg.oniondial = Cfg.dial
+		Cfg.Oniondial = Cfg.Dial
 	}
 
-	// Specifying --noonion means the onion address dial function results in
+	// Specifying --noonion means the onion address Dial function results in
 	// an error.
 	if Cfg.NoOnion {
-		Cfg.oniondial = func(a, b string, t time.Duration) (net.Conn, error) {
+		Cfg.Oniondial = func(a, b string, t time.Duration) (net.Conn, error) {
 			return nil, errors.New("tor has been disabled")
 		}
 	}
@@ -1083,7 +1083,7 @@ func LoadConfig() (*Config, []string, error) {
 	// done.  This prevents the warning on help messages and invalid
 	// options.  Note this should go directly before the return.
 	if configFileError != nil {
-		PodLog.Warnf("%v", configFileError)
+		svr.PodLog.Warnf("%v", configFileError)
 	}
 
 	return &Cfg, remainingArgs, nil
@@ -1157,19 +1157,19 @@ func createDefaultConfigFile(destinationPath string) error {
 }
 
 // btcdDial connects to the address on the named network using the appropriate
-// dial function depending on the address and configuration options.  For
+// Dial function depending on the address and configuration options.  For
 // example, .onion addresses will be dialed using the onion specific proxy if
-// one was specified, but will otherwise use the normal dial function (which
+// one was specified, but will otherwise use the normal Dial function (which
 // could itself use a proxy or not).
 func btcdDial(addr net.Addr) (net.Conn, error) {
 	if strings.Contains(addr.String(), ".onion:") {
-		return Cfg.oniondial(addr.Network(), addr.String(),
+		return cfg.Oniondial(addr.Network(), addr.String(),
 			defaultConnectTimeout)
 	}
-	return Cfg.dial(addr.Network(), addr.String(), defaultConnectTimeout)
+	return cfg.Dial(addr.Network(), addr.String(), defaultConnectTimeout)
 }
 
-// PodLookup resolves the IP of the given host using the correct DNS lookup
+// PodLookup resolves the IP of the given host using the correct DNS Lookup
 // function depending on the configuration options.  For example, addresses will
 // be resolved using tor when the --proxy flag was specified unless --noonion
 // was also specified in which case the normal system DNS resolver will be used.
@@ -1181,5 +1181,5 @@ func PodLookup(host string) ([]net.IP, error) {
 		return nil, fmt.Errorf("attempt to resolve tor address %s", host)
 	}
 
-	return Cfg.lookup(host)
+	return svr.Cfg.Lookup(host)
 }

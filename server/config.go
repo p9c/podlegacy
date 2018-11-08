@@ -166,9 +166,9 @@ type Config struct {
 	DropAddrIndex        bool          `long:"dropaddrindex" description:"Deletes the address-based transaction index from the database on start up and then exits."`
 	RelayNonStd          bool          `long:"relaynonstd" description:"Relay non-standard transactions regardless of the default settings for the active network."`
 	RejectNonStd         bool          `long:"rejectnonstd" description:"Reject non-standard transactions regardless of the default settings for the active network."`
-	lookup               func(string) ([]net.IP, error)
-	oniondial            func(string, string, time.Duration) (net.Conn, error)
-	dial                 func(string, string, time.Duration) (net.Conn, error)
+	Lookup               func(string) ([]net.IP, error)
+	Oniondial            func(string, string, time.Duration) (net.Conn, error)
+	Dial                 func(string, string, time.Duration) (net.Conn, error)
 	addCheckpoints       []chaincfg.Checkpoint
 	miningAddrs          []utils.Address
 	minRelayTxFee        utils.Amount
@@ -976,14 +976,14 @@ func LoadConfig() (*Config, []string, error) {
 		return nil, nil, err
 	}
 
-	// Setup dial and DNS resolution (lookup) functions depending on the
+	// Setup Dial and DNS resolution (Lookup) functions depending on the
 	// specified options.  The default is to use the standard
 	// net.DialTimeout function as well as the system DNS resolver.  When a
-	// proxy is specified, the dial function is set to the proxy specific
-	// dial function and the lookup is set to use tor (unless --noonion is
+	// proxy is specified, the Dial function is set to the proxy specific
+	// Dial function and the Lookup is set to use tor (unless --noonion is
 	// specified in which case the system DNS resolver is used).
-	Cfg.dial = net.DialTimeout
-	Cfg.lookup = net.LookupIP
+	Cfg.Dial = net.DialTimeout
+	Cfg.Lookup = net.LookupIP
 	if Cfg.Proxy != "" {
 		_, _, err := net.SplitHostPort(Cfg.Proxy)
 		if err != nil {
@@ -1012,23 +1012,23 @@ func LoadConfig() (*Config, []string, error) {
 			Password:     Cfg.ProxyPass,
 			TorIsolation: torIsolation,
 		}
-		Cfg.dial = proxy.DialTimeout
+		Cfg.Dial = proxy.DialTimeout
 
 		// Treat the proxy as tor and perform DNS resolution through it
 		// unless the --noonion flag is set or there is an
 		// onion-specific proxy configured.
 		if !Cfg.NoOnion && Cfg.OnionProxy == "" {
-			Cfg.lookup = func(host string) ([]net.IP, error) {
+			Cfg.Lookup = func(host string) ([]net.IP, error) {
 				return connmgr.TorLookupIP(host, Cfg.Proxy)
 			}
 		}
 	}
 
-	// Setup onion address dial function depending on the specified options.
-	// The default is to use the same dial function selected above.  However,
-	// when an onion-specific proxy is specified, the onion address dial
+	// Setup onion address Dial function depending on the specified options.
+	// The default is to use the same Dial function selected above.  However,
+	// when an onion-specific proxy is specified, the onion address Dial
 	// function is set to use the onion-specific proxy while leaving the
-	// normal dial function as selected above.  This allows .onion address
+	// normal Dial function as selected above.  This allows .onion address
 	// traffic to be routed through a different proxy than normal traffic.
 	if Cfg.OnionProxy != "" {
 		_, _, err := net.SplitHostPort(Cfg.OnionProxy)
@@ -1049,7 +1049,7 @@ func LoadConfig() (*Config, []string, error) {
 				"credentials ")
 		}
 
-		Cfg.oniondial = func(network, addr string, timeout time.Duration) (net.Conn, error) {
+		Cfg.Oniondial = func(network, addr string, timeout time.Duration) (net.Conn, error) {
 			proxy := &socks.Proxy{
 				Addr:         Cfg.OnionProxy,
 				Username:     Cfg.OnionProxyUser,
@@ -1064,18 +1064,18 @@ func LoadConfig() (*Config, []string, error) {
 		// not a tor proxy, so override the DNS resolution to use the
 		// onion-specific proxy.
 		if Cfg.Proxy != "" {
-			Cfg.lookup = func(host string) ([]net.IP, error) {
+			Cfg.Lookup = func(host string) ([]net.IP, error) {
 				return connmgr.TorLookupIP(host, Cfg.OnionProxy)
 			}
 		}
 	} else {
-		Cfg.oniondial = Cfg.dial
+		Cfg.Oniondial = Cfg.Dial
 	}
 
-	// Specifying --noonion means the onion address dial function results in
+	// Specifying --noonion means the onion address Dial function results in
 	// an error.
 	if Cfg.NoOnion {
-		Cfg.oniondial = func(a, b string, t time.Duration) (net.Conn, error) {
+		Cfg.Oniondial = func(a, b string, t time.Duration) (net.Conn, error) {
 			return nil, errors.New("tor has been disabled")
 		}
 	}
@@ -1158,19 +1158,19 @@ func CreateDefaultConfigFile(destinationPath string) error {
 }
 
 // Dial connects to the address on the named network using the appropriate
-// dial function depending on the address and configuration options.  For
+// Dial function depending on the address and configuration options.  For
 // example, .onion addresses will be dialed using the onion specific proxy if
-// one was specified, but will otherwise use the normal dial function (which
+// one was specified, but will otherwise use the normal Dial function (which
 // could itself use a proxy or not).
 func Dial(addr net.Addr) (net.Conn, error) {
 	if strings.Contains(addr.String(), ".onion:") {
-		return Cfg.oniondial(addr.Network(), addr.String(),
+		return Cfg.Oniondial(addr.Network(), addr.String(),
 			defaultConnectTimeout)
 	}
-	return Cfg.dial(addr.Network(), addr.String(), defaultConnectTimeout)
+	return Cfg.Dial(addr.Network(), addr.String(), defaultConnectTimeout)
 }
 
-// PodLookup resolves the IP of the given host using the correct DNS lookup
+// PodLookup resolves the IP of the given host using the correct DNS Lookup
 // function depending on the configuration options.  For example, addresses will
 // be resolved using tor when the --proxy flag was specified unless --noonion
 // was also specified in which case the normal system DNS resolver will be used.
@@ -1182,5 +1182,5 @@ func PodLookup(host string) ([]net.IP, error) {
 		return nil, fmt.Errorf("attempt to resolve tor address %s", host)
 	}
 
-	return Cfg.lookup(host)
+	return Cfg.Lookup(host)
 }

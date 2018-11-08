@@ -22,8 +22,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/parallelcointeam/pod/utils"
-	"github.com/parallelcointeam/pod/utils/bloom"
 	"github.com/parallelcointeam/pod/addrmgr"
 	"github.com/parallelcointeam/pod/chain"
 	"github.com/parallelcointeam/pod/chain/indexers"
@@ -38,6 +36,8 @@ import (
 	"github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/upnp"
+	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/utils/bloom"
 	"github.com/parallelcointeam/pod/wire"
 )
 
@@ -2833,7 +2833,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		s.rpcServer, err = newRPCServer(&rpcserverConfig{
 			Listeners:    rpcListeners,
 			StartupTime:  s.startupTime,
-			ConnMgr:      &rpcConnManager{&s},
+			ConnMgr:      &RPCConnManager{&s},
 			SyncMgr:      &rpcSyncMgr{&s, s.syncManager},
 			TimeSource:   s.timeSource,
 			Chain:        s.chain,
