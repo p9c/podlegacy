@@ -2526,7 +2526,7 @@ func setupRPCListeners() ([]net.Listener, error) {
 	for _, addr := range netAddrs {
 		listener, err := listenFunc(addr.Network(), addr.String())
 		if err != nil {
-			rpcsLog.Warnf("Can't listen on %s: %v", addr, err)
+			RPCsLog.Warnf("Can't listen on %s: %v", addr, err)
 			continue
 		}
 		listeners = append(listeners, listener)

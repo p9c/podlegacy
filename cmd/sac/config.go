@@ -176,12 +176,6 @@ type Config struct {
 	whitelists           []*net.IPNet
 }
 
-// ServiceOptions defines the configuration options for the daemon as a service on
-// Windows.
-type ServiceOptions struct {
-	ServiceCommand string `short:"s" long:"service" description:"Service command {install, remove, start, stop}"`
-}
-
 // CleanAndExpandPath expands environment variables and leading ~ in the
 // passed path, cleans the result, and returns it.
 func CleanAndExpandPath(path string) string {
@@ -384,7 +378,7 @@ func FileExists(name string) bool {
 }
 
 // NewConfigParser returns a new command line flags parser.
-func NewConfigParser(cfg *Config, so *ServiceOptions, options flags.Options) *flags.Parser {
+func NewConfigParser(cfg *Config, so *svr.ServiceOptions, options flags.Options) *flags.Parser {
 	parser := flags.NewParser(cfg, options)
 	if runtime.GOOS == "windows" {
 		parser.AddGroup("Service Options", "Service Options", so)
@@ -436,7 +430,7 @@ func LoadConfig() (*Config, []string, error) {
 	}
 
 	// Service options which are only added on Windows.
-	serviceOpts := ServiceOptions{}
+	serviceOpts := svr.ServiceOptions{}
 
 	// Pre-parse the command line options to see if an alternative config
 	// file or the version flag was specified.  Any errors aside from the

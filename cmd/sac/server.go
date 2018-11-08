@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"bytes"
@@ -25,6 +25,7 @@ import (
 	"github.com/parallelcointeam/pod/mining/cpuminer"
 	"github.com/parallelcointeam/pod/netsync"
 	"github.com/parallelcointeam/pod/peer"
+	svr "github.com/parallelcointeam/pod/server"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/upnp"
 	"github.com/parallelcointeam/pod/utils"
@@ -69,11 +70,6 @@ const (
 	// database type is appended to this value to form the full block
 	// database name.
 	BlockDbNamePrefix = "blocks"
-)
-
-var (
-	// Cfg is
-	Cfg *Config
 )
 
 // WinServiceMain is only invoked on Windows.  It detects when btcd is running
@@ -776,7 +772,7 @@ func (s *Server) PeerHandler() {
 
 	if !Cfg.DisableDNSSeed {
 		// Add peers discovered through DNS to the address manager.
-		connmgr.SeedFromDNS(ActiveNetParams.Params, DefaultRequiredServices,
+		connmgr.SeedFromDNS(svr.ActiveNetParams.Params, DefaultRequiredServices,
 			PodLookup, func(addrs []*wire.NetAddress) {
 				// Bitcoind uses a lookup of the dns seeder here. This
 				// is rather strange since the values looked up by the
@@ -961,7 +957,7 @@ out:
 			// Process at a random time up to 30mins (in seconds)
 			// in the future.
 			timer.Reset(time.Second *
-				time.Duration(RandomUint16Number(1800)))
+				time.Duration(svr.RandomUint16Number(1800)))
 
 		case <-s.quit:
 			break out
@@ -1114,8 +1110,8 @@ func ParseListeners(addrs []string) ([]net.Addr, error) {
 
 		// Empty host or host of * on plan9 is both IPv4 and IPv6.
 		if host == "" || (host == "*" && runtime.GOOS == "plan9") {
-			netAddrs = append(netAddrs, SimpleAddr{Net: "tcp4", Addr: addr})
-			netAddrs = append(netAddrs, SimpleAddr{Net: "tcp6", Addr: addr})
+			netAddrs = append(netAddrs, svr.SimpleAddr{Net: "tcp4", Addr: addr})
+			netAddrs = append(netAddrs, svr.SimpleAddr{Net: "tcp6", Addr: addr})
 			continue
 		}
 
@@ -1135,9 +1131,9 @@ func ParseListeners(addrs []string) ([]net.Addr, error) {
 		// To4 returns nil when the IP is not an IPv4 address, so use
 		// this determine the address type.
 		if ip.To4() == nil {
-			netAddrs = append(netAddrs, SimpleAddr{Net: "tcp6", Addr: addr})
+			netAddrs = append(netAddrs, svr.SimpleAddr{Net: "tcp6", Addr: addr})
 		} else {
-			netAddrs = append(netAddrs, SimpleAddr{Net: "tcp4", Addr: addr})
+			netAddrs = append(netAddrs, svr.SimpleAddr{Net: "tcp4", Addr: addr})
 		}
 	}
 	return netAddrs, nil
@@ -1148,7 +1144,7 @@ func (s *Server) UPNPUpdateThread() {
 	// Go off immediately to prevent code duplication, thereafter we renew
 	// lease every 15 minutes.
 	timer := time.NewTimer(0 * time.Second)
-	lport, _ := strconv.ParseInt(ActiveNetParams.DefaultPort, 10, 16)
+	lport, _ := strconv.ParseInt(svr.ActiveNetParams.DefaultPort, 10, 16)
 	first := true
 out:
 	for {
@@ -1483,7 +1479,7 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 
 				// allow nondefault ports after 50 failed tries.
 				if tries < 50 && fmt.Sprintf("%d", addr.NetAddress().Port) !=
-					ActiveNetParams.DefaultPort {
+					svr.ActiveNetParams.DefaultPort {
 					continue
 				}
 
@@ -1595,10 +1591,10 @@ func InitListeners(amgr *addrmgr.AddrManager, listenAddrs []string, services wir
 
 	var nat upnp.NAT
 	if len(Cfg.ExternalIPs) != 0 {
-		defaultPort, err := strconv.ParseUint(ActiveNetParams.DefaultPort, 10, 16)
+		defaultPort, err := strconv.ParseUint(svr.ActiveNetParams.DefaultPort, 10, 16)
 		if err != nil {
 			SrvrLog.Errorf("Can not parse default port %s for active chain: %v",
-				ActiveNetParams.DefaultPort, err)
+				svr.ActiveNetParams.DefaultPort, err)
 			return nil, nil, err
 		}
 

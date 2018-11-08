@@ -15,9 +15,9 @@ const (
 	// ProtocolVersion is the latest protocol version this package supports.
 	ProtocolVersion uint32 = 70014
 
-	// TacVersion supports the new TaC orchestration and service advertising
+	// TaCVersion supports the new TaC orchestration and service advertising
 	// protocol introduced with the Parallelcoin Pod
-	TacVersion uint32 = 70014
+	TaCVersion uint32 = 70014
 
 	// MultipleAddressVersion is the protocol version which added multiple
 	// addresses per message (pver >= MultipleAddressVersion).
@@ -91,11 +91,11 @@ const (
 	// software.
 	SFNode2X
 
-	// SFtacNode is a flag used to indicate a peer supports the Telemetry
+	// SFTaCNode is a flag used to indicate a peer supports the Telemetry
 	// and Control protocol, for remote control and monitoring of apps
 	// running on the network, as well as advertising available APIs the
 	// application understands and offers as a service.
-	SFtacNode
+	SFTaCNode
 )
 
 // Map of service flags back to their constant names for pretty printing.

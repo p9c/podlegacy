@@ -92,9 +92,9 @@ func (s *rpcServer) WebsocketHandler(conn *websocket.Conn, remoteAddr string,
 	conn.SetReadDeadline(timeZeroVal)
 
 	// Limit max number of websocket clients.
-	rpcsLog.Infof("New websocket client %s", remoteAddr)
+	RPCsLog.Infof("New websocket client %s", remoteAddr)
 	if s.ntfnMgr.NumClients()+1 > cfg.RPCMaxWebsockets {
-		rpcsLog.Infof("Max websocket clients exceeded [%d] - "+
+		RPCsLog.Infof("Max websocket clients exceeded [%d] - "+
 			"disconnecting client %s", cfg.RPCMaxWebsockets,
 			remoteAddr)
 		conn.Close()
@@ -106,7 +106,7 @@ func (s *rpcServer) WebsocketHandler(conn *websocket.Conn, remoteAddr string,
 	// disconnected), remove it and any notifications it registered for.
 	client, err := newWebsocketClient(s, conn, remoteAddr, authenticated, isAdmin)
 	if err != nil {
-		rpcsLog.Errorf("Failed to serve client %s: %v", remoteAddr, err)
+		RPCsLog.Errorf("Failed to serve client %s: %v", remoteAddr, err)
 		conn.Close()
 		return
 	}
@@ -114,7 +114,7 @@ func (s *rpcServer) WebsocketHandler(conn *websocket.Conn, remoteAddr string,
 	client.Start()
 	client.WaitForShutdown()
 	s.ntfnMgr.RemoveClient(client)
-	rpcsLog.Infof("Disconnected websocket client %s", remoteAddr)
+	RPCsLog.Infof("Disconnected websocket client %s", remoteAddr)
 }
 
 // wsNotificationManager is a connection and notification manager used for
@@ -588,7 +588,7 @@ out:
 				delete(txNotifications, wsc.quit)
 
 			default:
-				rpcsLog.Warn("Unhandled notification type")
+				RPCsLog.Warn("Unhandled notification type")
 			}
 
 		case m.numClients <- len(clients):
@@ -698,7 +698,7 @@ func (*wsNotificationManager) notifyBlockConnected(clients map[chan struct{}]*ws
 		block.MsgBlock().Header.Timestamp.Unix())
 	marshalledJSON, err := JSON.MarshalCmd(nil, ntfn)
 	if err != nil {
-		rpcsLog.Errorf("Failed to marshal block connected notification: "+
+		RPCsLog.Errorf("Failed to marshal block connected notification: "+
 			"%v", err)
 		return
 	}
@@ -722,7 +722,7 @@ func (*wsNotificationManager) notifyBlockDisconnected(clients map[chan struct{}]
 		block.Height(), block.MsgBlock().Header.Timestamp.Unix())
 	marshalledJSON, err := JSON.MarshalCmd(nil, ntfn)
 	if err != nil {
-		rpcsLog.Errorf("Failed to marshal block disconnected "+
+		RPCsLog.Errorf("Failed to marshal block disconnected "+
 			"notification: %v", err)
 		return
 	}
@@ -741,7 +741,7 @@ func (m *wsNotificationManager) notifyFilteredBlockConnected(clients map[chan st
 	var w bytes.Buffer
 	err := block.MsgBlock().Header.Serialize(&w)
 	if err != nil {
-		rpcsLog.Errorf("Failed to serialize header for filtered block "+
+		RPCsLog.Errorf("Failed to serialize header for filtered block "+
 			"connected notification: %v", err)
 		return
 	}
@@ -768,7 +768,7 @@ func (m *wsNotificationManager) notifyFilteredBlockConnected(clients map[chan st
 		// Marshal and queue notification.
 		marshalledJSON, err := JSON.MarshalCmd(nil, ntfn)
 		if err != nil {
-			rpcsLog.Errorf("Failed to marshal filtered block "+
+			RPCsLog.Errorf("Failed to marshal filtered block "+
 				"connected notification: %v", err)
 			return
 		}
@@ -791,7 +791,7 @@ func (*wsNotificationManager) notifyFilteredBlockDisconnected(clients map[chan s
 	var w bytes.Buffer
 	err := block.MsgBlock().Header.Serialize(&w)
 	if err != nil {
-		rpcsLog.Errorf("Failed to serialize header for filtered block "+
+		RPCsLog.Errorf("Failed to serialize header for filtered block "+
 			"disconnected notification: %v", err)
 		return
 	}
@@ -799,7 +799,7 @@ func (*wsNotificationManager) notifyFilteredBlockDisconnected(clients map[chan s
 		hex.EncodeToString(w.Bytes()))
 	marshalledJSON, err := JSON.MarshalCmd(nil, ntfn)
 	if err != nil {
-		rpcsLog.Errorf("Failed to marshal filtered block disconnected "+
+		RPCsLog.Errorf("Failed to marshal filtered block disconnected "+
 			"notification: %v", err)
 		return
 	}
@@ -834,7 +834,7 @@ func (m *wsNotificationManager) notifyForNewTx(clients map[chan struct{}]*wsClie
 	ntfn := JSON.NewTxAcceptedNtfn(txHashStr, utils.Amount(amount).ToBTC())
 	marshalledJSON, err := JSON.MarshalCmd(nil, ntfn)
 	if err != nil {
-		rpcsLog.Errorf("Failed to marshal tx notification: %s", err.Error())
+		RPCsLog.Errorf("Failed to marshal tx notification: %s", err.Error())
 		return
 	}
 
@@ -858,7 +858,7 @@ func (m *wsNotificationManager) notifyForNewTx(clients map[chan struct{}]*wsClie
 			marshalledJSONVerbose, err = JSON.MarshalCmd(nil,
 				verboseNtfn)
 			if err != nil {
-				rpcsLog.Errorf("Failed to marshal verbose tx "+
+				RPCsLog.Errorf("Failed to marshal verbose tx "+
 					"notification: %s", err.Error())
 				return
 			}
@@ -907,7 +907,7 @@ func (m *wsNotificationManager) addSpentRequests(opMap map[wire.OutPoint]map[cha
 	for _, op := range ops {
 		spend := m.server.cfg.TxMemPool.CheckSpend(*op)
 		if spend != nil {
-			rpcsLog.Debugf("Found existing mempool spend for "+
+			RPCsLog.Debugf("Found existing mempool spend for "+
 				"outpoint<%v>: %v", op, spend.Hash())
 			spends[*spend.Hash()] = spend
 		}
@@ -941,7 +941,7 @@ func (*wsNotificationManager) removeSpentRequest(ops map[wire.OutPoint]map[chan 
 	// Remove the client from the list to notify.
 	notifyMap, ok := ops[*op]
 	if !ok {
-		rpcsLog.Warnf("Attempt to remove nonexistent spent request "+
+		RPCsLog.Warnf("Attempt to remove nonexistent spent request "+
 			"for websocket client %s", wsc.addr)
 		return
 	}
@@ -1019,7 +1019,7 @@ func (m *wsNotificationManager) notifyForTxOuts(ops map[wire.OutPoint]map[chan s
 
 			marshalledJSON, err := JSON.MarshalCmd(nil, ntfn)
 			if err != nil {
-				rpcsLog.Errorf("Failed to marshal processedtx notification: %v", err)
+				RPCsLog.Errorf("Failed to marshal processedtx notification: %v", err)
 				continue
 			}
 
@@ -1050,7 +1050,7 @@ func (m *wsNotificationManager) notifyRelevantTxAccepted(tx *utils.Tx,
 		n := JSON.NewRelevantTxAcceptedNtfn(txHexString(tx.MsgTx()))
 		marshalled, err := JSON.MarshalCmd(nil, n)
 		if err != nil {
-			rpcsLog.Errorf("Failed to marshal notification: %v", err)
+			RPCsLog.Errorf("Failed to marshal notification: %v", err)
 			return
 		}
 		for quitChan := range clientsToNotify {
@@ -1095,7 +1095,7 @@ func (m *wsNotificationManager) notifyForTxIns(ops map[wire.OutPoint]map[chan st
 			}
 			marshalledJSON, err := newRedeemingTxNotification(txHex, tx.Index(), block)
 			if err != nil {
-				rpcsLog.Warnf("Failed to marshal redeemingtx notification: %v", err)
+				RPCsLog.Warnf("Failed to marshal redeemingtx notification: %v", err)
 				continue
 			}
 			for wscQuit, wsc := range cmap {
@@ -1164,7 +1164,7 @@ func (*wsNotificationManager) removeAddrRequest(addrs map[string]map[chan struct
 	// Remove the client from the list to notify.
 	cmap, ok := addrs[addr]
 	if !ok {
-		rpcsLog.Warnf("Attempt to remove nonexistent addr request "+
+		RPCsLog.Warnf("Attempt to remove nonexistent addr request "+
 			"<%s> for websocket client %s", addr, wsc.addr)
 		return
 	}
@@ -1318,7 +1318,7 @@ out:
 		if err != nil {
 			// Log the error if it's not due to disconnecting.
 			if err != io.EOF {
-				rpcsLog.Errorf("Websocket receive error from "+
+				RPCsLog.Errorf("Websocket receive error from "+
 					"%s: %v", c.addr, err)
 			}
 			break out
@@ -1337,7 +1337,7 @@ out:
 			}
 			reply, err := createMarshalledReply(nil, nil, jsonErr)
 			if err != nil {
-				rpcsLog.Errorf("Failed to marshal parse failure "+
+				RPCsLog.Errorf("Failed to marshal parse failure "+
 					"reply: %v", err)
 				continue
 			}
@@ -1378,14 +1378,14 @@ out:
 
 			reply, err := createMarshalledReply(cmd.id, nil, cmd.err)
 			if err != nil {
-				rpcsLog.Errorf("Failed to marshal parse failure "+
+				RPCsLog.Errorf("Failed to marshal parse failure "+
 					"reply: %v", err)
 				continue
 			}
 			c.SendMessage(reply, nil)
 			continue
 		}
-		rpcsLog.Debugf("Received command <%s> from %s", cmd.method, c.addr)
+		RPCsLog.Debugf("Received command <%s> from %s", cmd.method, c.addr)
 
 		// Check auth.  The client is immediately disconnected if the
 		// first request of an unauthentiated websocket client is not
@@ -1394,11 +1394,11 @@ out:
 		// authentication credentials are provided in the request.
 		switch authCmd, ok := cmd.cmd.(*JSON.AuthenticateCmd); {
 		case c.authenticated && ok:
-			rpcsLog.Warnf("Websocket client %s is already authenticated",
+			RPCsLog.Warnf("Websocket client %s is already authenticated",
 				c.addr)
 			break out
 		case !c.authenticated && !ok:
-			rpcsLog.Warnf("Unauthenticated websocket message " +
+			RPCsLog.Warnf("Unauthenticated websocket message " +
 				"received")
 			break out
 		case !c.authenticated:
@@ -1409,7 +1409,7 @@ out:
 			cmp := subtle.ConstantTimeCompare(authSha[:], c.server.authsha[:])
 			limitcmp := subtle.ConstantTimeCompare(authSha[:], c.server.limitauthsha[:])
 			if cmp != 1 && limitcmp != 1 {
-				rpcsLog.Warnf("Auth failure.")
+				RPCsLog.Warnf("Auth failure.")
 				break out
 			}
 			c.authenticated = true
@@ -1418,7 +1418,7 @@ out:
 			// Marshal and send response.
 			reply, err := createMarshalledReply(cmd.id, nil, nil)
 			if err != nil {
-				rpcsLog.Errorf("Failed to marshal authenticate reply: "+
+				RPCsLog.Errorf("Failed to marshal authenticate reply: "+
 					"%v", err.Error())
 				continue
 			}
@@ -1437,7 +1437,7 @@ out:
 				// Marshal and send response.
 				reply, err := createMarshalledReply(request.ID, nil, jsonErr)
 				if err != nil {
-					rpcsLog.Errorf("Failed to marshal parse failure "+
+					RPCsLog.Errorf("Failed to marshal parse failure "+
 						"reply: %v", err)
 					continue
 				}
@@ -1476,7 +1476,7 @@ out:
 	// Ensure the connection is closed.
 	c.Disconnect()
 	c.wg.Done()
-	rpcsLog.Tracef("Websocket client input handler done for %s", c.addr)
+	RPCsLog.Tracef("Websocket client input handler done for %s", c.addr)
 }
 
 // serviceRequest services a parsed RPC request by looking up and executing the
@@ -1498,7 +1498,7 @@ func (c *wsClient) serviceRequest(r *parsedRPCCmd) {
 	}
 	reply, err := createMarshalledReply(r.id, result, err)
 	if err != nil {
-		rpcsLog.Errorf("Failed to marshal reply for <%s> "+
+		RPCsLog.Errorf("Failed to marshal reply for <%s> "+
 			"command: %v", r.method, err)
 		return
 	}
@@ -1574,7 +1574,7 @@ cleanup:
 		}
 	}
 	c.wg.Done()
-	rpcsLog.Tracef("Websocket client notification queue handler done "+
+	RPCsLog.Tracef("Websocket client notification queue handler done "+
 		"for %s", c.addr)
 }
 
@@ -1617,7 +1617,7 @@ cleanup:
 		}
 	}
 	c.wg.Done()
-	rpcsLog.Tracef("Websocket client output handler done for %s", c.addr)
+	RPCsLog.Tracef("Websocket client output handler done for %s", c.addr)
 }
 
 // SendMessage sends the passed json to the websocket client.  It is backed
@@ -1680,7 +1680,7 @@ func (c *wsClient) Disconnect() {
 		return
 	}
 
-	rpcsLog.Tracef("Disconnecting websocket client %s", c.addr)
+	RPCsLog.Tracef("Disconnecting websocket client %s", c.addr)
 	close(c.quit)
 	c.conn.Close()
 	c.disconnected = true
@@ -1688,7 +1688,7 @@ func (c *wsClient) Disconnect() {
 
 // Start begins processing input and output messages.
 func (c *wsClient) Start() {
-	rpcsLog.Tracef("Starting websocket client %s", c.addr)
+	RPCsLog.Tracef("Starting websocket client %s", c.addr)
 
 	// Start processing input and output.
 	c.wg.Add(3)
@@ -2033,7 +2033,7 @@ func rescanBlock(wsc *wsClient, lookups *rescanKeys, blk *utils.Block) {
 				}
 				marshalledJSON, err := newRedeemingTxNotification(txHex, tx.Index(), blk)
 				if err != nil {
-					rpcsLog.Errorf("Failed to marshal redeemingtx notification: %v", err)
+					RPCsLog.Errorf("Failed to marshal redeemingtx notification: %v", err)
 					continue
 				}
 
@@ -2081,7 +2081,7 @@ func rescanBlock(wsc *wsClient, lookups *rescanKeys, blk *utils.Block) {
 						}
 
 					default:
-						rpcsLog.Warnf("Skipping rescanned pubkey of unknown "+
+						RPCsLog.Warnf("Skipping rescanned pubkey of unknown "+
 							"serialized length %d", len(sa))
 						continue
 					}
@@ -2123,7 +2123,7 @@ func rescanBlock(wsc *wsClient, lookups *rescanKeys, blk *utils.Block) {
 
 				marshalledJSON, err := JSON.MarshalCmd(nil, ntfn)
 				if err != nil {
-					rpcsLog.Errorf("Failed to marshal recvtx notification: %v", err)
+					RPCsLog.Errorf("Failed to marshal recvtx notification: %v", err)
 					return
 				}
 
@@ -2279,7 +2279,7 @@ func recoverFromReorg(chain *blockchain.BlockChain, minBlock, maxBlock int32,
 
 	hashList, err := chain.HeightRange(minBlock, maxBlock)
 	if err != nil {
-		rpcsLog.Errorf("Error looking up block range: %v", err)
+		RPCsLog.Errorf("Error looking up block range: %v", err)
 		return nil, &JSON.RPCError{
 			Code:    JSON.ErrRPCDatabase,
 			Message: "Database error: " + err.Error(),
@@ -2291,7 +2291,7 @@ func recoverFromReorg(chain *blockchain.BlockChain, minBlock, maxBlock int32,
 
 	blk, err := chain.BlockByHash(&hashList[0])
 	if err != nil {
-		rpcsLog.Errorf("Error looking up possibly reorged block: %v",
+		RPCsLog.Errorf("Error looking up possibly reorged block: %v",
 			err)
 		return nil, &JSON.RPCError{
 			Code:    JSON.ErrRPCDatabase,
@@ -2310,7 +2310,7 @@ func recoverFromReorg(chain *blockchain.BlockChain, minBlock, maxBlock int32,
 func descendantBlock(prevHash *chainhash.Hash, curBlock *utils.Block) error {
 	curHash := &curBlock.MsgBlock().Header.PrevBlock
 	if !prevHash.IsEqual(curHash) {
-		rpcsLog.Errorf("Stopping rescan for reorged block %v "+
+		RPCsLog.Errorf("Stopping rescan for reorged block %v "+
 			"(replaced by block %v)", prevHash, curHash)
 		return &ErrRescanReorg
 	}
@@ -2346,9 +2346,9 @@ func handleRescan(wsc *wsClient, icmd interface{}) (interface{}, error) {
 
 	numAddrs := len(cmd.Addresses)
 	if numAddrs == 1 {
-		rpcsLog.Info("Beginning rescan for 1 address")
+		RPCsLog.Info("Beginning rescan for 1 address")
 	} else {
-		rpcsLog.Infof("Beginning rescan for %d addresses", numAddrs)
+		RPCsLog.Infof("Beginning rescan for %d addresses", numAddrs)
 	}
 
 	// Build lookup maps.
@@ -2464,7 +2464,7 @@ fetchRange:
 		}
 		hashList, err := chain.HeightRange(minBlock, maxLoopBlock)
 		if err != nil {
-			rpcsLog.Errorf("Error looking up block range: %v", err)
+			RPCsLog.Errorf("Error looking up block range: %v", err)
 			return nil, &JSON.RPCError{
 				Code:    JSON.ErrRPCDatabase,
 				Message: "Database error: " + err.Error(),
@@ -2502,7 +2502,7 @@ fetchRange:
 			}
 			close(pauseGuard)
 			if err != nil {
-				rpcsLog.Errorf("Error fetching best block "+
+				RPCsLog.Errorf("Error fetching best block "+
 					"hash: %v", err)
 				return nil, &JSON.RPCError{
 					Code: JSON.ErrRPCDatabase,
@@ -2525,7 +2525,7 @@ fetchRange:
 				if dbErr, ok := err.(database.Error); !ok ||
 					dbErr.ErrorCode != database.ErrBlockNotFound {
 
-					rpcsLog.Errorf("Error looking up "+
+					RPCsLog.Errorf("Error looking up "+
 						"block: %v", err)
 					return nil, &JSON.RPCError{
 						Code: JSON.ErrRPCDatabase,
@@ -2537,7 +2537,7 @@ fetchRange:
 				// If an absolute max block was specified, don't
 				// attempt to handle the reorg.
 				if maxBlock != math.MaxInt32 {
-					rpcsLog.Errorf("Stopping rescan for "+
+					RPCsLog.Errorf("Stopping rescan for "+
 						"reorged block %v",
 						cmd.EndBlock)
 					return nil, &ErrRescanReorg
@@ -2577,7 +2577,7 @@ fetchRange:
 			// client requesting the rescan has disconnected.
 			select {
 			case <-wsc.quit:
-				rpcsLog.Debugf("Stopped rescan at height %v "+
+				RPCsLog.Debugf("Stopped rescan at height %v "+
 					"for disconnected client", blk.Height())
 				return nil, nil
 			default:
@@ -2599,14 +2599,14 @@ fetchRange:
 				blk.Height(), blk.MsgBlock().Header.Timestamp.Unix())
 			mn, err := JSON.MarshalCmd(nil, n)
 			if err != nil {
-				rpcsLog.Errorf("Failed to marshal rescan "+
+				RPCsLog.Errorf("Failed to marshal rescan "+
 					"progress notification: %v", err)
 				continue
 			}
 
 			if err = wsc.QueueNotification(mn); err == ErrClientQuit {
 				// Finished if the client disconnected.
-				rpcsLog.Debugf("Stopped rescan at height %v "+
+				RPCsLog.Debugf("Stopped rescan at height %v "+
 					"for disconnected client", blk.Height())
 				return nil, nil
 			}
@@ -2626,7 +2626,7 @@ fetchRange:
 		lastBlock.Height(),
 		lastBlock.MsgBlock().Header.Timestamp.Unix())
 	if mn, err := JSON.MarshalCmd(nil, n); err != nil {
-		rpcsLog.Errorf("Failed to marshal rescan finished "+
+		RPCsLog.Errorf("Failed to marshal rescan finished "+
 			"notification: %v", err)
 	} else {
 		// The rescan is finished, so we don't care whether the client
@@ -2634,7 +2634,7 @@ fetchRange:
 		_ = wsc.QueueNotification(mn)
 	}
 
-	rpcsLog.Info("Finished rescan")
+	RPCsLog.Info("Finished rescan")
 	return nil, nil
 }
 

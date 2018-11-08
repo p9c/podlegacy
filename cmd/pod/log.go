@@ -64,7 +64,7 @@ var (
 	indxLog = backendLog.Logger("INDX")
 	minrLog = backendLog.Logger("MINR")
 	peerLog = backendLog.Logger("PEER")
-	rpcsLog = backendLog.Logger("RPCS")
+	RPCsLog = backendLog.Logger("RPCS")
 	scrpLog = backendLog.Logger("SCRP")
 	srvrLog = backendLog.Logger("SRVR")
 	syncLog = backendLog.Logger("SYNC")
@@ -98,7 +98,7 @@ var subsystemLoggers = map[string]Log.Logger{
 	"INDX": indxLog,
 	"MINR": minrLog,
 	"PEER": peerLog,
-	"RPCS": rpcsLog,
+	"RPCS": RPCsLog,
 	"SCRP": scrpLog,
 	"SRVR": srvrLog,
 	"SYNC": syncLog,

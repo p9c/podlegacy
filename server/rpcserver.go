@@ -309,7 +309,7 @@ func InternalRPCError(errStr, context string) *JSON.RPCError {
 	if context != "" {
 		logStr = context + ": " + errStr
 	}
-	RpcsLog.Error(logStr)
+	RPCsLog.Error(logStr)
 	return JSON.NewRPCError(JSON.ErrRPCInternal.Code, errStr)
 }
 
@@ -1046,7 +1046,7 @@ func GetDifficultyRatio(bits uint32, params *chaincfg.Params) float64 {
 	outString := difficulty.FloatString(8)
 	diff, err := strconv.ParseFloat(outString, 64)
 	if err != nil {
-		RpcsLog.Errorf("Cannot get difficulty: %v", err)
+		RPCsLog.Errorf("Cannot get difficulty: %v", err)
 		return 0
 	}
 	return diff
@@ -1602,7 +1602,7 @@ func (state *GbtWorkState) UpdateBlockTemplate(s *RPCServer, useCoinbaseValue bo
 		state.prevHash = latestHash
 		state.minTimestamp = minTimestamp
 
-		RpcsLog.Debugf("Generated block template (timestamp %v, "+
+		RPCsLog.Debugf("Generated block template (timestamp %v, "+
 			"target %s, merkle root %s)",
 			msgBlock.Header.Timestamp, targetDifficulty,
 			msgBlock.Header.MerkleRoot)
@@ -1654,7 +1654,7 @@ func (state *GbtWorkState) UpdateBlockTemplate(s *RPCServer, useCoinbaseValue bo
 		generator.UpdateBlockTime(msgBlock)
 		msgBlock.Header.Nonce = 0
 
-		RpcsLog.Debugf("Updated block template (timestamp %v, "+
+		RPCsLog.Debugf("Updated block template (timestamp %v, "+
 			"target %s)", msgBlock.Header.Timestamp,
 			targetDifficulty)
 	}
@@ -2138,14 +2138,14 @@ func HandleGetBlockTemplateProposal(s *RPCServer, request *JSON.TemplateRequest)
 	if err := s.cfg.Chain.CheckConnectBlockTemplate(block); err != nil {
 		if _, ok := err.(blockchain.RuleError); !ok {
 			errStr := fmt.Sprintf("Failed to process block proposal: %v", err)
-			RpcsLog.Error(errStr)
+			RPCsLog.Error(errStr)
 			return nil, &JSON.RPCError{
 				Code:    JSON.ErrRPCVerify,
 				Message: errStr,
 			}
 		}
 
-		RpcsLog.Infof("Rejected block proposal: %v", err)
+		RPCsLog.Infof("Rejected block proposal: %v", err)
 		return ChainErrToGBTErrString(err), nil
 	}
 
@@ -2196,7 +2196,7 @@ func HandleGetCFilter(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) 
 
 	filterBytes, err := s.cfg.CfIndex.FilterByBlockHash(hash, c.FilterType)
 	if err != nil {
-		RpcsLog.Debugf("Could not find committed filter for %v: %v",
+		RPCsLog.Debugf("Could not find committed filter for %v: %v",
 			hash, err)
 		return nil, &JSON.RPCError{
 			Code:    JSON.ErrRPCBlockNotFound,
@@ -2204,7 +2204,7 @@ func HandleGetCFilter(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) 
 		}
 	}
 
-	RpcsLog.Debugf("Found committed filter for %v", hash)
+	RPCsLog.Debugf("Found committed filter for %v", hash)
 	return hex.EncodeToString(filterBytes), nil
 }
 
@@ -2225,9 +2225,9 @@ func HandleGetCFilterHeader(s *RPCServer, cmd interface{}, closeChan <-chan stru
 
 	headerBytes, err := s.cfg.CfIndex.FilterHeaderByBlockHash(hash, c.FilterType)
 	if len(headerBytes) > 0 {
-		RpcsLog.Debugf("Found header of committed filter for %v", hash)
+		RPCsLog.Debugf("Found header of committed filter for %v", hash)
 	} else {
-		RpcsLog.Debugf("Could not find header of committed filter for %v: %v",
+		RPCsLog.Debugf("Could not find header of committed filter for %v: %v",
 			hash, err)
 		return nil, &JSON.RPCError{
 			Code:    JSON.ErrRPCBlockNotFound,
@@ -2435,7 +2435,7 @@ func HandleGetNetworkHashPs(s *RPCServer, cmd interface{}, closeChan <-chan stru
 	if startHeight < 0 {
 		startHeight = 0
 	}
-	RpcsLog.Debugf("Calculating network hashes per second from %d to %d",
+	RPCsLog.Debugf("Calculating network hashes per second from %d to %d",
 		startHeight, endHeight)
 
 	// Find the min and max block timestamps as well as calculate the total
@@ -3336,10 +3336,10 @@ func HandleSendRawTransaction(s *RPCServer, cmd interface{}, closeChan <-chan st
 		// error is returned to the client with the deserialization
 		// error code (to match bitcoind behavior).
 		if _, ok := err.(mempool.RuleError); ok {
-			RpcsLog.Debugf("Rejected transaction %v: %v", tx.Hash(),
+			RPCsLog.Debugf("Rejected transaction %v: %v", tx.Hash(),
 				err)
 		} else {
-			RpcsLog.Errorf("Failed to process transaction %v: %v",
+			RPCsLog.Errorf("Failed to process transaction %v: %v",
 				tx.Hash(), err)
 		}
 		return nil, &JSON.RPCError{
@@ -3455,7 +3455,7 @@ func HandleSubmitBlock(s *RPCServer, cmd interface{}, closeChan <-chan struct{})
 		return fmt.Sprintf("rejected: %s", err.Error()), nil
 	}
 
-	RpcsLog.Infof("Accepted block %s via submitblock", block.Hash())
+	RPCsLog.Infof("Accepted block %s via submitblock", block.Hash())
 	return nil, nil
 }
 
@@ -3488,14 +3488,14 @@ func VerifyChain(s *RPCServer, level, depth int32) error {
 	if finishHeight < 0 {
 		finishHeight = 0
 	}
-	RpcsLog.Infof("Verifying chain for %d blocks at level %d",
+	RPCsLog.Infof("Verifying chain for %d blocks at level %d",
 		best.Height-finishHeight, level)
 
 	for height := best.Height; height > finishHeight; height-- {
 		// Level 0 just looks up the block.
 		block, err := s.cfg.Chain.BlockByHeight(height)
 		if err != nil {
-			RpcsLog.Errorf("Verify is unable to fetch block at "+
+			RPCsLog.Errorf("Verify is unable to fetch block at "+
 				"height %d: %v", height, err)
 			return err
 		}
@@ -3505,14 +3505,14 @@ func VerifyChain(s *RPCServer, level, depth int32) error {
 			err := blockchain.CheckBlockSanity(block,
 				s.cfg.ChainParams.PowLimit, s.cfg.TimeSource, true)
 			if err != nil {
-				RpcsLog.Errorf("Verify is unable to validate "+
+				RPCsLog.Errorf("Verify is unable to validate "+
 					"block at hash %v height %d: %v",
 					block.Hash(), height, err)
 				return err
 			}
 		}
 	}
-	RpcsLog.Infof("Chain verify completed successfully")
+	RPCsLog.Infof("Chain verify completed successfully")
 
 	return nil
 }
@@ -3669,14 +3669,14 @@ func (s *RPCServer) WriteHTTPResponseHeaders(req *http.Request, headers http.Hea
 // Stop is used by server.go to stop the rpc listener.
 func (s *RPCServer) Stop() error {
 	if atomic.AddInt32(&s.shutdown, 1) != 1 {
-		RpcsLog.Infof("RPC server is already in the process of shutting down")
+		RPCsLog.Infof("RPC server is already in the process of shutting down")
 		return nil
 	}
-	RpcsLog.Warnf("RPC server shutting down")
+	RPCsLog.Warnf("RPC server shutting down")
 	for _, listener := range s.cfg.Listeners {
 		err := listener.Close()
 		if err != nil {
-			RpcsLog.Errorf("Problem shutting down rpc: %v", err)
+			RPCsLog.Errorf("Problem shutting down rpc: %v", err)
 			return err
 		}
 	}
@@ -3684,7 +3684,7 @@ func (s *RPCServer) Stop() error {
 	s.ntfnMgr.WaitForShutdown()
 	close(s.quit)
 	s.wg.Wait()
-	RpcsLog.Infof("RPC server shutdown complete")
+	RPCsLog.Infof("RPC server shutdown complete")
 	return nil
 }
 
@@ -3715,7 +3715,7 @@ func (s *RPCServer) NotifyNewTransactions(txns []*mempool.TxDesc) {
 // This function is safe for concurrent access.
 func (s *RPCServer) LimitConnections(w http.ResponseWriter, remoteAddr string) bool {
 	if int(atomic.LoadInt32(&s.numClients)+1) > Cfg.RPCMaxClients {
-		RpcsLog.Infof("Max RPC clients exceeded [%d] - "+
+		RPCsLog.Infof("Max RPC clients exceeded [%d] - "+
 			"disconnecting client %s", Cfg.RPCMaxClients,
 			remoteAddr)
 		http.Error(w, "503 Too busy.  Try again later.",
@@ -3758,7 +3758,7 @@ func (s *RPCServer) CheckAuth(r *http.Request, require bool) (bool, bool, error)
 	authhdr := r.Header["Authorization"]
 	if len(authhdr) <= 0 {
 		if require {
-			RpcsLog.Warnf("RPC authentication failure from %s",
+			RPCsLog.Warnf("RPC authentication failure from %s",
 				r.RemoteAddr)
 			return false, false, errors.New("auth failure")
 		}
@@ -3782,7 +3782,7 @@ func (s *RPCServer) CheckAuth(r *http.Request, require bool) (bool, bool, error)
 	}
 
 	// Request's auth doesn't match either user
-	RpcsLog.Warnf("RPC authentication failure from %s", r.RemoteAddr)
+	RPCsLog.Warnf("RPC authentication failure from %s", r.RemoteAddr)
 	return false, false, errors.New("auth failure")
 }
 
@@ -3893,14 +3893,14 @@ func (s *RPCServer) JSONRPCRead(w http.ResponseWriter, r *http.Request, isAdmin 
 	hj, ok := w.(http.Hijacker)
 	if !ok {
 		errMsg := "webserver doesn't support hijacking"
-		RpcsLog.Warnf(errMsg)
+		RPCsLog.Warnf(errMsg)
 		errCode := http.StatusInternalServerError
 		http.Error(w, strconv.Itoa(errCode)+" "+errMsg, errCode)
 		return
 	}
 	conn, buf, err := hj.Hijack()
 	if err != nil {
-		RpcsLog.Warnf("Failed to hijack HTTP connection: %v", err)
+		RPCsLog.Warnf("Failed to hijack HTTP connection: %v", err)
 		errCode := http.StatusInternalServerError
 		http.Error(w, strconv.Itoa(errCode)+" "+err.Error(), errCode)
 		return
@@ -3982,23 +3982,23 @@ func (s *RPCServer) JSONRPCRead(w http.ResponseWriter, r *http.Request, isAdmin 
 	// Marshal the response.
 	msg, err := CreateMarshalledReply(responseID, result, jsonErr)
 	if err != nil {
-		RpcsLog.Errorf("Failed to marshal reply: %v", err)
+		RPCsLog.Errorf("Failed to marshal reply: %v", err)
 		return
 	}
 
 	// Write the response.
 	err = s.WriteHTTPResponseHeaders(r, w.Header(), http.StatusOK, buf)
 	if err != nil {
-		RpcsLog.Error(err)
+		RPCsLog.Error(err)
 		return
 	}
 	if _, err := buf.Write(msg); err != nil {
-		RpcsLog.Errorf("Failed to write marshalled reply: %v", err)
+		RPCsLog.Errorf("Failed to write marshalled reply: %v", err)
 	}
 
 	// Terminate with newline to maintain compatibility with Bitcoin Core.
 	if err := buf.WriteByte('\n'); err != nil {
-		RpcsLog.Errorf("Failed to append terminating newline to reply: %v", err)
+		RPCsLog.Errorf("Failed to append terminating newline to reply: %v", err)
 	}
 }
 
@@ -4014,7 +4014,7 @@ func (s *RPCServer) Start() {
 		return
 	}
 
-	RpcsLog.Trace("Starting RPC server")
+	RPCsLog.Trace("Starting RPC server")
 	rpcServeMux := http.NewServeMux()
 	httpServer := &http.Server{
 		Handler: rpcServeMux,
@@ -4059,7 +4059,7 @@ func (s *RPCServer) Start() {
 		ws, err := websocket.Upgrade(w, r, nil, 0, 0)
 		if err != nil {
 			if _, ok := err.(websocket.HandshakeError); !ok {
-				RpcsLog.Errorf("Unexpected websocket error: %v",
+				RPCsLog.Errorf("Unexpected websocket error: %v",
 					err)
 			}
 			http.Error(w, "400 Bad Request.", http.StatusBadRequest)
@@ -4071,9 +4071,9 @@ func (s *RPCServer) Start() {
 	for _, listener := range s.cfg.Listeners {
 		s.wg.Add(1)
 		go func(listener net.Listener) {
-			RpcsLog.Infof("RPC server listening on %s", listener.Addr())
+			RPCsLog.Infof("RPC server listening on %s", listener.Addr())
 			httpServer.Serve(listener)
-			RpcsLog.Tracef("RPC listener done for %s", listener.Addr())
+			RPCsLog.Tracef("RPC listener done for %s", listener.Addr())
 			s.wg.Done()
 		}(listener)
 	}
@@ -4083,7 +4083,7 @@ func (s *RPCServer) Start() {
 
 // GenCertPair generates a key/cert pair to the paths provided.
 func GenCertPair(certFile, keyFile string) error {
-	RpcsLog.Infof("Generating TLS certificates...")
+	RPCsLog.Infof("Generating TLS certificates...")
 
 	org := "btcd autogenerated cert"
 	validUntil := time.Now().Add(10 * 365 * 24 * time.Hour)
@@ -4101,7 +4101,7 @@ func GenCertPair(certFile, keyFile string) error {
 		return err
 	}
 
-	RpcsLog.Infof("Done generating TLS certificates")
+	RPCsLog.Infof("Done generating TLS certificates")
 	return nil
 }
 
@@ -4138,7 +4138,7 @@ func (s *RPCServer) HandleBlockchainNotification(notification *blockchain.Notifi
 	case blockchain.NTBlockAccepted:
 		block, ok := notification.Data.(*utils.Block)
 		if !ok {
-			RpcsLog.Warnf("Chain accepted notification is not a block.")
+			RPCsLog.Warnf("Chain accepted notification is not a block.")
 			break
 		}
 
@@ -4150,7 +4150,7 @@ func (s *RPCServer) HandleBlockchainNotification(notification *blockchain.Notifi
 	case blockchain.NTBlockConnected:
 		block, ok := notification.Data.(*utils.Block)
 		if !ok {
-			RpcsLog.Warnf("Chain connected notification is not a block.")
+			RPCsLog.Warnf("Chain connected notification is not a block.")
 			break
 		}
 
@@ -4160,7 +4160,7 @@ func (s *RPCServer) HandleBlockchainNotification(notification *blockchain.Notifi
 	case blockchain.NTBlockDisconnected:
 		block, ok := notification.Data.(*utils.Block)
 		if !ok {
-			RpcsLog.Warnf("Chain disconnected notification is not a block.")
+			RPCsLog.Warnf("Chain disconnected notification is not a block.")
 			break
 		}
 
