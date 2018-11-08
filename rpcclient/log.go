@@ -4,6 +4,8 @@
 
 package rpcclient
 
+import "github.com/parallelcointeam/pod/Log"
+
 // log is a logger that is initialized with no output filters.  This
 // means the package will not perform any logging by default until the caller
 // requests it.
