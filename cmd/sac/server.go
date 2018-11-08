@@ -15,7 +15,6 @@ import (
 
 	"github.com/parallelcointeam/pod/addrmgr"
 	"github.com/parallelcointeam/pod/chain"
-	"github.com/parallelcointeam/pod/chain/indexers"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/connmgr"
@@ -1012,10 +1011,10 @@ func (s *Server) Start() {
 		s.RPCServer.Start()
 	}
 
-	// Start the CPU miner if generation is enabled.
-	if Cfg.Generate {
-		s.cpuMiner.Start()
-	}
+	// // Start the CPU miner if generation is enabled.
+	// if Cfg.Generate {
+	// 	s.cpuMiner.Start()
+	// }
 }
 
 // Stop gracefully shuts down the server by stopping and disconnecting all
@@ -1248,13 +1247,13 @@ func SetupRPCListeners() ([]net.Listener, error) {
 // connections from peers.
 func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, interrupt <-chan struct{}) (*Server, error) {
 	services := DefaultServices
-	if Cfg.NoPeerBloomFilters {
-		services &^= wire.SFNodeBloom
-	}
+	// if Cfg.NoPeerBloomFilters {
+	// 	services &^= wire.SFNodeBloom
+	// }
 	SrvrLog.Tracef("Creating new address manager...")
-	if Cfg.NoCFilters {
-		services &^= wire.SFNodeCF
-	}
+	// if Cfg.NoCFilters {
+	// 	services &^= wire.SFNodeCF
+	// }
 	amgr := addrmgr.New(Cfg.DataDir, PodLookup)
 
 	var listeners []net.Listener
@@ -1297,37 +1296,37 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 	// the addrindex uses data from the txindex during catchup.  If the
 	// addrindex is run first, it may not have the transactions from the
 	// current block indexed.
-	var indexes []indexers.Indexer
-	if Cfg.TxIndex || Cfg.AddrIndex {
-		// Enable transaction index if address index is enabled since it
-		// requires it.
-		if !Cfg.TxIndex {
-			IndxLog.Infof("Transaction index enabled because it " +
-				"is required by the address index")
-			Cfg.TxIndex = true
-		} else {
-			IndxLog.Info("Transaction index is enabled")
-		}
+	// var indexes []indexers.Indexer
+	// if Cfg.TxIndex || Cfg.AddrIndex {
+	// 	// Enable transaction index if address index is enabled since it
+	// 	// requires it.
+	// 	if !Cfg.TxIndex {
+	// 		IndxLog.Infof("Transaction index enabled because it " +
+	// 			"is required by the address index")
+	// 		Cfg.TxIndex = true
+	// 	} else {
+	// 		IndxLog.Info("Transaction index is enabled")
+	// 	}
 
-		s.txIndex = indexers.NewTxIndex(db)
-		indexes = append(indexes, s.txIndex)
-	}
-	if Cfg.AddrIndex {
-		IndxLog.Info("Address index is enabled")
-		s.addrIndex = indexers.NewAddrIndex(db, chainParams)
-		indexes = append(indexes, s.addrIndex)
-	}
-	if !Cfg.NoCFilters {
-		IndxLog.Info("Committed filter index is enabled")
-		s.cfIndex = indexers.NewCfIndex(db, chainParams)
-		indexes = append(indexes, s.cfIndex)
-	}
+	// 	s.txIndex = indexers.NewTxIndex(db)
+	// 	indexes = append(indexes, s.txIndex)
+	// }
+	// if Cfg.AddrIndex {
+	// 	IndxLog.Info("Address index is enabled")
+	// 	s.addrIndex = indexers.NewAddrIndex(db, chainParams)
+	// 	indexes = append(indexes, s.addrIndex)
+	// }
+	// if !Cfg.NoCFilters {
+	// 	IndxLog.Info("Committed filter index is enabled")
+	// 	s.cfIndex = indexers.NewCfIndex(db, chainParams)
+	// 	indexes = append(indexes, s.cfIndex)
+	// }
 
-	// Create an index manager if any of the optional indexes are enabled.
-	var indexManager blockchain.IndexManager
-	if len(indexes) > 0 {
-		indexManager = indexers.NewManager(db, indexes)
-	}
+	// // Create an index manager if any of the optional indexes are enabled.
+	// var indexManager blockchain.IndexManager
+	// if len(indexes) > 0 {
+	// 	indexManager = indexers.NewManager(db, indexes)
+	// }
 
 	// Merge given checkpoints with the default ones unless they are disabled.
 	var checkpoints []chaincfg.Checkpoint
@@ -1338,14 +1337,14 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 	// Create a new block chain instance with the appropriate configuration.
 	var err error
 	s.chain, err = blockchain.New(&blockchain.Config{
-		DB:           s.db,
-		Interrupt:    interrupt,
-		ChainParams:  s.chainParams,
-		Checkpoints:  checkpoints,
-		TimeSource:   s.timeSource,
-		SigCache:     s.sigCache,
-		IndexManager: indexManager,
-		HashCache:    s.hashCache,
+		DB:          s.db,
+		Interrupt:   interrupt,
+		ChainParams: s.chainParams,
+		Checkpoints: checkpoints,
+		TimeSource:  s.timeSource,
+		SigCache:    s.sigCache,
+		// IndexManager: indexManager,
+		HashCache: s.hashCache,
 	})
 	if err != nil {
 		return nil, err

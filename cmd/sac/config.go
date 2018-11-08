@@ -104,7 +104,7 @@ type Config struct {
 	AddPeers             []string      `short:"a" long:"addpeer" description:"Add a peer to connect with at startup"`
 	ConnectPeers         []string      `long:"connect" description:"Connect only to the specified peers at startup"`
 	DisableListen        bool          `long:"nolisten" description:"Disable listening for incoming connections -- NOTE: Listening is automatically disabled if the --connect or --proxy options are used without also specifying listen interfaces via --listen"`
-	Listeners            []string      `long:"listen" description:"Add an interface/port to listen for connections (default all interfaces port: 8333, testnet: 18333)"`
+	Listeners            []string      `long:"listen" description:"Add an interface/port to listen for connections (default all interfaces port: 11047, testnet: 21047)"`
 	MaxPeers             int           `long:"maxpeers" description:"Max number of inbound and outbound peers"`
 	DisableBanning       bool          `long:"nobanning" description:"Disable banning of misbehaving peers"`
 	BanDuration          time.Duration `long:"banduration" description:"How long to ban misbehaving peers.  Valid time units are {s, m, h}.  Minimum 1 second"`
@@ -114,7 +114,7 @@ type Config struct {
 	RPCPass              string        `short:"P" long:"rpcpass" default-mask:"-" description:"Password for RPC connections"`
 	RPCLimitUser         string        `long:"rpclimituser" description:"Username for limited RPC connections"`
 	RPCLimitPass         string        `long:"rpclimitpass" default-mask:"-" description:"Password for limited RPC connections"`
-	RPCListeners         []string      `long:"rpclisten" description:"Add an interface/port to listen for RPC connections (default port: 8334, testnet: 18334)"`
+	RPCListeners         []string      `long:"rpclisten" description:"Add an interface/port to listen for RPC connections (default port: 11048, testnet: 21048)"`
 	RPCCert              string        `long:"rpccert" description:"File containing the certificate file"`
 	RPCKey               string        `long:"rpckey" description:"File containing the certificate key"`
 	RPCMaxClients        int           `long:"rpcmaxclients" description:"Max number of RPC clients for standard connections"`
@@ -138,42 +138,42 @@ type Config struct {
 	SimNet               bool          `long:"simnet" description:"Use the simulation test network"`
 	AddCheckpoints       []string      `long:"addcheckpoint" description:"Add a custom checkpoint.  Format: '<height>:<hash>'"`
 	DisableCheckpoints   bool          `long:"nocheckpoints" description:"Disable built-in checkpoints.  Don't do this unless you know what you're doing."`
-	DbType               string        `long:"dbtype" description:"Database backend to use for the Block Chain"`
-	Profile              string        `long:"profile" description:"Enable HTTP profiling on given port -- NOTE port must be between 1024 and 65536"`
-	CPUProfile           string        `long:"cpuprofile" description:"Write CPU profile to the specified file"`
-	DebugLevel           string        `short:"d" long:"debuglevel" description:"Logging level for all subsystems {trace, debug, info, warn, error, critical} -- You may also specify <subsystem>=<level>,<subsystem2>=<level>,... to set the log level for individual subsystems -- Use show to list available subsystems"`
-	Upnp                 bool          `long:"upnp" description:"Use UPnP to map our listening port outside of NAT"`
-	MinRelayTxFee        float64       `long:"minrelaytxfee" description:"The minimum transaction fee in BTC/kB to be considered a non-zero fee."`
-	FreeTxRelayLimit     float64       `long:"limitfreerelay" description:"Limit relay of transactions with no transaction fee to the given amount in thousands of bytes per minute"`
-	NoRelayPriority      bool          `long:"norelaypriority" description:"Do not require free or low-fee transactions to have high priority for relaying"`
-	TrickleInterval      time.Duration `long:"trickleinterval" description:"Minimum time between attempts to send new inventory to a connected peer"`
-	MaxOrphanTxs         int           `long:"maxorphantx" description:"Max number of orphan transactions to keep in memory"`
-	Generate             bool          `long:"generate" description:"Generate (mine) bitcoins using the CPU"`
-	MiningAddrs          []string      `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
-	BlockMinSize         uint32        `long:"blockminsize" description:"Mininum block size in bytes to be used when creating a block"`
-	BlockMaxSize         uint32        `long:"blockmaxsize" description:"Maximum block size in bytes to be used when creating a block"`
-	BlockMinWeight       uint32        `long:"blockminweight" description:"Mininum block weight to be used when creating a block"`
-	BlockMaxWeight       uint32        `long:"blockmaxweight" description:"Maximum block weight to be used when creating a block"`
-	BlockPrioritySize    uint32        `long:"blockprioritysize" description:"Size in bytes for high-priority/low-fee transactions when creating a block"`
-	UserAgentComments    []string      `long:"uacomment" description:"Comment to add to the user agent -- See BIP 14 for more information."`
-	NoPeerBloomFilters   bool          `long:"nopeerbloomfilters" description:"Disable bloom filtering support"`
-	NoCFilters           bool          `long:"nocfilters" description:"Disable committed filtering (CF) support"`
-	DropCfIndex          bool          `long:"dropcfindex" description:"Deletes the index used for committed filtering (CF) support from the database on start up and then exits."`
-	SigCacheMaxSize      uint          `long:"sigcachemaxsize" description:"The maximum number of entries in the signature verification cache"`
-	BlocksOnly           bool          `long:"blocksonly" description:"Do not accept transactions from remote peers."`
-	TxIndex              bool          `long:"txindex" description:"Maintain a full hash-based transaction index which makes all transactions available via the getrawtransaction RPC"`
-	DropTxIndex          bool          `long:"droptxindex" description:"Deletes the hash-based transaction index from the database on start up and then exits."`
-	AddrIndex            bool          `long:"addrindex" description:"Maintain a full address-based transaction index which makes the searchrawtransactions RPC available"`
-	DropAddrIndex        bool          `long:"dropaddrindex" description:"Deletes the address-based transaction index from the database on start up and then exits."`
-	RelayNonStd          bool          `long:"relaynonstd" description:"Relay non-standard transactions regardless of the default settings for the active network."`
-	RejectNonStd         bool          `long:"rejectnonstd" description:"Reject non-standard transactions regardless of the default settings for the active network."`
-	lookup               func(string) ([]net.IP, error)
-	oniondial            func(string, string, time.Duration) (net.Conn, error)
-	dial                 func(string, string, time.Duration) (net.Conn, error)
-	addCheckpoints       []chaincfg.Checkpoint
-	miningAddrs          []utils.Address
-	minRelayTxFee        utils.Amount
-	whitelists           []*net.IPNet
+	// DbType               string        `long:"dbtype" description:"Database backend to use for the Block Chain"`
+	Profile          string        `long:"profile" description:"Enable HTTP profiling on given port -- NOTE port must be between 1024 and 65536"`
+	CPUProfile       string        `long:"cpuprofile" description:"Write CPU profile to the specified file"`
+	DebugLevel       string        `short:"d" long:"debuglevel" description:"Logging level for all subsystems {trace, debug, info, warn, error, critical} -- You may also specify <subsystem>=<level>,<subsystem2>=<level>,... to set the log level for individual subsystems -- Use show to list available subsystems"`
+	Upnp             bool          `long:"upnp" description:"Use UPnP to map our listening port outside of NAT"`
+	MinRelayTxFee    float64       `long:"minrelaytxfee" description:"The minimum transaction fee in BTC/kB to be considered a non-zero fee."`
+	FreeTxRelayLimit float64       `long:"limitfreerelay" description:"Limit relay of transactions with no transaction fee to the given amount in thousands of bytes per minute"`
+	NoRelayPriority  bool          `long:"norelaypriority" description:"Do not require free or low-fee transactions to have high priority for relaying"`
+	TrickleInterval  time.Duration `long:"trickleinterval" description:"Minimum time between attempts to send new inventory to a connected peer"`
+	MaxOrphanTxs     int           `long:"maxorphantx" description:"Max number of orphan transactions to keep in memory"`
+	// Generate          bool          `long:"generate" description:"Generate (mine) bitcoins using the CPU"`
+	MiningAddrs       []string `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
+	BlockMinSize      uint32   `long:"blockminsize" description:"Mininum block size in bytes to be used when creating a block"`
+	BlockMaxSize      uint32   `long:"blockmaxsize" description:"Maximum block size in bytes to be used when creating a block"`
+	BlockMinWeight    uint32   `long:"blockminweight" description:"Mininum block weight to be used when creating a block"`
+	BlockMaxWeight    uint32   `long:"blockmaxweight" description:"Maximum block weight to be used when creating a block"`
+	BlockPrioritySize uint32   `long:"blockprioritysize" description:"Size in bytes for high-priority/low-fee transactions when creating a block"`
+	UserAgentComments []string `long:"uacomment" description:"Comment to add to the user agent -- See BIP 14 for more information."`
+	// NoPeerBloomFilters   bool          `long:"nopeerbloomfilters" description:"Disable bloom filtering support"`
+	// NoCFilters           bool          `long:"nocfilters" description:"Disable committed filtering (CF) support"`
+	// DropCfIndex          bool          `long:"dropcfindex" description:"Deletes the index used for committed filtering (CF) support from the database on start up and then exits."`
+	SigCacheMaxSize uint `long:"sigcachemaxsize" description:"The maximum number of entries in the signature verification cache"`
+	BlocksOnly      bool `long:"blocksonly" description:"Do not accept transactions from remote peers."`
+	// TxIndex              bool          `long:"txindex" description:"Maintain a full hash-based transaction index which makes all transactions available via the getrawtransaction RPC"`
+	// DropTxIndex          bool          `long:"droptxindex" description:"Deletes the hash-based transaction index from the database on start up and then exits."`
+	// AddrIndex            bool          `long:"addrindex" description:"Maintain a full address-based transaction index which makes the searchrawtransactions RPC available"`
+	// DropAddrIndex        bool          `long:"dropaddrindex" description:"Deletes the address-based transaction index from the database on start up and then exits."`
+	RelayNonStd    bool `long:"relaynonstd" description:"Relay non-standard transactions regardless of the default settings for the active network."`
+	RejectNonStd   bool `long:"rejectnonstd" description:"Reject non-standard transactions regardless of the default settings for the active network."`
+	lookup         func(string) ([]net.IP, error)
+	oniondial      func(string, string, time.Duration) (net.Conn, error)
+	dial           func(string, string, time.Duration) (net.Conn, error)
+	addCheckpoints []chaincfg.Checkpoint
+	miningAddrs    []utils.Address
+	minRelayTxFee  utils.Amount
+	whitelists     []*net.IPNet
 }
 
 // CleanAndExpandPath expands environment variables and leading ~ in the
@@ -411,22 +411,22 @@ func LoadConfig() (*Config, []string, error) {
 		RPCMaxConcurrentReqs: defaultMaxRPCConcurrentReqs,
 		DataDir:              defaultDataDir,
 		LogDir:               defaultLogDir,
-		DbType:               defaultDbType,
-		RPCKey:               defaultRPCKeyFile,
-		RPCCert:              defaultRPCCertFile,
-		MinRelayTxFee:        mempool.DefaultMinRelayTxFee.ToBTC(),
-		FreeTxRelayLimit:     defaultFreeTxRelayLimit,
-		TrickleInterval:      defaultTrickleInterval,
-		BlockMinSize:         defaultBlockMinSize,
-		BlockMaxSize:         defaultBlockMaxSize,
-		BlockMinWeight:       defaultBlockMinWeight,
-		BlockMaxWeight:       defaultBlockMaxWeight,
-		BlockPrioritySize:    mempool.DefaultBlockPrioritySize,
-		MaxOrphanTxs:         defaultMaxOrphanTransactions,
-		SigCacheMaxSize:      defaultSigCacheMaxSize,
-		Generate:             defaultGenerate,
-		TxIndex:              defaultTxIndex,
-		AddrIndex:            defaultAddrIndex,
+		// DbType:               defaultDbType,
+		RPCKey:            defaultRPCKeyFile,
+		RPCCert:           defaultRPCCertFile,
+		MinRelayTxFee:     mempool.DefaultMinRelayTxFee.ToBTC(),
+		FreeTxRelayLimit:  defaultFreeTxRelayLimit,
+		TrickleInterval:   defaultTrickleInterval,
+		BlockMinSize:      defaultBlockMinSize,
+		BlockMaxSize:      defaultBlockMaxSize,
+		BlockMinWeight:    defaultBlockMinWeight,
+		BlockMaxWeight:    defaultBlockMaxWeight,
+		BlockPrioritySize: mempool.DefaultBlockPrioritySize,
+		MaxOrphanTxs:      defaultMaxOrphanTransactions,
+		SigCacheMaxSize:   defaultSigCacheMaxSize,
+		// Generate:          defaultGenerate,
+		// TxIndex:              defaultTxIndex,
+		// AddrIndex:            defaultAddrIndex,
 	}
 
 	// Service options which are only added on Windows.
@@ -830,37 +830,37 @@ func LoadConfig() (*Config, []string, error) {
 		}
 	}
 
-	// --txindex and --droptxindex do not mix.
-	if Cfg.TxIndex && Cfg.DropTxIndex {
-		err := fmt.Errorf("%s: the --txindex and --droptxindex "+
-			"options may  not be activated at the same time",
-			funcName)
-		fmt.Fprintln(os.Stderr, err)
-		fmt.Fprintln(os.Stderr, usageMessage)
-		return nil, nil, err
-	}
+	// // --txindex and --droptxindex do not mix.
+	// if Cfg.TxIndex && Cfg.DropTxIndex {
+	// 	err := fmt.Errorf("%s: the --txindex and --droptxindex "+
+	// 		"options may  not be activated at the same time",
+	// 		funcName)
+	// 	fmt.Fprintln(os.Stderr, err)
+	// 	fmt.Fprintln(os.Stderr, usageMessage)
+	// 	return nil, nil, err
+	// }
 
-	// --addrindex and --dropaddrindex do not mix.
-	if Cfg.AddrIndex && Cfg.DropAddrIndex {
-		err := fmt.Errorf("%s: the --addrindex and --dropaddrindex "+
-			"options may not be activated at the same time",
-			funcName)
-		fmt.Fprintln(os.Stderr, err)
-		fmt.Fprintln(os.Stderr, usageMessage)
-		return nil, nil, err
-	}
+	// // --addrindex and --dropaddrindex do not mix.
+	// if Cfg.AddrIndex && Cfg.DropAddrIndex {
+	// 	err := fmt.Errorf("%s: the --addrindex and --dropaddrindex "+
+	// 		"options may not be activated at the same time",
+	// 		funcName)
+	// 	fmt.Fprintln(os.Stderr, err)
+	// 	fmt.Fprintln(os.Stderr, usageMessage)
+	// 	return nil, nil, err
+	// }
 
-	// --addrindex and --droptxindex do not mix.
-	if Cfg.AddrIndex && Cfg.DropTxIndex {
-		err := fmt.Errorf("%s: the --addrindex and --droptxindex "+
-			"options may not be activated at the same time "+
-			"because the address index relies on the transaction "+
-			"index",
-			funcName)
-		fmt.Fprintln(os.Stderr, err)
-		fmt.Fprintln(os.Stderr, usageMessage)
-		return nil, nil, err
-	}
+	// // --addrindex and --droptxindex do not mix.
+	// if Cfg.AddrIndex && Cfg.DropTxIndex {
+	// 	err := fmt.Errorf("%s: the --addrindex and --droptxindex "+
+	// 		"options may not be activated at the same time "+
+	// 		"because the address index relies on the transaction "+
+	// 		"index",
+	// 		funcName)
+	// 	fmt.Fprintln(os.Stderr, err)
+	// 	fmt.Fprintln(os.Stderr, usageMessage)
+	// 	return nil, nil, err
+	// }
 
 	// Check mining addresses are valid and saved parsed versions.
 	Cfg.miningAddrs = make([]utils.Address, 0, len(Cfg.MiningAddrs))
@@ -883,16 +883,16 @@ func LoadConfig() (*Config, []string, error) {
 		Cfg.miningAddrs = append(Cfg.miningAddrs, addr)
 	}
 
-	// Ensure there is at least one mining address when the generate flag is
-	// set.
-	if Cfg.Generate && len(Cfg.MiningAddrs) == 0 {
-		str := "%s: the generate flag is set, but there are no mining " +
-			"addresses specified "
-		err := fmt.Errorf(str, funcName)
-		fmt.Fprintln(os.Stderr, err)
-		fmt.Fprintln(os.Stderr, usageMessage)
-		return nil, nil, err
-	}
+	// // Ensure there is at least one mining address when the generate flag is
+	// // set.
+	// if Cfg.Generate && len(Cfg.MiningAddrs) == 0 {
+	// 	str := "%s: the generate flag is set, but there are no mining " +
+	// 		"addresses specified "
+	// 	err := fmt.Errorf(str, funcName)
+	// 	fmt.Fprintln(os.Stderr, err)
+	// 	fmt.Fprintln(os.Stderr, usageMessage)
+	// 	return nil, nil, err
+	// }
 
 	// Add default port to all listener addresses if needed and remove
 	// duplicate addresses.
