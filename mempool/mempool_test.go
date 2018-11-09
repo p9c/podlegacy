@@ -12,13 +12,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/parallelcointeam/pod/chain"
-	"github.com/parallelcointeam/pod/ecc"
+	"github.com/btcsuite/btcd/blockchain"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/ecc"
 	"github.com/parallelcointeam/pod/txscript"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 // fakeChain is used by the pool harness to provide generated test utxos and

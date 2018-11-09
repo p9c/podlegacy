@@ -8,12 +8,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil/gcs/builder"
-	"github.com/lightninglabs/neutrino/headerfs"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/neutrino/headerfs"
+	"github.com/parallelcointeam/pod/utils/gcs/builder"
 	"github.com/parallelcointeam/pod/walletdb"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 // maxHeight is the height we will generate filter headers up to.

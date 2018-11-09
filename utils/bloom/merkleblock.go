@@ -5,9 +5,9 @@
 package bloom
 
 import (
-	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/chain"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/wire"
 )
 
@@ -41,7 +41,7 @@ func (m *merkleBlock) calcHash(height, pos uint32) *chainhash.Hash {
 	} else {
 		right = left
 	}
-	return blockchain.HashMerkleBranches(left, right)
+	return chain.HashMerkleBranches(left, right)
 }
 
 // traverseAndBuild builds a partial merkle tree using a recursive depth-first

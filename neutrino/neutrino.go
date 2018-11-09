@@ -12,19 +12,19 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/btcsuite/btcd/addrmgr"
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/connmgr"
-	"github.com/btcsuite/btcd/peer"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/lightninglabs/neutrino/cache/lru"
-	"github.com/lightninglabs/neutrino/filterdb"
-	"github.com/lightninglabs/neutrino/headerfs"
+	"github.com/parallelcointeam/pod/addrmgr"
+	"github.com/parallelcointeam/pod/chain"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/connmgr"
+	"github.com/parallelcointeam/pod/neutrino/cache/lru"
+	"github.com/parallelcointeam/pod/neutrino/filterdb"
+	"github.com/parallelcointeam/pod/neutrino/headerfs"
+	"github.com/parallelcointeam/pod/peer"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/waddrmgr"
 	"github.com/parallelcointeam/pod/walletdb"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 // These are exported variables so they can be changed by users.
@@ -248,7 +248,7 @@ func (sp *ServerPeer) OnVerAck(_ *peer.Peer, msg *wire.MsgVerAck) {
 // OnVersion is invoked when a peer receives a version bitcoin message
 // and is used to negotiate the protocol version details as well as kick start
 // the communications.
-func (sp *ServerPeer) OnVersion(_ *peer.Peer, msg *wire.MsgVersion) {
+func (sp *ServerPeer) OnVersion(_ *peer.Peer, msg *wire.MsgVersion) *wire.MsgReject {
 	// Add the remote peer time as a sample for creating an offset against
 	// the local clock to keep the network time in sync.
 	sp.server.timeSource.AddTimeSample(sp.Addr(), msg.Timestamp)
@@ -263,7 +263,7 @@ func (sp *ServerPeer) OnVersion(_ *peer.Peer, msg *wire.MsgVersion) {
 		log.Infof("Disconnecting peer %v, cannot serve compact "+
 			"filters", sp)
 		sp.Disconnect()
-		return
+		return nil
 	}
 
 	// Signal the block manager this peer is a new sync candidate.
@@ -291,6 +291,8 @@ func (sp *ServerPeer) OnVersion(_ *peer.Peer, msg *wire.MsgVersion) {
 
 	// Add valid peer to the server.
 	sp.server.AddPeer(sp)
+
+	return nil
 }
 
 // OnInv is invoked when a peer receives an inv bitcoin message and is
@@ -338,9 +340,9 @@ func (sp *ServerPeer) OnHeaders(p *peer.Peer, msg *wire.MsgHeaders) {
 // disconnected if an invalid fee filter value is provided.
 func (sp *ServerPeer) OnFeeFilter(_ *peer.Peer, msg *wire.MsgFeeFilter) {
 	// Check that the passed minimum fee is a valid amount.
-	if msg.MinFee < 0 || msg.MinFee > btcutil.MaxSatoshi {
+	if msg.MinFee < 0 || msg.MinFee > utils.MaxSatoshi {
 		log.Debugf("Peer %v sent an invalid feefilter '%v' -- "+
-			"disconnecting", sp, btcutil.Amount(msg.MinFee))
+			"disconnecting", sp, utils.Amount(msg.MinFee))
 		sp.Disconnect()
 		return
 	}
@@ -532,7 +534,7 @@ type ChainService struct {
 	peerHeightsUpdate chan updatePeerHeightsMsg
 	wg                sync.WaitGroup
 	quit              chan struct{}
-	timeSource        blockchain.MedianTimeSource
+	timeSource        chain.MedianTimeSource
 	services          wire.ServiceFlag
 	blockSubscribers  map[*blockSubscription]struct{}
 	mtxSubscribers    sync.RWMutex
@@ -600,7 +602,7 @@ func NewChainService(cfg Config) (*ChainService, error) {
 		query:               make(chan interface{}),
 		quit:                make(chan struct{}),
 		peerHeightsUpdate:   make(chan updatePeerHeightsMsg),
-		timeSource:          blockchain.NewMedianTime(),
+		timeSource:          chain.NewMedianTime(),
 		services:            Services,
 		userAgentName:       UserAgentName,
 		userAgentVersion:    UserAgentVersion,
@@ -1278,7 +1280,7 @@ func (s *ChainService) ChainParams() chaincfg.Params {
 	return s.chainParams
 }
 
-// Start begins connecting to peers and syncing the blockchain.
+// Start begins connecting to peers and syncing the chain.
 func (s *ChainService) Start() {
 	// Already started?
 	if atomic.AddInt32(&s.started, 1) != 1 {

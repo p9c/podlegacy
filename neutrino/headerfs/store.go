@@ -8,13 +8,13 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil/gcs/builder"
+	"github.com/parallelcointeam/pod/chain"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/utils/gcs/builder"
 	"github.com/parallelcointeam/pod/waddrmgr"
 	"github.com/parallelcointeam/pod/walletdb"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 // BlockHeaderStore is an interface that provides an abstraction for a generic
@@ -27,7 +27,7 @@ type BlockHeaderStore interface {
 	// LatestBlockLocator returns the latest block locator object based on
 	// the tip of the current main chain from the PoV of the
 	// BlockHeaderStore.
-	LatestBlockLocator() (blockchain.BlockLocator, error)
+	LatestBlockLocator() (chain.BlockLocator, error)
 
 	// FetchHeaderByHeight attempts to retrieve a target block header based
 	// on a block height.
@@ -408,9 +408,9 @@ func (h *blockHeaderStore) WriteHeaders(hdrs ...BlockHeader) error {
 //
 // TODO(roasbeef): make into single transaction.
 func (h *blockHeaderStore) blockLocatorFromHash(hash *chainhash.Hash) (
-	blockchain.BlockLocator, error) {
+	chain.BlockLocator, error) {
 
-	var locator blockchain.BlockLocator
+	var locator chain.BlockLocator
 
 	// Append the initial hash
 	locator = append(locator, hash)
@@ -452,12 +452,12 @@ func (h *blockHeaderStore) blockLocatorFromHash(hash *chainhash.Hash) (
 // of the current main chain from the PoV of the database and flat files.
 //
 // NOTE: Part of the BlockHeaderStore interface.
-func (h *blockHeaderStore) LatestBlockLocator() (blockchain.BlockLocator, error) {
+func (h *blockHeaderStore) LatestBlockLocator() (chain.BlockLocator, error) {
 	// Lock store for read.
 	h.mtx.RLock()
 	defer h.mtx.RUnlock()
 
-	var locator blockchain.BlockLocator
+	var locator chain.BlockLocator
 
 	chainTipHash, _, err := h.chainTip()
 	if err != nil {
@@ -470,7 +470,7 @@ func (h *blockHeaderStore) LatestBlockLocator() (blockchain.BlockLocator, error)
 // BlockLocatorFromHash computes a block locator given a particular hash. The
 // standard Bitcoin algorithm to compute block locators are employed.
 func (h *blockHeaderStore) BlockLocatorFromHash(hash *chainhash.Hash) (
-	blockchain.BlockLocator, error) {
+	chain.BlockLocator, error) {
 
 	// Lock store for read.
 	h.mtx.RLock()

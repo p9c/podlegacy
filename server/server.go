@@ -1288,7 +1288,7 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 		peerHeightsUpdate:    make(chan UpdatePeerHeightsMsg),
 		nat:                  nat,
 		db:                   db,
-		timeSource:           blockchain.NewMedianTime(),
+		timeSource:           chain.NewMedianTime(),
 		services:             services,
 		sigCache:             txscript.NewSigCache(Cfg.SigCacheMaxSize),
 		hashCache:            txscript.NewHashCache(Cfg.SigCacheMaxSize),
@@ -1328,7 +1328,7 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 	}
 
 	// Create an index manager if any of the optional indexes are enabled.
-	var indexManager blockchain.IndexManager
+	var indexManager chain.IndexManager
 	if len(indexes) > 0 {
 		indexManager = indexers.NewManager(db, indexes)
 	}
@@ -1341,7 +1341,7 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 
 	// Create a new block chain instance with the appropriate configuration.
 	var err error
-	s.chain, err = blockchain.New(&blockchain.Config{
+	s.chain, err = chain.New(&chain.Config{
 		DB:           s.db,
 		Interrupt:    interrupt,
 		ChainParams:  s.chainParams,
@@ -1392,7 +1392,7 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 			FreeTxRelayLimit:     Cfg.FreeTxRelayLimit,
 			MaxOrphanTxs:         Cfg.MaxOrphanTxs,
 			MaxOrphanTxSize:      defaultMaxOrphanTxSize,
-			MaxSigOpCostPerTx:    blockchain.MaxBlockSigOpsCost / 4,
+			MaxSigOpCostPerTx:    chain.MaxBlockSigOpsCost / 4,
 			MinRelayTxFee:        Cfg.minRelayTxFee,
 			MaxTxVersion:         2,
 		},
@@ -1400,7 +1400,7 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 		FetchUtxoView:  s.chain.FetchUtxoView,
 		BestHeight:     func() int32 { return s.chain.BestSnapshot().Height },
 		MedianTimePast: func() time.Time { return s.chain.BestSnapshot().MedianTime },
-		CalcSequenceLock: func(tx *utils.Tx, view *blockchain.UtxoViewpoint) (*blockchain.SequenceLock, error) {
+		CalcSequenceLock: func(tx *utils.Tx, view *chain.UtxoViewpoint) (*chain.SequenceLock, error) {
 			return s.chain.CalcSequenceLock(tx, view, true)
 		},
 		IsDeploymentActive: s.chain.IsDeploymentActive,

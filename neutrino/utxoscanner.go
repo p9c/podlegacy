@@ -6,8 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcutil"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/waddrmgr"
 )
 
@@ -77,7 +77,7 @@ func (r *GetUtxoRequest) Result(cancel <-chan struct{}) (*SpendReport, error) {
 	}
 }
 
-// UtxoScannerConfig exposes configurable methods for interacting with the blockchain.
+// UtxoScannerConfig exposes configurable methods for interacting with the chain.
 type UtxoScannerConfig struct {
 	// BestSnapshot returns the block stamp of the current chain tip.
 	BestSnapshot func() (*waddrmgr.BlockStamp, error)
@@ -90,7 +90,7 @@ type UtxoScannerConfig struct {
 	BlockFilterMatches func(ro *rescanOptions, blockHash *chainhash.Hash) (bool, error)
 
 	// GetBlock fetches a block from the p2p network.
-	GetBlock func(chainhash.Hash, ...QueryOption) (*btcutil.Block, error)
+	GetBlock func(chainhash.Hash, ...QueryOption) (*utils.Block, error)
 }
 
 // UtxoScanner batches calls to GetUtxo so that a single scan can search for

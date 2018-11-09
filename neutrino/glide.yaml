@@ -1,4 +1,4 @@
-package: github.com/lightninglabs/neutrino
+package: github.com/parallelcointeam/pod/neutrino
 import:
 - package: github.com/coreos/bbolt
   version: 4f5275f4ebbf6fe7cb772de987fa96ee674460a7

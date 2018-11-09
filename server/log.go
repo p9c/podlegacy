@@ -76,7 +76,7 @@ func init() {
 	addrmgr.UseLogger(AmgrLog)
 	connmgr.UseLogger(CmgrLog)
 	database.UseLogger(BcdbLog)
-	blockchain.UseLogger(ChanLog)
+	chain.UseLogger(ChanLog)
 	indexers.UseLogger(IndxLog)
 	mining.UseLogger(MinrLog)
 	cpuminer.UseLogger(MinrLog)

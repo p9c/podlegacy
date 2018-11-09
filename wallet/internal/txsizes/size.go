@@ -5,10 +5,10 @@
 package txsizes
 
 import (
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/parallelcointeam/pod/chain"
+	"github.com/parallelcointeam/pod/wire"
 
-	h "github.com/btcsuite/btcwallet/internal/helpers"
+	h "github.com/parallelcointeam/pod/internal/helpers"
 )
 
 // Worst case script and input/output size estimates.
@@ -180,5 +180,5 @@ func EstimateVirtualSize(numP2PKHIns, numP2WPKHIns, numNestedP2WPKHIns int,
 
 	// We add 3 to the witness weight to make sure the result is
 	// always rounded up.
-	return baseSize + (witnessWeight+3)/blockchain.WitnessScaleFactor
+	return baseSize + (witnessWeight+3)/chain.WitnessScaleFactor
 }

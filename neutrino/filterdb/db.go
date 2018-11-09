@@ -3,10 +3,10 @@ package filterdb
 import (
 	"fmt"
 
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcutil/gcs"
-	"github.com/btcsuite/btcutil/gcs/builder"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/utils/gcs"
+	"github.com/parallelcointeam/pod/utils/gcs/builder"
 	"github.com/parallelcointeam/pod/walletdb"
 )
 

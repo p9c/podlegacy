@@ -10,8 +10,8 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/peer"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 // PeerNotifier exposes methods to notify peers of status changes to
@@ -30,7 +30,7 @@ type PeerNotifier interface {
 // Config is a configuration struct used to initialize a new SyncManager.
 type Config struct {
 	PeerNotifier PeerNotifier
-	Chain        *blockchain.BlockChain
+	Chain        *chain.BlockChain
 	TxMemPool    *mempool.TxPool
 	ChainParams  *chaincfg.Params
 

@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/gcs"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/wire"
+	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/utils/gcs"
 	"github.com/parallelcointeam/pod/waddrmgr"
 )
 
@@ -618,7 +618,7 @@ var Block99999 = wire.MsgBlock{
 	},
 }
 
-// The following is taken from the btcsuite/btcutil project.
+// The following is taken from the parallelcointeam/pod/utils project.
 // Block100000 defines block 100,000 of the block chain.  It is used to test
 // Block operations.
 var Block100000 = wire.MsgBlock{

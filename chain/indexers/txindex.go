@@ -11,8 +11,8 @@ import (
 	"github.com/parallelcointeam/pod/chain"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 const (
@@ -389,7 +389,7 @@ func (idx *TxIndex) Create(dbTx database.Tx) error {
 //
 // This is part of the Indexer interface.
 func (idx *TxIndex) ConnectBlock(dbTx database.Tx, block *utils.Block,
-	stxos []blockchain.SpentTxOut) error {
+	stxos []chain.SpentTxOut) error {
 
 	// Increment the internal block ID to use for the block being connected
 	// and add all of the transactions in the block to the index.
@@ -414,7 +414,7 @@ func (idx *TxIndex) ConnectBlock(dbTx database.Tx, block *utils.Block,
 //
 // This is part of the Indexer interface.
 func (idx *TxIndex) DisconnectBlock(dbTx database.Tx, block *utils.Block,
-	stxos []blockchain.SpentTxOut) error {
+	stxos []chain.SpentTxOut) error {
 
 	// Remove all of the transactions in the block from the index.
 	if err := dbRemoveTxIndexEntries(dbTx, block); err != nil {

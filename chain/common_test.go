@@ -2,7 +2,7 @@
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
-package blockchain
+package chain
 
 import (
 	"compress/bzip2"
@@ -19,8 +19,8 @@ import (
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
 	"github.com/parallelcointeam/pod/txscript"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 const (
@@ -354,8 +354,8 @@ func newFakeChain(params *chaincfg.Params) *BlockChain {
 	index := newBlockIndex(nil, params)
 	index.AddNode(node)
 
-	targetTimespan := int64(params.TargetTimespan / time.Second)
-	targetTimePerBlock := int64(params.TargetTimePerBlock / time.Second)
+	targetTimespan := int64(params.TargetTimespan / int64(time.Second))
+	targetTimePerBlock := int64(params.TargetTimePerBlock / int64(time.Second))
 	adjustmentFactor := params.RetargetAdjustmentFactor
 	return &BlockChain{
 		chainParams:         params,

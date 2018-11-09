@@ -11,10 +11,10 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/utils/gcs"
 	"github.com/parallelcointeam/pod/utils/gcs/builder"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 const (
@@ -210,7 +210,7 @@ func storeFilter(dbTx database.Tx, block *utils.Block, f *gcs.Filter,
 // connected to the main chain. This indexer adds a hash-to-cf mapping for
 // every passed block. This is part of the Indexer interface.
 func (idx *CfIndex) ConnectBlock(dbTx database.Tx, block *utils.Block,
-	stxos []blockchain.SpentTxOut) error {
+	stxos []chain.SpentTxOut) error {
 
 	prevScripts := make([][]byte, len(stxos))
 	for i, stxo := range stxos {
@@ -229,7 +229,7 @@ func (idx *CfIndex) ConnectBlock(dbTx database.Tx, block *utils.Block,
 // disconnected from the main chain.  This indexer removes the hash-to-cf
 // mapping for every passed block. This is part of the Indexer interface.
 func (idx *CfIndex) DisconnectBlock(dbTx database.Tx, block *utils.Block,
-	_ []blockchain.SpentTxOut) error {
+	_ []chain.SpentTxOut) error {
 
 	for _, key := range cfIndexKeys {
 		err := dbDeleteFilterIdxEntry(dbTx, key, block.Hash())

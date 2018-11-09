@@ -14,8 +14,8 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/txscript"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 const (
@@ -693,7 +693,7 @@ func (idx *AddrIndex) indexPkScript(data writeIndexData, pkScript []byte, txIdx 
 // in the passed block and maps each of them to the associated transaction using
 // the passed map.
 func (idx *AddrIndex) indexBlock(data writeIndexData, block *utils.Block,
-	stxos []blockchain.SpentTxOut) {
+	stxos []chain.SpentTxOut) {
 
 	stxoIndex := 0
 	for txIdx, tx := range block.Transactions() {
@@ -727,7 +727,7 @@ func (idx *AddrIndex) indexBlock(data writeIndexData, block *utils.Block,
 //
 // This is part of the Indexer interface.
 func (idx *AddrIndex) ConnectBlock(dbTx database.Tx, block *utils.Block,
-	stxos []blockchain.SpentTxOut) error {
+	stxos []chain.SpentTxOut) error {
 
 	// The offset and length of the transactions within the serialized
 	// block.
@@ -767,7 +767,7 @@ func (idx *AddrIndex) ConnectBlock(dbTx database.Tx, block *utils.Block,
 //
 // This is part of the Indexer interface.
 func (idx *AddrIndex) DisconnectBlock(dbTx database.Tx, block *utils.Block,
-	stxos []blockchain.SpentTxOut) error {
+	stxos []chain.SpentTxOut) error {
 
 	// Build all of the address to transaction mappings in a local map.
 	addrsToTxns := make(writeIndexData)
@@ -870,7 +870,7 @@ func (idx *AddrIndex) indexUnconfirmedAddresses(pkScript []byte, tx *utils.Tx) {
 // addresses not being indexed.
 //
 // This function is safe for concurrent access.
-func (idx *AddrIndex) AddUnconfirmedTx(tx *utils.Tx, utxoView *blockchain.UtxoViewpoint) {
+func (idx *AddrIndex) AddUnconfirmedTx(tx *utils.Tx, utxoView *chain.UtxoViewpoint) {
 	// Index addresses of all referenced previous transaction outputs.
 	//
 	// The existence checks are elided since this is only called after the

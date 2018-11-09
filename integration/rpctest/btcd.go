@@ -44,7 +44,7 @@ func btcdExecutablePath() (string, error) {
 		return "", err
 	}
 
-	// Determine import path of this package. Not necessarily btcsuite/btcd if
+	// Determine import path of this package. Not necessarily parallelcointeam/pod if
 	// this is a forked repo.
 	_, rpctestDir, _, ok := runtime.Caller(1)
 	if !ok {

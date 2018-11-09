@@ -8,14 +8,14 @@ package txauthor
 import (
 	"errors"
 
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/wallet/txrules"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/txscript"
+	"github.com/parallelcointeam/pod/wallet/txrules"
+	"github.com/parallelcointeam/pod/wire"
 
-	h "github.com/btcsuite/btcwallet/internal/helpers"
-	"github.com/btcsuite/btcwallet/wallet/internal/txsizes"
+	h "github.com/parallelcointeam/pod/internal/helpers"
+	"github.com/parallelcointeam/pod/wallet/internal/txsizes"
 )
 
 // InputSource provides transaction inputs referencing spendable outputs to

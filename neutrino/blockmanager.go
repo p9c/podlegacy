@@ -12,16 +12,16 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/gcs"
-	"github.com/btcsuite/btcutil/gcs/builder"
-	"github.com/lightninglabs/neutrino/headerfs"
-	"github.com/lightninglabs/neutrino/headerlist"
+	"github.com/parallelcointeam/pod/chain"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/neutrino/headerfs"
+	"github.com/parallelcointeam/pod/neutrino/headerlist"
+	"github.com/parallelcointeam/pod/txscript"
+	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/utils/gcs"
+	"github.com/parallelcointeam/pod/utils/gcs/builder"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 const (
@@ -83,7 +83,7 @@ type donePeerMsg struct {
 // txMsg packages a bitcoin tx message and the peer it came from together
 // so the block handler has access to that information.
 type txMsg struct {
-	tx   *btcutil.Tx
+	tx   *utils.Tx
 	peer *ServerPeer
 }
 
@@ -179,8 +179,8 @@ type blockManager struct {
 // newBlockManager returns a new bitcoin block manager.  Use Start to begin
 // processing asynchronous block and inv updates.
 func newBlockManager(s *ChainService) (*blockManager, error) {
-	targetTimespan := int64(s.chainParams.TargetTimespan / time.Second)
-	targetTimePerBlock := int64(s.chainParams.TargetTimePerBlock / time.Second)
+	targetTimespan := int64(s.chainParams.TargetTimespan / int64(time.Second))
+	targetTimePerBlock := int64(s.chainParams.TargetTimePerBlock / int64(time.Second))
 	adjustmentFactor := s.chainParams.RetargetAdjustmentFactor
 
 	bm := blockManager{
@@ -1719,7 +1719,7 @@ func (b *blockManager) findPreviousHeaderCheckpoint(height int32) *chaincfg.Chec
 }
 
 // startSync will choose the best peer among the available candidate peers to
-// download/sync the blockchain from.  When syncing is already running, it
+// download/sync the chain from.  When syncing is already running, it
 // simply returns.  It also examines the candidates for any which are no longer
 // candidates and removes them as needed.
 func (b *blockManager) startSync(peers *list.List) {
@@ -1969,7 +1969,7 @@ func (b *blockManager) handleInvMsg(imsg *invMsg) {
 
 			// Make a locator starting from the latest known header
 			// we've processed.
-			locator := make(blockchain.BlockLocator, 0,
+			locator := make(chain.BlockLocator, 0,
 				wire.MaxBlockLocatorsPerMsg)
 			locator = append(locator, &lastHash)
 
@@ -2174,7 +2174,7 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 					return
 				}
 				totalWork.Add(totalWork,
-					blockchain.CalcWork(reorgHeader.Bits))
+					chain.CalcWork(reorgHeader.Bits))
 				b.reorgList.PushBack(headerlist.Node{
 					Header: *reorgHeader,
 					Height: int32(backHeight+1) + int32(j),
@@ -2208,7 +2208,7 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 					}
 				}
 				knownWork.Add(knownWork,
-					blockchain.CalcWork(knownHead.Bits))
+					chain.CalcWork(knownHead.Bits))
 			}
 
 			log.Tracef("Total work from known chain: %v", knownWork)
@@ -2327,7 +2327,7 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 	// If not current, request the next batch of headers starting from the
 	// latest known header and ending with the next checkpoint.
 	if b.server.chainParams.Net == chaincfg.SimNetParams.Net || !b.BlockHeadersSynced() {
-		locator := blockchain.BlockLocator([]*chainhash.Hash{finalHash})
+		locator := chain.BlockLocator([]*chainhash.Hash{finalHash})
 		nextHash := zeroHash
 		if b.nextCheckpoint != nil {
 			nextHash = *b.nextCheckpoint.Hash
@@ -2358,11 +2358,11 @@ func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 	if err != nil {
 		return err
 	}
-	stubBlock := btcutil.NewBlock(&wire.MsgBlock{
+	stubBlock := utils.NewBlock(&wire.MsgBlock{
 		Header: *blockHeader,
 	})
-	err = blockchain.CheckProofOfWork(stubBlock,
-		blockchain.CompactToBig(diff))
+	err = chain.CheckProofOfWork(stubBlock,
+		chain.CompactToBig(diff))
 	if err != nil {
 		return err
 	}
@@ -2449,10 +2449,10 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	// The result uses integer division which means it will be slightly
 	// rounded down.  Bitcoind also uses integer division to calculate this
 	// result.
-	oldTarget := blockchain.CompactToBig(lastNode.Header.Bits)
+	oldTarget := chain.CompactToBig(lastNode.Header.Bits)
 	newTarget := new(big.Int).Mul(oldTarget, big.NewInt(adjustedTimespan))
 	targetTimeSpan := int64(b.server.chainParams.TargetTimespan /
-		time.Second)
+		int64(time.Second))
 	newTarget.Div(newTarget, big.NewInt(targetTimeSpan))
 
 	// Limit new value to the proof of work limit.
@@ -2464,11 +2464,11 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	// intentionally converting the bits back to a number instead of using
 	// newTarget since conversion to the compact representation loses
 	// precision.
-	newTargetBits := blockchain.BigToCompact(newTarget)
+	newTargetBits := chain.BigToCompact(newTarget)
 	log.Debugf("Difficulty retarget at block height %d", lastNode.Height+1)
 	log.Debugf("Old target %08x (%064x)", lastNode.Header.Bits, oldTarget)
 	log.Debugf("New target %08x (%064x)", newTargetBits,
-		blockchain.CompactToBig(newTargetBits))
+		chain.CompactToBig(newTargetBits))
 	log.Debugf("Actual timespan %v, adjusted timespan %v, target timespan %v",
 		time.Duration(actualTimespan)*time.Second,
 		time.Duration(adjustedTimespan)*time.Second,

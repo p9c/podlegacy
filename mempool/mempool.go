@@ -12,15 +12,15 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/parallelcointeam/pod/JSON"
 	"github.com/parallelcointeam/pod/chain"
 	"github.com/parallelcointeam/pod/chain/indexers"
-	"github.com/parallelcointeam/pod/JSON"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/mining"
 	"github.com/parallelcointeam/pod/txscript"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 const (
@@ -57,7 +57,7 @@ type Config struct {
 
 	// FetchUtxoView defines the function to use to fetch unspent
 	// transaction output information.
-	FetchUtxoView func(*utils.Tx) (*blockchain.UtxoViewpoint, error)
+	FetchUtxoView func(*utils.Tx) (*chain.UtxoViewpoint, error)
 
 	// BestHeight defines the function to use to access the block height of
 	// the current best chain.
@@ -71,7 +71,7 @@ type Config struct {
 	// CalcSequenceLock defines the function to use in order to generate
 	// the current sequence lock for the given transaction using the passed
 	// utxo view.
-	CalcSequenceLock func(*utils.Tx, *blockchain.UtxoViewpoint) (*blockchain.SequenceLock, error)
+	CalcSequenceLock func(*utils.Tx, *chain.UtxoViewpoint) (*chain.SequenceLock, error)
 
 	// IsDeploymentActive returns true if the target deploymentID is
 	// active, and false otherwise. The mempool uses this function to gauge
@@ -518,7 +518,7 @@ func (mp *TxPool) RemoveDoubleSpends(tx *utils.Tx) {
 // helper for maybeAcceptTransaction.
 //
 // This function MUST be called with the mempool lock held (for writes).
-func (mp *TxPool) addTransaction(utxoView *blockchain.UtxoViewpoint, tx *utils.Tx, height int32, fee int64) *TxDesc {
+func (mp *TxPool) addTransaction(utxoView *chain.UtxoViewpoint, tx *utils.Tx, height int32, fee int64) *TxDesc {
 	// Add the transaction to the pool and mark the referenced outpoints
 	// as spent by the pool.
 	txD := &TxDesc{
@@ -588,7 +588,7 @@ func (mp *TxPool) CheckSpend(op wire.OutPoint) *utils.Tx {
 // transaction pool.
 //
 // This function MUST be called with the mempool lock held (for reads).
-func (mp *TxPool) fetchInputUtxos(tx *utils.Tx) (*blockchain.UtxoViewpoint, error) {
+func (mp *TxPool) fetchInputUtxos(tx *utils.Tx) (*chain.UtxoViewpoint, error) {
 	utxoView, err := mp.cfg.FetchUtxoView(tx)
 	if err != nil {
 		return nil, err
@@ -669,16 +669,16 @@ func (mp *TxPool) maybeAcceptTransaction(tx *utils.Tx, isNew, rateLimit, rejectD
 	// Perform preliminary sanity checks on the transaction.  This makes
 	// use of blockchain which contains the invariant rules for what
 	// transactions are allowed into blocks.
-	err := blockchain.CheckTransactionSanity(tx)
+	err := chain.CheckTransactionSanity(tx)
 	if err != nil {
-		if cerr, ok := err.(blockchain.RuleError); ok {
+		if cerr, ok := err.(chain.RuleError); ok {
 			return nil, nil, chainRuleError(cerr)
 		}
 		return nil, nil, err
 	}
 
 	// A standalone transaction must not be a coinbase transaction.
-	if blockchain.IsCoinBase(tx) {
+	if chain.IsCoinBase(tx) {
 		str := fmt.Sprintf("transaction %v is an individual coinbase",
 			txHash)
 		return nil, nil, txRuleError(wire.RejectInvalid, str)
@@ -731,7 +731,7 @@ func (mp *TxPool) maybeAcceptTransaction(tx *utils.Tx, isNew, rateLimit, rejectD
 	// without needing to do a separate lookup.
 	utxoView, err := mp.fetchInputUtxos(tx)
 	if err != nil {
-		if cerr, ok := err.(blockchain.RuleError); ok {
+		if cerr, ok := err.(chain.RuleError); ok {
 			return nil, nil, chainRuleError(cerr)
 		}
 		return nil, nil, err
@@ -774,12 +774,12 @@ func (mp *TxPool) maybeAcceptTransaction(tx *utils.Tx, isNew, rateLimit, rejectD
 	// with respect to its defined relative lock times.
 	sequenceLock, err := mp.cfg.CalcSequenceLock(tx, utxoView)
 	if err != nil {
-		if cerr, ok := err.(blockchain.RuleError); ok {
+		if cerr, ok := err.(chain.RuleError); ok {
 			return nil, nil, chainRuleError(cerr)
 		}
 		return nil, nil, err
 	}
-	if !blockchain.SequenceLockActive(sequenceLock, nextBlockHeight,
+	if !chain.SequenceLockActive(sequenceLock, nextBlockHeight,
 		medianTimePast) {
 		return nil, nil, txRuleError(wire.RejectNonstandard,
 			"transaction's sequence locks on inputs not met")
@@ -789,10 +789,10 @@ func (mp *TxPool) maybeAcceptTransaction(tx *utils.Tx, isNew, rateLimit, rejectD
 	// rules in blockchain for what transactions are allowed into blocks.
 	// Also returns the fees associated with the transaction which will be
 	// used later.
-	txFee, err := blockchain.CheckTransactionInputs(tx, nextBlockHeight,
+	txFee, err := chain.CheckTransactionInputs(tx, nextBlockHeight,
 		utxoView, mp.cfg.ChainParams)
 	if err != nil {
-		if cerr, ok := err.(blockchain.RuleError); ok {
+		if cerr, ok := err.(chain.RuleError); ok {
 			return nil, nil, chainRuleError(cerr)
 		}
 		return nil, nil, err
@@ -826,9 +826,9 @@ func (mp *TxPool) maybeAcceptTransaction(tx *utils.Tx, isNew, rateLimit, rejectD
 	// maximum allowed signature operations per transaction is less than
 	// the maximum allowed signature operations per block.
 	// TODO(roasbeef): last bool should be conditional on segwit activation
-	sigOpCost, err := blockchain.GetSigOpCost(tx, false, utxoView, true, true)
+	sigOpCost, err := chain.GetSigOpCost(tx, false, utxoView, true, true)
 	if err != nil {
-		if cerr, ok := err.(blockchain.RuleError); ok {
+		if cerr, ok := err.(chain.RuleError); ok {
 			return nil, nil, chainRuleError(cerr)
 		}
 		return nil, nil, err
@@ -901,11 +901,11 @@ func (mp *TxPool) maybeAcceptTransaction(tx *utils.Tx, isNew, rateLimit, rejectD
 
 	// Verify crypto signatures for each input and reject the transaction if
 	// any don't verify.
-	err = blockchain.ValidateTransactionScripts(tx, utxoView,
+	err = chain.ValidateTransactionScripts(tx, utxoView,
 		txscript.StandardVerifyFlags, mp.cfg.SigCache,
 		mp.cfg.HashCache)
 	if err != nil {
-		if cerr, ok := err.(blockchain.RuleError); ok {
+		if cerr, ok := err.(chain.RuleError); ok {
 			return nil, nil, chainRuleError(cerr)
 		}
 		return nil, nil, err

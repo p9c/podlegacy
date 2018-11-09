@@ -14,22 +14,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/integration/rpctest"
-	"github.com/btcsuite/btcd/rpcclient"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btclog"
 	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/gcs/builder"
-	"github.com/lightninglabs/neutrino"
+	"github.com/parallelcointeam/pod/btcjson"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/ecc"
+	"github.com/parallelcointeam/pod/integration/rpctest"
+	"github.com/parallelcointeam/pod/neutrino"
+	"github.com/parallelcointeam/pod/rpcclient"
+	"github.com/parallelcointeam/pod/txscript"
+	"github.com/parallelcointeam/pod/utils/gcs/builder"
 	"github.com/parallelcointeam/pod/waddrmgr"
 	"github.com/parallelcointeam/pod/wallet/txauthor"
 	"github.com/parallelcointeam/pod/walletdb"
 	_ "github.com/parallelcointeam/pod/walletdb/bdb"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 var (
@@ -184,12 +184,12 @@ var (
 // secSource is an implementation of btcwallet/txauthor/SecretsSource that
 // stores WitnessPubKeyHash addresses.
 type secSource struct {
-	keys    map[string]*btcec.PrivateKey
+	keys    map[string]*ecc.PrivateKey
 	scripts map[string]*[]byte
 	params  *chaincfg.Params
 }
 
-func (s *secSource) add(privKey *btcec.PrivateKey) (btcutil.Address, error) {
+func (s *secSource) add(privKey *ecc.PrivateKey) (btcutil.Address, error) {
 	pubKeyHash := btcutil.Hash160(privKey.PubKey().SerializeCompressed())
 	addr, err := btcutil.NewAddressWitnessPubKeyHash(pubKeyHash, s.params)
 	if err != nil {
@@ -213,7 +213,7 @@ func (s *secSource) add(privKey *btcec.PrivateKey) (btcutil.Address, error) {
 }
 
 // GetKey is required by the txscript.KeyDB interface
-func (s *secSource) GetKey(addr btcutil.Address) (*btcec.PrivateKey, bool,
+func (s *secSource) GetKey(addr btcutil.Address) (*ecc.PrivateKey, bool,
 	error) {
 	privKey, ok := s.keys[addr.String()]
 	if !ok {
@@ -238,7 +238,7 @@ func (s *secSource) ChainParams() *chaincfg.Params {
 
 func newSecSource(params *chaincfg.Params) *secSource {
 	return &secSource{
-		keys:    make(map[string]*btcec.PrivateKey),
+		keys:    make(map[string]*ecc.PrivateKey),
 		scripts: make(map[string]*[]byte),
 		params:  params,
 	}
@@ -309,7 +309,7 @@ func testRescan(harness *neutrinoHarness, t *testing.T) {
 	// this to test rescans and notifications.
 	modParams := harness.svc.ChainParams()
 	secSrc = newSecSource(&modParams)
-	privKey1, err := btcec.NewPrivateKey(btcec.S256())
+	privKey1, err := ecc.NewPrivateKey(ecc.S256())
 	if err != nil {
 		t.Fatalf("Couldn't generate private key: %s", err)
 	}
@@ -336,7 +336,7 @@ func testRescan(harness *neutrinoHarness, t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to send raw transaction to node: %s", err)
 	}
-	privKey2, err := btcec.NewPrivateKey(btcec.S256())
+	privKey2, err := ecc.NewPrivateKey(ecc.S256())
 	if err != nil {
 		t.Fatalf("Couldn't generate private key: %s", err)
 	}
@@ -483,7 +483,7 @@ func testStartRescan(harness *neutrinoHarness, t *testing.T) {
 	// Create another address to send to so we don't trip the rescan with
 	// the old address and we can test monitoring both OutPoint usage and
 	// receipt by addresses.
-	privKey3, err := btcec.NewPrivateKey(btcec.S256())
+	privKey3, err := ecc.NewPrivateKey(ecc.S256())
 	if err != nil {
 		t.Fatalf("Couldn't generate private key: %s", err)
 	}

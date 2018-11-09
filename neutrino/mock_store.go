@@ -3,11 +3,11 @@ package neutrino
 import (
 	"fmt"
 
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/lightninglabs/neutrino/headerfs"
+	"github.com/parallelcointeam/pod/chain"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/neutrino/headerfs"
 	"github.com/parallelcointeam/pod/waddrmgr"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 // mockBlockHeaderStore is an implementation of the BlockHeaderStore backed by
@@ -36,7 +36,7 @@ func (m *mockBlockHeaderStore) ChainTip() (*wire.BlockHeader,
 
 }
 func (m *mockBlockHeaderStore) LatestBlockLocator() (
-	blockchain.BlockLocator, error) {
+	chain.BlockLocator, error) {
 	return nil, nil
 }
 func (m *mockBlockHeaderStore) FetchHeaderByHeight(height uint32) (

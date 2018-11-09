@@ -14,7 +14,7 @@ import (
 // rules.  The caller can use type assertions to determine if a failure was
 // specifically due to a rule violation and use the Err field to access the
 // underlying error, which will be either a TxRuleError or a
-// blockchain.RuleError.
+// chain.RuleError.
 type RuleError struct {
 	Err error
 }
@@ -51,8 +51,8 @@ func txRuleError(c wire.RejectCode, desc string) RuleError {
 }
 
 // chainRuleError returns a RuleError that encapsulates the given
-// blockchain.RuleError.
-func chainRuleError(chainErr blockchain.RuleError) RuleError {
+// chain.RuleError.
+func chainRuleError(chainErr chain.RuleError) RuleError {
 	return RuleError{
 		Err: chainErr,
 	}
@@ -68,26 +68,26 @@ func extractRejectCode(err error) (wire.RejectCode, bool) {
 	}
 
 	switch err := err.(type) {
-	case blockchain.RuleError:
+	case chain.RuleError:
 		// Convert the chain error to a reject code.
 		var code wire.RejectCode
 		switch err.ErrorCode {
 		// Rejected due to duplicate.
-		case blockchain.ErrDuplicateBlock:
+		case chain.ErrDuplicateBlock:
 			code = wire.RejectDuplicate
 
 		// Rejected due to obsolete version.
-		case blockchain.ErrBlockVersionTooOld:
+		case chain.ErrBlockVersionTooOld:
 			code = wire.RejectObsolete
 
 		// Rejected due to checkpoint.
-		case blockchain.ErrCheckpointTimeTooOld:
+		case chain.ErrCheckpointTimeTooOld:
 			fallthrough
-		case blockchain.ErrDifficultyTooLow:
+		case chain.ErrDifficultyTooLow:
 			fallthrough
-		case blockchain.ErrBadCheckpoint:
+		case chain.ErrBadCheckpoint:
 			fallthrough
-		case blockchain.ErrForkTooOld:
+		case chain.ErrForkTooOld:
 			code = wire.RejectCheckpoint
 
 		// Everything else is due to the block or transaction being invalid.

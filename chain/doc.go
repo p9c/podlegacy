@@ -78,4 +78,4 @@ This package includes spec changes outlined by the following BIPs:
 		BIP0030 (https://en.bitcoin.it/wiki/BIP_0030)
 		BIP0034 (https://en.bitcoin.it/wiki/BIP_0034)
 */
-package blockchain
+package chain

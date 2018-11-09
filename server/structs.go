@@ -44,7 +44,7 @@ type Server struct {
 	hashCache            *txscript.HashCache
 	RPCServer            *RPCServer
 	syncManager          *netsync.SyncManager
-	chain                *blockchain.BlockChain
+	chain                *chain.BlockChain
 	txMemPool            *mempool.TxPool
 	cpuMiner             *cpuminer.CPUMiner
 	modifyRebroadcastInv chan interface{}
@@ -59,7 +59,7 @@ type Server struct {
 	quit                 chan struct{}
 	nat                  upnp.NAT
 	db                   database.DB
-	timeSource           blockchain.MedianTimeSource
+	timeSource           chain.MedianTimeSource
 	services             wire.ServiceFlag
 
 	// The following fields are used for optional indexes.  They will be nil
@@ -140,7 +140,7 @@ type RPCServerSyncManager interface {
 
 	// SubmitBlock submits the provided block to the network after
 	// processing it locally.
-	SubmitBlock(block *utils.Block, flags blockchain.BehaviorFlags) (bool, error)
+	SubmitBlock(block *utils.Block, flags chain.BehaviorFlags) (bool, error)
 
 	// Pause pauses the sync manager until the returned channel is closed.
 	Pause() chan<- struct{}
@@ -179,8 +179,8 @@ type RPCServerConfig struct {
 
 	// These fields allow the RPC server to interface with the local block
 	// chain data and state.
-	TimeSource  blockchain.MedianTimeSource
-	Chain       *blockchain.BlockChain
+	TimeSource  chain.MedianTimeSource
+	Chain       *chain.BlockChain
 	ChainParams *chaincfg.Params
 	DB          database.DB
 
@@ -417,7 +417,7 @@ type GbtWorkState struct {
 	minTimestamp  time.Time
 	template      *mining.BlockTemplate
 	notifyMap     map[chainhash.Hash]map[int64]chan struct{}
-	timeSource    blockchain.MedianTimeSource
+	timeSource    chain.MedianTimeSource
 }
 
 // HelpCacher provides a concurrent safe type that provides help and usage for

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/hdkeychain"
-	"github.com/btcsuite/btcwallet/internal/zero"
-	"github.com/btcsuite/btcwallet/walletdb"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/ecc"
+	"github.com/parallelcointeam/pod/internal/zero"
+	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/utils/hdkeychain"
+	"github.com/parallelcointeam/pod/walletdb"
 )
 
 // DerivationPath represents a derivation path from a particular key manager's
@@ -515,7 +515,7 @@ func (s *ScopedKeyManager) importedAddressRowToManaged(row *dbImportedAddressRow
 		return nil, managerError(ErrCrypto, str, err)
 	}
 
-	pubKey, err := btcec.ParsePubKey(pubBytes, btcec.S256())
+	pubKey, err := ecc.ParsePubKey(pubBytes, ecc.S256())
 	if err != nil {
 		str := "invalid public key for imported address"
 		return nil, managerError(ErrCrypto, str, err)
@@ -527,7 +527,7 @@ func (s *ScopedKeyManager) importedAddressRowToManaged(row *dbImportedAddressRow
 		Account: row.account,
 	}
 
-	compressed := len(pubBytes) == btcec.PubKeyBytesLenCompressed
+	compressed := len(pubBytes) == ecc.PubKeyBytesLenCompressed
 	ma, err := newManagedAddressWithoutPrivKey(
 		s, derivationPath, pubKey, compressed,
 		s.addrSchema.ExternalAddrType,
@@ -582,7 +582,7 @@ func (s *ScopedKeyManager) rowInterfaceToManaged(ns walletdb.ReadBucket,
 //
 // This function MUST be called with the manager lock held for writes.
 func (s *ScopedKeyManager) loadAndCacheAddress(ns walletdb.ReadBucket,
-	address btcutil.Address) (ManagedAddress, error) {
+	address utils.Address) (ManagedAddress, error) {
 
 	// Attempt to load the raw address information from the database.
 	rowInterface, err := fetchAddress(ns, &s.scope, address.ScriptAddress())
@@ -630,13 +630,13 @@ func (s *ScopedKeyManager) existsAddress(ns walletdb.ReadBucket, addressID []byt
 // pay-to-pubkey-hash addresses and the script associated with
 // pay-to-script-hash addresses.
 func (s *ScopedKeyManager) Address(ns walletdb.ReadBucket,
-	address btcutil.Address) (ManagedAddress, error) {
+	address utils.Address) (ManagedAddress, error) {
 
 	// ScriptAddress will only return a script hash if we're accessing an
 	// address that is either PKH or SH. In the event we're passed a PK
 	// address, convert the PK to PKH address so that we can access it from
 	// the addrs map and database.
-	if pka, ok := address.(*btcutil.AddressPubKey); ok {
+	if pka, ok := address.(*utils.AddressPubKey); ok {
 		address = pka.AddressPubKeyHash()
 	}
 
@@ -660,7 +660,7 @@ func (s *ScopedKeyManager) Address(ns walletdb.ReadBucket,
 
 // AddrAccount returns the account to which the given address belongs.
 func (s *ScopedKeyManager) AddrAccount(ns walletdb.ReadBucket,
-	address btcutil.Address) (uint32, error) {
+	address utils.Address) (uint32, error) {
 
 	account, err := fetchAddrAccount(ns, &s.scope, address.ScriptAddress())
 	if err != nil {
@@ -1399,7 +1399,7 @@ func (s *ScopedKeyManager) RenameAccount(ns walletdb.ReadWriteBucket,
 // It will also return an error if the address already exists.  Any other
 // errors returned are generally unexpected.
 func (s *ScopedKeyManager) ImportPrivateKey(ns walletdb.ReadWriteBucket,
-	wif *btcutil.WIF, bs *BlockStamp) (ManagedPubKeyAddress, error) {
+	wif *utils.WIF, bs *BlockStamp) (ManagedPubKeyAddress, error) {
 
 	// Ensure the address is intended for network the address manager is
 	// associated with.
@@ -1420,7 +1420,7 @@ func (s *ScopedKeyManager) ImportPrivateKey(ns walletdb.ReadWriteBucket,
 
 	// Prevent duplicates.
 	serializedPubKey := wif.SerializePubKey()
-	pubKeyHash := btcutil.Hash160(serializedPubKey)
+	pubKeyHash := utils.Hash160(serializedPubKey)
 	alreadyExists := s.existsAddress(ns, pubKeyHash)
 	if alreadyExists {
 		str := fmt.Sprintf("address for public key %x already exists",
@@ -1496,7 +1496,7 @@ func (s *ScopedKeyManager) ImportPrivateKey(ns walletdb.ReadWriteBucket,
 			wif.CompressPubKey, s.addrSchema.ExternalAddrType,
 		)
 	} else {
-		pubKey := (*btcec.PublicKey)(&wif.PrivKey.PublicKey)
+		pubKey := (*ecc.PublicKey)(&wif.PrivKey.PublicKey)
 		managedAddr, err = newManagedAddressWithoutPrivKey(
 			s, importedDerivationPath, pubKey, wif.CompressPubKey,
 			s.addrSchema.ExternalAddrType,
@@ -1537,7 +1537,7 @@ func (s *ScopedKeyManager) ImportScript(ns walletdb.ReadWriteBucket,
 	}
 
 	// Prevent duplicates.
-	scriptHash := btcutil.Hash160(script)
+	scriptHash := utils.Hash160(script)
 	alreadyExists := s.existsAddress(ns, scriptHash)
 	if alreadyExists {
 		str := fmt.Sprintf("address for script hash %x already exists",
@@ -1649,7 +1649,7 @@ func (s *ScopedKeyManager) fetchUsed(ns walletdb.ReadBucket,
 
 // MarkUsed updates the used flag for the provided address.
 func (s *ScopedKeyManager) MarkUsed(ns walletdb.ReadWriteBucket,
-	address btcutil.Address) error {
+	address utils.Address) error {
 
 	addressID := address.ScriptAddress()
 	err := markAddressUsed(ns, &s.scope, addressID)
@@ -1727,7 +1727,7 @@ func (s *ScopedKeyManager) ForEachActiveAccountAddress(ns walletdb.ReadBucket, a
 // ForEachActiveAddress calls the given function with each active address
 // stored in the manager, breaking early on error.
 func (s *ScopedKeyManager) ForEachActiveAddress(ns walletdb.ReadBucket,
-	fn func(addr btcutil.Address) error) error {
+	fn func(addr utils.Address) error) error {
 
 	s.mtx.Lock()
 	defer s.mtx.Unlock()

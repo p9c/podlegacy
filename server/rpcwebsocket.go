@@ -2164,7 +2164,7 @@ func RescanBlockFilter(filter *WsClientFilter, block *utils.Block, params *chain
 		added := false
 
 		// Scan inputs if not a coinbase transaction.
-		if !blockchain.IsCoinBaseTx(msgTx) {
+		if !chain.IsCoinBaseTx(msgTx) {
 			for _, input := range msgTx.TxIn {
 				if !filter.ExistsUnspentOutPoint(&input.PreviousOutPoint) {
 					continue
@@ -2282,7 +2282,7 @@ func HandleRescanBlocks(wsc *WsClient, icmd interface{}) (interface{}, error) {
 // verifies that the new range of blocks is on the same fork as a previous
 // range of blocks.  If this condition does not hold true, the JSON-RPC error
 // for an unrecoverable reorganize is returned.
-func RecoverFromReorg(chain *blockchain.BlockChain, minBlock, maxBlock int32,
+func RecoverFromReorg(chain *chain.BlockChain, minBlock, maxBlock int32,
 	lastBlock *chainhash.Hash) ([]chainhash.Hash, error) {
 
 	hashList, err := chain.HeightRange(minBlock, maxBlock)
