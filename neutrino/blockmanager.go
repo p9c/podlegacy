@@ -179,7 +179,6 @@ type blockManager struct {
 // newBlockManager returns a new bitcoin block manager.  Use Start to begin
 // processing asynchronous block and inv updates.
 func newBlockManager(s *ChainService) (*blockManager, error) {
-	fmt.Println("newBlockManager")
 
 	targetTimespan := int64(s.chainParams.TargetTimespan)
 	targetTimePerBlock := int64(s.chainParams.TargetTimePerBlock)
@@ -253,7 +252,6 @@ func newBlockManager(s *ChainService) (*blockManager, error) {
 
 // Start begins the core block handler which processes block and inv messages.
 func (b *blockManager) Start() {
-	fmt.Println("BlockManager Start")
 	// Already started?
 	if atomic.AddInt32(&b.started, 1) != 1 {
 		return
@@ -268,7 +266,6 @@ func (b *blockManager) Start() {
 // Stop gracefully shuts down the block manager by stopping all asynchronous
 // handlers and waiting for them to finish.
 func (b *blockManager) Stop() error {
-	fmt.Println("BlockManager Stop")
 	if atomic.AddInt32(&b.shutdown, 1) != 1 {
 		log.Warnf("Block manager is already in the process of " +
 			"shutting down")
@@ -304,7 +301,6 @@ func (b *blockManager) Stop() error {
 
 // NewPeer informs the block manager of a newly active peer.
 func (b *blockManager) NewPeer(sp *ServerPeer) {
-	fmt.Println("NewPeer")
 	// Ignore if we are shutting down.
 	if atomic.LoadInt32(&b.shutdown) != 0 {
 		return
@@ -322,7 +318,6 @@ func (b *blockManager) NewPeer(sp *ServerPeer) {
 // also starts syncing if needed.  It is invoked from the syncHandler
 // goroutine.
 func (b *blockManager) handleNewPeerMsg(peers *list.List, sp *ServerPeer) {
-	fmt.Println("handleNewPeerMsg")
 	// Ignore if in the process of shutting down.
 	if atomic.LoadInt32(&b.shutdown) != 0 {
 		return
@@ -364,7 +359,6 @@ func (b *blockManager) handleNewPeerMsg(peers *list.List, sp *ServerPeer) {
 
 // DonePeer informs the blockmanager that a peer has disconnected.
 func (b *blockManager) DonePeer(sp *ServerPeer) {
-	fmt.Println("DonePeer")
 
 	// Ignore if we are shutting down.
 	if atomic.LoadInt32(&b.shutdown) != 0 {
@@ -383,7 +377,6 @@ func (b *blockManager) DonePeer(sp *ServerPeer) {
 // current sync peer, attempts to select a new best peer to sync from.  It is
 // invoked from the syncHandler goroutine.
 func (b *blockManager) handleDonePeerMsg(peers *list.List, sp *ServerPeer) {
-	fmt.Println("handleDonePeerMsg")
 	// Remove the peer from the list of candidate peers.
 	for e := peers.Front(); e != nil; e = e.Next() {
 		if e.Value == sp {
@@ -416,7 +409,6 @@ func (b *blockManager) handleDonePeerMsg(peers *list.List, sp *ServerPeer) {
 // run as a goroutine. It requests and processes cfheaders messages in a
 // separate goroutine from the peer handlers.
 func (b *blockManager) cfHandler() {
-	fmt.Println("cfHandler")
 	// If a loop ends with a quit, we want to signal that the goroutine is
 	// done.
 	defer func() {
@@ -1625,7 +1617,6 @@ func checkCFCheckptSanity(cp map[string][]*chainhash.Hash,
 // because the block manager controls which blocks are needed and how
 // the fetching should proceed.
 func (b *blockManager) blockHandler() {
-	fmt.Println("blockHandler")
 
 	candidatePeers := list.New()
 out:
@@ -1635,19 +1626,15 @@ out:
 		case m := <-b.peerChan:
 			switch msg := m.(type) {
 			case *newPeerMsg:
-				fmt.Println("Received new peer message")
 				b.handleNewPeerMsg(candidatePeers, msg.peer)
 
 			case *invMsg:
-				fmt.Println("Received new inventory message")
 				b.handleInvMsg(msg)
 
 			case *headersMsg:
-				fmt.Println("Received new headers message")
 				b.handleHeadersMsg(msg)
 
 			case *donePeerMsg:
-				fmt.Println("Received peer done message")
 				b.handleDonePeerMsg(candidatePeers, msg.peer)
 
 			default:
@@ -2026,14 +2013,12 @@ func (b *blockManager) QueueHeaders(headers *wire.MsgHeaders, sp *ServerPeer) {
 
 // handleHeadersMsg handles headers messages from all peers.
 func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
-	fmt.Println("handleHeadersMsg")
 
 	msg := hmsg.headers
 	numHeaders := len(msg.Headers)
 
 	// Nothing to do for an empty headers message.
 	if numHeaders == 0 {
-		fmt.Println("headers were empty")
 		return
 	}
 
@@ -2053,16 +2038,13 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 		finalHash   *chainhash.Hash
 		finalHeight int32
 	)
-	fmt.Println("length of headers array received", len(msg.Headers))
 	for i, blockHeader := range msg.Headers {
-		// fmt.Println("header", i, blockHeader)
 		blockHash := blockHeader.BlockHash()
 		finalHash = &blockHash
 
 		// Ensure there is a previous header to compare against.
 		prevNodeEl := b.headerList.Back()
 		if prevNodeEl == nil {
-			fmt.Println("did not get previous header")
 			log.Warnf("Header list does not contain a previous" +
 				"element as expected -- disconnecting peer")
 			hmsg.peer.Disconnect()
@@ -2076,12 +2058,9 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 		node := headerlist.Node{Header: *blockHeader}
 		prevNode := prevNodeEl
 		prevHash := prevNode.Header.BlockHash()
-		fmt.Println("hash", blockHeader.BlockHash())
-		fmt.Println("prev", prevHash, blockHeader.PrevBlock)
 		if prevHash.IsEqual(&blockHeader.PrevBlock) {
 			err := b.checkHeaderSanity(blockHeader, maxTimestamp,
 				false)
-			fmt.Println("header sanity check", err)
 			if err != nil {
 				log.Warnf("Header doesn't pass sanity check: "+
 					"%s -- disconnecting peer", err)
@@ -2092,8 +2071,6 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 			node.Height = prevNode.Height + 1
 			finalHeight = node.Height
 
-			// fmt.Println("tip now at", finalHeight)
-
 			// This header checks out, so we'll add it to our write
 			// batch.
 			headerWriteBatch = append(headerWriteBatch, headerfs.BlockHeader{
@@ -2102,8 +2079,6 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 			})
 
 			hmsg.peer.UpdateLastBlockHeight(node.Height)
-
-			// fmt.Println(hmsg.peer.newestBlock())
 
 			b.blkHeaderProgressLogger.LogBlockHeight(
 				blockHeader.Timestamp, node.Height,
@@ -2117,7 +2092,6 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 				b.startHeader = e
 			}
 		} else {
-			fmt.Println("block does not connect", blockHeader.BlockHash())
 			// The block doesn't connect to the last block we know.
 			// We will need to do some additional checks to process
 			// possible reorganizations or incorrect chain on
@@ -2294,48 +2268,46 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 			})
 		}
 
-		// Verify the header at the next checkpoint height matches.
-		if b.nextCheckpoint != nil && node.Height == b.nextCheckpoint.Height {
-			nodeHash := node.Header.BlockHash()
-			if nodeHash.IsEqual(b.nextCheckpoint.Hash) {
-				receivedCheckpoint = true
-				log.Infof("Verified downloaded block "+
-					"header against checkpoint at height "+
-					"%d/hash %s", node.Height, nodeHash)
-			} else {
-				log.Warnf("Block header at height %d/hash "+
-					"%s from peer %s does NOT match "+
-					"expected checkpoint hash of %s -- "+
-					"disconnecting", node.Height,
-					nodeHash, hmsg.peer.Addr(),
-					b.nextCheckpoint.Hash)
+		// // Verify the header at the next checkpoint height matches.
+		// if b.nextCheckpoint != nil && node.Height == b.nextCheckpoint.Height {
+		// 	nodeHash := node.Header.BlockHash()
+		// 	if nodeHash.IsEqual(b.nextCheckpoint.Hash) {
+		// 		receivedCheckpoint = true
+		// 		log.Infof("Verified downloaded block "+
+		// 			"header against checkpoint at height "+
+		// 			"%d/hash %s", node.Height, nodeHash)
+		// 	} else {
+		// 		log.Warnf("Block header at height %d/hash "+
+		// 			"%s from peer %s does NOT match "+
+		// 			"expected checkpoint hash of %s -- "+
+		// 			"disconnecting", node.Height,
+		// 			nodeHash, hmsg.peer.Addr(),
+		// 			b.nextCheckpoint.Hash)
 
-				prevCheckpoint := b.findPreviousHeaderCheckpoint(
-					node.Height,
-				)
+		// 		prevCheckpoint := b.findPreviousHeaderCheckpoint(
+		// 			node.Height,
+		// 		)
 
-				log.Infof("Rolling back to previous validated "+
-					"checkpoint at height %d/hash %s",
-					prevCheckpoint.Height,
-					prevCheckpoint.Hash)
+		// 		log.Infof("Rolling back to previous validated "+
+		// 			"checkpoint at height %d/hash %s",
+		// 			prevCheckpoint.Height,
+		// 			prevCheckpoint.Hash)
 
-				_, err := b.server.rollBackToHeight(uint32(
-					prevCheckpoint.Height),
-				)
-				if err != nil {
-					log.Criticalf("Rollback failed: %s",
-						err)
-					// Should we panic here?
-				}
+		// 		_, err := b.server.rollBackToHeight(uint32(
+		// 			prevCheckpoint.Height),
+		// 		)
+		// 		if err != nil {
+		// 			log.Criticalf("Rollback failed: %s",
+		// 				err)
+		// 			// Should we panic here?
+		// 		}
 
-				hmsg.peer.Disconnect()
-				return
-			}
-			break
-		}
+		// 		hmsg.peer.Disconnect()
+		// 		return
+		// 	}
+		// 	break
+		// }
 	}
-
-	fmt.Println("We should be writing to the database now...")
 
 	log.Tracef("Writing header batch of %v block headers",
 		len(headerWriteBatch))
@@ -2386,7 +2358,7 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 	maxTimestamp time.Time, reorgAttempt bool) error {
 	diff, err := b.calcNextRequiredDifficulty(
-		blockHeader.Timestamp, reorgAttempt)
+		blockHeader.Timestamp, reorgAttempt, blockHeader.Version)
 	if err != nil {
 		return err
 	}
@@ -2409,8 +2381,18 @@ func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 // calcNextRequiredDifficulty calculates the required difficulty for the block
 // after the passed previous block node based on the difficulty retarget rules.
 func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
-	reorgAttempt bool) (uint32, error) {
+	reorgAttempt bool, algo int32) (uint32, error) {
 
+	var powLimit *big.Int
+	var powLimitBits uint32
+	switch algo {
+	case 2:
+		powLimit = b.server.chainParams.PowLimit
+		powLimitBits = b.server.chainParams.PowLimitBits
+	case 514:
+		powLimit = b.server.chainParams.ScryptPowLimit
+		powLimitBits = b.server.chainParams.ScryptPowLimitBits
+	}
 	hList := b.headerList
 	if reorgAttempt {
 		hList = b.reorgList
@@ -2420,60 +2402,98 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 
 	// Genesis block.
 	if lastNode == nil {
-		return b.server.chainParams.PowLimitBits, nil
+		return powLimitBits, nil
 	}
 
-	// Return the previous block's difficulty requirements if this block
-	// is not at a difficulty retarget interval.
-	if (lastNode.Height+1)%b.blocksPerRetarget != 0 {
-		// For networks that support it, allow special reduction of the
-		// required difficulty once too much time has elapsed without
-		// mining a block.
-		if b.server.chainParams.ReduceMinDifficulty {
-			// Return minimum difficulty when more than the desired
-			// amount of time has elapsed without mining a block.
-			reductionTime := int64(
-				b.server.chainParams.MinDiffReductionTime /
-					time.Second)
-			allowMinTime := lastNode.Header.Timestamp.Unix() +
-				reductionTime
-			if newBlockTime.Unix() > allowMinTime {
-				return b.server.chainParams.PowLimitBits, nil
-			}
-
-			// The block was mined within the desired timeframe, so
-			// return the difficulty for the last block which did
-			// not have the special minimum difficulty rule applied.
-			prevBits, err := b.findPrevTestNetDifficulty(hList)
-			if err != nil {
-				return 0, err
-			}
-			return prevBits, nil
-		}
-
-		// For the main network (or any unrecognized networks), simply
-		// return the previous block's difficulty requirements.
-		return lastNode.Header.Bits, nil
+	prevNode := lastNode
+	if prevNode.Header.Version != algo {
+		prevNode = prevNode.GetPrevWithAlgo(algo)
 	}
-
-	// Get the block node at the previous retarget (targetTimespan days
-	// worth of blocks).
-	firstNode, err := b.server.BlockHeaders.FetchHeaderByHeight(
-		uint32(lastNode.Height + 1 - b.blocksPerRetarget),
-	)
-	if err != nil {
-		return 0, err
+	if prevNode == nil {
+		return powLimitBits, nil
 	}
+	// fmt.Printf("prevNode bits %08x %d %d\n", prevNode.Header.Bits, prevNode.Height, prevNode.Header.Version)
+
+	// // Return the previous block's difficulty requirements if this block
+	// // is not at a difficulty retarget interval.
+	// // if (lastNode.height+1)%b.blocksPerRetarget != 0 {
+	// // For networks that support it, allow special reduction of the
+	// // required difficulty once too much time has elapsed without
+	// // mining a block.
+	// if b.server.chainParams.ReduceMinDifficulty {
+	// 	// Return minimum difficulty when more than the desired
+	// 	// amount of time has elapsed without mining a block.
+	// 	reductionTime := int64(b.server.chainParams.MinDiffReductionTime)
+	// 	allowMinTime := lastNode.Header.Timestamp.Unix() + int64(b.server.chainParams.MinDiffReductionTime)
+	// 	if newBlockTime.Unix() > allowMinTime {
+	// 		return powLimitBits, nil
+	// 	}
+
+	// 	// The block was mined within the desired timeframe, so
+	// 	// return the difficulty for the last block which did
+	// 	// not have the special minimum difficulty rule applied.
+	// 	return b.server.findPrevTestNetDifficulty(lastNode), nil
+	// }
+
+	// // Return the previous block's difficulty requirements if this block
+	// // is not at a difficulty retarget interval.
+	// if (lastNode.Height+1)%b.blocksPerRetarget != 0 {
+	// 	// For networks that support it, allow special reduction of the
+	// 	// required difficulty once too much time has elapsed without
+	// 	// mining a block.
+	// 	if b.server.chainParams.ReduceMinDifficulty {
+	// 		// Return minimum difficulty when more than the desired
+	// 		// amount of time has elapsed without mining a block.
+	// 		reductionTime := int64(
+	// 			b.server.chainParams.MinDiffReductionTime /
+	// 				time.Second)
+	// 		allowMinTime := lastNode.Header.Timestamp.Unix() +
+	// 			reductionTime
+	// 		if newBlockTime.Unix() > allowMinTime {
+	// 			return b.server.chainParams.PowLimitBits, nil
+	// 		}
+
+	// 		// The block was mined within the desired timeframe, so
+	// 		// return the difficulty for the last block which did
+	// 		// not have the special minimum difficulty rule applied.
+	// 		prevBits, err := b.findPrevTestNetDifficulty(hList)
+	// 		if err != nil {
+	// 			return 0, err
+	// 		}
+	// 		return prevBits, nil
+	// 	}
+
+	// 	// For the main network (or any unrecognized networks), simply
+	// 	// return the previous block's difficulty requirements.
+	// 	return lastNode.Header.Bits, nil
+	// }
+
+	// // Get the block node at the previous retarget (targetTimespan days
+	// // worth of blocks).
+	// firstNode, err := b.server.BlockHeaders.FetchHeaderByHeight(
+	// 	uint32(lastNode.Height + 1 - b.blocksPerRetarget),
+	// )
+	// if err != nil {
+	// 	return 0, err
+	// }
+
+	firstNode := prevNode.GetPrevWithAlgo(algo) //.RelativeAncestor(1)
+	for i := int64(1); firstNode != nil && i < b.server.chainParams.AveragingInterval; i++ {
+		firstNode = firstNode.Prev().GetPrevWithAlgo(algo)
+	}
+	if firstNode == nil {
+		return powLimitBits, nil
+	}
+	// fmt.Printf("firstNode bits %08x %d %d\n", firstNode.bits, firstNode.height, firstNode.version)
 
 	// Limit the amount of adjustment that can occur to the previous
 	// difficulty.
-	actualTimespan := lastNode.Header.Timestamp.Unix() -
-		firstNode.Timestamp.Unix()
+	actualTimespan := prevNode.Header.Timestamp.Unix() - firstNode.Header.Timestamp.Unix()
 	adjustedTimespan := actualTimespan
-	if actualTimespan < b.minRetargetTimespan {
-		adjustedTimespan = b.minRetargetTimespan
-	} else if actualTimespan > b.maxRetargetTimespan {
-		adjustedTimespan = b.maxRetargetTimespan
+	if actualTimespan < b.server.chainParams.MinActualTimespan {
+		adjustedTimespan = b.server.chainParams.MinActualTimespan
+	} else if actualTimespan > b.server.chainParams.MaxActualTimespan {
+		adjustedTimespan = b.server.chainParams.MaxActualTimespan
 	}
 
 	// Calculate new target difficulty as:
@@ -2481,15 +2501,20 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	// The result uses integer division which means it will be slightly
 	// rounded down.  Bitcoind also uses integer division to calculate this
 	// result.
-	oldTarget := chain.CompactToBig(lastNode.Header.Bits)
+
+	// This has to be the lastNode of the same algorithm (version number)
+
+	oldTarget := chain.CompactToBig(prevNode.Header.Bits)
+	// fmt.Printf("OldTarget %d %064x\n", lastNode.bits, OldTarget)
+	// oldTarget := CompactToBig(ln.bits)
+	// fmt.Printf("oldTarget           %08x, %d\n", prevNode.bits, oldTarget)
 	newTarget := new(big.Int).Mul(oldTarget, big.NewInt(adjustedTimespan))
-	targetTimeSpan := int64(b.server.chainParams.TargetTimespan /
-		int64(time.Second))
-	newTarget.Div(newTarget, big.NewInt(targetTimeSpan))
+	newTarget = newTarget.Div(newTarget, big.NewInt(b.server.chainParams.AveragingTargetTimespan))
+	// fmt.Printf("newTarget           %08x %064x\n", BigToCompact(newTarget), newTarget)
 
 	// Limit new value to the proof of work limit.
-	if newTarget.Cmp(b.server.chainParams.PowLimit) > 0 {
-		newTarget.Set(b.server.chainParams.PowLimit)
+	if newTarget.Cmp(powLimit) > 0 {
+		newTarget.Set(powLimit)
 	}
 
 	// Log new target difficulty and return it.  The new target logging is

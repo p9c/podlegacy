@@ -1,6 +1,8 @@
 package headerlist
 
-import "github.com/parallelcointeam/pod/wire"
+import (
+	"github.com/parallelcointeam/pod/wire"
+)
 
 // Chain is an interface that stores a list of Nodes. Each node represents a
 // header in the main chain and also includes a height along with it. This is
@@ -43,4 +45,31 @@ type Node struct {
 // nil.
 func (n *Node) Prev() *Node {
 	return n.prev
+}
+
+// GetAlgo returns the algorithm of a block node
+func (n *Node) GetAlgo() int32 {
+	return n.Header.Version
+}
+
+// GetPrevWithAlgo returns the previous block from the current with the same algorithm
+func (n *Node) GetPrevWithAlgo(algo int32) (prev *Node) {
+	if n == nil {
+		return nil
+	}
+	if n.GetAlgo() == algo {
+		return n
+	}
+	prev = n.Prev()
+	if prev == nil {
+		return
+	}
+	for algo != n.Header.Version {
+		prev = prev.Prev()
+
+		if prev == nil {
+			return
+		}
+	}
+	return
 }
