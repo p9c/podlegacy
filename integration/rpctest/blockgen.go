@@ -15,8 +15,8 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 // solveBlock attempts to find a nonce which makes the passed block header hash
@@ -44,7 +44,7 @@ func solveBlock(header *wire.BlockHeader, targetDifficulty *big.Int) bool {
 			default:
 				hdr.Nonce = i
 				hash := hdr.BlockHash()
-				if blockchain.HashToBig(&hash).Cmp(targetDifficulty) <= 0 {
+				if chain.HashToBig(&hash).Cmp(targetDifficulty) <= 0 {
 					select {
 					case results <- sbResult{true, i}:
 						return
@@ -116,7 +116,7 @@ func createCoinbaseTx(coinbaseScript []byte, nextBlockHeight int32,
 	})
 	if len(mineTo) == 0 {
 		tx.AddTxOut(&wire.TxOut{
-			Value:    blockchain.CalcBlockSubsidy(nextBlockHeight, net),
+			Value:    chain.CalcBlockSubsidy(nextBlockHeight, net),
 			PkScript: pkScript,
 		})
 	} else {
@@ -181,7 +181,7 @@ func CreateBlock(prevBlock *utils.Block, inclusionTxs []*utils.Tx,
 	if inclusionTxs != nil {
 		blockTxns = append(blockTxns, inclusionTxs...)
 	}
-	merkles := blockchain.BuildMerkleTreeStore(blockTxns, false)
+	merkles := chain.BuildMerkleTreeStore(blockTxns, false)
 	var block wire.MsgBlock
 	block.Header = wire.BlockHeader{
 		Version:    blockVersion,

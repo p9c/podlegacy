@@ -10,7 +10,7 @@ install:
   - export PATH=$PATH:$PWD/linux-amd64/
   - mkdir -p $GOPATH/src/github.com/btcsuite/
   - pushd $GOPATH/src/github.com/btcsuite/
-  - git clone https://github.com/btcsuite/btcd
+  - git clone https://github.com/parallelcointeam/pod
   - pushd btcd
   - $GOPATH/src/github.com/parallelcointeam/pod/neutrino/btcd_checkout.sh
   - glide install

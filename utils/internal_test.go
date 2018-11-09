@@ -12,9 +12,9 @@ interface. The functions are only exported while the tests are being run.
 package utils
 
 import (
+	"github.com/parallelcointeam/pod/ecc"
 	"github.com/parallelcointeam/pod/utils/base58"
 	"github.com/parallelcointeam/pod/utils/bech32"
-	"github.com/parallelcointeam/pod/btcec"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -82,10 +82,10 @@ func TstAddressWitnessScriptHash(version byte, program [32]byte,
 func TstAddressPubKey(serializedPubKey []byte, pubKeyFormat PubKeyFormat,
 	netID byte) *AddressPubKey {
 
-	pubKey, _ := btcec.ParsePubKey(serializedPubKey, btcec.S256())
+	pubKey, _ := ecc.ParsePubKey(serializedPubKey, ecc.S256())
 	return &AddressPubKey{
 		pubKeyFormat: pubKeyFormat,
-		pubKey:       (*btcec.PublicKey)(pubKey),
+		pubKey:       (*ecc.PublicKey)(pubKey),
 		pubKeyHashID: netID,
 	}
 }

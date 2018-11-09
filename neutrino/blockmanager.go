@@ -179,8 +179,10 @@ type blockManager struct {
 // newBlockManager returns a new bitcoin block manager.  Use Start to begin
 // processing asynchronous block and inv updates.
 func newBlockManager(s *ChainService) (*blockManager, error) {
-	targetTimespan := int64(s.chainParams.TargetTimespan / int64(time.Second))
-	targetTimePerBlock := int64(s.chainParams.TargetTimePerBlock / int64(time.Second))
+	fmt.Println("newBlockManager")
+
+	targetTimespan := int64(s.chainParams.TargetTimespan)
+	targetTimePerBlock := int64(s.chainParams.TargetTimePerBlock)
 	adjustmentFactor := s.chainParams.RetargetAdjustmentFactor
 
 	bm := blockManager{
@@ -251,6 +253,7 @@ func newBlockManager(s *ChainService) (*blockManager, error) {
 
 // Start begins the core block handler which processes block and inv messages.
 func (b *blockManager) Start() {
+	fmt.Println("BlockManager Start")
 	// Already started?
 	if atomic.AddInt32(&b.started, 1) != 1 {
 		return
@@ -265,6 +268,7 @@ func (b *blockManager) Start() {
 // Stop gracefully shuts down the block manager by stopping all asynchronous
 // handlers and waiting for them to finish.
 func (b *blockManager) Stop() error {
+	fmt.Println("BlockManager Stop")
 	if atomic.AddInt32(&b.shutdown, 1) != 1 {
 		log.Warnf("Block manager is already in the process of " +
 			"shutting down")
@@ -300,6 +304,7 @@ func (b *blockManager) Stop() error {
 
 // NewPeer informs the block manager of a newly active peer.
 func (b *blockManager) NewPeer(sp *ServerPeer) {
+	fmt.Println("NewPeer")
 	// Ignore if we are shutting down.
 	if atomic.LoadInt32(&b.shutdown) != 0 {
 		return
@@ -317,6 +322,7 @@ func (b *blockManager) NewPeer(sp *ServerPeer) {
 // also starts syncing if needed.  It is invoked from the syncHandler
 // goroutine.
 func (b *blockManager) handleNewPeerMsg(peers *list.List, sp *ServerPeer) {
+	fmt.Println("handleNewPeerMsg")
 	// Ignore if in the process of shutting down.
 	if atomic.LoadInt32(&b.shutdown) != 0 {
 		return
@@ -358,6 +364,8 @@ func (b *blockManager) handleNewPeerMsg(peers *list.List, sp *ServerPeer) {
 
 // DonePeer informs the blockmanager that a peer has disconnected.
 func (b *blockManager) DonePeer(sp *ServerPeer) {
+	fmt.Println("DonePeer")
+
 	// Ignore if we are shutting down.
 	if atomic.LoadInt32(&b.shutdown) != 0 {
 		return
@@ -375,6 +383,7 @@ func (b *blockManager) DonePeer(sp *ServerPeer) {
 // current sync peer, attempts to select a new best peer to sync from.  It is
 // invoked from the syncHandler goroutine.
 func (b *blockManager) handleDonePeerMsg(peers *list.List, sp *ServerPeer) {
+	fmt.Println("handleDonePeerMsg")
 	// Remove the peer from the list of candidate peers.
 	for e := peers.Front(); e != nil; e = e.Next() {
 		if e.Value == sp {
@@ -407,6 +416,7 @@ func (b *blockManager) handleDonePeerMsg(peers *list.List, sp *ServerPeer) {
 // run as a goroutine. It requests and processes cfheaders messages in a
 // separate goroutine from the peer handlers.
 func (b *blockManager) cfHandler() {
+	fmt.Println("cfHandler")
 	// If a loop ends with a quit, we want to signal that the goroutine is
 	// done.
 	defer func() {
@@ -1615,6 +1625,8 @@ func checkCFCheckptSanity(cp map[string][]*chainhash.Hash,
 // because the block manager controls which blocks are needed and how
 // the fetching should proceed.
 func (b *blockManager) blockHandler() {
+	fmt.Println("blockHandler")
+
 	candidatePeers := list.New()
 out:
 	for {
@@ -1623,15 +1635,19 @@ out:
 		case m := <-b.peerChan:
 			switch msg := m.(type) {
 			case *newPeerMsg:
+				fmt.Println("Received new peer message")
 				b.handleNewPeerMsg(candidatePeers, msg.peer)
 
 			case *invMsg:
+				fmt.Println("Received new inventory message")
 				b.handleInvMsg(msg)
 
 			case *headersMsg:
+				fmt.Println("Received new headers message")
 				b.handleHeadersMsg(msg)
 
 			case *donePeerMsg:
+				fmt.Println("Received peer done message")
 				b.handleDonePeerMsg(candidatePeers, msg.peer)
 
 			default:
@@ -2010,11 +2026,14 @@ func (b *blockManager) QueueHeaders(headers *wire.MsgHeaders, sp *ServerPeer) {
 
 // handleHeadersMsg handles headers messages from all peers.
 func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
+	fmt.Println("handleHeadersMsg")
+
 	msg := hmsg.headers
 	numHeaders := len(msg.Headers)
 
 	// Nothing to do for an empty headers message.
 	if numHeaders == 0 {
+		fmt.Println("headers were empty")
 		return
 	}
 
@@ -2034,13 +2053,16 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 		finalHash   *chainhash.Hash
 		finalHeight int32
 	)
+	fmt.Println("length of headers array received", len(msg.Headers))
 	for i, blockHeader := range msg.Headers {
+		// fmt.Println("header", i, blockHeader)
 		blockHash := blockHeader.BlockHash()
 		finalHash = &blockHash
 
 		// Ensure there is a previous header to compare against.
 		prevNodeEl := b.headerList.Back()
 		if prevNodeEl == nil {
+			fmt.Println("did not get previous header")
 			log.Warnf("Header list does not contain a previous" +
 				"element as expected -- disconnecting peer")
 			hmsg.peer.Disconnect()
@@ -2054,9 +2076,12 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 		node := headerlist.Node{Header: *blockHeader}
 		prevNode := prevNodeEl
 		prevHash := prevNode.Header.BlockHash()
+		fmt.Println("hash", blockHeader.BlockHash())
+		fmt.Println("prev", prevHash, blockHeader.PrevBlock)
 		if prevHash.IsEqual(&blockHeader.PrevBlock) {
 			err := b.checkHeaderSanity(blockHeader, maxTimestamp,
 				false)
+			fmt.Println("header sanity check", err)
 			if err != nil {
 				log.Warnf("Header doesn't pass sanity check: "+
 					"%s -- disconnecting peer", err)
@@ -2067,6 +2092,8 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 			node.Height = prevNode.Height + 1
 			finalHeight = node.Height
 
+			// fmt.Println("tip now at", finalHeight)
+
 			// This header checks out, so we'll add it to our write
 			// batch.
 			headerWriteBatch = append(headerWriteBatch, headerfs.BlockHeader{
@@ -2075,6 +2102,8 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 			})
 
 			hmsg.peer.UpdateLastBlockHeight(node.Height)
+
+			// fmt.Println(hmsg.peer.newestBlock())
 
 			b.blkHeaderProgressLogger.LogBlockHeight(
 				blockHeader.Timestamp, node.Height,
@@ -2088,6 +2117,7 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 				b.startHeader = e
 			}
 		} else {
+			fmt.Println("block does not connect", blockHeader.BlockHash())
 			// The block doesn't connect to the last block we know.
 			// We will need to do some additional checks to process
 			// possible reorganizations or incorrect chain on
@@ -2304,6 +2334,8 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 			break
 		}
 	}
+
+	fmt.Println("We should be writing to the database now...")
 
 	log.Tracef("Writing header batch of %v block headers",
 		len(headerWriteBatch))

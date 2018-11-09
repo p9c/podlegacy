@@ -911,6 +911,8 @@ func (s *ChainService) rollBackToHeight(height uint32) (*waddrmgr.BlockStamp, er
 // peers to and from the server, banning peers, and broadcasting messages to
 // peers.  It must be run in a goroutine.
 func (s *ChainService) peerHandler() {
+	fmt.Println("peerHandler")
+
 	// Start the address manager and block manager, both of which are
 	// needed by peers.  This is done here since their lifecycle is closely
 	// tied to this handler and rather than adding more channels to
@@ -1282,6 +1284,8 @@ func (s *ChainService) ChainParams() chaincfg.Params {
 
 // Start begins connecting to peers and syncing the chain.
 func (s *ChainService) Start() {
+	fmt.Println("ChainService Start")
+
 	// Already started?
 	if atomic.AddInt32(&s.started, 1) != 1 {
 		return

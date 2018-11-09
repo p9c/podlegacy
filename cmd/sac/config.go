@@ -149,7 +149,7 @@ type Config struct {
 	TrickleInterval  time.Duration `long:"trickleinterval" description:"Minimum time between attempts to send new inventory to a connected peer"`
 	MaxOrphanTxs     int           `long:"maxorphantx" description:"Max number of orphan transactions to keep in memory"`
 	// Generate          bool          `long:"generate" description:"Generate (mine) bitcoins using the CPU"`
-	MiningAddrs       []string `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
+	// MiningAddrs       []string `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
 	BlockMinSize      uint32   `long:"blockminsize" description:"Mininum block size in bytes to be used when creating a block"`
 	BlockMaxSize      uint32   `long:"blockmaxsize" description:"Maximum block size in bytes to be used when creating a block"`
 	BlockMinWeight    uint32   `long:"blockminweight" description:"Mininum block weight to be used when creating a block"`
@@ -862,26 +862,26 @@ func LoadConfig() (*Config, []string, error) {
 	// 	return nil, nil, err
 	// }
 
-	// Check mining addresses are valid and saved parsed versions.
-	cfg.miningAddrs = make([]utils.Address, 0, len(cfg.MiningAddrs))
-	for _, strAddr := range cfg.MiningAddrs {
-		addr, err := utils.DecodeAddress(strAddr, svr.ActiveNetParams.Params)
-		if err != nil {
-			str := "%s: mining address '%s' failed to decode: %v"
-			err := fmt.Errorf(str, funcName, strAddr, err)
-			fmt.Fprintln(os.Stderr, err)
-			fmt.Fprintln(os.Stderr, usageMessage)
-			return nil, nil, err
-		}
-		if !addr.IsForNet(svr.ActiveNetParams.Params) {
-			str := "%s: mining address '%s' is on the wrong network"
-			err := fmt.Errorf(str, funcName, strAddr)
-			fmt.Fprintln(os.Stderr, err)
-			fmt.Fprintln(os.Stderr, usageMessage)
-			return nil, nil, err
-		}
-		cfg.miningAddrs = append(cfg.miningAddrs, addr)
-	}
+	// // Check mining addresses are valid and saved parsed versions.
+	// cfg.miningAddrs = make([]utils.Address, 0, len(cfg.MiningAddrs))
+	// for _, strAddr := range cfg.MiningAddrs {
+	// 	addr, err := utils.DecodeAddress(strAddr, svr.ActiveNetParams.Params)
+	// 	if err != nil {
+	// 		str := "%s: mining address '%s' failed to decode: %v"
+	// 		err := fmt.Errorf(str, funcName, strAddr, err)
+	// 		fmt.Fprintln(os.Stderr, err)
+	// 		fmt.Fprintln(os.Stderr, usageMessage)
+	// 		return nil, nil, err
+	// 	}
+	// 	if !addr.IsForNet(svr.ActiveNetParams.Params) {
+	// 		str := "%s: mining address '%s' is on the wrong network"
+	// 		err := fmt.Errorf(str, funcName, strAddr)
+	// 		fmt.Fprintln(os.Stderr, err)
+	// 		fmt.Fprintln(os.Stderr, usageMessage)
+	// 		return nil, nil, err
+	// 	}
+	// 	cfg.miningAddrs = append(cfg.miningAddrs, addr)
+	// }
 
 	// // Ensure there is at least one mining address when the generate flag is
 	// // set.

@@ -11,14 +11,14 @@ import (
 	"sync"
 
 	"github.com/parallelcointeam/pod/chain"
-	"github.com/parallelcointeam/pod/ecc"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/ecc"
 	"github.com/parallelcointeam/pod/rpcclient"
 	"github.com/parallelcointeam/pod/txscript"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/utils/hdkeychain"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 var (
@@ -207,7 +207,7 @@ func (m *memWallet) ingestBlock(update *chainUpdate) {
 	}
 	for _, tx := range update.filteredTxns {
 		mtx := tx.MsgTx()
-		isCoinbase := blockchain.IsCoinBaseTx(mtx)
+		isCoinbase := chain.IsCoinBaseTx(mtx)
 		txHash := mtx.TxHash()
 		m.evalOutputs(mtx.TxOut, &txHash, isCoinbase, undo)
 		m.evalInputs(mtx.TxIn, undo)

@@ -7,13 +7,14 @@ package utils_test
 import (
 	"bytes"
 	"io"
+
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/btcsuite/utils"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/wire"
 )
 
