@@ -39,3 +39,4 @@ wallet/wallet
 gencerts/gencerts
 addblock/addblock
 findcheckpoint/findcheckpoint
+cmd/sac/sac
