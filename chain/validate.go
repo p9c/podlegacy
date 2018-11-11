@@ -6,6 +6,7 @@ package chain
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"math"
 	"math/big"
@@ -339,14 +340,21 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 	// The target difficulty must be larger than zero.
 	var pl *big.Int
 	if powLimit == nil {
-		if header.Version == 2 {
+		switch header.Version {
+		case 2, 4194306:
+			if header.Version == 4194306 {
+				fmt.Print("anomalous ")
+			}
 			fmt.Println("sha256d block")
 			pl = CompactToBig(chaincfg.MainPowLimitBits)
-		} else if header.Version == 514 {
+
+		case 514:
 			fmt.Println("scrypt block")
 			pl = CompactToBig(chaincfg.ScryptPowLimitBits)
+		default:
+			errortext := fmt.Sprint("ERROR: block version", header.Version, "is unrecognised")
+			return errors.New(errortext)
 		}
-	} else {
 		pl = powLimit
 	}
 	// fmt.Printf("powlimit %064x\n", powLimit)

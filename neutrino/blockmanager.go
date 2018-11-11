@@ -2359,7 +2359,9 @@ func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 	maxTimestamp time.Time, reorgAttempt bool) error {
 	diff, err := b.calcNextRequiredDifficulty(
 		blockHeader.Timestamp, reorgAttempt, blockHeader.Version)
+	fmt.Printf("DIFFICULTY %08x\n", diff)
 	if err != nil {
+		fmt.Println("1 ERROR", err)
 		return err
 	}
 	stubBlock := utils.NewBlock(&wire.MsgBlock{
@@ -2368,6 +2370,7 @@ func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 	err = chain.CheckProofOfWork(stubBlock,
 		chain.CompactToBig(diff))
 	if err != nil {
+		fmt.Println("2 ERROR", err)
 		return err
 	}
 	// Ensure the block time is not too far in the future.
@@ -2404,9 +2407,13 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	if lastNode == nil {
 		return powLimitBits, nil
 	}
-
 	prevNode := lastNode
-	if prevNode.Header.Version != algo {
+	pnv := prevNode.GetAlgo()
+	if pnv == 4194306 {
+		fmt.Println("BOGUS VERSION NUMBER")
+		pnv = 2
+	}
+	if pnv != algo {
 		prevNode = prevNode.GetPrevWithAlgo(algo)
 	}
 	if prevNode == nil {
@@ -2477,12 +2484,12 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	// 	return 0, err
 	// }
 
-	fmt.Printf("prevNode bits %08x %d %d\n", prevNode.Header.Bits, prevNode.Height, prevNode.Header.Version)
-	fmt.Printf("prevNode timestamp %08x %d\n", prevNode.Header.Timestamp, prevNode.Header.Timestamp)
+	// fmt.Printf("prevNode bits %08x %d %d\n", prevNode.Header.Bits, prevNode.Height, prevNode.Header.Version)
+	// fmt.Printf("prevNode timestamp %08x %d\n", prevNode.Header.Timestamp, prevNode.Header.Timestamp)
 
 	firstNode := prevNode
 	for i := int64(1); firstNode != nil && i < b.server.chainParams.AveragingInterval; i++ {
-		firstNode = firstNode.Prev().GetPrevWithAlgo(algo)
+		firstNode = firstNode.GetPrevWithAlgo(algo)
 	}
 	if firstNode == nil {
 		return powLimitBits, nil

@@ -61,6 +61,7 @@ const (
 	blockMaxSizeMax              = chain.MaxBlockBaseSize - 1000
 	blockMaxWeightMin            = 4000
 	blockMaxWeightMax            = chain.MaxBlockWeight - 4000
+	defaultAlgo                  = "sha256d"
 	defaultGenerate              = false
 	defaultMaxOrphanTransactions = 100
 	defaultMaxOrphanTxSize       = 100000
@@ -139,23 +140,24 @@ type Config struct {
 	AddCheckpoints       []string      `long:"addcheckpoint" description:"Add a custom checkpoint.  Format: '<height>:<hash>'"`
 	DisableCheckpoints   bool          `long:"nocheckpoints" description:"Disable built-in checkpoints.  Don't do this unless you know what you're doing."`
 	// DbType               string        `long:"dbtype" description:"Database backend to use for the Block Chain"`
-	Profile          string        `long:"profile" description:"Enable HTTP profiling on given port -- NOTE port must be between 1024 and 65536"`
-	CPUProfile       string        `long:"cpuprofile" description:"Write CPU profile to the specified file"`
-	DebugLevel       string        `short:"d" long:"debuglevel" description:"Logging level for all subsystems {trace, debug, info, warn, error, critical} -- You may also specify <subsystem>=<level>,<subsystem2>=<level>,... to set the log level for individual subsystems -- Use show to list available subsystems"`
-	Upnp             bool          `long:"upnp" description:"Use UPnP to map our listening port outside of NAT"`
-	MinRelayTxFee    float64       `long:"minrelaytxfee" description:"The minimum transaction fee in BTC/kB to be considered a non-zero fee."`
-	FreeTxRelayLimit float64       `long:"limitfreerelay" description:"Limit relay of transactions with no transaction fee to the given amount in thousands of bytes per minute"`
-	NoRelayPriority  bool          `long:"norelaypriority" description:"Do not require free or low-fee transactions to have high priority for relaying"`
-	TrickleInterval  time.Duration `long:"trickleinterval" description:"Minimum time between attempts to send new inventory to a connected peer"`
-	MaxOrphanTxs     int           `long:"maxorphantx" description:"Max number of orphan transactions to keep in memory"`
-	// Generate          bool          `long:"generate" description:"Generate (mine) bitcoins using the CPU"`
-	// MiningAddrs       []string `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
-	BlockMinSize      uint32   `long:"blockminsize" description:"Mininum block size in bytes to be used when creating a block"`
-	BlockMaxSize      uint32   `long:"blockmaxsize" description:"Maximum block size in bytes to be used when creating a block"`
-	BlockMinWeight    uint32   `long:"blockminweight" description:"Mininum block weight to be used when creating a block"`
-	BlockMaxWeight    uint32   `long:"blockmaxweight" description:"Maximum block weight to be used when creating a block"`
-	BlockPrioritySize uint32   `long:"blockprioritysize" description:"Size in bytes for high-priority/low-fee transactions when creating a block"`
-	UserAgentComments []string `long:"uacomment" description:"Comment to add to the user agent -- See BIP 14 for more information."`
+	Profile           string        `long:"profile" description:"Enable HTTP profiling on given port -- NOTE port must be between 1024 and 65536"`
+	CPUProfile        string        `long:"cpuprofile" description:"Write CPU profile to the specified file"`
+	DebugLevel        string        `short:"d" long:"debuglevel" description:"Logging level for all subsystems {trace, debug, info, warn, error, critical} -- You may also specify <subsystem>=<level>,<subsystem2>=<level>,... to set the log level for individual subsystems -- Use show to list available subsystems"`
+	Upnp              bool          `long:"upnp" description:"Use UPnP to map our listening port outside of NAT"`
+	MinRelayTxFee     float64       `long:"minrelaytxfee" description:"The minimum transaction fee in BTC/kB to be considered a non-zero fee."`
+	FreeTxRelayLimit  float64       `long:"limitfreerelay" description:"Limit relay of transactions with no transaction fee to the given amount in thousands of bytes per minute"`
+	NoRelayPriority   bool          `long:"norelaypriority" description:"Do not require free or low-fee transactions to have high priority for relaying"`
+	TrickleInterval   time.Duration `long:"trickleinterval" description:"Minimum time between attempts to send new inventory to a connected peer"`
+	MaxOrphanTxs      int           `long:"maxorphantx" description:"Max number of orphan transactions to keep in memory"`
+	Algo              string        `long:"algo" description:"Set the mining algorithm which will be stored in the block version field (currently sha256d or scrypt"`
+	Generate          bool          `long:"generate" description:"Generate (mine) bitcoins using the CPU"`
+	MiningAddrs       []string      `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
+	BlockMinSize      uint32        `long:"blockminsize" description:"Mininum block size in bytes to be used when creating a block"`
+	BlockMaxSize      uint32        `long:"blockmaxsize" description:"Maximum block size in bytes to be used when creating a block"`
+	BlockMinWeight    uint32        `long:"blockminweight" description:"Mininum block weight to be used when creating a block"`
+	BlockMaxWeight    uint32        `long:"blockmaxweight" description:"Maximum block weight to be used when creating a block"`
+	BlockPrioritySize uint32        `long:"blockprioritysize" description:"Size in bytes for high-priority/low-fee transactions when creating a block"`
+	UserAgentComments []string      `long:"uacomment" description:"Comment to add to the user agent -- See BIP 14 for more information."`
 	// NoPeerBloomFilters   bool          `long:"nopeerbloomfilters" description:"Disable bloom filtering support"`
 	// NoCFilters           bool          `long:"nocfilters" description:"Disable committed filtering (CF) support"`
 	// DropCfIndex          bool          `long:"dropcfindex" description:"Deletes the index used for committed filtering (CF) support from the database on start up and then exits."`

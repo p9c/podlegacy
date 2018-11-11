@@ -53,15 +53,26 @@ func (n *Node) GetAlgo() int32 {
 }
 
 // GetPrevWithAlgo returns the previous block from the current with the same algorithm
-func (n *Node) GetPrevWithAlgo(algo int32) *Node {
-	prev := n
+func (n *Node) GetPrevWithAlgo(algo int32) (prev *Node) {
+	node := n
+	if node == nil {
+		return nil
+	}
+	prev = node
 	for {
 		if prev == nil {
 			return nil
 		}
-		if prev.GetAlgo() == algo {
+		prev = prev.Prev()
+		if prev == nil {
+			return nil
+		}
+		pnv := prev.GetAlgo()
+		if pnv == 4194306 {
+			pnv = 2
+		}
+		if pnv == algo {
 			return prev
 		}
-		prev = prev.Prev()
 	}
 }

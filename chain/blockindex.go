@@ -5,7 +5,6 @@
 package chain
 
 import (
-	"fmt"
 	"math/big"
 	"sort"
 	"sync"
@@ -353,6 +352,13 @@ func (node *blockNode) GetAlgo() int32 {
 	return node.version
 }
 
+func (node *blockNode) Prev() *blockNode {
+	if node == nil {
+		return nil
+	}
+	return node.RelativeAncestor(1)
+}
+
 // GetPrevWithAlgo returns the previous block from the current with the same algorithm
 func (node *blockNode) GetPrevWithAlgo(algo int32) (prev *blockNode) {
 	if node == nil {
@@ -363,18 +369,16 @@ func (node *blockNode) GetPrevWithAlgo(algo int32) (prev *blockNode) {
 		if prev == nil {
 			return nil
 		}
-		prev = prev.RelativeAncestor(1)
+		prev = prev.Prev()
 		if prev == nil {
 			return nil
 		}
 		pnv := prev.GetAlgo()
 		if pnv == 4194306 {
-			fmt.Println("BOGUS VERSION NUMBER")
 			pnv = 2
 		}
 		if pnv == algo {
 			return prev
 		}
 	}
-	return
 }
