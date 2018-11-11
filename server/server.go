@@ -1437,9 +1437,21 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 		BlockPrioritySize: Cfg.BlockPrioritySize,
 		TxMinFreeFee:      Cfg.minRelayTxFee,
 	}
+	var a uint32
+	switch Cfg.Algo {
+	case "sha256d":
+		a = 2
+	case "scrypt":
+		a = 514
+	default:
+		// If the algo name is not recognised it assumes it to be sha256d.
+		// TODO: make a probe to test which algorithm the miner is using.
+		a = 2
+	}
+
 	blockTemplateGenerator := mining.NewBlkTmplGenerator(&policy,
 		s.chainParams, s.txMemPool, s.chain, s.timeSource,
-		s.sigCache, s.hashCache)
+		s.sigCache, s.hashCache, a)
 	s.cpuMiner = cpuminer.New(&cpuminer.Config{
 		ChainParams:            chainParams,
 		BlockTemplateGenerator: blockTemplateGenerator,

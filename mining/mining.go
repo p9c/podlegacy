@@ -30,7 +30,7 @@ const (
 	// CoinbaseFlags is added to the coinbase script of a generated block
 	// and is used to monitor BIP16 support as well as blocks that are
 	// generated via btcd.
-	CoinbaseFlags = "/P2SH/btcd/"
+	CoinbaseFlags = "/P2SH/pod/"
 )
 
 // TxDesc is a descriptor about a transaction in a transaction source along with
@@ -353,6 +353,7 @@ type BlkTmplGenerator struct {
 	timeSource  chain.MedianTimeSource
 	sigCache    *txscript.SigCache
 	hashCache   *txscript.HashCache
+	algo        uint32
 }
 
 // NewBlkTmplGenerator returns a new block template generator for the given
@@ -365,7 +366,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 	txSource TxSource, chain *chain.BlockChain,
 	timeSource chain.MedianTimeSource,
 	sigCache *txscript.SigCache,
-	hashCache *txscript.HashCache) *BlkTmplGenerator {
+	hashCache *txscript.HashCache, algo uint32) *BlkTmplGenerator {
 
 	return &BlkTmplGenerator{
 		policy:      policy,
@@ -375,6 +376,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 		timeSource:  timeSource,
 		sigCache:    sigCache,
 		hashCache:   hashCache,
+		algo:        algo,
 	}
 }
 
@@ -440,7 +442,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 //  |  transactions (while block size   |   |
 //  |  <= policy.BlockMinSize)          |   |
 //   -----------------------------------  --
-func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress utils.Address) (*BlockTemplate, error) {
+func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress utils.Address, algo uint32) (*BlockTemplate, error) {
 	// Extend the most recently known best block.
 	best := g.chain.BestSnapshot()
 	nextBlockHeight := best.Height + 1
@@ -854,6 +856,7 @@ mempoolLoop:
 	// if err != nil {
 	// 	return nil, err
 	// }
+
 	nextBlockVersion := int32(2)
 
 	// Create a new block ready to be solved.

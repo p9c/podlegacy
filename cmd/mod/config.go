@@ -59,6 +59,7 @@ const (
 	blockMaxSizeMax              = chain.MaxBlockBaseSize - 1000
 	blockMaxWeightMin            = 4000
 	blockMaxWeightMax            = chain.MaxBlockWeight - 4000
+	defaultAlgo                  = "sha256d"
 	defaultGenerate              = false
 	defaultMaxOrphanTransactions = 100
 	defaultMaxOrphanTxSize       = 100000
@@ -146,6 +147,7 @@ type Config struct {
 	NoRelayPriority      bool          `long:"norelaypriority" description:"Do not require free or low-fee transactions to have high priority for relaying"`
 	TrickleInterval      time.Duration `long:"trickleinterval" description:"Minimum time between attempts to send new inventory to a connected peer"`
 	MaxOrphanTxs         int           `long:"maxorphantx" description:"Max number of orphan transactions to keep in memory"`
+	Algo                 string        `long:"algo" description:"Set the mining algorithm which will be stored in the block version field (currently sha256d or scrypt"`
 	Generate             bool          `long:"generate" description:"Generate (mine) bitcoins using the CPU"`
 	MiningAddrs          []string      `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
 	BlockMinSize         uint32        `long:"blockminsize" description:"Mininum block size in bytes to be used when creating a block"`
@@ -428,6 +430,7 @@ func LoadConfig() (*Config, []string, error) {
 		BlockPrioritySize:    mempool.DefaultBlockPrioritySize,
 		MaxOrphanTxs:         defaultMaxOrphanTransactions,
 		SigCacheMaxSize:      defaultSigCacheMaxSize,
+		Algo:                 defaultAlgo,
 		Generate:             defaultGenerate,
 		TxIndex:              defaultTxIndex,
 		AddrIndex:            defaultAddrIndex,
@@ -886,6 +889,8 @@ func LoadConfig() (*Config, []string, error) {
 		}
 		Cfg.miningAddrs = append(Cfg.miningAddrs, addr)
 	}
+
+	fmt.Println("CONFIGURATION algo", Cfg.Algo)
 
 	// Ensure there is at least one mining address when the generate flag is
 	// set.

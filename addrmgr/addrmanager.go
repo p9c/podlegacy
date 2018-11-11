@@ -537,7 +537,6 @@ func (a *AddrManager) DeserializeNetAddress(addr string) (*wire.NetAddress, erro
 // Start begins the core address handler which manages a pool of known
 // addresses, timeouts, and interval based writes.
 func (a *AddrManager) Start() {
-	fmt.Println("AddrManager Start")
 	// Already started?
 	if atomic.AddInt32(&a.started, 1) != 1 {
 		return

@@ -1578,7 +1578,18 @@ func (state *GbtWorkState) UpdateBlockTemplate(s *RPCServer, useCoinbaseValue bo
 		// block template doesn't include the coinbase, so the caller
 		// will ultimately create their own coinbase which pays to the
 		// appropriate address(es).
-		blkTemplate, err := generator.NewBlockTemplate(payAddr)
+		var a uint32
+		switch Cfg.Algo {
+		case "sha256d":
+			a = 2
+		case "scrypt":
+			a = 514
+		default:
+			// If the algo name is not recognised it assumes it to be sha256d.
+			// TODO: make a probe to test which algorithm the miner is using.
+			a = 2
+		}
+		blkTemplate, err := generator.NewBlockTemplate(payAddr, a)
 		if err != nil {
 			return InternalRPCError("Failed to create new block "+
 				"template: "+err.Error(), "")

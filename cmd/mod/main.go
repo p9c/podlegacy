@@ -85,6 +85,7 @@ func Main(serverChan chan<- *svr.Server) error {
 		return err
 	}
 	cfg = tcfg
+
 	defer func() {
 		if svr.LogRotator != nil {
 			svr.LogRotator.Close()
@@ -99,6 +100,9 @@ func Main(serverChan chan<- *svr.Server) error {
 
 	// Show version at startup.
 	svr.PodLog.Infof("Version %s", svr.Version())
+
+	// Show configured mining algorithm
+	svr.MinrLog.Debug("Mining algorithm set to", cfg.Algo)
 
 	// Enable http profiling server if requested.
 	if cfg.Profile != "" {
