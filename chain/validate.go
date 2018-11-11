@@ -338,18 +338,18 @@ func CheckTransactionSanity(tx *utils.Tx) error {
 func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags BehaviorFlags) error {
 	// fmt.Println("checkProofOfWork")
 	// The target difficulty must be larger than zero.
-	var pl *big.Int
+	pl := powLimit
 	if powLimit == nil {
 		switch header.Version {
 		case 2, 4194306:
 			if header.Version == 4194306 {
-				fmt.Print("anomalous ")
+				// fmt.Print("anomalous ")
 			}
-			fmt.Println("sha256d block")
+			// fmt.Println("sha256d block")
 			pl = CompactToBig(chaincfg.MainPowLimitBits)
 
 		case 514:
-			fmt.Println("scrypt block")
+			// fmt.Println("scrypt block")
 			pl = CompactToBig(chaincfg.ScryptPowLimitBits)
 		default:
 			errortext := fmt.Sprint("ERROR: block version", header.Version, "is unrecognised")
@@ -366,6 +366,7 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 		return ruleError(ErrUnexpectedDifficulty, str)
 	}
 
+	// fmt.Println(pl, header.Version, powLimit)
 	// The target difficulty must be less than the maximum allowed.
 	if target.Cmp(pl) > 0 {
 		str := fmt.Sprintf("block target difficulty of %064x is "+
@@ -486,6 +487,7 @@ func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSou
 	// Ensure the proof of work bits in the block header is in min/max range
 	// and the block hash is less than the target value described by the
 	// bits.
+	// fmt.Println("HEADER", header)
 	err := checkProofOfWork(header, powLimit, flags)
 	if err != nil {
 		return err
