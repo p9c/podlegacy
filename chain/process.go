@@ -9,10 +9,9 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/parallelcointeam/pod/utils"
-	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
+	"github.com/parallelcointeam/pod/utils"
 )
 
 // BehaviorFlags is a bitmask defining tweaks to the normal behavior when
@@ -145,6 +144,8 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) ProcessBlock(block *utils.Block, flags BehaviorFlags) (bool, bool, error) {
+	// fmt.Println("ProcessBlock")
+
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
 
@@ -176,17 +177,34 @@ func (b *BlockChain) ProcessBlock(block *utils.Block, flags BehaviorFlags) (bool
 	ph := &block.MsgBlock().Header.PrevBlock
 	pn := b.index.LookupNode(ph)
 	if pn == nil {
-		// fmt.Println("did not find???")
-		DoNotCheckPow = true
+		// fmt.Println("genesis block")
+		// DoNotCheckPow = true
+		return false, true, nil
 	}
-	pb := pn.GetPrevWithAlgo(block.MsgBlock().Header.Version)
-	if pb == nil {
+	// fmt.Println(pn)
+
+	algo := block.MsgBlock().Header.Version
+	var powLimit *big.Int
+	switch algo {
+	case 2, 4194306:
+		powLimit = b.chainParams.PowLimit
+		algo = 2
+	case 514:
+		powLimit = b.chainParams.ScryptPowLimit
+	}
+	// fmt.Println("ALGO", algo)
+	firstNode := pn
+	for i := int64(1); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
+		firstNode = firstNode.GetPrevWithAlgo(algo)
+	}
+	if firstNode == nil {
 		// fmt.Println("not enough prior blocks on algo")
-		pl = &chaincfg.AllOnes
+		pl = powLimit
 		DoNotCheckPow = true
 	} else {
+		// fmt.Println("height of 10th prev of algo", firstNode.height)
 		switch block.MsgBlock().Header.Version {
-		case 2:
+		case 2, 4194306:
 			// fmt.Println("sha256d pow block")
 			pl = b.chainParams.PowLimit
 		case 514:

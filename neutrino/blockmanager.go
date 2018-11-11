@@ -2429,10 +2429,10 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	// 		return powLimitBits, nil
 	// 	}
 
-	// 	// The block was mined within the desired timeframe, so
-	// 	// return the difficulty for the last block which did
-	// 	// not have the special minimum difficulty rule applied.
-	// 	return b.server.findPrevTestNetDifficulty(lastNode), nil
+	// 	// 	// The block was mined within the desired timeframe, so
+	// 	// 	// return the difficulty for the last block which did
+	// 	// 	// not have the special minimum difficulty rule applied.
+	// 	// return b..findPrevTestNetDifficulty(lastNode), nil
 	// }
 
 	// // Return the previous block's difficulty requirements if this block
@@ -2477,7 +2477,10 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	// 	return 0, err
 	// }
 
-	firstNode := prevNode.GetPrevWithAlgo(algo) //.RelativeAncestor(1)
+	fmt.Printf("prevNode bits %08x %d %d\n", prevNode.Header.Bits, prevNode.Height, prevNode.Header.Version)
+	fmt.Printf("prevNode timestamp %08x %d\n", prevNode.Header.Timestamp, prevNode.Header.Timestamp)
+
+	firstNode := prevNode
 	for i := int64(1); firstNode != nil && i < b.server.chainParams.AveragingInterval; i++ {
 		firstNode = firstNode.Prev().GetPrevWithAlgo(algo)
 	}
@@ -2489,6 +2492,7 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	// Limit the amount of adjustment that can occur to the previous
 	// difficulty.
 	actualTimespan := prevNode.Header.Timestamp.Unix() - firstNode.Header.Timestamp.Unix()
+
 	adjustedTimespan := actualTimespan
 	if actualTimespan < b.server.chainParams.MinActualTimespan {
 		adjustedTimespan = b.server.chainParams.MinActualTimespan
@@ -2509,6 +2513,8 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	// oldTarget := CompactToBig(ln.bits)
 	// fmt.Printf("oldTarget           %08x, %d\n", prevNode.bits, oldTarget)
 	newTarget := new(big.Int).Mul(oldTarget, big.NewInt(adjustedTimespan))
+
+	//
 	newTarget = newTarget.Div(newTarget, big.NewInt(b.server.chainParams.AveragingTargetTimespan))
 	// fmt.Printf("newTarget           %08x %064x\n", BigToCompact(newTarget), newTarget)
 

@@ -213,7 +213,7 @@ type server struct {
 	hashCache            *txscript.HashCache
 	rpcServer            *rpcServer
 	syncManager          *netsync.SyncManager
-	chain                *blockchain.BlockChain
+	chain                *chain.BlockChain
 	txMemPool            *mempool.TxPool
 	cpuMiner             *cpuminer.CPUMiner
 	modifyRebroadcastInv chan interface{}
@@ -228,7 +228,7 @@ type server struct {
 	quit                 chan struct{}
 	nat                  upnp.NAT
 	db                   database.DB
-	timeSource           blockchain.MedianTimeSource
+	timeSource           chain.MedianTimeSource
 	services             wire.ServiceFlag
 
 	// The following fields are used for optional indexes.  They will be nil
@@ -2576,7 +2576,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		peerHeightsUpdate:    make(chan updatePeerHeightsMsg),
 		nat:                  nat,
 		db:                   db,
-		timeSource:           blockchain.NewMedianTime(),
+		timeSource:           chain.NewMedianTime(),
 		services:             services,
 		sigCache:             txscript.NewSigCache(cfg.SigCacheMaxSize),
 		hashCache:            txscript.NewHashCache(cfg.SigCacheMaxSize),
@@ -2616,7 +2616,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 	}
 
 	// Create an index manager if any of the optional indexes are enabled.
-	var indexManager blockchain.IndexManager
+	var indexManager chain.IndexManager
 	if len(indexes) > 0 {
 		indexManager = indexers.NewManager(db, indexes)
 	}
@@ -2629,7 +2629,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 
 	// Create a new block chain instance with the appropriate configuration.
 	var err error
-	s.chain, err = blockchain.New(&blockchain.Config{
+	s.chain, err = chain.New(&chain.Config{
 		DB:           s.db,
 		Interrupt:    interrupt,
 		ChainParams:  s.chainParams,
@@ -2680,7 +2680,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 			FreeTxRelayLimit:     cfg.FreeTxRelayLimit,
 			MaxOrphanTxs:         cfg.MaxOrphanTxs,
 			MaxOrphanTxSize:      defaultMaxOrphanTxSize,
-			MaxSigOpCostPerTx:    blockchain.MaxBlockSigOpsCost / 4,
+			MaxSigOpCostPerTx:    chain.MaxBlockSigOpsCost / 4,
 			MinRelayTxFee:        cfg.minRelayTxFee,
 			MaxTxVersion:         2,
 		},
@@ -2688,7 +2688,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		FetchUtxoView:  s.chain.FetchUtxoView,
 		BestHeight:     func() int32 { return s.chain.BestSnapshot().Height },
 		MedianTimePast: func() time.Time { return s.chain.BestSnapshot().MedianTime },
-		CalcSequenceLock: func(tx *utils.Tx, view *blockchain.UtxoViewpoint) (*blockchain.SequenceLock, error) {
+		CalcSequenceLock: func(tx *utils.Tx, view *chain.UtxoViewpoint) (*chain.SequenceLock, error) {
 			return s.chain.CalcSequenceLock(tx, view, true)
 		},
 		IsDeploymentActive: s.chain.IsDeploymentActive,

@@ -5,6 +5,7 @@
 package chain
 
 import (
+	"fmt"
 	"math/big"
 	"sort"
 	"sync"
@@ -357,18 +358,22 @@ func (node *blockNode) GetPrevWithAlgo(algo int32) (prev *blockNode) {
 	if node == nil {
 		return nil
 	}
-	if node.GetAlgo() == algo {
-		return node
-	}
-	prev = node.RelativeAncestor(1)
-	if prev == nil {
-		return
-	}
-	for algo != prev.version {
+	prev = node
+	for {
+		if prev == nil {
+			return nil
+		}
 		prev = prev.RelativeAncestor(1)
 		if prev == nil {
-			// fmt.Println("passed genesis block")
-			return
+			return nil
+		}
+		pnv := prev.GetAlgo()
+		if pnv == 4194306 {
+			fmt.Println("BOGUS VERSION NUMBER")
+			pnv = 2
+		}
+		if pnv == algo {
+			return prev
 		}
 	}
 	return

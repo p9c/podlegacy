@@ -33,10 +33,10 @@ _testmain.go
 
 *.exe
 docker/legacy/data/*
-pod/pod
-podctl/podctl
-wallet/wallet
-gencerts/gencerts
-addblock/addblock
-findcheckpoint/findcheckpoint
+cmd/gencerts/gencerts
+cmd/addblock/addblock
+cmd/findcheckpoint/findcheckpoint
 cmd/sac/sac
+cmd/mod/mod
+cmd/pod/pod
+cmd/podctl/podctl

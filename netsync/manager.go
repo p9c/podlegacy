@@ -522,7 +522,7 @@ func (sm *SyncManager) current() bool {
 
 // handleBlockMsg handles block messages from all peers.
 func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
-	log.Debug("handleBlockMsg")
+	// log.Debug("handleBlockMsg")
 	peer := bmsg.peer
 	state, exists := sm.peerStates[peer]
 	if !exists {

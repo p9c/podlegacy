@@ -7,8 +7,8 @@ package chain
 import (
 	"fmt"
 
-	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/database"
+	"github.com/parallelcointeam/pod/utils"
 )
 
 // maybeAcceptBlock potentially accepts a block into the block chain and, if
@@ -38,38 +38,41 @@ func (b *BlockChain) maybeAcceptBlock(block *utils.Block, flags BehaviorFlags) (
 	blockHeight := prevNode.height + 1
 	block.SetHeight(blockHeight)
 
-	// TODO
+	//
 	// To deal with multiple mining algorithms, we must check first the block header version.
 	// Rather than pass the direct previous by height, we look for the previous of the same algorithm and pass that.
 	var DoNotCheckPow bool
 	var pn *blockNode
-	if prevNode.version != block.MsgBlock().Header.Version {
-		var i int64
-		pn = prevNode
-		for ; i < b.chainParams.AveragingInterval-1; i++ {
-			pn = pn.GetPrevWithAlgo(block.MsgBlock().Header.Version)
-			// fmt.Println("pn ", pn)
-			if pn == nil {
-				// fmt.Println("passed genesis looking for previous of algo")
-				break
-			}
+	// if prevNode.version != block.MsgBlock().Header.Version {
+	var i int64
+	pn = prevNode
+	for ; i < b.chainParams.AveragingInterval-1; i++ {
+		v := block.MsgBlock().Header.Version
+		if v == 4194306 {
+			v = 2
 		}
-		// fmt.Println("stepped back", i, "blocks to genesis")
+		pn = pn.GetPrevWithAlgo(v)
+		// fmt.Println("pn ", pn)
+		if pn == nil {
+			// fmt.Println("passed genesis looking for previous of algo")
+			break
+		}
 	}
+	// fmt.Println("stepped back", i, "blocks to genesis")
+	// }
 
 	var err error
 	if pn == nil {
-		// fmt.Println("not enough blocks for adjustment")
-		// DoNotCheckPow = true
+		fmt.Println("not enough blocks for adjustment")
+		DoNotCheckPow = true
 		// return true, err
-	} else {
-		// The block must pass all of the validation rules which depend on the
-		// position of the block within the block chain.
-		// fmt.Println("enough blocks for adjustment")
-		err = b.checkBlockContext(block, prevNode, flags, DoNotCheckPow)
-		if err != nil {
-			return false, err
-		}
+	}
+	// The block must pass all of the validation rules which depend on the
+	// position of the block within the block chain.
+	// fmt.Println("enough blocks for adjustment")
+	err = b.checkBlockContext(block, prevNode, flags, DoNotCheckPow)
+	if err != nil {
+		return false, err
 	}
 
 	// Insert the block into the database if it's not already there.  Even

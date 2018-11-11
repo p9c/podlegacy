@@ -5,6 +5,7 @@
 package chain
 
 import (
+	"fmt"
 	"math/big"
 	"time"
 
@@ -222,7 +223,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	var powLimit *big.Int
 	var powLimitBits uint32
 	switch algo {
-	case 2:
+	case 2, 4194306:
 		powLimit = b.chainParams.PowLimit
 		powLimitBits = b.chainParams.PowLimitBits
 	case 514:
@@ -237,8 +238,16 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 
 	prevNode := lastNode
 	// fmt.Printf("lastNode bits %08x %d %d\n", prevNode.bits, prevNode.height, prevNode.version)
-	if prevNode.version != algo {
+	pnv := prevNode.version
+	if pnv == 4194306 {
+		fmt.Println("BOGUS VERSION NUMBER")
+		pnv = 2
+	}
+	if pnv != algo {
 		prevNode = prevNode.GetPrevWithAlgo(algo)
+	}
+	if prevNode == nil {
+		return powLimitBits, nil
 	}
 	// fmt.Printf("prevNode bits %08x %d %d\n", prevNode.bits, prevNode.height, prevNode.version)
 	// Return the previous block's difficulty requirements if this block
@@ -247,20 +256,20 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	// For networks that support it, allow special reduction of the
 	// required difficulty once too much time has elapsed without
 	// mining a block.
-	if b.chainParams.ReduceMinDifficulty {
-		// Return minimum difficulty when more than the desired
-		// amount of time has elapsed without mining a block.
-		reductionTime := int64(b.chainParams.MinDiffReductionTime)
-		allowMinTime := lastNode.timestamp + reductionTime
-		if newBlockTime.Unix() > allowMinTime {
-			return b.chainParams.PowLimitBits, nil
-		}
+	// if b.chainParams.ReduceMinDifficulty {
+	// 	// Return minimum difficulty when more than the desired
+	// 	// amount of time has elapsed without mining a block.
+	// 	reductionTime := int64(b.chainParams.MinDiffReductionTime)
+	// 	allowMinTime := lastNode.timestamp + reductionTime
+	// 	if newBlockTime.Unix() > allowMinTime {
+	// 		return b.chainParams.PowLimitBits, nil
+	// 	}
 
-		// The block was mined within the desired timeframe, so
-		// return the difficulty for the last block which did
-		// not have the special minimum difficulty rule applied.
-		return b.findPrevTestNetDifficulty(lastNode), nil
-	}
+	// 	// The block was mined within the desired timeframe, so
+	// 	// return the difficulty for the last block which did
+	// 	// not have the special minimum difficulty rule applied.
+	// 	return b.findPrevTestNetDifficulty(lastNode), nil
+	// }
 
 	// For the main network (or any unrecognized networks), simply
 	// return the previous block's difficulty requirements.
@@ -274,14 +283,18 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	// 	return 0, AssertError("unable to obtain previous retarget block")
 	// }
 
-	firstNode := prevNode.GetPrevWithAlgo(algo) //.RelativeAncestor(1)
+	// fmt.Printf("prevNode bits %08x %d %d\n", prevNode.bits, prevNode.height, prevNode.version)
+	// fmt.Printf("prevNode timestamp %08x %d\n", prevNode.timestamp, prevNode.timestamp)
+
+	firstNode := prevNode
 	for i := int64(1); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
-		firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo)
+		firstNode = firstNode.GetPrevWithAlgo(algo)
 	}
 	if firstNode == nil {
 		return powLimitBits, nil
 	}
 	// fmt.Printf("firstNode bits %08x %d %d\n", firstNode.bits, firstNode.height, firstNode.version)
+	// fmt.Printf("firstNode timestamp %08x %d\n", firstNode.timestamp, firstNode.timestamp)
 
 	// Limit the amount of adjustment that can occur to the previous
 	// difficulty.
@@ -319,7 +332,6 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 
 	// Limit new value to the proof of work limit.
 	if newTarget.Cmp(powLimit) > 0 {
-		// fmt.Println("hit limit", powLimit)
 		newTarget.Set(powLimit)
 	}
 

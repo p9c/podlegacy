@@ -11,10 +11,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/wire"
 )
 
@@ -690,6 +690,7 @@ func checkSerializedHeight(coinbaseTx *utils.Tx, wantHeight int32) error {
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode *blockNode, flags BehaviorFlags) error {
+	// fmt.Println("checkBlockHeaderContext", header.Version)
 	if prevNode == nil {
 		return nil
 	}
@@ -698,8 +699,11 @@ func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode 
 		// Ensure the difficulty specified in the block header matches
 		// the calculated difficulty based on the previous block and
 		// difficulty retarget rules.
-		expectedDifficulty, err := b.calcNextRequiredDifficulty(prevNode,
-			header.Timestamp, header.Version)
+		hv := header.Version
+		if hv == 4194306 {
+			hv = 2
+		}
+		expectedDifficulty, err := b.calcNextRequiredDifficulty(prevNode, header.Timestamp, hv)
 		if err != nil {
 			return err
 		}
@@ -710,7 +714,7 @@ func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode 
 
 			// fmt.Println("                   ", CompactToBig(blockDifficulty).Div(CompactToBig(blockDifficulty), CompactToBig(expectedDifficulty)))
 			// fmt.Println("                   ", CompactToBig(expectedDifficulty).Div(CompactToBig(expectedDifficulty), CompactToBig(blockDifficulty)))
-			str := "block difficulty of %d is not the expected value of %d"
+			str := "block difficulty of %08x is not the expected value of %08x"
 			str = fmt.Sprintf(str, blockDifficulty, expectedDifficulty)
 			return ruleError(ErrUnexpectedDifficulty, str)
 		}

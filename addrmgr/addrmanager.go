@@ -555,7 +555,6 @@ func (a *AddrManager) Start() {
 
 // Stop gracefully shuts down the address manager by stopping the main handler.
 func (a *AddrManager) Stop() error {
-	fmt.Println("AddrManager Stop")
 	if atomic.AddInt32(&a.shutdown, 1) != 1 {
 		log.Warnf("Address manager is already in the process of " +
 			"shutting down")
