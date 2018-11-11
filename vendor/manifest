@@ -95,6 +95,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/lightninglabs/gozmq",
+			"repository": "https://github.com/lightninglabs/gozmq",
+			"vcs": "git",
+			"revision": "462a8a75388506b68f76661af8d649f0b88e5301",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/rcrowley/go-metrics",
 			"repository": "https://github.com/rcrowley/go-metrics",
 			"vcs": "git",
