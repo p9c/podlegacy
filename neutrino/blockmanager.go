@@ -2359,7 +2359,7 @@ func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 	maxTimestamp time.Time, reorgAttempt bool) error {
 	diff, err := b.calcNextRequiredDifficulty(
 		blockHeader.Timestamp, reorgAttempt, blockHeader.Version)
-	fmt.Printf("DIFFICULTY %08x\n", diff)
+	// fmt.Printf("DIFFICULTY %08x\n", diff)
 	if err != nil {
 		fmt.Println("1 ERROR", err)
 		return err
@@ -2389,7 +2389,7 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	var powLimit *big.Int
 	var powLimitBits uint32
 	switch algo {
-	case 2:
+	case 2, 4194306:
 		powLimit = b.server.chainParams.PowLimit
 		powLimitBits = b.server.chainParams.PowLimitBits
 	case 514:

@@ -339,23 +339,20 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 	// fmt.Println("checkProofOfWork")
 	// The target difficulty must be larger than zero.
 	pl := powLimit
-	if powLimit == nil {
-		switch header.Version {
-		case 2, 4194306:
-			if header.Version == 4194306 {
-				// fmt.Print("anomalous ")
-			}
-			// fmt.Println("sha256d block")
-			pl = CompactToBig(chaincfg.MainPowLimitBits)
-
-		case 514:
-			// fmt.Println("scrypt block")
-			pl = CompactToBig(chaincfg.ScryptPowLimitBits)
-		default:
-			errortext := fmt.Sprint("ERROR: block version", header.Version, "is unrecognised")
-			return errors.New(errortext)
+	switch header.Version {
+	case 2, 4194306:
+		if header.Version == 4194306 {
+			// fmt.Print("anomalous ")
 		}
-		pl = powLimit
+		// fmt.Println("sha256d block")
+		pl = CompactToBig(chaincfg.MainPowLimitBits)
+
+	case 514:
+		// fmt.Println("scrypt block")
+		pl = CompactToBig(chaincfg.ScryptPowLimitBits)
+	default:
+		errortext := fmt.Sprint("ERROR: block version", header.Version, "is unrecognised")
+		return errors.New(errortext)
 	}
 	// fmt.Printf("powlimit %064x\n", powLimit)
 	target := CompactToBig(header.Bits)
