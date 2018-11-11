@@ -1,0 +1,163 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "ekyu.moe/cryptonight",
+			"repository": "https://github.com/Equim-chan/cryptonight",
+			"vcs": "git",
+			"revision": "bc73bb1ae548496896101906bcec503cf77ee9f5",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/Equim-chan/cryptonight",
+			"repository": "https://github.com/Equim-chan/cryptonight",
+			"vcs": "git",
+			"revision": "bc73bb1ae548496896101906bcec503cf77ee9f5",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/aead/skein",
+			"repository": "https://github.com/aead/skein",
+			"vcs": "git",
+			"revision": "9365ae6e95d294dc113a0b308852f97c916db233",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/dchest/blake256",
+			"repository": "https://github.com/dchest/blake256",
+			"vcs": "git",
+			"revision": "dee3fe6eb0e98dc774a94fc231f85baf7c29d360",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/goji/httpauth",
+			"repository": "https://github.com/goji/httpauth",
+			"vcs": "git",
+			"revision": "2da839ab0f4df05a6db5eb277995589dadbd4fb9",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/gorilla/mux",
+			"repository": "https://github.com/gorilla/mux",
+			"vcs": "git",
+			"revision": "3d80bc801bb034e17cae38591335b3b1110f1c47",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/influxdata/influxdb/models",
+			"repository": "https://github.com/influxdata/influxdb",
+			"vcs": "git",
+			"revision": "2e7d8d753fd70e7378c537dfe82b64fd2786b1cb",
+			"branch": "master",
+			"path": "/models",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/influxdata/influxdb/pkg/escape",
+			"repository": "https://github.com/influxdata/influxdb",
+			"vcs": "git",
+			"revision": "2e7d8d753fd70e7378c537dfe82b64fd2786b1cb",
+			"branch": "master",
+			"path": "pkg/escape",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/influxdata/platform/models",
+			"repository": "https://github.com/influxdata/platform",
+			"vcs": "git",
+			"revision": "2f8893f5d5e3c574256cbda3b589c29c6dbec653",
+			"branch": "master",
+			"path": "/models",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/influxdata/platform/pkg/escape",
+			"repository": "https://github.com/influxdata/platform",
+			"vcs": "git",
+			"revision": "2f8893f5d5e3c574256cbda3b589c29c6dbec653",
+			"branch": "master",
+			"path": "pkg/escape",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/influxdb/influxdb/client",
+			"repository": "https://github.com/influxdb/influxdb",
+			"vcs": "git",
+			"revision": "2e7d8d753fd70e7378c537dfe82b64fd2786b1cb",
+			"branch": "master",
+			"path": "/client",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/rcrowley/go-metrics",
+			"repository": "https://github.com/rcrowley/go-metrics",
+			"vcs": "git",
+			"revision": "3113b8401b8a98917cde58f8bbd42a1b1c03b1fd",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/sammy007/go-equihash",
+			"repository": "https://github.com/sammy007/go-equihash",
+			"vcs": "git",
+			"revision": "7a445e4cee0cd56c7c59785b805e668a98f379f3",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/sammy007/monero-stratum",
+			"repository": "https://github.com/sammy007/monero-stratum",
+			"vcs": "git",
+			"revision": "0bc8be64a683fb1d491337ef4c0a0b30a27168db",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stathat/go",
+			"repository": "https://github.com/stathat/go",
+			"vcs": "git",
+			"revision": "74669b9f388d9d788c97399a0824adbfee78400e",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/yvasiyarov/go-metrics",
+			"repository": "https://github.com/yvasiyarov/go-metrics",
+			"vcs": "git",
+			"revision": "c25f46c4b94079672242ec48a545e7ca9ebe3aec",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/yvasiyarov/gorelic",
+			"repository": "https://github.com/yvasiyarov/gorelic",
+			"vcs": "git",
+			"revision": "635ca6035f2355e29fc558effa613d0d5867aac8",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/yvasiyarov/newrelic_platform_go",
+			"repository": "https://github.com/yvasiyarov/newrelic_platform_go",
+			"vcs": "git",
+			"revision": "9c099fbc30e90de5bb5c5f94aa5fd08f2daeaacd",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/sys/cpu",
+			"repository": "https://go.googlesource.com/sys",
+			"vcs": "git",
+			"revision": "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399",
+			"branch": "master",
+			"path": "/cpu",
+			"notests": true
+		}
+	]
+}
