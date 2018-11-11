@@ -7,8 +7,8 @@
 package helpers
 
 import (
-	"github.com/btcsuite/btcd/wire"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 // SumOutputValues sums up the list of TxOuts and returns an Amount.

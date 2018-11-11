@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcwallet/walletdb"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/walletdb"
 	"github.com/parallelcointeam/pod/wire"
 	. "github.com/parallelcointeam/pod/wtxmgr"
 )
@@ -294,10 +294,10 @@ func TestStoreQueries(t *testing.T) {
 	newState = lastState.deepCopy()
 	newState.blocks[0][0].Credits = []CreditRecord{
 		{
-			Index:                  0,
-			parallelcointeam / pod: utils.Amount(recA.MsgTx.TxOut[0].Value),
-			Spent:                  false,
-			Change:                 true,
+			Index:  0,
+			Amount: utils.Amount(recA.MsgTx.TxOut[0].Value),
+			Spent:  false,
+			Change: true,
 		},
 	}
 	newState.txDetails[recA.Hash][0].Credits = newState.blocks[0][0].Credits
@@ -324,8 +324,8 @@ func TestStoreQueries(t *testing.T) {
 		Block:    BlockMeta{Block: Block{Height: -1}},
 		Debits: []DebitRecord{
 			{
-				parallelcointeam / pod: utils.Amount(recA.MsgTx.TxOut[0].Value),
-				Index:                  0, // recB.MsgTx.TxIn index
+				Amount: utils.Amount(recA.MsgTx.TxOut[0].Value),
+				Index:  0, // recB.MsgTx.TxIn index
 			},
 		},
 	})
@@ -342,10 +342,10 @@ func TestStoreQueries(t *testing.T) {
 	newState = lastState.deepCopy()
 	newState.blocks[0][1].Credits = []CreditRecord{
 		{
-			Index:                  0,
-			parallelcointeam / pod: utils.Amount(recB.MsgTx.TxOut[0].Value),
-			Spent:                  false,
-			Change:                 false,
+			Index:  0,
+			Amount: utils.Amount(recB.MsgTx.TxOut[0].Value),
+			Spent:  false,
+			Change: false,
 		},
 	}
 	newState.txDetails[recB.Hash][0].Credits = newState.blocks[0][1].Credits

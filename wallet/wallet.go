@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/btcsuite/btcd/btcjson"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/btcjson"
 	"github.com/parallelcointeam/pod/chain"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"

@@ -8,6 +8,8 @@ import (
 
 	"github.com/parallelcointeam/pod/chaincfg"
 
+	"github.com/parallelcointeam/pod/neutrinoclient"
+
 	"github.com/parallelcointeam/pod/neutrino"
 	"github.com/parallelcointeam/pod/walletdb"
 	_ "github.com/parallelcointeam/pod/walletdb/bdb"
@@ -60,6 +62,10 @@ func main() {
 		os.Exit(1)
 	}
 	spvNode.Start()
+
+	client := nclient.NewNeutrinoClient(&params, spvNode)
+
+	fmt.Println(client.GetBestBlock())
 
 	// Wait until the node has fully synced up to the local
 	// btcd node.

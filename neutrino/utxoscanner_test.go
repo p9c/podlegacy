@@ -8,14 +8,14 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/utils/gcs"
 	"github.com/parallelcointeam/pod/waddrmgr"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 type MockChainClient struct {
-	getBlockResponse     map[chainhash.Hash]*btcutil.Block
+	getBlockResponse     map[chainhash.Hash]*utils.Block
 	getBlockHashResponse map[int64]*chainhash.Hash
 	getBestBlockHash     *chainhash.Hash
 	getBestBlockHeight   int32
@@ -24,18 +24,18 @@ type MockChainClient struct {
 
 func NewMockChainClient() *MockChainClient {
 	return &MockChainClient{
-		getBlockResponse:     make(map[chainhash.Hash]*btcutil.Block),
+		getBlockResponse:     make(map[chainhash.Hash]*utils.Block),
 		getBlockHashResponse: make(map[int64]*chainhash.Hash),
 		getCFilterResponse:   make(map[chainhash.Hash]*gcs.Filter),
 	}
 }
 
-func (c *MockChainClient) SetBlock(hash *chainhash.Hash, block *btcutil.Block) {
+func (c *MockChainClient) SetBlock(hash *chainhash.Hash, block *utils.Block) {
 	c.getBlockResponse[*hash] = block
 }
 
 func (c *MockChainClient) GetBlockFromNetwork(blockHash chainhash.Hash,
-	options ...QueryOption) (*btcutil.Block, error) {
+	options ...QueryOption) (*utils.Block, error) {
 	return c.getBlockResponse[blockHash], nil
 }
 
@@ -327,7 +327,7 @@ func TestUtxoScannerScanBasic(t *testing.T) {
 
 	block100000Hash := Block100000.BlockHash()
 	mockChainClient.SetBlockHash(100000, &block100000Hash)
-	mockChainClient.SetBlock(&block100000Hash, btcutil.NewBlock(&Block100000))
+	mockChainClient.SetBlock(&block100000Hash, utils.NewBlock(&Block100000))
 	mockChainClient.SetBestSnapshot(&block100000Hash, 100000)
 
 	scanner := NewUtxoScanner(&UtxoScannerConfig{
@@ -369,12 +369,12 @@ func TestUtxoScannerScanAddBlocks(t *testing.T) {
 
 	block99999Hash := Block99999.BlockHash()
 	mockChainClient.SetBlockHash(99999, &block99999Hash)
-	mockChainClient.SetBlock(&block99999Hash, btcutil.NewBlock(&Block99999))
+	mockChainClient.SetBlock(&block99999Hash, utils.NewBlock(&Block99999))
 	mockChainClient.SetBestSnapshot(&block99999Hash, 99999)
 
 	block100000Hash := Block100000.BlockHash()
 	mockChainClient.SetBlockHash(100000, &block100000Hash)
-	mockChainClient.SetBlock(&block100000Hash, btcutil.NewBlock(&Block100000))
+	mockChainClient.SetBlock(&block100000Hash, utils.NewBlock(&Block100000))
 
 	var snapshotLock sync.Mutex
 	waitForSnapshot := make(chan struct{})
@@ -440,7 +440,7 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 
 	block100000Hash := Block100000.BlockHash()
 	mockChainClient.SetBlockHash(100000, &block100000Hash)
-	mockChainClient.SetBlock(&block100000Hash, btcutil.NewBlock(&Block100000))
+	mockChainClient.SetBlock(&block100000Hash, utils.NewBlock(&Block100000))
 	mockChainClient.SetBestSnapshot(&block100000Hash, 100000)
 
 	fetchErr := errors.New("cannot fetch block")
@@ -451,7 +451,7 @@ func TestUtxoScannerCancelRequest(t *testing.T) {
 	block := make(chan struct{})
 	scanner := NewUtxoScanner(&UtxoScannerConfig{
 		GetBlock: func(chainhash.Hash, ...QueryOption,
-		) (*btcutil.Block, error) {
+		) (*utils.Block, error) {
 			<-block
 			return nil, fetchErr
 		},

@@ -12,14 +12,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/parallelcointeam/pod/utils"
-	"github.com/parallelcointeam/pod/chain"
+	"github.com/btcsuite/btcd/blockchain"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/neutrino/cache"
 	"github.com/parallelcointeam/pod/neutrino/cache/lru"
 	"github.com/parallelcointeam/pod/neutrino/filterdb"
 	"github.com/parallelcointeam/pod/neutrino/headerfs"
+	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/utils/gcs"
 	"github.com/parallelcointeam/pod/utils/gcs/builder"
 	"github.com/parallelcointeam/pod/wire"
@@ -44,7 +44,7 @@ var (
 //
 // NOTE: copied from parallelcointeam/pod/database/ffldb/interface_test.go
 func loadBlocks(t *testing.T, dataFile string, network wire.BitcoinNet) (
-	[]*btcutil.Block, error) {
+	[]*utils.Block, error) {
 	// Open the file that contains the blocks for reading.
 	fi, err := os.Open(dataFile)
 	if err != nil {
@@ -60,8 +60,8 @@ func loadBlocks(t *testing.T, dataFile string, network wire.BitcoinNet) (
 	dr := bzip2.NewReader(fi)
 
 	// Set the first block as the genesis block.
-	blocks := make([]*btcutil.Block, 0, 256)
-	genesis := btcutil.NewBlock(chaincfg.MainNetParams.GenesisBlock)
+	blocks := make([]*utils.Block, 0, 256)
+	genesis := utils.NewBlock(chaincfg.MainNetParams.GenesisBlock)
 	blocks = append(blocks, genesis)
 
 	// Load the remaining blocks.
@@ -100,7 +100,7 @@ func loadBlocks(t *testing.T, dataFile string, network wire.BitcoinNet) (
 		}
 
 		// Deserialize and store the block.
-		block, err := btcutil.NewBlockFromBytes(blockBytes)
+		block, err := utils.NewBlockFromBytes(blockBytes)
 		if err != nil {
 			t.Errorf("Failed to parse block %v: %v", height, err)
 			return nil, err
