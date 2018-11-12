@@ -5,7 +5,6 @@
 package chain
 
 import (
-	"fmt"
 	"math/big"
 	"time"
 
@@ -240,7 +239,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	// fmt.Printf("lastNode bits %08x %d %d\n", prevNode.bits, prevNode.height, prevNode.version)
 	pnv := prevNode.version
 	if pnv == 4194306 {
-		fmt.Println("BOGUS VERSION NUMBER")
+		// fmt.Println("BOGUS VERSION NUMBER")
 		pnv = 2
 	}
 	if pnv != algo {

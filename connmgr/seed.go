@@ -5,7 +5,6 @@
 package connmgr
 
 import (
-	"fmt"
 	mrand "math/rand"
 	"net"
 	"strconv"
@@ -35,12 +34,12 @@ func SeedFromDNS(chainParams *chaincfg.Params, reqServices wire.ServiceFlag,
 
 	for _, dnsseed := range chainParams.DNSSeeds {
 		var host string
-		if !dnsseed.HasFiltering || reqServices == wire.SFNodeNetwork {
-			host = dnsseed.Host
-		} else {
-			host = fmt.Sprintf("x%x.%s", uint64(reqServices), dnsseed.Host)
-		}
-
+		// if !dnsseed.HasFiltering || reqServices == wire.SFNodeNetwork {
+		host = dnsseed.Host
+		// } else {
+		// 	host = fmt.Sprintf("x%x.%s", uint64(reqServices), dnsseed.Host)
+		// 	fmt.Println("HOST", host)
+		// }
 		go func(host string) {
 			randSource := mrand.New(mrand.NewSource(time.Now().UnixNano()))
 

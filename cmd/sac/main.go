@@ -22,8 +22,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(config.ConnectPeers)
-	fmt.Println(config.AddPeers)
+	fmt.Println("connect peers", config.ConnectPeers)
+	fmt.Println("add peers", config.AddPeers)
 
 	// Ensure that the neutrino db path exists.
 	if err := os.MkdirAll(config.DataDir, 0700); err != nil {
@@ -65,7 +65,10 @@ func main() {
 
 	client := nclient.NewNeutrinoClient(&params, spvNode)
 
-	fmt.Println(client.GetBestBlock())
+	fmt.Println("BEST BLOCK", func() string {
+		hash, height, err := client.GetBestBlock()
+		return fmt.Sprint(height, " hash ", hash.String(), " err ", err)
+	}())
 
 	// Wait until the node has fully synced up to the local
 	// btcd node.

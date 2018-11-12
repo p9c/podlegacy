@@ -2361,7 +2361,7 @@ func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 		blockHeader.Timestamp, reorgAttempt, blockHeader.Version)
 	// fmt.Printf("DIFFICULTY %08x\n", diff)
 	if err != nil {
-		fmt.Println("1 ERROR", err)
+		// fmt.Println("1 ERROR", err)
 		return err
 	}
 	stubBlock := utils.NewBlock(&wire.MsgBlock{
@@ -2370,7 +2370,7 @@ func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 	err = chain.CheckProofOfWork(stubBlock,
 		chain.CompactToBig(diff))
 	if err != nil {
-		fmt.Println("2 ERROR", err)
+		// fmt.Println("2 ERROR", err)
 		return err
 	}
 	// Ensure the block time is not too far in the future.
@@ -2410,7 +2410,7 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	prevNode := lastNode
 	pnv := prevNode.GetAlgo()
 	if pnv == 4194306 {
-		fmt.Println("BOGUS VERSION NUMBER")
+		// fmt.Println("BOGUS VERSION NUMBER")
 		pnv = 2
 	}
 	if pnv != algo {

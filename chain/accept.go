@@ -63,7 +63,7 @@ func (b *BlockChain) maybeAcceptBlock(block *utils.Block, flags BehaviorFlags) (
 
 	var err error
 	if pn == nil {
-		fmt.Println("not enough blocks for adjustment")
+		// fmt.Println("not enough blocks for adjustment")
 		DoNotCheckPow = true
 		// return true, err
 	}
