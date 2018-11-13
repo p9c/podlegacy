@@ -239,7 +239,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	prevNode := lastNode
 	// fmt.Printf("lastNode bits %08x %d %d\n", prevNode.bits, prevNode.height, prevNode.version)
 	pnv := prevNode.version
-	if pnv == 4194306 {
+	if pnv != 514 {
 		// fmt.Println("BOGUS VERSION NUMBER")
 		pnv = 2
 	}
@@ -358,7 +358,11 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 // This function is safe for concurrent access.
 func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time) (uint32, error) {
 	b.chainLock.Lock()
-	difficulty, err := b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, b.bestChain.Tip().version)
+	v := b.bestChain.Tip().version
+	if v != 514 {
+		v = 2
+	}
+	difficulty, err := b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, v)
 	b.chainLock.Unlock()
 	return difficulty, err
 }

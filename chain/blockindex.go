@@ -364,6 +364,9 @@ func (node *blockNode) GetPrevWithAlgo(algo int32) (prev *blockNode) {
 	if node == nil {
 		return nil
 	}
+	if algo != 514 {
+		algo = 2
+	}
 	prev = node
 	for {
 		if prev == nil {
@@ -374,7 +377,7 @@ func (node *blockNode) GetPrevWithAlgo(algo int32) (prev *blockNode) {
 			return nil
 		}
 		pnv := prev.GetAlgo()
-		if pnv == 4194306 {
+		if pnv != 514 {
 			pnv = 2
 		}
 		if pnv == algo {

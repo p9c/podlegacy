@@ -2357,8 +2357,12 @@ func (b *blockManager) handleHeadersMsg(hmsg *headersMsg) {
 // checkHeaderSanity checks the PoW, and timestamp of a block header.
 func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 	maxTimestamp time.Time, reorgAttempt bool) error {
-	diff, err := b.calcNextRequiredDifficulty(
-		blockHeader.Timestamp, reorgAttempt, blockHeader.Version)
+		hv := blockHeader.Version
+		if  !=514 {
+			hv = 2
+		}
+		diff, err := b.calcNextRequiredDifficulty(
+		blockHeader.Timestamp, reorgAttempt, hv)
 	// fmt.Printf("DIFFICULTY %08x\n", diff)
 	if err != nil {
 		// fmt.Println("1 ERROR", err)
