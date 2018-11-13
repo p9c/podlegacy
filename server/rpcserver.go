@@ -1035,18 +1035,21 @@ func HandleGetBestBlockHash(s *RPCServer, cmd interface{}, closeChan <-chan stru
 // GetDifficultyRatio returns the proof-of-work difficulty as a multiple of the
 // minimum difficulty using the passed bits field from the header of a block.
 func GetDifficultyRatio(bits uint32, params *chaincfg.Params, algo int32) float64 {
-	a := uint32(algo)
+	// a := uint32(algo)
 	// The minimum difficulty is the max possible proof-of-work limit bits
 	// converted back to a number.  Note this is not the same as the proof of
 	// work limit directly because the block difficulty is encoded in a block
 	// with the compact form which loses precision.
 	max := chain.CompactToBig(0x1d00ffff)
-	if a == 514 {
-		max = chain.CompactToBig(params.ScryptPowLimitBits)
-	} else {
-		// max := chain.CompactToBig(params.PowLimitBits)
-	}
+	// if a == 514 {
+	// 	max = chain.CompactToBig(0x1d00ffff)
+	// } else {
+	// 	// max := chain.CompactToBig(params.PowLimitBits)
+	// }
 	target := chain.CompactToBig(bits)
+
+	fmt.Println("max   ", max)
+	fmt.Println("target", target)
 
 	difficulty := new(big.Rat).SetFrac(max, target)
 	outString := difficulty.FloatString(8)
@@ -2328,18 +2331,70 @@ func HandleGetHeaders(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) 
 // HandleGetInfo implements the getinfo command. We only return the fields
 // that are not related to wallet functionality.
 func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	// fmt.Println("HandleGetInfo")
 	best := s.cfg.Chain.BestSnapshot()
 	v, _ := s.cfg.Chain.BlockByHash(&best.Hash)
+	ver := v.MsgBlock().Header.Version
+	if ver != 514 {
+		ver = 2
+	}
+
+	gen := int32(s.cfg.ChainParams.GenerationAlgo)
+
+	var shabits, scryptbits uint32
+	if ver != 514 {
+		shabits = best.Bits
+		// now get last scrypt block
+		prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
+		if err != nil {
+			fmt.Println("ERROR", err)
+		}
+		for {
+			if prev.MsgBlock().Header.Version != 514 {
+				ph := prev.MsgBlock().Header.PrevBlock
+				prev, err = s.cfg.Chain.BlockByHash(&ph)
+				if err != nil {
+					fmt.Println("ERROR", err)
+				}
+				continue
+			}
+			scryptbits = uint32(prev.MsgBlock().Header.Bits)
+			break
+		}
+	}
+	if ver == 514 {
+		scryptbits = best.Bits
+		// now get last sha256d block
+		prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
+		if err != nil {
+			fmt.Println("ERROR", err)
+		}
+		for {
+			if prev.MsgBlock().Header.Version == 514 {
+				ph := prev.MsgBlock().Header.PrevBlock
+				prev, err = s.cfg.Chain.BlockByHash(&ph)
+				if err != nil {
+					fmt.Println("ERROR", err)
+				}
+				continue
+			}
+			shabits = uint32(prev.MsgBlock().Header.Bits)
+			break
+		}
+	}
+
 	ret := &JSON.InfoChainResult{
-		Version:         int32(1000000*AppMajor + 10000*AppMinor + 100*AppPatch),
-		ProtocolVersion: int32(maxProtocolVersion),
-		Blocks:          best.Height,
-		TimeOffset:      int64(s.cfg.TimeSource.Offset().Seconds()),
-		Connections:     s.cfg.ConnMgr.ConnectedCount(),
-		Proxy:           Cfg.Proxy,
-		Difficulty:      GetDifficultyRatio(best.Bits, s.cfg.ChainParams, v.MsgBlock().Header.Version),
-		TestNet:         Cfg.TestNet3,
-		RelayFee:        Cfg.minRelayTxFee.ToBTC(),
+		Version:           int32(1000000*AppMajor + 10000*AppMinor + 100*AppPatch),
+		ProtocolVersion:   int32(maxProtocolVersion),
+		Blocks:            best.Height,
+		TimeOffset:        int64(s.cfg.TimeSource.Offset().Seconds()),
+		Connections:       s.cfg.ConnMgr.ConnectedCount(),
+		Proxy:             Cfg.Proxy,
+		Difficulty:        GetDifficultyRatio(best.Bits, s.cfg.ChainParams, gen),
+		DifficultySHA256D: GetDifficultyRatio(shabits, s.cfg.ChainParams, 2),
+		DifficultyScrypt:  GetDifficultyRatio(scryptbits, s.cfg.ChainParams, 514),
+		TestNet:           Cfg.TestNet3,
+		RelayFee:          Cfg.minRelayTxFee.ToBTC(),
 	}
 
 	return ret, nil

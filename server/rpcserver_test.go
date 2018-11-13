@@ -17,8 +17,10 @@ func TestDiff(t *testing.T) {
 	fmt.Println("testing")
 	genbits := big.NewFloat(0.0).SetInt(chain.CompactToBig(0x1e0fffff))
 	bestbits := big.NewFloat(0.0).SetInt(chain.CompactToBig(0x19598ccc))
+	scryptbits := big.NewFloat(0.0).SetInt(chain.CompactToBig(0x1c2f6de1))
 	gendiff := big.NewFloat(float64(0.00024414))
 	bestdiff := big.NewFloat(float64(47960941.88119169))
+	scryptdiff := big.NewFloat(float64(5.39743482))
 
 	fmt.Printf("gen bits %0.0f\n", genbits)
 	fmt.Printf("gen diff %0.12f\n", gendiff)
@@ -37,4 +39,14 @@ func TestDiff(t *testing.T) {
 	fmt.Printf("%08x\n", chain.BigToCompact(bestdiffi))
 
 	fmt.Printf("should be 1d00ffff")
+
+	fmt.Println()
+
+	fmt.Printf("scrypt bits %0.0f\n", scryptbits)
+	fmt.Printf("scrypt diff %0.12f\n", scryptdiff)
+	scryptdifff := big.NewFloat(0.0).Mul(scryptbits, scryptdiff)
+	scryptdiffs := fmt.Sprintf("%.0f", scryptdifff)
+	scryptdiffi, _ := big.NewInt(0).SetString(scryptdiffs, 10)
+	fmt.Printf("%08x\n", chain.BigToCompact(scryptdiffi))
+
 }

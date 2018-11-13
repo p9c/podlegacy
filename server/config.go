@@ -563,6 +563,7 @@ func LoadConfig() (*Config, []string, error) {
 	// Set the mining algorithm correctly, default to sha256d if unrecognised
 	switch Cfg.Algo {
 	case "scrypt":
+
 	case "sha256d":
 	default:
 		Cfg.Algo = "sha256d"

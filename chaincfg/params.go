@@ -250,6 +250,7 @@ type Params struct {
 	// PowLimit defines the highest allowed proof of work value for a scrypt block as a uint256.
 	ScryptPowLimit     *big.Int
 	ScryptPowLimitBits uint32
+	GenerationAlgo     uint32
 }
 
 // MainNetParams defines the network parameters for the main Bitcoin network.
@@ -347,6 +348,7 @@ var MainNetParams = Params{
 	MaxActualTimespan:       3000 * (100 + 10) / 100,
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
+	GenerationAlgo:          2,
 }
 
 // RegressionNetParams defines the network parameters for the regression test
@@ -434,6 +436,7 @@ var RegressionNetParams = Params{
 	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
+	GenerationAlgo:          2,
 }
 
 // TestNet3Params defines the network parameters for the test Bitcoin network
@@ -527,6 +530,7 @@ var TestNet3Params = Params{
 	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
+	GenerationAlgo:          2,
 }
 
 // SimNetParams defines the network parameters for the simulation test Bitcoin
@@ -620,6 +624,7 @@ var SimNetParams = Params{
 	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
+	GenerationAlgo:          2,
 }
 
 var (
