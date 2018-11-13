@@ -1034,12 +1034,18 @@ func HandleGetBestBlockHash(s *RPCServer, cmd interface{}, closeChan <-chan stru
 
 // GetDifficultyRatio returns the proof-of-work difficulty as a multiple of the
 // minimum difficulty using the passed bits field from the header of a block.
-func GetDifficultyRatio(bits uint32, params *chaincfg.Params) float64 {
+func GetDifficultyRatio(bits uint32, params *chaincfg.Params, algo int32) float64 {
+	a := uint32(algo)
 	// The minimum difficulty is the max possible proof-of-work limit bits
 	// converted back to a number.  Note this is not the same as the proof of
 	// work limit directly because the block difficulty is encoded in a block
 	// with the compact form which loses precision.
-	max := chain.CompactToBig(params.PowLimitBits)
+	max := chain.CompactToBig(0x1d00ffff)
+	if a == 514 {
+		max = chain.CompactToBig(params.ScryptPowLimitBits)
+	} else {
+		// max := chain.CompactToBig(params.PowLimitBits)
+	}
 	target := chain.CompactToBig(bits)
 
 	difficulty := new(big.Rat).SetFrac(max, target)
@@ -1141,7 +1147,7 @@ func HandleGetBlock(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (i
 		StrippedSize:  int32(blk.MsgBlock().SerializeSizeStripped()),
 		Weight:        int32(chain.GetBlockWeight(blk)),
 		Bits:          strconv.FormatInt(int64(blockHeader.Bits), 16),
-		Difficulty:    GetDifficultyRatio(blockHeader.Bits, params),
+		Difficulty:    GetDifficultyRatio(blockHeader.Bits, params, blockHeader.Version),
 		NextHash:      nextHashString,
 	}
 
@@ -1203,7 +1209,7 @@ func HandleGetBlockChainInfo(s *RPCServer, cmd interface{}, closeChan <-chan str
 		Blocks:        chainSnapshot.Height,
 		Headers:       chainSnapshot.Height,
 		BestBlockHash: chainSnapshot.Hash.String(),
-		Difficulty:    GetDifficultyRatio(chainSnapshot.Bits, params),
+		Difficulty:    GetDifficultyRatio(chainSnapshot.Bits, params, int32(chainSnapshot.Bits)),
 		MedianTime:    chainSnapshot.MedianTime.Unix(),
 		Pruned:        false,
 		Bip9SoftForks: make(map[string]*JSON.Bip9SoftForkDescription),
@@ -1383,7 +1389,7 @@ func HandleGetBlockHeader(s *RPCServer, cmd interface{}, closeChan <-chan struct
 		Nonce:         uint64(blockHeader.Nonce),
 		Time:          blockHeader.Timestamp.Unix(),
 		Bits:          strconv.FormatInt(int64(blockHeader.Bits), 16),
-		Difficulty:    GetDifficultyRatio(blockHeader.Bits, params),
+		Difficulty:    GetDifficultyRatio(blockHeader.Bits, params, blockHeader.Version),
 	}
 	return blockHeaderReply, nil
 }
@@ -2264,7 +2270,8 @@ func HandleGetCurrentNet(s *RPCServer, cmd interface{}, closeChan <-chan struct{
 // HandleGetDifficulty implements the getdifficulty command.
 func HandleGetDifficulty(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	best := s.cfg.Chain.BestSnapshot()
-	return GetDifficultyRatio(best.Bits, s.cfg.ChainParams), nil
+	v, _ := s.cfg.Chain.BlockByHash(&best.Hash)
+	return GetDifficultyRatio(best.Bits, s.cfg.ChainParams, v.MsgBlock().Header.Version), nil
 }
 
 // HandleGetGenerate implements the getgenerate command.
@@ -2322,6 +2329,7 @@ func HandleGetHeaders(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) 
 // that are not related to wallet functionality.
 func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	best := s.cfg.Chain.BestSnapshot()
+	v, _ := s.cfg.Chain.BlockByHash(&best.Hash)
 	ret := &JSON.InfoChainResult{
 		Version:         int32(1000000*AppMajor + 10000*AppMinor + 100*AppPatch),
 		ProtocolVersion: int32(maxProtocolVersion),
@@ -2329,7 +2337,7 @@ func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (in
 		TimeOffset:      int64(s.cfg.TimeSource.Offset().Seconds()),
 		Connections:     s.cfg.ConnMgr.ConnectedCount(),
 		Proxy:           Cfg.Proxy,
-		Difficulty:      GetDifficultyRatio(best.Bits, s.cfg.ChainParams),
+		Difficulty:      GetDifficultyRatio(best.Bits, s.cfg.ChainParams, v.MsgBlock().Header.Version),
 		TestNet:         Cfg.TestNet3,
 		RelayFee:        Cfg.minRelayTxFee.ToBTC(),
 	}
@@ -2374,12 +2382,13 @@ func HandleGetMiningInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{
 	}
 
 	best := s.cfg.Chain.BestSnapshot()
+	v, _ := s.cfg.Chain.BlockByHash(&best.Hash)
 	result := JSON.GetMiningInfoResult{
 		Blocks:             int64(best.Height),
 		CurrentBlockSize:   best.BlockSize,
 		CurrentBlockWeight: best.BlockWeight,
 		CurrentBlockTx:     best.NumTxns,
-		Difficulty:         GetDifficultyRatio(best.Bits, s.cfg.ChainParams),
+		Difficulty:         GetDifficultyRatio(best.Bits, s.cfg.ChainParams, v.MsgBlock().Header.Version),
 		Generate:           s.cfg.CPUMiner.IsMining(),
 		GenProcLimit:       s.cfg.CPUMiner.NumWorkers(),
 		HashesPerSec:       int64(s.cfg.CPUMiner.HashesPerSecond()),
