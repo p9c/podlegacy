@@ -18,6 +18,7 @@ import (
 	"github.com/parallelcointeam/pod/chain/indexers"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/limits"
+	svr "github.com/parallelcointeam/pod/server"
 )
 
 const (
@@ -28,50 +29,90 @@ const (
 )
 
 var (
-	cfg *config
+	cfg *svr.Config
 )
 
-// winServiceMain is only invoked on Windows.  It detects when btcd is running
+// winServiceMain is only invoked on Windows.  It detects when pod is running
 // as a service and reacts accordingly.
 var winServiceMain func() (bool, error)
 
-// btcdMain is the real main function for btcd.  It is necessary to work around
+func main() {
+	// Use all processor cores.
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// Block and transaction processing can cause bursty allocations.  This
+	// limits the garbage collector from excessively overallocating during
+	// bursts.  This value was arrived at with the help of profiling live
+	// usage.
+	debug.SetGCPercent(10)
+
+	// Up some limits.
+	if err := limits.SetLimits(); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to set limits: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Call serviceMain on Windows to handle running as a service.  When
+	// the return isService flag is true, exit now since we ran as a
+	// service.  Otherwise, just fall through to normal operation.
+	if runtime.GOOS == "windows" {
+		isService, err := winServiceMain()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		if isService {
+			os.Exit(0)
+		}
+	}
+
+	// Work around defer not working after os.Exit()
+	if err := Main(nil); err != nil {
+		os.Exit(1)
+	}
+}
+
+// Main is the real main function for pod.  It is necessary to work around
 // the fact that deferred functions do not run when os.Exit() is called.  The
 // optional serverChan parameter is mainly used by the service code to be
 // notified with the server once it is setup so it can gracefully stop it when
 // requested from the service control manager.
-func btcdMain(serverChan chan<- *server) error {
+func Main(serverChan chan<- *svr.Server) error {
 	// Load configuration and parse command line.  This function also
 	// initializes logging and configures it accordingly.
-	tcfg, _, err := LoadConfig()
+	tcfg, _, err := svr.LoadConfig()
 	if err != nil {
 		return err
 	}
 	cfg = tcfg
+
 	defer func() {
-		if logRotator != nil {
-			logRotator.Close()
+		if svr.LogRotator != nil {
+			svr.LogRotator.Close()
 		}
 	}()
 
 	// Get a channel that will be closed when a shutdown signal has been
 	// triggered either from an OS signal such as SIGINT (Ctrl+C) or from
-	// another subsystem such as the RPC server.
-	interrupt := interruptListener()
-	defer btcdLog.Info("Shutdown complete")
+	// another subsystem such as the RPC svr.
+	interrupt := svr.InterruptListener()
+	defer svr.PodLog.Info("Shutdown complete")
 
 	// Show version at startup.
-	btcdLog.Infof("Version %s", version())
+	svr.PodLog.Infof("Version %s", svr.Version())
+
+	// Show configured mining algorithm
+	svr.MinrLog.Debug("Mining algorithm set to", cfg.Algo)
 
 	// Enable http profiling server if requested.
 	if cfg.Profile != "" {
 		go func() {
 			listenAddr := net.JoinHostPort("", cfg.Profile)
-			btcdLog.Infof("Profile server listening on %s", listenAddr)
+			svr.PodLog.Infof("Profile server listening on %s", listenAddr)
 			profileRedirect := http.RedirectHandler("/debug/pprof",
 				http.StatusSeeOther)
 			http.Handle("/", profileRedirect)
-			btcdLog.Errorf("%v", http.ListenAndServe(listenAddr, nil))
+			svr.PodLog.Errorf("%v", http.ListenAndServe(listenAddr, nil))
 		}()
 	}
 
@@ -79,7 +120,7 @@ func btcdMain(serverChan chan<- *server) error {
 	if cfg.CPUProfile != "" {
 		f, err := os.Create(cfg.CPUProfile)
 		if err != nil {
-			btcdLog.Errorf("Unable to create cpu profile: %v", err)
+			svr.PodLog.Errorf("Unable to create cpu profile: %v", err)
 			return err
 		}
 		pprof.StartCPUProfile(f)
@@ -88,30 +129,30 @@ func btcdMain(serverChan chan<- *server) error {
 	}
 
 	// Perform upgrades to btcd as new versions require it.
-	if err := doUpgrades(); err != nil {
-		btcdLog.Errorf("%v", err)
+	if err := svr.DoUpgrades(); err != nil {
+		svr.PodLog.Errorf("%v", err)
 		return err
 	}
 
 	// Return now if an interrupt signal was triggered.
-	if interruptRequested(interrupt) {
+	if svr.InterruptRequested(interrupt) {
 		return nil
 	}
 
 	// Load the block database.
 	db, err := loadBlockDB()
 	if err != nil {
-		btcdLog.Errorf("%v", err)
+		svr.PodLog.Errorf("%v", err)
 		return err
 	}
 	defer func() {
 		// Ensure the database is sync'd and closed on shutdown.
-		btcdLog.Infof("Gracefully shutting down the database...")
+		svr.PodLog.Infof("Gracefully shutting down the database...")
 		db.Close()
 	}()
 
 	// Return now if an interrupt signal was triggered.
-	if interruptRequested(interrupt) {
+	if svr.InterruptRequested(interrupt) {
 		return nil
 	}
 
@@ -121,7 +162,7 @@ func btcdMain(serverChan chan<- *server) error {
 	// drops the address index since it relies on it.
 	if cfg.DropAddrIndex {
 		if err := indexers.DropAddrIndex(db, interrupt); err != nil {
-			btcdLog.Errorf("%v", err)
+			svr.PodLog.Errorf("%v", err)
 			return err
 		}
 
@@ -129,7 +170,7 @@ func btcdMain(serverChan chan<- *server) error {
 	}
 	if cfg.DropTxIndex {
 		if err := indexers.DropTxIndex(db, interrupt); err != nil {
-			btcdLog.Errorf("%v", err)
+			svr.PodLog.Errorf("%v", err)
 			return err
 		}
 
@@ -137,28 +178,32 @@ func btcdMain(serverChan chan<- *server) error {
 	}
 	if cfg.DropCfIndex {
 		if err := indexers.DropCfIndex(db, interrupt); err != nil {
-			btcdLog.Errorf("%v", err)
+			svr.PodLog.Errorf("%v", err)
 			return err
 		}
 
 		return nil
 	}
 
+	svr.PodLog.Infof("Starting up...")
 	// Create server and start it.
-	server, err := newServer(cfg.Listeners, db, activeNetParams.Params,
+	svr.Cfg = cfg
+	server, err := svr.New(cfg.Listeners, db, svr.ActiveNetParams.Params,
 		interrupt)
 	if err != nil {
 		// TODO: this logging could do with some beautifying.
-		btcdLog.Errorf("Unable to start server on %v: %v",
+		svr.PodLog.Errorf("Unable to start server on %v: %v",
 			cfg.Listeners, err)
 		return err
 	}
 	defer func() {
-		btcdLog.Infof("Gracefully shutting down the server...")
+		svr.PodLog.Infof("Gracefully shutting down the server...")
 		server.Stop()
+
 		server.WaitForShutdown()
-		srvrLog.Infof("Server shutdown complete")
+		svr.SrvrLog.Infof("Server shutdown complete")
 	}()
+
 	server.Start()
 	if serverChan != nil {
 		serverChan <- server
@@ -166,7 +211,7 @@ func btcdMain(serverChan chan<- *server) error {
 
 	// Wait until the interrupt signal is received from an OS signal or
 	// shutdown is requested through one of the subsystems such as the RPC
-	// server.
+	// svr.
 	<-interrupt
 	return nil
 }
@@ -182,7 +227,7 @@ func removeRegressionDB(dbPath string) error {
 	// Remove the old regression test database if it already exists.
 	fi, err := os.Stat(dbPath)
 	if err == nil {
-		btcdLog.Infof("Removing regression test database from '%s'", dbPath)
+		svr.PodLog.Infof("Removing regression test database from '%s'", dbPath)
 		if fi.IsDir() {
 			err := os.RemoveAll(dbPath)
 			if err != nil {
@@ -226,7 +271,7 @@ func warnMultipleDBs() {
 
 		// Store db path as a duplicate db if it exists.
 		dbPath := blockDbPath(dbType)
-		if fileExists(dbPath) {
+		if svr.FileExists(dbPath) {
 			duplicateDbPaths = append(duplicateDbPaths, dbPath)
 		}
 	}
@@ -234,7 +279,7 @@ func warnMultipleDBs() {
 	// Warn if there are extra databases.
 	if len(duplicateDbPaths) > 0 {
 		selectedDbPath := blockDbPath(cfg.DbType)
-		btcdLog.Warnf("WARNING: There are multiple block chain databases "+
+		svr.PodLog.Warnf("WARNING: There are multiple block chain databases "+
 			"using different database types.\nYou probably don't "+
 			"want to waste disk space by having more than one.\n"+
 			"Your current database is located at [%v].\nThe "+
@@ -242,6 +287,8 @@ func warnMultipleDBs() {
 			duplicateDbPaths)
 	}
 }
+
+// TODO: change to fit wallet database
 
 // loadBlockDB loads (or creates when needed) the block database taking into
 // account the selected database backend and returns a handle to it.  It also
@@ -253,7 +300,7 @@ func loadBlockDB() (database.DB, error) {
 	// handle it uniquely.  We also don't want to worry about the multiple
 	// database type warnings when running with the memory database.
 	if cfg.DbType == "memdb" {
-		btcdLog.Infof("Creating block database in memory.")
+		svr.PodLog.Infof("Creating block database in memory.")
 		db, err := database.Create(cfg.DbType)
 		if err != nil {
 			return nil, err
@@ -270,8 +317,8 @@ func loadBlockDB() (database.DB, error) {
 	// each run, so remove it now if it already exists.
 	removeRegressionDB(dbPath)
 
-	btcdLog.Infof("Loading block database from '%s'", dbPath)
-	db, err := database.Open(cfg.DbType, dbPath, activeNetParams.Net)
+	svr.PodLog.Infof("Loading block database from '%s'", dbPath)
+	db, err := database.Open(cfg.DbType, dbPath, svr.ActiveNetParams.Net)
 	if err != nil {
 		// Return the error if it's not because the database doesn't
 		// exist.
@@ -286,48 +333,12 @@ func loadBlockDB() (database.DB, error) {
 		if err != nil {
 			return nil, err
 		}
-		db, err = database.Create(cfg.DbType, dbPath, activeNetParams.Net)
+		db, err = database.Create(cfg.DbType, dbPath, svr.ActiveNetParams.Net)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	btcdLog.Info("Block database loaded")
+	svr.PodLog.Info("Block database loaded")
 	return db, nil
-}
-
-func main() {
-	// Use all processor cores.
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	// Block and transaction processing can cause bursty allocations.  This
-	// limits the garbage collector from excessively overallocating during
-	// bursts.  This value was arrived at with the help of profiling live
-	// usage.
-	debug.SetGCPercent(10)
-
-	// Up some limits.
-	if err := limits.SetLimits(); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to set limits: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Call serviceMain on Windows to handle running as a service.  When
-	// the return isService flag is true, exit now since we ran as a
-	// service.  Otherwise, just fall through to normal operation.
-	if runtime.GOOS == "windows" {
-		isService, err := winServiceMain()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		if isService {
-			os.Exit(0)
-		}
-	}
-
-	// Work around defer not working after os.Exit()
-	if err := btcdMain(nil); err != nil {
-		os.Exit(1)
-	}
 }
