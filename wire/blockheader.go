@@ -85,8 +85,6 @@ func (h *BlockHeader) BlockHashWithAlgos() (out chainhash.Hash) {
 	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
 	_ = writeBlockHeader(buf, 0, h)
 	switch h.Version {
-	case 2, 4194306:
-		out = chainhash.DoubleHashH(buf.Bytes())
 	case 514:
 		// b := chainhash.DoubleHashH(buf.Bytes())
 		b := buf.Bytes()
@@ -105,6 +103,8 @@ func (h *BlockHeader) BlockHashWithAlgos() (out chainhash.Hash) {
 			out[i] = dk[len(dk)-1-i]
 		}
 		copy(out[:], dk)
+	default:
+		out = chainhash.DoubleHashH(buf.Bytes())
 	}
 	return
 }

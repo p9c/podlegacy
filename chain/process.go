@@ -186,11 +186,12 @@ func (b *BlockChain) ProcessBlock(block *utils.Block, flags BehaviorFlags) (bool
 	algo := block.MsgBlock().Header.Version
 	var powLimit *big.Int
 	switch algo {
-	case 2, 4194306:
-		powLimit = b.chainParams.PowLimit
-		algo = 2
+	// case 2, 4194306:
 	case 514:
 		powLimit = b.chainParams.ScryptPowLimit
+	default:
+		powLimit = b.chainParams.PowLimit
+		algo = 2
 	}
 	// fmt.Println("ALGO", algo)
 	firstNode := pn
@@ -204,12 +205,13 @@ func (b *BlockChain) ProcessBlock(block *utils.Block, flags BehaviorFlags) (bool
 	} else {
 		// fmt.Println("height of 10th prev of algo", firstNode.height)
 		switch block.MsgBlock().Header.Version {
-		case 2, 4194306:
-			// fmt.Println("sha256d pow block")
-			pl = b.chainParams.PowLimit
+		// case 2, 4194306:
+		// fmt.Println("sha256d pow block")
 		case 514:
 			// fmt.Println("scrypt pow block")
 			pl = b.chainParams.ScryptPowLimit
+		default:
+			pl = b.chainParams.PowLimit
 		}
 	}
 

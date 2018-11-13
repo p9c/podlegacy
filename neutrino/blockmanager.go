@@ -2389,12 +2389,12 @@ func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
 	var powLimit *big.Int
 	var powLimitBits uint32
 	switch algo {
-	case 2, 4194306:
-		powLimit = b.server.chainParams.PowLimit
-		powLimitBits = b.server.chainParams.PowLimitBits
 	case 514:
 		powLimit = b.server.chainParams.ScryptPowLimit
 		powLimitBits = b.server.chainParams.ScryptPowLimitBits
+	default:
+		powLimit = b.server.chainParams.PowLimit
+		powLimitBits = b.server.chainParams.PowLimitBits
 	}
 	hList := b.headerList
 	if reorgAttempt {

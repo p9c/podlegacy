@@ -6,7 +6,6 @@ package chain
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"math"
 	"math/big"
@@ -340,19 +339,18 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 	// The target difficulty must be larger than zero.
 	pl := powLimit
 	switch header.Version {
-	case 2, 4194306:
-		if header.Version == 4194306 {
-			// fmt.Print("anomalous ")
-		}
-		// fmt.Println("sha256d block")
-		pl = CompactToBig(chaincfg.MainPowLimitBits)
+	// fmt.Println("sha256d block")
 
 	case 514:
 		// fmt.Println("scrypt block")
 		pl = CompactToBig(chaincfg.ScryptPowLimitBits)
 	default:
-		errortext := fmt.Sprint("ERROR: block version", header.Version, "is unrecognised")
-		return errors.New(errortext)
+		pl = CompactToBig(chaincfg.MainPowLimitBits)
+		// if header.Version == 4194306 {
+		// fmt.Print("anomalous ")
+		// }
+		// errortext := fmt.Sprint("ERROR: block version", header.Version, "is unrecognised")
+		// return errors.New(errortext)
 	}
 	// fmt.Printf("powlimit %064x\n", powLimit)
 	target := CompactToBig(header.Bits)
@@ -707,7 +705,7 @@ func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode 
 		// the calculated difficulty based on the previous block and
 		// difficulty retarget rules.
 		hv := header.Version
-		if hv == 4194306 {
+		if hv != 514 {
 			hv = 2
 		}
 		expectedDifficulty, err := b.calcNextRequiredDifficulty(prevNode, header.Timestamp, hv)

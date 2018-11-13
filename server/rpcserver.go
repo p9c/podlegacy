@@ -1115,10 +1115,11 @@ func HandleGetBlock(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (i
 	var powalgo string
 	var powhash string
 	switch blockHeader.Version {
-	case 2, 4194306:
-		powalgoid = 0
+	// case 2, 4194306:
 	case 514:
 		powalgoid = 1
+	default:
+		powalgoid = 0
 	}
 	powalgo = AlgoIDs[powalgoid]
 	powhash = blk.MsgBlock().BlockHashWithAlgos().String()

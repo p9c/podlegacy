@@ -222,12 +222,13 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	var powLimit *big.Int
 	var powLimitBits uint32
 	switch algo {
-	case 2, 4194306:
-		powLimit = b.chainParams.PowLimit
-		powLimitBits = b.chainParams.PowLimitBits
+	// case 2, 4194306:
 	case 514:
 		powLimit = b.chainParams.ScryptPowLimit
 		powLimitBits = b.chainParams.ScryptPowLimitBits
+	default:
+		powLimit = b.chainParams.PowLimit
+		powLimitBits = b.chainParams.PowLimitBits
 	}
 
 	// Genesis block.
