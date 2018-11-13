@@ -1048,8 +1048,8 @@ func GetDifficultyRatio(bits uint32, params *chaincfg.Params, algo int32) float6
 	// }
 	target := chain.CompactToBig(bits)
 
-	fmt.Println("max   ", max)
-	fmt.Println("target", target)
+	// fmt.Println("max   ", max)
+	// fmt.Println("target", target)
 
 	difficulty := new(big.Rat).SetFrac(max, target)
 	outString := difficulty.FloatString(8)
