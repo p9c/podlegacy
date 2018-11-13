@@ -22,7 +22,21 @@ virtually anything that can be linked to the node, and the discovery of service
 providers on the network including detailed information about the enabled API calls
 that they support.
 
-## Building
+## Building/Installation
+
+Packaging installers with proper configurations and all that stuff is a platform
+specific and fiddly thing, but a big part of the reason why Go was chosen to build the
+new version was that if you have go installed, everything just works. When this 
+bundle makes a 1.0.0 release there will be a set of binary installers, but for now, you
+must have a working Go installation.
+
+Thus, if you haven't got Go installed, go here: https://golang.org/dl/ to download Go.
+
+Next, follow the instructions for configuring your go environment: https://golang.org/doc/install
+
+For Windows and MacOS users, this is all taken care of (choose the MSI installer if you are using 
+windows), on Linux, you will need at least Go 1.8, but if it is available on your distribution, 
+there will be little to configure to satisfy this requirement.
 
 Pretty much you can install it directly, once you have a functioning Go installation,
 like this:
@@ -41,6 +55,10 @@ installed like this:
 Use the argument `--help` to get information about available commands and configuration.
 
 In `cmd/pod/sample-pod.conf` you find a full annotated configuration, copy this to the
-folder `home/.pod/pod.conf` to configure the launch settings. `podctl` also has a 
-configuration that you can find in `home/.podctl`, which allows you to set the RPC
-endpoint and other things.
+folder `<home directory>/.pod/pod.conf` to configure the launch settings (location may 
+be different on windows and mac, on windows probably in `c:\users\<username>\appdata`). 
+
+`podctl` also has a configuration that you can find in `home/.podctl`, which allows you to set the RPC
+endpoint and other things. `podctl` can also control a full bitcoin-API compliant wallet if you add 
+the argument `--wallet`. Currently there is no new version with full wallet capability but this
+will work with an older version of the c++ based client.
