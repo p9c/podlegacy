@@ -72,8 +72,12 @@ func main() {
 
 	// Wait until the node has fully synced up to the local
 	// btcd node.
-	for !spvNode.IsCurrent() {
-		time.Sleep(time.Millisecond * 100)
+	for {
+		if spvNode.IsCurrent() {
+			fmt.Println("Node is now current")
+			fmt.Println(spvNode.BestBlock())
+		}
+		time.Sleep(time.Millisecond * 10000)
 		// fmt.Println(spvNode.NetTotals())
 	}
 

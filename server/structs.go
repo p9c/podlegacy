@@ -204,6 +204,8 @@ type RPCServerConfig struct {
 	// The fee estimator keeps track of how long transactions are left in
 	// the mempool before they are mined into blocks.
 	FeeEstimator *mempool.FeeEstimator
+
+	AlgoID uint32
 }
 
 // RPCServerPeer represents a peer for use with the RPC server.

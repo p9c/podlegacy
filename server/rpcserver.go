@@ -2339,7 +2339,7 @@ func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (in
 		ver = 2
 	}
 
-	gen := int32(s.cfg.ChainParams.GenerationAlgo)
+	// gen := int32(s.cfg.ChainParams.GenerationAlgo)
 
 	var shabits, scryptbits uint32
 	if ver != 514 {
@@ -2383,6 +2383,20 @@ func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (in
 		}
 	}
 
+	bestBits := best.Bits
+	algoname := "sha256d"
+	algoid := int32(0)
+	algover := int32(2)
+	fmt.Println(algoname, algoid)
+	switch s.cfg.AlgoID {
+	case 514:
+		algoname = "scrypt"
+		algoid = 1
+		algover = int32(514)
+		bestBits = scryptbits
+	default:
+	}
+
 	ret := &JSON.InfoChainResult{
 		Version:           int32(1000000*AppMajor + 10000*AppMinor + 100*AppPatch),
 		ProtocolVersion:   int32(maxProtocolVersion),
@@ -2390,7 +2404,9 @@ func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (in
 		TimeOffset:        int64(s.cfg.TimeSource.Offset().Seconds()),
 		Connections:       s.cfg.ConnMgr.ConnectedCount(),
 		Proxy:             Cfg.Proxy,
-		Difficulty:        GetDifficultyRatio(best.Bits, s.cfg.ChainParams, gen),
+		PowAlgoID:         algoid,
+		PowAlgo:           algoname,
+		Difficulty:        GetDifficultyRatio(bestBits, s.cfg.ChainParams, algover),
 		DifficultySHA256D: GetDifficultyRatio(shabits, s.cfg.ChainParams, 2),
 		DifficultyScrypt:  GetDifficultyRatio(scryptbits, s.cfg.ChainParams, 514),
 		TestNet:           Cfg.TestNet3,

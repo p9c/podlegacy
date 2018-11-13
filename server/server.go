@@ -1570,6 +1570,7 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 			AddrIndex:    s.addrIndex,
 			CfIndex:      s.cfIndex,
 			FeeEstimator: s.feeEstimator,
+			AlgoID:       a,
 		})
 		if err != nil {
 			return nil, err
