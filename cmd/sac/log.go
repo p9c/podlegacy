@@ -14,10 +14,10 @@ import (
 	"github.com/parallelcointeam/pod/Log"
 	"github.com/parallelcointeam/pod/neutrino"
 	"github.com/parallelcointeam/pod/rpcclient"
+	"github.com/parallelcointeam/pod/wallet"
 	"github.com/parallelcointeam/pod/wallet/chain"
 	"github.com/parallelcointeam/pod/wallet/rpc/legacyrpc"
 	"github.com/parallelcointeam/pod/wallet/rpc/rpcserver"
-	"github.com/parallelcointeam/pod/wallet/wallet"
 	"github.com/parallelcointeam/pod/wtxmgr"
 )
 

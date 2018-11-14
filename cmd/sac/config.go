@@ -20,8 +20,8 @@ import (
 	"github.com/parallelcointeam/pod/internal/legacy/keystore"
 	"github.com/parallelcointeam/pod/neutrino"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wallet"
 	"github.com/parallelcointeam/pod/wallet/netparams"
-	"github.com/parallelcointeam/pod/wallet/wallet"
 )
 
 const (

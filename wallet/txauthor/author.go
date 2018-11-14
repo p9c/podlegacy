@@ -11,7 +11,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/utils"
-	"github.com/parallelcointeam/pod/wallet/wallet/txrules"
+	"github.com/parallelcointeam/pod/wallet/txrules"
 	"github.com/parallelcointeam/pod/wire"
 
 	h "github.com/parallelcointeam/pod/internal/helpers"

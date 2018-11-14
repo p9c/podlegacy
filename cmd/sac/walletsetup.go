@@ -17,7 +17,7 @@ import (
 	"github.com/parallelcointeam/pod/internal/prompt"
 	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/waddrmgr"
-	"github.com/parallelcointeam/pod/wallet/wallet"
+	"github.com/parallelcointeam/pod/wallet"
 	"github.com/parallelcointeam/pod/walletdb"
 	_ "github.com/parallelcointeam/pod/walletdb/bdb"
 	"github.com/parallelcointeam/pod/wire"

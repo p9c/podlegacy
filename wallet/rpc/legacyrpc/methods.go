@@ -15,19 +15,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/parallelcointeam/pod/rpcclient"
-	"github.com/parallelcointeam/pod/txscript"
-	"github.com/parallelcointeam/pod/waddrmgr"
-	"github.com/parallelcointeam/pod/wallet/wallet"
-	"github.com/parallelcointeam/pod/wallet/wallet/txrules"
-	"github.com/parallelcointeam/pod/wtxmgr"
 	"github.com/parallelcointeam/pod/JSON"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/ecc"
+	"github.com/parallelcointeam/pod/rpcclient"
+	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/waddrmgr"
+	"github.com/parallelcointeam/pod/wallet"
 	"github.com/parallelcointeam/pod/wallet/chain"
+	"github.com/parallelcointeam/pod/wallet/txrules"
 	"github.com/parallelcointeam/pod/wire"
+	"github.com/parallelcointeam/pod/wtxmgr"
 )
 
 // confirmed checks whether a transaction at height txHeight has met minconf

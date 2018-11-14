@@ -13,7 +13,7 @@ import (
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/waddrmgr"
-	"github.com/parallelcointeam/pod/wallet/wallet/txauthor"
+	"github.com/parallelcointeam/pod/wallet/txauthor"
 	"github.com/parallelcointeam/pod/walletdb"
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/wtxmgr"

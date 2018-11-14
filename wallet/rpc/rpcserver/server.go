@@ -25,10 +25,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/parallelcointeam/pod/wallet/netparams"
-	pb "github.com/parallelcointeam/pod/wallet/rpc/walletrpc"
-	"github.com/parallelcointeam/pod/wallet/wallet"
-	"github.com/parallelcointeam/pod/walletdb"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/internal/cfgutil"
 	"github.com/parallelcointeam/pod/internal/zero"
@@ -37,7 +33,11 @@ import (
 	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/utils/hdkeychain"
 	"github.com/parallelcointeam/pod/waddrmgr"
+	"github.com/parallelcointeam/pod/wallet"
 	"github.com/parallelcointeam/pod/wallet/chain"
+	"github.com/parallelcointeam/pod/wallet/netparams"
+	pb "github.com/parallelcointeam/pod/wallet/rpc/walletrpc"
+	"github.com/parallelcointeam/pod/walletdb"
 	"github.com/parallelcointeam/pod/wire"
 )
 

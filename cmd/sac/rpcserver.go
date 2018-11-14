@@ -17,9 +17,9 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wallet"
 	"github.com/parallelcointeam/pod/wallet/rpc/legacyrpc"
 	"github.com/parallelcointeam/pod/wallet/rpc/rpcserver"
-	"github.com/parallelcointeam/pod/wallet/wallet"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

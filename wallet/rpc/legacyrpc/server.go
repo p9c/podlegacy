@@ -19,9 +19,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/parallelcointeam/pod/wallet/wallet"
 	"github.com/btcsuite/websocket"
 	"github.com/parallelcointeam/pod/JSON"
+	"github.com/parallelcointeam/pod/wallet"
 	"github.com/parallelcointeam/pod/wallet/chain"
 )
 
