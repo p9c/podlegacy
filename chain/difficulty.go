@@ -218,7 +218,7 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // This function differs from the exported CalcNextRequiredDifficulty in that
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
-func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo int32) (uint32, error) {
+func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo uint32) (uint32, error) {
 	var powLimit *big.Int
 	var powLimitBits uint32
 	switch algo {
@@ -356,13 +356,10 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 // rules.
 //
 // This function is safe for concurrent access.
-func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time) (uint32, error) {
+func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time, algo uint32) (uint32, error) {
 	b.chainLock.Lock()
-	v := b.bestChain.Tip().version
-	if v != 514 {
-		v = 2
-	}
-	difficulty, err := b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, v)
+	// v := b.bestChain.Tip().version
+	difficulty, err := b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, algo)
 	b.chainLock.Unlock()
 	return difficulty, err
 }

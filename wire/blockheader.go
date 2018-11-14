@@ -23,7 +23,7 @@ const MaxBlockHeaderPayload = 16 + (chainhash.HashSize * 2)
 // block (MsgBlock) and headers (MsgHeaders) messages.
 type BlockHeader struct {
 	// Version of the block.  This is not the same as the protocol version.
-	Version int32
+	Version uint32
 
 	// Hash of the previous block header in the block chain.
 	PrevBlock chainhash.Hash
@@ -148,7 +148,7 @@ func (h *BlockHeader) Serialize(w io.Writer) error {
 // NewBlockHeader returns a new BlockHeader using the provided version, previous
 // block hash, merkle root hash, difficulty bits, and nonce used to generate the
 // block with defaults for the remaining fields.
-func NewBlockHeader(version int32, prevHash, merkleRootHash *chainhash.Hash,
+func NewBlockHeader(version uint32, prevHash, merkleRootHash *chainhash.Hash,
 	bits uint32, nonce uint32) *BlockHeader {
 
 	// Limit the timestamp to one second precision since the protocol

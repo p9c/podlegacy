@@ -599,6 +599,7 @@ func (m *CPUMiner) GenerateNBlocks(n uint32) ([]*chainhash.Hash, error) {
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
 		template, err := m.g.NewBlockTemplate(payToAddr, m.cfg.Algo)
+
 		m.submitBlockLock.Unlock()
 		if err != nil {
 			errStr := fmt.Sprintf("Failed to create new block "+

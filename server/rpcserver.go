@@ -1034,7 +1034,7 @@ func HandleGetBestBlockHash(s *RPCServer, cmd interface{}, closeChan <-chan stru
 
 // GetDifficultyRatio returns the proof-of-work difficulty as a multiple of the
 // minimum difficulty using the passed bits field from the header of a block.
-func GetDifficultyRatio(bits uint32, params *chaincfg.Params, algo int32) float64 {
+func GetDifficultyRatio(bits uint32, params *chaincfg.Params, algo uint32) float64 {
 	// a := uint32(algo)
 	// The minimum difficulty is the max possible proof-of-work limit bits
 	// converted back to a number.  Note this is not the same as the proof of
@@ -1212,7 +1212,7 @@ func HandleGetBlockChainInfo(s *RPCServer, cmd interface{}, closeChan <-chan str
 		Blocks:        chainSnapshot.Height,
 		Headers:       chainSnapshot.Height,
 		BestBlockHash: chainSnapshot.Hash.String(),
-		Difficulty:    GetDifficultyRatio(chainSnapshot.Bits, params, int32(chainSnapshot.Bits)),
+		Difficulty:    GetDifficultyRatio(chainSnapshot.Bits, params, s.cfg.AlgoID),
 		MedianTime:    chainSnapshot.MedianTime.Unix(),
 		Pruned:        false,
 		Bip9SoftForks: make(map[string]*JSON.Bip9SoftForkDescription),
@@ -1600,6 +1600,7 @@ func (state *GbtWorkState) UpdateBlockTemplate(s *RPCServer, useCoinbaseValue bo
 			a = 2
 		}
 		blkTemplate, err := generator.NewBlockTemplate(payAddr, a)
+		fmt.Println(payAddr, a)
 		if err != nil {
 			return InternalRPCError("Failed to create new block "+
 				"template: "+err.Error(), "")
@@ -2386,13 +2387,13 @@ func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (in
 	bestBits := best.Bits
 	algoname := "sha256d"
 	algoid := int32(0)
-	algover := int32(2)
+	algover := uint32(2)
 	// fmt.Println(algoname, algoid)
 	switch s.cfg.AlgoID {
 	case 514:
 		algoname = "scrypt"
 		algoid = 1
-		algover = int32(514)
+		algover = uint32(514)
 		bestBits = scryptbits
 	default:
 	}
