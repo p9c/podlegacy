@@ -12,9 +12,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/btcsuite/btcutil/hdkeychain"
-	"github.com/btcsuite/btcwallet/internal/legacy/keystore"
 	"github.com/btcsuite/golangcrypto/ssh/terminal"
+	"github.com/parallelcointeam/pod/internal/legacy/keystore"
+	"github.com/parallelcointeam/pod/utils/hdkeychain"
 )
 
 // ProvideSeed is used to prompt for the wallet seed which maybe required during

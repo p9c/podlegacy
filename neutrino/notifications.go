@@ -197,7 +197,7 @@ func (s *ChainService) OutboundGroupCount(key string) int {
 	}
 }
 
-// AddedNodeInfo returns an array of btcjson.GetAddedNodeInfoResult structures
+// AddedNodeInfo returns an array of JSON.GetAddedNodeInfoResult structures
 // describing the persistent (added) nodes.
 func (s *ChainService) AddedNodeInfo() []*ServerPeer {
 	replyChan := make(chan []*ServerPeer)

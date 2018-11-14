@@ -4,12 +4,12 @@
 
 package legacyrpc
 
-import "github.com/btcsuite/btclog"
+import "github.com/parallelcointeam/pod/Log"
 
-var log = btclog.Disabled
+var log = Log.Disabled
 
 // UseLogger sets the package-wide logger.  Any calls to this function must be
 // made before a server is created and used (it is not concurrent safe).
-func UseLogger(logger btclog.Logger) {
+func UseLogger(logger Log.Logger) {
 	log = logger
 }

@@ -28,7 +28,7 @@ const (
 var (
 	btcdHomeDir           = utils.AppDataDir("pod", false)
 	btcctlHomeDir         = utils.AppDataDir("podctl", false)
-	btcwalletHomeDir      = utils.AppDataDir("btcwallet", false)
+	btcwalletHomeDir      = utils.AppDataDir("sac", false)
 	defaultConfigFile     = filepath.Join(btcctlHomeDir, "podctl.conf")
 	defaultRPCServer      = "localhost"
 	defaultRPCCertFile    = filepath.Join(btcdHomeDir, "rpc.cert")

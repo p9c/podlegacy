@@ -10,17 +10,17 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/btcsuite/btclog"
-	"github.com/btcsuite/btcwallet/waddrmgr"
-	"github.com/btcsuite/btcwallet/walletdb"
+	"github.com/parallelcointeam/pod/Log"
+	"github.com/parallelcointeam/pod/waddrmgr"
+	"github.com/parallelcointeam/pod/walletdb"
 )
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// Enable logging (Debug level) to aid debugging failing tests.
-	logger := btclog.NewBackend(os.Stdout).Logger("TEST")
-	logger.SetLevel(btclog.LevelDebug)
+	logger := Log.NewBackend(os.Stdout).Logger("TEST")
+	logger.SetLevel(Log.LevelDebug)
 	UseLogger(logger)
 }
 

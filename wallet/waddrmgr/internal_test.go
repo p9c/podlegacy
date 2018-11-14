@@ -14,7 +14,7 @@ package waddrmgr
 import (
 	"errors"
 
-	"github.com/btcsuite/btcwallet/snacl"
+	"github.com/parallelcointeam/pod/wallet/snacl"
 )
 
 // TstLatestMgrVersion makes the unexported latestMgrVersion variable available

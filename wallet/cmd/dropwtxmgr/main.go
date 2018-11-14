@@ -11,16 +11,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcwallet/walletdb"
-	_ "github.com/btcsuite/btcwallet/walletdb/bdb"
-	"github.com/btcsuite/btcwallet/wtxmgr"
 	"github.com/jessevdk/go-flags"
+	"github.com/parallelcointeam/pod/utils"
+	_ "github.com/parallelcointeam/pod/wallet/walletdb/bdb"
+	"github.com/parallelcointeam/pod/walletdb"
+	"github.com/parallelcointeam/pod/wtxmgr"
 )
 
 const defaultNet = "mainnet"
 
-var datadir = btcutil.AppDataDir("btcwallet", false)
+var datadir = utils.AppDataDir("sac", false)
 
 // Flags.
 var opts = struct {
