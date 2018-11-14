@@ -1,0 +1,307 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/akavel/rsrc/binutil",
+			"repository": "https://github.com/akavel/rsrc",
+			"vcs": "git",
+			"revision": "f6a15ece2cfd2560077c556499f19340ddc768e9",
+			"branch": "master",
+			"path": "binutil",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/akavel/rsrc/coff",
+			"repository": "https://github.com/akavel/rsrc",
+			"vcs": "git",
+			"revision": "f6a15ece2cfd2560077c556499f19340ddc768e9",
+			"branch": "master",
+			"path": "coff",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/akavel/rsrc/ico",
+			"repository": "https://github.com/akavel/rsrc",
+			"vcs": "git",
+			"revision": "f6a15ece2cfd2560077c556499f19340ddc768e9",
+			"branch": "master",
+			"path": "ico",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/akavel/rsrc/internal",
+			"repository": "https://github.com/akavel/rsrc",
+			"vcs": "git",
+			"revision": "f6a15ece2cfd2560077c556499f19340ddc768e9",
+			"branch": "master",
+			"path": "internal",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/akavel/rsrc/rsrc",
+			"repository": "https://github.com/akavel/rsrc",
+			"vcs": "git",
+			"revision": "f6a15ece2cfd2560077c556499f19340ddc768e9",
+			"branch": "master",
+			"path": "/rsrc",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astilectron",
+			"repository": "https://github.com/asticode/go-astilectron",
+			"vcs": "git",
+			"revision": "87ea6f0bcc3da11c0f3ddbad7dc998ea3904f0da",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astilectron-bootstrap",
+			"repository": "https://github.com/asticode/go-astilectron-bootstrap",
+			"vcs": "git",
+			"revision": "b3211646d2056d041dcc403e0ab57ad7d12449df",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astilectron-bundler",
+			"repository": "https://github.com/asticode/go-astilectron-bundler",
+			"vcs": "git",
+			"revision": "f6f70d2ef6667b9d8a755ce3461b7aa3d27b3115",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astilog",
+			"repository": "https://github.com/asticode/go-astilog",
+			"vcs": "git",
+			"revision": "d7440316555d404a8a6e45ecca822e0d85c3410a",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astitools/archive",
+			"repository": "https://github.com/asticode/go-astitools",
+			"vcs": "git",
+			"revision": "933b5f686c38971627eb990f415ee6b6f9857cc8",
+			"branch": "master",
+			"path": "archive",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astitools/context",
+			"repository": "https://github.com/asticode/go-astitools",
+			"vcs": "git",
+			"revision": "933b5f686c38971627eb990f415ee6b6f9857cc8",
+			"branch": "master",
+			"path": "context",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astitools/exec",
+			"repository": "https://github.com/asticode/go-astitools",
+			"vcs": "git",
+			"revision": "933b5f686c38971627eb990f415ee6b6f9857cc8",
+			"branch": "master",
+			"path": "exec",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astitools/flag",
+			"repository": "https://github.com/asticode/go-astitools",
+			"vcs": "git",
+			"revision": "933b5f686c38971627eb990f415ee6b6f9857cc8",
+			"branch": "master",
+			"path": "/flag",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astitools/http",
+			"repository": "https://github.com/asticode/go-astitools",
+			"vcs": "git",
+			"revision": "933b5f686c38971627eb990f415ee6b6f9857cc8",
+			"branch": "master",
+			"path": "http",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astitools/io",
+			"repository": "https://github.com/asticode/go-astitools",
+			"vcs": "git",
+			"revision": "933b5f686c38971627eb990f415ee6b6f9857cc8",
+			"branch": "master",
+			"path": "/io",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astitools/os",
+			"repository": "https://github.com/asticode/go-astitools",
+			"vcs": "git",
+			"revision": "933b5f686c38971627eb990f415ee6b6f9857cc8",
+			"branch": "master",
+			"path": "os",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astitools/ptr",
+			"repository": "https://github.com/asticode/go-astitools",
+			"vcs": "git",
+			"revision": "933b5f686c38971627eb990f415ee6b6f9857cc8",
+			"branch": "master",
+			"path": "ptr",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astitools/regexp",
+			"repository": "https://github.com/asticode/go-astitools",
+			"vcs": "git",
+			"revision": "933b5f686c38971627eb990f415ee6b6f9857cc8",
+			"branch": "master",
+			"path": "regexp",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-astitools/url",
+			"repository": "https://github.com/asticode/go-astitools",
+			"vcs": "git",
+			"revision": "933b5f686c38971627eb990f415ee6b6f9857cc8",
+			"branch": "master",
+			"path": "url",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/asticode/go-bindata",
+			"repository": "https://github.com/asticode/go-bindata",
+			"vcs": "git",
+			"revision": "a0ff2567cfb70903282db057e799fd826784d41d",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/jteeuwen/go-bindata",
+			"repository": "https://github.com/jteeuwen/go-bindata",
+			"vcs": "git",
+			"revision": "6025e8de665b31fa74ab1a66f2cddd8c0abf887e",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/julienschmidt/httprouter",
+			"repository": "https://github.com/julienschmidt/httprouter",
+			"vcs": "git",
+			"revision": "26a05976f9bf5c3aa992cc20e8588c359418ee58",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/konsorten/go-windows-terminal-sequences",
+			"repository": "https://github.com/konsorten/go-windows-terminal-sequences",
+			"vcs": "git",
+			"revision": "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/mattn/go-colorable",
+			"repository": "https://github.com/mattn/go-colorable",
+			"vcs": "git",
+			"revision": "efa589957cd060542a26d2dd7832fd6a6c6c3ade",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/mattn/go-isatty",
+			"repository": "https://github.com/mattn/go-isatty",
+			"vcs": "git",
+			"revision": "3fb116b820352b7f0c281308a4d6250c22d94e27",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/pkg/errors",
+			"repository": "https://github.com/pkg/errors",
+			"vcs": "git",
+			"revision": "059132a15dd08d6704c67711dae0cf35ab991756",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/sirupsen/logrus",
+			"repository": "https://github.com/sirupsen/logrus",
+			"vcs": "git",
+			"revision": "44067abb194b1bc8b342e1f2120f8d3ea691b834",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stretchr/testify/assert",
+			"repository": "https://github.com/stretchr/testify",
+			"vcs": "git",
+			"revision": "04af85275a5c7ac09d16bb3b9b2e751ed45154e5",
+			"branch": "master",
+			"path": "assert",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stretchr/testify/require",
+			"repository": "https://github.com/stretchr/testify",
+			"vcs": "git",
+			"revision": "04af85275a5c7ac09d16bb3b9b2e751ed45154e5",
+			"branch": "master",
+			"path": "/require",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
+			"repository": "https://github.com/stretchr/testify",
+			"vcs": "git",
+			"revision": "04af85275a5c7ac09d16bb3b9b2e751ed45154e5",
+			"branch": "master",
+			"path": "vendor/github.com/davecgh/go-spew/spew",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
+			"repository": "https://github.com/stretchr/testify",
+			"vcs": "git",
+			"revision": "04af85275a5c7ac09d16bb3b9b2e751ed45154e5",
+			"branch": "master",
+			"path": "vendor/github.com/pmezard/go-difflib/difflib",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/zserge/webview",
+			"repository": "https://github.com/zserge/webview",
+			"vcs": "git",
+			"revision": "f390a2df9ec50d1bce389f0656a215a5504dce04",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/crypto/ssh/terminal",
+			"repository": "https://go.googlesource.com/crypto",
+			"vcs": "git",
+			"revision": "3d3f9f413869b949e48070b5bc593aa22cc2b8f2",
+			"branch": "master",
+			"path": "/ssh/terminal",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/sys/unix",
+			"repository": "https://go.googlesource.com/sys",
+			"vcs": "git",
+			"revision": "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399",
+			"branch": "master",
+			"path": "/unix",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/sys/windows",
+			"repository": "https://go.googlesource.com/sys",
+			"vcs": "git",
+			"revision": "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399",
+			"branch": "master",
+			"path": "windows",
+			"notests": true
+		}
+	]
+}

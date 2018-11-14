@@ -106,6 +106,9 @@ type config struct {
 
 	// Deprecated options
 	DataDir *cfgutil.ExplicitString `short:"b" long:"datadir" default-mask:"-" description:"DEPRECATED -- use appdata instead"`
+
+	GUI     bool   `long:"gui" description:"Launch the GUI"`
+	GUItype string `long:"guitype" description:"Select the GUI front-end, currently only option is 'electron'"`
 }
 
 // cleanAndExpandPath expands environement variables and leading ~ in the
@@ -273,6 +276,8 @@ func loadConfig() (*config, []string, error) {
 		MaxPeers:               neutrino.MaxPeers,
 		BanDuration:            neutrino.BanDuration,
 		BanThreshold:           neutrino.BanThreshold,
+		GUI:                    false,
+		GUItype:                "electron",
 	}
 
 	// Pre-parse the command line options to see if an alternative config

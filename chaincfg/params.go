@@ -288,6 +288,8 @@ var MainNetParams = Params{
 		// {11111, newHashFromStr("0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d")},
 		// {, newHashFromStr("")},
 		// {177177, newHashFromStr("000000000000000bec311e6dbc9928c6928040bde752bddf5cc754f24fa37d5c")},
+		// {177399, newHashFromStr("0000000000000033bc24db9949c3b5861c4108f773d911de10042f650642243e")},
+		// {69696, newHashFromStr("000000000001396f939931fbbb030bad03bdd67891633bd9e4ec421aa6f71b34")},
 	},
 
 	// Consensus rule change deployments.

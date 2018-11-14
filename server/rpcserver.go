@@ -2387,7 +2387,7 @@ func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (in
 	algoname := "sha256d"
 	algoid := int32(0)
 	algover := int32(2)
-	fmt.Println(algoname, algoid)
+	// fmt.Println(algoname, algoid)
 	switch s.cfg.AlgoID {
 	case 514:
 		algoname = "scrypt"
