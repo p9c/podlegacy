@@ -16,7 +16,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/parallelcointeam/pod/walletdb/walletdbtest"
+	"github.com/parallelcointeam/pod/wallet/walletdb/walletdbtest"
 )
 
 // TestInterface performs all interfaces tests for this database driver.

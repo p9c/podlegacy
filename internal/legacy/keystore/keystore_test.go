@@ -11,17 +11,17 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/pod/ecc"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/ecc"
 )
 
 const dummyDir = ""
 
-var tstNetParams = &chaincfg.TestNet3Params
+var tstNetParams = &chaincfg.MainNetParams
 
 func makeBS(height int32) *BlockStamp {
 	return &BlockStamp{
@@ -304,7 +304,7 @@ func TestChaining(t *testing.T) {
 		}
 		ok := sig.Verify([]byte(data), privkeyUncompressed.PubKey())
 		if !ok {
-			t.Errorf("%s: ecc signature verification failed for next keypair (chained from uncompressed pubkey).",
+			t.Errorf("%s: btcec signature verification failed for next keypair (chained from uncompressed pubkey).",
 				test.name)
 			return
 		}
@@ -316,7 +316,7 @@ func TestChaining(t *testing.T) {
 		}
 		ok = sig.Verify([]byte(data), privkeyCompressed.PubKey())
 		if !ok {
-			t.Errorf("%s: ecc signature verification failed for next keypair (chained from compressed pubkey).",
+			t.Errorf("%s: btcec signature verification failed for next keypair (chained from compressed pubkey).",
 				test.name)
 			return
 		}
@@ -434,7 +434,7 @@ func TestWalletPubkeyChaining(t *testing.T) {
 	pubKey := pkinfo.PubKey()
 	ok := sig.Verify(hash, pubKey)
 	if !ok {
-		t.Errorf("ecc signature verification failed; address's pubkey mismatches the privkey.")
+		t.Errorf("btcec signature verification failed; address's pubkey mismatches the privkey.")
 		return
 	}
 
@@ -466,7 +466,7 @@ func TestWalletPubkeyChaining(t *testing.T) {
 	pubKey = nextPkInfo.PubKey()
 	ok = sig.Verify(hash, pubKey)
 	if !ok {
-		t.Errorf("ecc signature verification failed; next address's keypair does not match.")
+		t.Errorf("btcec signature verification failed; next address's keypair does not match.")
 		return
 	}
 

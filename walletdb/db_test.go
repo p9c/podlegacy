@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/parallelcointeam/pod/walletdb"
-	_ "github.com/parallelcointeam/pod/walletdb/bdb"
+	_ "github.com/parallelcointeam/pod/wallet/walletdb/bdb"
 )
 
 var (
