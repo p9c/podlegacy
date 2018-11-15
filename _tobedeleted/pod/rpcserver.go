@@ -1964,7 +1964,7 @@ func handleGetBlockTemplateRequest(s *rpcServer, request *JSON.TemplateRequest, 
 
 		return nil, &JSON.RPCError{
 			Code:    JSON.ErrRPCClientNotConnected,
-			Message: "Bitcoin is not connected",
+			Message: "Pod is not connected",
 		}
 	}
 
@@ -1973,7 +1973,7 @@ func handleGetBlockTemplateRequest(s *rpcServer, request *JSON.TemplateRequest, 
 	if currentHeight != 0 && !s.cfg.SyncMgr.IsCurrent() {
 		return nil, &JSON.RPCError{
 			Code:    JSON.ErrRPCClientInInitialDownload,
-			Message: "Bitcoin is downloading blocks...",
+			Message: "Pod is downloading blocks...",
 		}
 	}
 
