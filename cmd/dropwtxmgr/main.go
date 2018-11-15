@@ -13,8 +13,8 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/utils"
-	_ "github.com/parallelcointeam/pod/wallet/walletdb/bdb"
 	"github.com/parallelcointeam/pod/walletdb"
+	_ "github.com/parallelcointeam/pod/walletdb/bdb"
 	"github.com/parallelcointeam/pod/wtxmgr"
 )
 

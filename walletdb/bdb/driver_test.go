@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/parallelcointeam/pod/walletdb"
-	_ "github.com/parallelcointeam/pod/wallet/walletdb/bdb"
+	_ "github.com/parallelcointeam/pod/walletdb/bdb"
 )
 
 // dbType is the database type name for this driver.

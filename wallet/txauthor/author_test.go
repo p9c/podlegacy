@@ -7,10 +7,10 @@ package txauthor_test
 import (
 	"testing"
 
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
-	. "github.com/parallelcointeam/pod/wallet/wallet/txauthor"
-	"github.com/parallelcointeam/pod/wallet/wallet/txrules"
+	. "github.com/parallelcointeam/pod/wallet/txauthor"
+	"github.com/parallelcointeam/pod/wallet/txrules"
+	"github.com/parallelcointeam/pod/wire"
 
 	"github.com/parallelcointeam/pod/wallet/wallet/internal/txsizes"
 )

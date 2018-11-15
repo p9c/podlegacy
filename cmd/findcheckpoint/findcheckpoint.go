@@ -39,15 +39,15 @@ func loadBlockDB() (database.DB, error) {
 // candidates at the last checkpoint that is already hard coded into btcchain
 // since there is no point in finding candidates before already existing
 // checkpoints.
-func findCandidates(chain *blockchain.BlockChain, latestHash *chainhash.Hash) ([]*chaincfg.Checkpoint, error) {
+func findCandidates(ch *chain.BlockChain, latestHash *chainhash.Hash) ([]*chaincfg.Checkpoint, error) {
 	// Start with the latest block of the main chain.
-	block, err := chain.BlockByHash(latestHash)
+	block, err := ch.BlockByHash(latestHash)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get the latest known checkpoint.
-	latestCheckpoint := chain.LatestCheckpoint()
+	latestCheckpoint := ch.LatestCheckpoint()
 	if latestCheckpoint == nil {
 		// Set the latest checkpoint to the genesis block if there isn't
 		// already one.
@@ -59,7 +59,7 @@ func findCandidates(chain *blockchain.BlockChain, latestHash *chainhash.Hash) ([
 
 	// The latest known block must be at least the last known checkpoint
 	// plus required checkpoint confirmations.
-	checkpointConfirmations := int32(blockchain.CheckpointConfirmations)
+	checkpointConfirmations := int32(chain.CheckpointConfirmations)
 	requiredHeight := latestCheckpoint.Height + checkpointConfirmations
 	if block.Height() < requiredHeight {
 		return nil, fmt.Errorf("the block database is only at height "+
@@ -92,7 +92,7 @@ func findCandidates(chain *blockchain.BlockChain, latestHash *chainhash.Hash) ([
 		}
 
 		// Determine if this block is a checkpoint candidate.
-		isCandidate, err := chain.IsCheckpointCandidate(block)
+		isCandidate, err := ch.IsCheckpointCandidate(block)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +108,7 @@ func findCandidates(chain *blockchain.BlockChain, latestHash *chainhash.Hash) ([
 		}
 
 		prevHash := &block.MsgBlock().Header.PrevBlock
-		block, err = chain.BlockByHash(prevHash)
+		block, err = ch.BlockByHash(prevHash)
 		if err != nil {
 			return nil, err
 		}
@@ -150,10 +150,10 @@ func main() {
 
 	// Setup chain.  Ignore notifications since they aren't needed for this
 	// util.
-	chain, err := blockchain.New(&blockchain.Config{
+	chain, err := chain.New(&chain.Config{
 		DB:          db,
 		ChainParams: activeNetParams,
-		TimeSource:  blockchain.NewMedianTime(),
+		TimeSource:  chain.NewMedianTime(),
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to initialize chain: %v\n", err)

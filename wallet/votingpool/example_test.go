@@ -24,13 +24,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/parallelcointeam/pod/wallet/votingpool"
-	"github.com/parallelcointeam/pod/walletdb"
-	_ "github.com/parallelcointeam/pod/wallet/walletdb/bdb"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/waddrmgr"
+	"github.com/parallelcointeam/pod/wallet/votingpool"
+	"github.com/parallelcointeam/pod/walletdb"
+	_ "github.com/parallelcointeam/pod/walletdb/bdb"
 	"github.com/parallelcointeam/pod/wtxmgr"
 )
 

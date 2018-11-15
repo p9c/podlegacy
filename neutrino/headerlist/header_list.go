@@ -48,12 +48,12 @@ func (n *Node) Prev() *Node {
 }
 
 // GetAlgo returns the algorithm of a block node
-func (n *Node) GetAlgo() int32 {
+func (n *Node) GetAlgo() uint32 {
 	return n.Header.Version
 }
 
 // GetPrevWithAlgo returns the previous block from the current with the same algorithm
-func (n *Node) GetPrevWithAlgo(algo int32) (prev *Node) {
+func (n *Node) GetPrevWithAlgo(algo uint32) (prev *Node) {
 	node := n
 	if node == nil {
 		return nil

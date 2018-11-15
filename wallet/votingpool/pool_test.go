@@ -12,10 +12,10 @@ import (
 	"testing"
 
 	"github.com/parallelcointeam/pod/utils/hdkeychain"
-	vp "github.com/parallelcointeam/pod/wallet/votingpool"
 	"github.com/parallelcointeam/pod/waddrmgr"
+	vp "github.com/parallelcointeam/pod/wallet/votingpool"
 	"github.com/parallelcointeam/pod/walletdb"
-	_ "github.com/parallelcointeam/pod/wallet/walletdb/bdb"
+	_ "github.com/parallelcointeam/pod/walletdb/bdb"
 )
 
 func TestLoadPoolAndDepositScript(t *testing.T) {

@@ -133,7 +133,7 @@ func createCoinbaseTx(coinbaseScript []byte, nextBlockHeight int32,
 // second is used. Passing nil for the previous block results in a block that
 // builds off of the genesis block for the specified chain.
 func CreateBlock(prevBlock *utils.Block, inclusionTxs []*utils.Tx,
-	blockVersion int32, blockTime time.Time, miningAddr utils.Address,
+	blockVersion uint32, blockTime time.Time, miningAddr utils.Address,
 	mineTo []wire.TxOut, net *chaincfg.Params) (*utils.Block, error) {
 
 	var (

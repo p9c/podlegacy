@@ -18,8 +18,8 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/rpcclient"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 const (
@@ -416,7 +416,7 @@ func (h *Harness) P2PAddress() string {
 // blockTime parameter if one doesn't wish to set a custom time.
 //
 // This function is safe for concurrent access.
-func (h *Harness) GenerateAndSubmitBlock(txns []*utils.Tx, blockVersion int32,
+func (h *Harness) GenerateAndSubmitBlock(txns []*utils.Tx, blockVersion uint32,
 	blockTime time.Time) (*utils.Block, error) {
 	return h.GenerateAndSubmitBlockWithCustomCoinbaseOutputs(txns,
 		blockVersion, blockTime, []wire.TxOut{})
@@ -437,13 +437,13 @@ func (h *Harness) GenerateAndSubmitBlock(txns []*utils.Tx, blockVersion int32,
 //
 // This function is safe for concurrent access.
 func (h *Harness) GenerateAndSubmitBlockWithCustomCoinbaseOutputs(
-	txns []*utils.Tx, blockVersion int32, blockTime time.Time,
+	txns []*utils.Tx, blockVersion uint32, blockTime time.Time,
 	mineTo []wire.TxOut) (*utils.Block, error) {
 
 	h.Lock()
 	defer h.Unlock()
 
-	if blockVersion == -1 {
+	if ^blockVersion == 0 {
 		blockVersion = BlockVersion
 	}
 

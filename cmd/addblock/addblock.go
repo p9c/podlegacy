@@ -73,7 +73,7 @@ func realMain() error {
 	defer os.Stdout.Sync()
 	log = backendLogger.Logger("MAIN")
 	database.UseLogger(backendLogger.Logger("BCDB"))
-	blockchain.UseLogger(backendLogger.Logger("CHAN"))
+	chain.UseLogger(backendLogger.Logger("CHAN"))
 	indexers.UseLogger(backendLogger.Logger("INDX"))
 
 	// Load the block database.

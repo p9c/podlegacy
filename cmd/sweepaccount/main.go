@@ -20,8 +20,8 @@ import (
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/utils"
 	"github.com/parallelcointeam/pod/wallet/netparams"
-	"github.com/parallelcointeam/pod/wallet/wallet/txauthor"
-	"github.com/parallelcointeam/pod/wallet/wallet/txrules"
+	"github.com/parallelcointeam/pod/wallet/txauthor"
+	"github.com/parallelcointeam/pod/wallet/txrules"
 	"github.com/parallelcointeam/pod/wire"
 )
 

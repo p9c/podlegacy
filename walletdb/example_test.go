@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 
 	"github.com/parallelcointeam/pod/walletdb"
-	_ "github.com/parallelcointeam/pod/wallet/walletdb/bdb"
+	_ "github.com/parallelcointeam/pod/walletdb/bdb"
 )
 
 // This example demonstrates creating a new database.
@@ -20,7 +20,7 @@ func ExampleCreate() {
 	//
 	// import (
 	// 	"github.com/parallelcointeam/pod/walletdb"
-	// 	_ "github.com/parallelcointeam/pod/wallet/walletdb/bdb"
+	// 	_ "github.com/parallelcointeam/pod/walletdb/bdb"
 	// )
 
 	// Create a database and schedule it to be closed and removed on exit.
@@ -103,7 +103,7 @@ func Example_basicUsage() {
 	//
 	// import (
 	// 	"github.com/parallelcointeam/pod/walletdb"
-	// 	_ "github.com/parallelcointeam/pod/wallet/walletdb/bdb"
+	// 	_ "github.com/parallelcointeam/pod/walletdb/bdb"
 	// )
 
 	// Create a database and schedule it to be closed and removed on exit.

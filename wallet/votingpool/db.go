@@ -10,11 +10,11 @@ import (
 	"encoding/gob"
 	"fmt"
 
+	"github.com/parallelcointeam/pod/snacl"
 	"github.com/parallelcointeam/pod/txscript"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
-	"github.com/parallelcointeam/pod/wallet/snacl"
 	"github.com/parallelcointeam/pod/walletdb"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 // These constants define the serialized length for a given encrypted extended

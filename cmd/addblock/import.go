@@ -15,8 +15,8 @@ import (
 	"github.com/parallelcointeam/pod/chain/indexers"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/utils"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 var zeroHash = chainhash.Hash{}
@@ -32,7 +32,7 @@ type importResults struct {
 // file to the block database.
 type blockImporter struct {
 	db                database.DB
-	chain             *blockchain.BlockChain
+	chain             *chain.BlockChain
 	r                 io.ReadSeeker
 	processQueue      chan []byte
 	doneChan          chan bool
@@ -130,7 +130,7 @@ func (bi *blockImporter) processBlock(serializedBlock []byte) (bool, error) {
 	// Ensure the blocks follows all of the chain rules and match up to the
 	// known checkpoints.
 	isMainChain, isOrphan, err := bi.chain.ProcessBlock(block,
-		blockchain.BFFastAdd)
+		chain.BFFastAdd)
 	if err != nil {
 		return false, err
 	}
@@ -325,15 +325,15 @@ func newBlockImporter(db database.DB, r io.ReadSeeker) (*blockImporter, error) {
 	}
 
 	// Create an index manager if any of the optional indexes are enabled.
-	var indexManager blockchain.IndexManager
+	var indexManager chain.IndexManager
 	if len(indexes) > 0 {
 		indexManager = indexers.NewManager(db, indexes)
 	}
 
-	chain, err := blockchain.New(&blockchain.Config{
+	chain, err := chain.New(&chain.Config{
 		DB:           db,
 		ChainParams:  activeNetParams,
-		TimeSource:   blockchain.NewMedianTime(),
+		TimeSource:   chain.NewMedianTime(),
 		IndexManager: indexManager,
 	})
 	if err != nil {

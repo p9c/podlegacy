@@ -2388,7 +2388,7 @@ func (b *blockManager) checkHeaderSanity(blockHeader *wire.BlockHeader,
 // calcNextRequiredDifficulty calculates the required difficulty for the block
 // after the passed previous block node based on the difficulty retarget rules.
 func (b *blockManager) calcNextRequiredDifficulty(newBlockTime time.Time,
-	reorgAttempt bool, algo int32) (uint32, error) {
+	reorgAttempt bool, algo uint32) (uint32, error) {
 
 	var powLimit *big.Int
 	var powLimitBits uint32
