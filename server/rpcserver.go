@@ -1562,6 +1562,7 @@ func (state *GbtWorkState) UpdateBlockTemplate(s *RPCServer, useCoinbaseValue bo
 	// generated.
 	var msgBlock *wire.MsgBlock
 	var targetDifficulty string
+	// TODO needs to only look at like algo blocks previous
 	latestHash := &s.cfg.Chain.BestSnapshot().Hash
 	template := state.template
 	if template == nil || state.prevHash == nil ||

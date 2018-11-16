@@ -881,6 +881,7 @@ mempoolLoop:
 	block := utils.NewBlock(&msgBlock)
 	block.SetHeight(nextBlockHeight)
 	if err := g.chain.CheckConnectBlockTemplate(block); err != nil {
+		fmt.Println("ERROR", err)
 		return nil, err
 	}
 
