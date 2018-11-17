@@ -188,7 +188,7 @@ func Main(serverChan chan<- *svr.Server) error {
 	svr.PodLog.Infof("Starting up...")
 	// Create server and start it.
 	svr.Cfg = cfg
-	server, err := svr.New(cfg.Listeners, db, svr.ActiveNetParams.Params,
+	server, err := svr.New(cfg.Listeners, cfg.ScryptListeners, db, svr.ActiveNetParams.Params,
 		interrupt)
 	if err != nil {
 		// TODO: this logging could do with some beautifying.

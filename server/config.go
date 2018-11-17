@@ -114,7 +114,7 @@ type Config struct {
 	RPCLimitUser         string        `long:"rpclimituser" description:"Username for limited RPC connections"`
 	RPCLimitPass         string        `long:"rpclimitpass" default-mask:"-" description:"Password for limited RPC connections"`
 	RPCListeners         []string      `long:"rpclisten" description:"Add an interface/port to listen for RPC connections (default port: 11048, testnet: 21048)"`
-	ScryptListener       string        `long:"scryptlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	ScryptListeners      []string      `long:"scryptlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
 	RPCCert              string        `long:"rpccert" description:"File containing the certificate file"`
 	RPCKey               string        `long:"rpckey" description:"File containing the certificate key"`
 	RPCMaxClients        int           `long:"rpcmaxclients" description:"Max number of RPC clients for standard connections"`
