@@ -752,6 +752,13 @@ func LoadConfig() (*Config, []string, error) {
 		if err != nil {
 			return nil, nil, err
 		}
+
+		Cfg.ScryptListeners = make([]string, 0, len(addrs))
+		for _, addr := range addrs {
+			addr = net.JoinHostPort(addr, ActiveNetParams.ScryptRPCPort)
+			Cfg.ScryptListeners = append(Cfg.ScryptListeners, addr)
+		}
+
 		Cfg.RPCListeners = make([]string, 0, len(addrs))
 		for _, addr := range addrs {
 			addr = net.JoinHostPort(addr, ActiveNetParams.RPCPort)

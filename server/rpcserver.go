@@ -332,16 +332,18 @@ func RPCNoTxInfoError(txHash *chainhash.Hash) *JSON.RPCError {
 
 // NewGbtWorkState returns a new instance of a GbtWorkState with all internal
 // fields initialized and ready to use.
-func NewGbtWorkState(timeSource chain.MedianTimeSource) *GbtWorkState {
+func NewGbtWorkState(timeSource chain.MedianTimeSource, algo uint32) *GbtWorkState {
 	return &GbtWorkState{
 		notifyMap:  make(map[chainhash.Hash]map[int64]chan struct{}),
 		timeSource: timeSource,
+		algo:       algo,
 	}
 }
 
 // HandleUnimplemented is the handler for commands that should ultimately be
 // supported but are not yet implemented.
 func HandleUnimplemented(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	RPCsLog.Debug("HandleUnimplemented", cmd)
 	return nil, ErrRPCUnimplemented
 }
 
@@ -1212,7 +1214,7 @@ func HandleGetBlockChainInfo(s *RPCServer, cmd interface{}, closeChan <-chan str
 		Blocks:        chainSnapshot.Height,
 		Headers:       chainSnapshot.Height,
 		BestBlockHash: chainSnapshot.Hash.String(),
-		Difficulty:    GetDifficultyRatio(chainSnapshot.Bits, params, s.cfg.AlgoID),
+		Difficulty:    GetDifficultyRatio(chainSnapshot.Bits, params, 2),
 		MedianTime:    chainSnapshot.MedianTime.Unix(),
 		Pruned:        false,
 		Bip9SoftForks: make(map[string]*JSON.Bip9SoftForkDescription),
@@ -1589,9 +1591,7 @@ func (state *GbtWorkState) UpdateBlockTemplate(s *RPCServer, useCoinbaseValue bo
 		// block template doesn't include the coinbase, so the caller
 		// will ultimately create their own coinbase which pays to the
 		// appropriate address(es).
-		var a = s.cfg.AlgoID
-		blkTemplate, err := generator.NewBlockTemplate(payAddr, a)
-		fmt.Println(payAddr, a)
+		blkTemplate, err := generator.NewBlockTemplate(payAddr, state.algo)
 		if err != nil {
 			return InternalRPCError("Failed to create new block "+
 				"template: "+err.Error(), "")
@@ -2375,20 +2375,6 @@ func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (in
 		}
 	}
 
-	bestBits := best.Bits
-	algoname := "sha256d"
-	algoid := int32(0)
-	algover := uint32(2)
-	// fmt.Println(algoname, algoid)
-	switch s.cfg.AlgoID {
-	case 514:
-		algoname = "scrypt"
-		algoid = 1
-		algover = uint32(514)
-		bestBits = scryptbits
-	default:
-	}
-
 	ret := &JSON.InfoChainResult{
 		Version:           int32(1000000*AppMajor + 10000*AppMinor + 100*AppPatch),
 		ProtocolVersion:   int32(maxProtocolVersion),
@@ -2396,9 +2382,7 @@ func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (in
 		TimeOffset:        int64(s.cfg.TimeSource.Offset().Seconds()),
 		Connections:       s.cfg.ConnMgr.ConnectedCount(),
 		Proxy:             Cfg.Proxy,
-		PowAlgoID:         algoid,
-		PowAlgo:           algoname,
-		Difficulty:        GetDifficultyRatio(bestBits, s.cfg.ChainParams, algover),
+		Difficulty:        GetDifficultyRatio(shabits, s.cfg.ChainParams, 2),
 		DifficultySHA256D: GetDifficultyRatio(shabits, s.cfg.ChainParams, 2),
 		DifficultyScrypt:  GetDifficultyRatio(scryptbits, s.cfg.ChainParams, 514),
 		TestNet:           Cfg.TestNet3,
@@ -3885,6 +3869,7 @@ type ParsedRPCCmd struct {
 // commands which are not recognized or not implemented will return an error
 // suitable for use in replies.
 func (s *RPCServer) StandardCmdResult(cmd *ParsedRPCCmd, closeChan <-chan struct{}) (interface{}, error) {
+	RPCsLog.Debug("StandardCmdResult", *cmd)
 	handler, ok := RPCHandlers[cmd.method]
 	if ok {
 		goto handled
@@ -4094,11 +4079,11 @@ func JSONAuthFail(w http.ResponseWriter) {
 
 // Start is used by server.go to start the rpc listener.
 func (s *RPCServer) Start() {
+	RPCsLog.Debug("Starting RPCServer")
 	if atomic.AddInt32(&s.started, 1) != 1 {
 		return
 	}
 
-	RPCsLog.Trace("Starting RPC server")
 	rpcServeMux := http.NewServeMux()
 	httpServer := &http.Server{
 		Handler: rpcServeMux,
@@ -4153,6 +4138,7 @@ func (s *RPCServer) Start() {
 	})
 
 	for _, listener := range s.cfg.Listeners {
+		RPCsLog.Debug("Listeners", listener.Addr())
 		s.wg.Add(1)
 		go func(listener net.Listener) {
 			RPCsLog.Infof("RPC server listening on %s", listener.Addr())
@@ -4194,7 +4180,7 @@ func NewRPCServer(config *RPCServerConfig) (*RPCServer, error) {
 	rpc := RPCServer{
 		cfg:                    *config,
 		statusLines:            make(map[int]string),
-		GbtWorkState:           NewGbtWorkState(config.TimeSource),
+		GbtWorkState:           NewGbtWorkState(config.TimeSource, config.Algo),
 		HelpCacher:             NewHelpCacher(),
 		requestProcessShutdown: make(chan struct{}),
 		quit:                   make(chan int),

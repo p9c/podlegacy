@@ -43,6 +43,7 @@ type Server struct {
 	sigCache             *txscript.SigCache
 	hashCache            *txscript.HashCache
 	RPCServer            *RPCServer
+	ScryptRPCServer      *RPCServer
 	syncManager          *netsync.SyncManager
 	chain                *chain.BlockChain
 	txMemPool            *mempool.TxPool
@@ -205,7 +206,7 @@ type RPCServerConfig struct {
 	// the mempool before they are mined into blocks.
 	FeeEstimator *mempool.FeeEstimator
 
-	AlgoID uint32
+	Algo uint32
 }
 
 // RPCServerPeer represents a peer for use with the RPC server.
@@ -420,6 +421,7 @@ type GbtWorkState struct {
 	template      *mining.BlockTemplate
 	notifyMap     map[chainhash.Hash]map[int64]chan struct{}
 	timeSource    chain.MedianTimeSource
+	algo          uint32
 }
 
 // HelpCacher provides a concurrent safe type that provides help and usage for

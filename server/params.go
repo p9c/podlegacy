@@ -17,7 +17,8 @@ var ActiveNetParams = &MainNetParams
 // network and test networks.
 type Params struct {
 	*chaincfg.Params
-	RPCPort string
+	RPCPort       string
+	ScryptRPCPort string
 }
 
 // MainNetParams contains parameters specific to the main network
@@ -27,8 +28,9 @@ type Params struct {
 // it does not handle on to btcd.  This approach allows the wallet process
 // to emulate the full reference implementation RPC API.
 var MainNetParams = Params{
-	Params:  &chaincfg.MainNetParams,
-	RPCPort: "11048",
+	Params:        &chaincfg.MainNetParams,
+	RPCPort:       "11048",
+	ScryptRPCPort: "11049",
 }
 
 // RegressionNetParams contains parameters specific to the regression test
@@ -36,23 +38,26 @@ var MainNetParams = Params{
 // than the reference implementation - see the MainNetParams comment for
 // details.
 var RegressionNetParams = Params{
-	Params:  &chaincfg.RegressionNetParams,
-	RPCPort: "31048",
+	Params:        &chaincfg.RegressionNetParams,
+	RPCPort:       "31048",
+	ScryptRPCPort: "31049",
 }
 
 // TestNet3Params contains parameters specific to the test network (version 3)
 // (wire.TestNet3).  NOTE: The RPC port is intentionally different than the
 // reference implementation - see the MainNetParams comment for details.
 var TestNet3Params = Params{
-	Params:  &chaincfg.TestNet3Params,
-	RPCPort: "21048",
+	Params:        &chaincfg.TestNet3Params,
+	RPCPort:       "21048",
+	ScryptRPCPort: "21049",
 }
 
 // SimNetParams contains parameters specific to the simulation test network
 // (wire.SimNet).
 var SimNetParams = Params{
-	Params:  &chaincfg.SimNetParams,
-	RPCPort: "41048",
+	Params:        &chaincfg.SimNetParams,
+	RPCPort:       "41048",
+	ScryptRPCPort: "41049",
 }
 
 // NetName returns the name used when referring to a bitcoin network.  At the
