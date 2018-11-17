@@ -915,7 +915,7 @@ Changes in 0.3.2 (Tue Oct 22 2013)
   - Remove deprecated sqlite as an available database backend
   - Close sqlite compile issue as sqlite has now been removed
     (https://github.com/conformal/btcd/issues/11)
-  - Change default RPC ports to 8334 (mainnet) and 18334 (testnet)
+  - Change default RPC ports to 11048 (mainnet) and 21048 (testnet)
   - Continue cleanup and work on implementing RPC API calls
   - Add support for the following RPC calls: getrawmempool,
     getbestblockhash, decoderawtransaction, getdifficulty,

@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 )
 
 // makeHeader is a convenience function to make a message header in the form of
@@ -40,10 +40,10 @@ func TestMessage(t *testing.T) {
 	// Create the various types of messages to test.
 
 	// MsgVersion.
-	addrYou := &net.TCPAddr{IP: net.ParseIP("192.168.0.1"), Port: 8333}
+	addrYou := &net.TCPAddr{IP: net.ParseIP("192.168.0.1"), Port: 11047}
 	you := NewNetAddress(addrYou, SFNodeNetwork)
 	you.Timestamp = time.Time{} // Version message has zero value timestamp.
-	addrMe := &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8333}
+	addrMe := &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 11047}
 	me := NewNetAddress(addrMe, SFNodeNetwork)
 	me.Timestamp = time.Time{} // Version message has zero value timestamp.
 	msgVersion := NewMsgVersion(me, you, 123123, 0)
