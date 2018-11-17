@@ -42,7 +42,7 @@ type Server struct {
 	connManager          *connmgr.ConnManager
 	sigCache             *txscript.SigCache
 	hashCache            *txscript.HashCache
-	RPCServer            *RPCServer
+	RPCServer            []*RPCServer
 	syncManager          *netsync.SyncManager
 	chain                *chain.BlockChain
 	txMemPool            *mempool.TxPool
@@ -164,6 +164,9 @@ type RPCServerConfig struct {
 	// is stopped.
 	Listeners []net.Listener
 
+	// In the corresponding index is the block version number to code for the algorithm
+	ListenersAlgo uint32
+
 	// StartupTime is the unix timestamp for when the server that is hosting
 	// the RPC server started.
 	StartupTime int64
@@ -204,8 +207,6 @@ type RPCServerConfig struct {
 	// The fee estimator keeps track of how long transactions are left in
 	// the mempool before they are mined into blocks.
 	FeeEstimator *mempool.FeeEstimator
-
-	AlgoID uint32
 }
 
 // RPCServerPeer represents a peer for use with the RPC server.

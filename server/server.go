@@ -122,7 +122,8 @@ func (s *Server) AnnounceNewTransactions(txns []*mempool.TxDesc) {
 	// Notify both websocket and getblocktemplate long poll clients of all
 	// newly accepted transactions.
 	if s.RPCServer != nil {
-		s.RPCServer.NotifyNewTransactions(txns)
+		s.RPCServer[0].NotifyNewTransactions(txns)
+		s.RPCServer[1].NotifyNewTransactions(txns)
 	}
 }
 
@@ -1013,7 +1014,8 @@ func (s *Server) Start() {
 		// the RPC server are rebroadcast until being included in a block.
 		go s.RebroadcastHandler()
 
-		s.RPCServer.Start()
+		s.RPCServer[0].Start()
+		s.RPCServer[1].Start()
 	}
 
 	// Start the CPU miner if generation is enabled.
@@ -1038,7 +1040,8 @@ func (s *Server) Stop() error {
 
 	// Shutdown the RPC server if it's not disabled.
 	if !Cfg.DisableRPC {
-		s.RPCServer.Stop()
+		s.RPCServer[0].Stop()
+		s.RPCServer[1].Stop()
 	}
 
 	// Save fee estimator state in the database.
@@ -1233,8 +1236,13 @@ func SetupRPCListeners() ([]net.Listener, error) {
 	if err != nil {
 		return nil, err
 	}
+	scryptAddrs, err := ParseListeners(Cfg.ScryptListeners)
+	if err != nil {
+		return nil, err
+	}
 
-	listeners := make([]net.Listener, 0, len(netAddrs))
+	listeners := make([]net.Listener, 0, len(netAddrs)+len(scryptAddrs))
+	listenersalgo := make([]uint32, len(listeners))
 	for _, addr := range netAddrs {
 		listener, err := listenFunc(addr.Network(), addr.String())
 		if err != nil {
@@ -1242,6 +1250,16 @@ func SetupRPCListeners() ([]net.Listener, error) {
 			continue
 		}
 		listeners = append(listeners, listener)
+		listenersalgo = append(listenersalgo, 2)
+	}
+	for _, addr := range scryptAddrs {
+		listener, err := listenFunc(addr.Network(), addr.String())
+		if err != nil {
+			RPCsLog.Warnf("Can't listen on %s: %v", addr, err)
+			continue
+		}
+		listeners = append(listeners, listener)
+		listenersalgo = append(listenersalgo, 514)
 	}
 
 	return listeners, nil
@@ -1554,23 +1572,42 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 			return nil, errors.New("RPCS: No valid listen address")
 		}
 
-		s.RPCServer, err = NewRPCServer(&RPCServerConfig{
-			Listeners:    rpcListeners,
-			StartupTime:  s.startupTime,
-			ConnMgr:      &RPCConnManager{&s},
-			SyncMgr:      &rpcSyncMgr{&s, s.syncManager},
-			TimeSource:   s.timeSource,
-			Chain:        s.chain,
-			ChainParams:  chainParams,
-			DB:           db,
-			TxMemPool:    s.txMemPool,
-			Generator:    blockTemplateGenerator,
-			CPUMiner:     s.cpuMiner,
-			TxIndex:      s.txIndex,
-			AddrIndex:    s.addrIndex,
-			CfIndex:      s.cfIndex,
-			FeeEstimator: s.feeEstimator,
-			AlgoID:       a,
+		s.RPCServer = make([]*RPCServer, 2)
+		s.RPCServer[0], err = NewRPCServer(&RPCServerConfig{
+			Listeners:     rpcListeners,
+			ListenersAlgo: 2,
+			StartupTime:   s.startupTime,
+			ConnMgr:       &RPCConnManager{&s},
+			SyncMgr:       &rpcSyncMgr{&s, s.syncManager},
+			TimeSource:    s.timeSource,
+			Chain:         s.chain,
+			ChainParams:   chainParams,
+			DB:            db,
+			TxMemPool:     s.txMemPool,
+			Generator:     blockTemplateGenerator,
+			CPUMiner:      s.cpuMiner,
+			TxIndex:       s.txIndex,
+			AddrIndex:     s.addrIndex,
+			CfIndex:       s.cfIndex,
+			FeeEstimator:  s.feeEstimator,
+		})
+		s.RPCServer[1], err = NewRPCServer(&RPCServerConfig{
+			Listeners:     rpcListeners,
+			ListenersAlgo: 514,
+			StartupTime:   s.startupTime,
+			ConnMgr:       &RPCConnManager{&s},
+			SyncMgr:       &rpcSyncMgr{&s, s.syncManager},
+			TimeSource:    s.timeSource,
+			Chain:         s.chain,
+			ChainParams:   chainParams,
+			DB:            db,
+			TxMemPool:     s.txMemPool,
+			Generator:     blockTemplateGenerator,
+			CPUMiner:      s.cpuMiner,
+			TxIndex:       s.txIndex,
+			AddrIndex:     s.addrIndex,
+			CfIndex:       s.cfIndex,
+			FeeEstimator:  s.feeEstimator,
 		})
 		if err != nil {
 			return nil, err
@@ -1578,7 +1615,8 @@ func New(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, int
 
 		// Signal process shutdown when the RPC server requests it.
 		go func() {
-			<-s.RPCServer.RequestedProcessShutdown()
+			<-s.RPCServer[0].RequestedProcessShutdown()
+			<-s.RPCServer[1].RequestedProcessShutdown()
 			ShutdownRequestChannel <- struct{}{}
 		}()
 	}
