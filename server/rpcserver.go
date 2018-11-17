@@ -70,7 +70,7 @@ const (
 	gbtRegenerateSeconds = 60
 
 	// maxProtocolVersion is the max protocol version the server supports.
-	maxProtocolVersion = 70014
+	maxProtocolVersion = 70002
 )
 
 var (
@@ -1212,7 +1212,7 @@ func HandleGetBlockChainInfo(s *RPCServer, cmd interface{}, closeChan <-chan str
 		Blocks:        chainSnapshot.Height,
 		Headers:       chainSnapshot.Height,
 		BestBlockHash: chainSnapshot.Hash.String(),
-		Difficulty:    GetDifficultyRatio(chainSnapshot.Bits, params, 2),
+		Difficulty:    GetDifficultyRatio(chainSnapshot.Bits, params, s.cfg.AlgoID),
 		MedianTime:    chainSnapshot.MedianTime.Unix(),
 		Pruned:        false,
 		Bip9SoftForks: make(map[string]*JSON.Bip9SoftForkDescription),
@@ -1563,7 +1563,6 @@ func (state *GbtWorkState) UpdateBlockTemplate(s *RPCServer, useCoinbaseValue bo
 	var msgBlock *wire.MsgBlock
 	var targetDifficulty string
 	// TODO needs to only look at like algo blocks previous
-
 	latestHash := &s.cfg.Chain.BestSnapshot().Hash
 	template := state.template
 	if template == nil || state.prevHash == nil ||
@@ -2386,30 +2385,30 @@ func HandleGetInfo(s *RPCServer, cmd interface{}, closeChan <-chan struct{}) (in
 		}
 	}
 
-	// bestBits := best.Bits
-	// algoname := "sha256d"
-	// algoid := int32(0)
-	// algover := uint32(2)
-	// // fmt.Println(algoname, algoid)
-	// switch s.cfg.AlgoID {
-	// case 514:
-	// 	algoname = "scrypt"
-	// 	algoid = 1
-	// 	algover = uint32(514)
-	// 	bestBits = scryptbits
-	// default:
-	// }
+	bestBits := best.Bits
+	algoname := "sha256d"
+	algoid := int32(0)
+	algover := uint32(2)
+	// fmt.Println(algoname, algoid)
+	switch s.cfg.AlgoID {
+	case 514:
+		algoname = "scrypt"
+		algoid = 1
+		algover = uint32(514)
+		bestBits = scryptbits
+	default:
+	}
 
 	ret := &JSON.InfoChainResult{
-		Version:         int32(1000000*AppMajor + 10000*AppMinor + 100*AppPatch),
-		ProtocolVersion: int32(maxProtocolVersion),
-		Blocks:          best.Height,
-		TimeOffset:      int64(s.cfg.TimeSource.Offset().Seconds()),
-		Connections:     s.cfg.ConnMgr.ConnectedCount(),
-		Proxy:           Cfg.Proxy,
-		// PowAlgoID:         algoid,
-		// PowAlgo:           algoname,
-		Difficulty:        GetDifficultyRatio(shabits, s.cfg.ChainParams, 2),
+		Version:           int32(1000000*AppMajor + 10000*AppMinor + 100*AppPatch),
+		ProtocolVersion:   int32(maxProtocolVersion),
+		Blocks:            best.Height,
+		TimeOffset:        int64(s.cfg.TimeSource.Offset().Seconds()),
+		Connections:       s.cfg.ConnMgr.ConnectedCount(),
+		Proxy:             Cfg.Proxy,
+		PowAlgoID:         algoid,
+		PowAlgo:           algoname,
+		Difficulty:        GetDifficultyRatio(bestBits, s.cfg.ChainParams, algover),
 		DifficultySHA256D: GetDifficultyRatio(shabits, s.cfg.ChainParams, 2),
 		DifficultyScrypt:  GetDifficultyRatio(scryptbits, s.cfg.ChainParams, 514),
 		TestNet:           Cfg.TestNet3,

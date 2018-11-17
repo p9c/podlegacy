@@ -489,14 +489,14 @@ type GetWorkResult struct {
 
 // InfoChainResult models the data returned by the chain server getinfo command.
 type InfoChainResult struct {
-	Version         int32  `json:"version"`
-	ProtocolVersion int32  `json:"protocolversion"`
-	Blocks          int32  `json:"blocks"`
-	TimeOffset      int64  `json:"timeoffset"`
-	Connections     int32  `json:"connections"`
-	Proxy           string `json:"proxy"`
-	// PowAlgoID         int32   `json:"pow_algo_id"`
-	// PowAlgo           string  `json:"pow_algo"`
+	Version           int32   `json:"version"`
+	ProtocolVersion   int32   `json:"protocolversion"`
+	Blocks            int32   `json:"blocks"`
+	TimeOffset        int64   `json:"timeoffset"`
+	Connections       int32   `json:"connections"`
+	Proxy             string  `json:"proxy"`
+	PowAlgoID         int32   `json:"pow_algo_id"`
+	PowAlgo           string  `json:"pow_algo"`
 	Difficulty        float64 `json:"difficulty"`
 	DifficultySHA256D float64 `json:"difficulty_sha256d"`
 	DifficultyScrypt  float64 `json:"difficulty_scrypt"`
