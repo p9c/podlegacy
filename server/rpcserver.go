@@ -1999,6 +1999,10 @@ func HandleGetBlockTemplateRequest(s *RPCServer, request *JSON.TemplateRequest, 
 	if err := state.UpdateBlockTemplate(s, useCoinbaseValue); err != nil {
 		return nil, err
 	}
+	RPCsLog.Trace("Block Template")
+	bt, _ := state.BlockTemplateResult(useCoinbaseValue, nil)
+	btb, _ := json.MarshalIndent(bt, "  ", "  ")
+	RPCsLog.Trace(string(btb))
 	return state.BlockTemplateResult(useCoinbaseValue, nil)
 }
 
