@@ -341,9 +341,9 @@ func (b *BlockChain) initThresholdCaches() error {
 		// Warn if a high enough percentage of the last blocks have
 		// unexpected versions.
 		bestNode := b.bestChain.Tip()
-		if err := b.warnUnknownVersions(bestNode); err != nil {
-			return err
-		}
+		// if err := b.warnUnknownVersions(bestNode); err != nil {
+		// 	return err
+		// }
 
 		// Warn if any unknown new rules are either about to activate or
 		// have already been activated.

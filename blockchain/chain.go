@@ -583,11 +583,11 @@ func (b *BlockChain) connectBlock(node *blockNode, block *btcutil.Block,
 			return err
 		}
 
-		// Warn if a high enough percentage of the last blocks have
-		// unexpected versions.
-		if err := b.warnUnknownVersions(node); err != nil {
-			return err
-		}
+		// // Warn if a high enough percentage of the last blocks have
+		// // unexpected versions.
+		// if err := b.warnUnknownVersions(node); err != nil {
+		// 	return err
+		// }
 	}
 
 	// Write any block status changes to DB before updating best state.
