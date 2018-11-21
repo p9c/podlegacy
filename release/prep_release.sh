@@ -26,7 +26,7 @@ PROJECT=pod
 PROJECT_UC=$(echo $PROJECT | tr '[:lower:]' '[:upper:]')
 SCRIPT=$(basename $0)
 VERFILE=../version.go
-VERFILES="$VERFILE ../cmd/btcctl/version.go"
+VERFILES="$VERFILE ../cmd/podctl/version.go"
 PROJ_CHANGES=../CHANGES
 
 # verify params

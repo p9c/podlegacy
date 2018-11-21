@@ -41,7 +41,7 @@ const (
 // This function is safe for concurrent access.
 func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 	// Check block index first (could be main chain or side chain blocks).
-	if b.index.HaveBlock(hash) {
+	if b.Index.HaveBlock(hash) {
 		return true, nil
 	}
 
@@ -174,7 +174,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	var DoNotCheckPow bool
 	var pl *big.Int
 	ph := &block.MsgBlock().Header.PrevBlock
-	pn := b.index.LookupNode(ph)
+	pn := b.Index.LookupNode(ph)
 	if pn == nil {
 		// fmt.Println("did not find???")
 		DoNotCheckPow = true

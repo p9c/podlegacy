@@ -125,7 +125,7 @@ type BlockChain struct {
 	//
 	// bestChain tracks the current active chain by making use of an
 	// efficient chain view into the block index.
-	index     *blockIndex
+	Index     *blockIndex
 	bestChain *chainView
 
 	// These fields are related to handling of orphan blocks.  They are
@@ -508,8 +508,8 @@ func (b *BlockChain) getReorganizeNodes(node *blockNode) (*list.List, *list.List
 	// Do not reorganize to a known invalid chain. Ancestors deeper than the
 	// direct parent are checked below but this is a quick check before doing
 	// more unnecessary work.
-	if b.index.NodeStatus(node.parent).KnownInvalid() {
-		b.index.SetStatusFlags(node, statusInvalidAncestor)
+	if b.Index.NodeStatus(node.parent).KnownInvalid() {
+		b.Index.SetStatusFlags(node, statusInvalidAncestor)
 		return detachNodes, attachNodes
 	}
 
@@ -520,7 +520,7 @@ func (b *BlockChain) getReorganizeNodes(node *blockNode) (*list.List, *list.List
 	forkNode := b.bestChain.FindFork(node)
 	invalidChain := false
 	for n := node; n != nil && n != forkNode; n = n.parent {
-		if b.index.NodeStatus(n).KnownInvalid() {
+		if b.Index.NodeStatus(n).KnownInvalid() {
 			invalidChain = true
 			break
 		}
@@ -534,7 +534,7 @@ func (b *BlockChain) getReorganizeNodes(node *blockNode) (*list.List, *list.List
 		for e := attachNodes.Front(); e != nil; e = next {
 			next = e.Next()
 			n := attachNodes.Remove(e).(*blockNode)
-			b.index.SetStatusFlags(n, statusInvalidAncestor)
+			b.Index.SetStatusFlags(n, statusInvalidAncestor)
 		}
 		return detachNodes, attachNodes
 	}
@@ -593,7 +593,7 @@ func (b *BlockChain) connectBlock(node *blockNode, block *btcutil.Block,
 	}
 
 	// Write any block status changes to DB before updating best state.
-	err := b.index.flushToDB()
+	err := b.Index.flushToDB()
 	if err != nil {
 		return err
 	}
@@ -705,7 +705,7 @@ func (b *BlockChain) disconnectBlock(node *blockNode, block *btcutil.Block, view
 	}
 
 	// Write any block status changes to DB before updating best state.
-	err = b.index.flushToDB()
+	err = b.Index.flushToDB()
 	if err != nil {
 		return err
 	}
@@ -954,7 +954,7 @@ func (b *BlockChain) reorganizeChain(detachNodes, attachNodes *list.List) error 
 		// Skip checks if node has already been fully validated. Although
 		// checkConnectBlock gets skipped, we still need to update the UTXO
 		// view.
-		if b.index.NodeStatus(n).KnownValid() {
+		if b.Index.NodeStatus(n).KnownValid() {
 			err = view.fetchInputUtxos(b.db, block)
 			if err != nil {
 				return err
@@ -979,15 +979,15 @@ func (b *BlockChain) reorganizeChain(detachNodes, attachNodes *list.List) error 
 		err = b.checkConnectBlock(n, block, view, nil)
 		if err != nil {
 			if _, ok := err.(RuleError); ok {
-				b.index.SetStatusFlags(n, statusValidateFailed)
+				b.Index.SetStatusFlags(n, statusValidateFailed)
 				for de := e.Next(); de != nil; de = de.Next() {
 					dn := de.Value.(*blockNode)
-					b.index.SetStatusFlags(dn, statusInvalidAncestor)
+					b.Index.SetStatusFlags(dn, statusInvalidAncestor)
 				}
 			}
 			return err
 		}
-		b.index.SetStatusFlags(n, statusValid)
+		b.Index.SetStatusFlags(n, statusValid)
 
 		newBest = n
 	}
@@ -1092,7 +1092,7 @@ func (b *BlockChain) connectBestChain(node *blockNode, block *btcutil.Block, fla
 		// it fails to write, it's not the end of the world. If the block is
 		// valid, we flush in connectBlock and if the block is invalid, the
 		// worst that can happen is we revalidate the block after a restart.
-		if writeErr := b.index.flushToDB(); writeErr != nil {
+		if writeErr := b.Index.flushToDB(); writeErr != nil {
 			log.Warnf("Error flushing block index changes to disk: %v",
 				writeErr)
 		}
@@ -1103,7 +1103,7 @@ func (b *BlockChain) connectBestChain(node *blockNode, block *btcutil.Block, fla
 	parentHash := &block.MsgBlock().Header.PrevBlock
 	if parentHash.IsEqual(&b.bestChain.Tip().hash) {
 		// Skip checks if node has already been fully validated.
-		fastAdd = fastAdd || b.index.NodeStatus(node).KnownValid()
+		fastAdd = fastAdd || b.Index.NodeStatus(node).KnownValid()
 
 		// Perform several checks to verify the block can be connected
 		// to the main chain without violating any rules and without
@@ -1114,9 +1114,9 @@ func (b *BlockChain) connectBestChain(node *blockNode, block *btcutil.Block, fla
 		if !fastAdd {
 			err := b.checkConnectBlock(node, block, view, &stxos)
 			if err == nil {
-				b.index.SetStatusFlags(node, statusValid)
+				b.Index.SetStatusFlags(node, statusValid)
 			} else if _, ok := err.(RuleError); ok {
-				b.index.SetStatusFlags(node, statusValidateFailed)
+				b.Index.SetStatusFlags(node, statusValidateFailed)
 			} else {
 				return false, err
 			}
@@ -1150,7 +1150,7 @@ func (b *BlockChain) connectBestChain(node *blockNode, block *btcutil.Block, fla
 			// that status of the block as invalid and flush the
 			// index state to disk before returning with the error.
 			if _, ok := err.(RuleError); ok {
-				b.index.SetStatusFlags(
+				b.Index.SetStatusFlags(
 					node, statusValidateFailed,
 				)
 			}
@@ -1163,8 +1163,8 @@ func (b *BlockChain) connectBestChain(node *blockNode, block *btcutil.Block, fla
 		// If this is fast add, or this block node isn't yet marked as
 		// valid, then we'll update its status and flush the state to
 		// disk again.
-		if fastAdd || !b.index.NodeStatus(node).KnownValid() {
-			b.index.SetStatusFlags(node, statusValid)
+		if fastAdd || !b.Index.NodeStatus(node).KnownValid() {
+			b.Index.SetStatusFlags(node, statusValid)
 			flushIndexState()
 		}
 
@@ -1210,7 +1210,7 @@ func (b *BlockChain) connectBestChain(node *blockNode, block *btcutil.Block, fla
 	// changes to the block index, so flush regardless of whether there was an
 	// error. The index would only be dirty if the block failed to connect, so
 	// we can ignore any errors writing.
-	if writeErr := b.index.flushToDB(); writeErr != nil {
+	if writeErr := b.Index.flushToDB(); writeErr != nil {
 		log.Warnf("Error flushing block index changes to disk: %v", writeErr)
 	}
 
@@ -1271,7 +1271,7 @@ func (b *BlockChain) BestSnapshot() *BestState {
 // error if it doesn't exist. Note that this will return headers from both the
 // main and side chains.
 func (b *BlockChain) HeaderByHash(hash *chainhash.Hash) (wire.BlockHeader, error) {
-	node := b.index.LookupNode(hash)
+	node := b.Index.LookupNode(hash)
 	if node == nil {
 		err := fmt.Errorf("block %s is not known", hash)
 		return wire.BlockHeader{}, err
@@ -1285,7 +1285,7 @@ func (b *BlockChain) HeaderByHash(hash *chainhash.Hash) (wire.BlockHeader, error
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) MainChainHasBlock(hash *chainhash.Hash) bool {
-	node := b.index.LookupNode(hash)
+	node := b.Index.LookupNode(hash)
 	return node != nil && b.bestChain.Contains(node)
 }
 
@@ -1299,7 +1299,7 @@ func (b *BlockChain) MainChainHasBlock(hash *chainhash.Hash) bool {
 // This function is safe for concurrent access.
 func (b *BlockChain) BlockLocatorFromHash(hash *chainhash.Hash) BlockLocator {
 	b.chainLock.RLock()
-	node := b.index.LookupNode(hash)
+	node := b.Index.LookupNode(hash)
 	locator := b.bestChain.blockLocator(node)
 	b.chainLock.RUnlock()
 	return locator
@@ -1321,7 +1321,7 @@ func (b *BlockChain) LatestBlockLocator() (BlockLocator, error) {
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) BlockHeightByHash(hash *chainhash.Hash) (int32, error) {
-	node := b.index.LookupNode(hash)
+	node := b.Index.LookupNode(hash)
 	if node == nil || !b.bestChain.Contains(node) {
 		str := fmt.Sprintf("block %s is not in the main chain", hash)
 		return 0, errNotInMainChain(str)
@@ -1402,11 +1402,11 @@ func (b *BlockChain) HeightRange(startHeight, endHeight int32) ([]chainhash.Hash
 func (b *BlockChain) HeightToHashRange(startHeight int32,
 	endHash *chainhash.Hash, maxResults int) ([]chainhash.Hash, error) {
 
-	endNode := b.index.LookupNode(endHash)
+	endNode := b.Index.LookupNode(endHash)
 	if endNode == nil {
 		return nil, fmt.Errorf("no known block header with hash %v", endHash)
 	}
-	if !b.index.NodeStatus(endNode).KnownValid() {
+	if !b.Index.NodeStatus(endNode).KnownValid() {
 		return nil, fmt.Errorf("block %v is not yet validated", endHash)
 	}
 	endHeight := endNode.height
@@ -1442,11 +1442,11 @@ func (b *BlockChain) HeightToHashRange(startHeight int32,
 func (b *BlockChain) IntervalBlockHashes(endHash *chainhash.Hash, interval int,
 ) ([]chainhash.Hash, error) {
 
-	endNode := b.index.LookupNode(endHash)
+	endNode := b.Index.LookupNode(endHash)
 	if endNode == nil {
 		return nil, fmt.Errorf("no known block header with hash %v", endHash)
 	}
-	if !b.index.NodeStatus(endNode).KnownValid() {
+	if !b.Index.NodeStatus(endNode).KnownValid() {
 		return nil, fmt.Errorf("block %v is not yet validated", endHash)
 	}
 	endHeight := endNode.height
@@ -1493,7 +1493,7 @@ func (b *BlockChain) IntervalBlockHashes(endHash *chainhash.Hash, interval int,
 func (b *BlockChain) locateInventory(locator BlockLocator, hashStop *chainhash.Hash, maxEntries uint32) (*blockNode, uint32) {
 	// There are no block locators so a specific block is being requested
 	// as identified by the stop hash.
-	stopNode := b.index.LookupNode(hashStop)
+	stopNode := b.Index.LookupNode(hashStop)
 	if len(locator) == 0 {
 		if stopNode == nil {
 			// No blocks with the stop hash were found so there is
@@ -1508,7 +1508,7 @@ func (b *BlockChain) locateInventory(locator BlockLocator, hashStop *chainhash.H
 	// back to the genesis block.
 	startNode := b.bestChain.Genesis()
 	for _, hash := range locator {
-		node := b.index.LookupNode(hash)
+		node := b.Index.LookupNode(hash)
 		if node != nil && b.bestChain.Contains(node) {
 			startNode = node
 			break
@@ -1761,7 +1761,7 @@ func New(config *Config) (*BlockChain, error) {
 		minRetargetTimespan: targetTimespan / adjustmentFactor,
 		maxRetargetTimespan: targetTimespan * adjustmentFactor,
 		blocksPerRetarget:   int32(targetTimespan / targetTimePerBlock),
-		index:               newBlockIndex(config.DB, params),
+		Index:               newBlockIndex(config.DB, params),
 		hashCache:           config.HashCache,
 		bestChain:           newChainView(nil),
 		orphans:             make(map[chainhash.Hash]*orphanBlock),

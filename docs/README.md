@@ -6,7 +6,7 @@
         2. [Linux/BSD/MacOSX/POSIX](#PosixInstallation)
           1. [Gentoo Linux](#GentooInstallation)
     2. [Configuration](#Configuration)
-    3. [Controlling and Querying pod via btcctl](#BtcctlConfig)
+    3. [Controlling and Querying pod via podctl](#BtcctlConfig)
     4. [Mining](#Mining)
 3. [Help](#Help)
     1. [Startup](#Startup)
@@ -134,9 +134,9 @@ options, which can be viewed by running: `$ pod --help`.
 
 <a name="BtcctlConfig" />
 
-**2.3 Controlling and Querying pod via btcctl**
+**2.3 Controlling and Querying pod via podctl**
 
-btcctl is a command line utility that can be used to both control and query pod
+podctl is a command line utility that can be used to both control and query pod
 via [RPC](http://www.wikipedia.org/wiki/Remote_procedure_call).  pod does
 **not** enable its RPC server by default;  You must configure at minimum both an
 RPC username and password or both an RPC limited username and password:
@@ -149,7 +149,7 @@ rpcpass=SomeDecentp4ssw0rd
 rpclimituser=mylimituser
 rpclimitpass=Limitedp4ssw0rd
 ```
-* btcctl.conf configuration file
+* podctl.conf configuration file
 ```
 [Application Options]
 rpcuser=myuser
@@ -161,7 +161,7 @@ OR
 rpclimituser=mylimituser
 rpclimitpass=Limitedp4ssw0rd
 ```
-For a list of available options, run: `$ btcctl --help`
+For a list of available options, run: `$ podctl --help`
 
 <a name="Mining" />
 

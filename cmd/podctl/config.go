@@ -26,10 +26,10 @@ const (
 )
 
 var (
-	podHomeDir           = btcutil.AppDataDir("pod", false)
-	btcctlHomeDir         = btcutil.AppDataDir("btcctl", false)
-	btcwalletHomeDir      = btcutil.AppDataDir("btcwallet", false)
-	defaultConfigFile     = filepath.Join(btcctlHomeDir, "btcctl.conf")
+	podHomeDir            = btcutil.AppDataDir("pod", false)
+	podctlHomeDir         = btcutil.AppDataDir("podctl", false)
+	btcwalletHomeDir      = btcutil.AppDataDir("sac", false)
+	defaultConfigFile     = filepath.Join(podctlHomeDir, "podctl.conf")
 	defaultRPCServer      = "localhost"
 	defaultRPCCertFile    = filepath.Join(podHomeDir, "rpc.cert")
 	defaultWalletCertFile = filepath.Join(btcwalletHomeDir, "rpc.cert")
@@ -88,7 +88,7 @@ func listCommands() {
 	}
 }
 
-// config defines the configuration options for btcctl.
+// config defines the configuration options for podctl.
 //
 // See loadConfig for details on the configuration load process.
 type config struct {
@@ -146,7 +146,7 @@ func normalizeAddress(addr string, useTestNet3, useSimNet, useWallet bool) strin
 func cleanAndExpandPath(path string) string {
 	// Expand initial ~ to OS specific home directory.
 	if strings.HasPrefix(path, "~") {
-		homeDir := filepath.Dir(btcctlHomeDir)
+		homeDir := filepath.Dir(podctlHomeDir)
 		path = strings.Replace(path, "~", homeDir, 1)
 	}
 
@@ -211,7 +211,7 @@ func loadConfig() (*config, []string, error) {
 	}
 
 	if _, err := os.Stat(preCfg.ConfigFile); os.IsNotExist(err) {
-		// Use config file for RPC server to create default btcctl config
+		// Use config file for RPC server to create default podctl config
 		var serverConfigPath string
 		if preCfg.Wallet {
 			serverConfigPath = filepath.Join(btcwalletHomeDir, "btcwallet.conf")

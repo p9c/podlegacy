@@ -138,7 +138,7 @@ authenticated will cause the websocket to be closed immediately.
 
 ### 4. Command-line Utility
 
-pod comes with a separate utility named `btcctl` which can be used to issue
+pod comes with a separate utility named `podctl` which can be used to issue
 these RPC commands via HTTP POST requests to pod after configuring it with the
 information in the [Authentication](#Authentication) section above.  It can also
 be used to communicate with any server/daemon/service which provides a JSON-RPC

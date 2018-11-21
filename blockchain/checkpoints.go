@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
-	"github.com/parallelcointeam/pod/btcutil"
 )
 
 // CheckpointConfirmations is the number of blocks before the end of the current
@@ -98,7 +98,7 @@ func (b *BlockChain) findPreviousCheckpoint() (*blockNode, error) {
 		// Loop backwards through the available checkpoints to find one
 		// that is already available.
 		for i := numCheckpoints - 1; i >= 0; i-- {
-			node := b.index.LookupNode(checkpoints[i].Hash)
+			node := b.Index.LookupNode(checkpoints[i].Hash)
 			if node == nil || !b.bestChain.Contains(node) {
 				continue
 			}
@@ -143,7 +143,7 @@ func (b *BlockChain) findPreviousCheckpoint() (*blockNode, error) {
 	// this lookup fails something is very wrong since the chain has already
 	// passed the checkpoint which was verified as accurate before inserting
 	// it.
-	checkpointNode := b.index.LookupNode(b.nextCheckpoint.Hash)
+	checkpointNode := b.Index.LookupNode(b.nextCheckpoint.Hash)
 	if checkpointNode == nil {
 		return nil, AssertError(fmt.Sprintf("findPreviousCheckpoint "+
 			"failed lookup of known good block node %s",
@@ -202,7 +202,7 @@ func (b *BlockChain) IsCheckpointCandidate(block *btcutil.Block) (bool, error) {
 	defer b.chainLock.RUnlock()
 
 	// A checkpoint must be in the main chain.
-	node := b.index.LookupNode(block.Hash())
+	node := b.Index.LookupNode(block.Hash())
 	if node == nil || !b.bestChain.Contains(node) {
 		return false, nil
 	}

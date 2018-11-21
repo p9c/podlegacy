@@ -1015,7 +1015,7 @@ func (b *BlockChain) createChainState() error {
 	b.bestChain.SetTip(node)
 
 	// Add the new node to the index which is used for faster lookups.
-	b.index.addNode(node)
+	b.Index.addNode(node)
 
 	// Initialize the state related to the best block.  Since it is the
 	// genesis block, use its timestamp for the median time.
@@ -1189,7 +1189,7 @@ func (b *BlockChain) initChainState() error {
 				// previous header processed is the parent.
 				parent = lastNode
 			} else {
-				parent = b.index.LookupNode(&header.PrevBlock)
+				parent = b.Index.LookupNode(&header.PrevBlock)
 				if parent == nil {
 					return AssertError(fmt.Sprintf("initChainState: Could "+
 						"not find parent for block %s", header.BlockHash()))
@@ -1201,14 +1201,14 @@ func (b *BlockChain) initChainState() error {
 			node := &blockNodes[i]
 			initBlockNode(node, header, parent)
 			node.status = status
-			b.index.addNode(node)
+			b.Index.addNode(node)
 
 			lastNode = node
 			i++
 		}
 
 		// Set the best chain view to the stored best state.
-		tip := b.index.LookupNode(&state.hash)
+		tip := b.Index.LookupNode(&state.hash)
 		if tip == nil {
 			return AssertError(fmt.Sprintf("initChainState: cannot find "+
 				"chain tip %s in block index", state.hash))
@@ -1241,7 +1241,7 @@ func (b *BlockChain) initChainState() error {
 					"upgrading to valid for consistency",
 					iterNode.hash, iterNode.height)
 
-				b.index.SetStatusFlags(iterNode, statusValid)
+				b.Index.SetStatusFlags(iterNode, statusValid)
 			}
 		}
 
@@ -1261,7 +1261,7 @@ func (b *BlockChain) initChainState() error {
 	// As we might have updated the index after it was loaded, we'll
 	// attempt to flush the index to the DB. This will only result in a
 	// write if the elements are dirty, so it'll usually be a noop.
-	return b.index.flushToDB()
+	return b.Index.flushToDB()
 }
 
 // deserializeBlockRow parses a value in the block index bucket into a block
@@ -1404,7 +1404,7 @@ func (b *BlockChain) BlockByHeight(blockHeight int32) (*btcutil.Block, error) {
 func (b *BlockChain) BlockByHash(hash *chainhash.Hash) (*btcutil.Block, error) {
 	// Lookup the block hash in block index and ensure it is in the best
 	// chain.
-	node := b.index.LookupNode(hash)
+	node := b.Index.LookupNode(hash)
 	if node == nil || !b.bestChain.Contains(node) {
 		str := fmt.Sprintf("block %s is not in the main chain", hash)
 		return nil, errNotInMainChain(str)

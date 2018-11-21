@@ -132,7 +132,7 @@ func TestCalcSequenceLock(t *testing.T) {
 	for i := uint32(0); i < numBlocksToActivate; i++ {
 		blockTime = blockTime.Add(time.Second)
 		node = newFakeNode(node, blockVersion, 0, blockTime)
-		chain.index.AddNode(node)
+		chain.Index.AddNode(node)
 		chain.bestChain.SetTip(node)
 	}
 
@@ -473,10 +473,10 @@ func TestLocateInventory(t *testing.T) {
 	branch0Nodes := chainedNodes(chain.bestChain.Genesis(), 18)
 	branch1Nodes := chainedNodes(branch0Nodes[14], 2)
 	for _, node := range branch0Nodes {
-		chain.index.AddNode(node)
+		chain.Index.AddNode(node)
 	}
 	for _, node := range branch1Nodes {
-		chain.index.AddNode(node)
+		chain.Index.AddNode(node)
 	}
 	chain.bestChain.SetTip(tip(branch0Nodes))
 
@@ -813,14 +813,14 @@ func TestHeightToHashRange(t *testing.T) {
 	branch0Nodes := chainedNodes(chain.bestChain.Genesis(), 18)
 	branch1Nodes := chainedNodes(branch0Nodes[14], 3)
 	for _, node := range branch0Nodes {
-		chain.index.SetStatusFlags(node, statusValid)
-		chain.index.AddNode(node)
+		chain.Index.SetStatusFlags(node, statusValid)
+		chain.Index.AddNode(node)
 	}
 	for _, node := range branch1Nodes {
 		if node.height < 18 {
-			chain.index.SetStatusFlags(node, statusValid)
+			chain.Index.SetStatusFlags(node, statusValid)
 		}
-		chain.index.AddNode(node)
+		chain.Index.AddNode(node)
 	}
 	chain.bestChain.SetTip(tip(branch0Nodes))
 
@@ -905,14 +905,14 @@ func TestIntervalBlockHashes(t *testing.T) {
 	branch0Nodes := chainedNodes(chain.bestChain.Genesis(), 18)
 	branch1Nodes := chainedNodes(branch0Nodes[14], 3)
 	for _, node := range branch0Nodes {
-		chain.index.SetStatusFlags(node, statusValid)
-		chain.index.AddNode(node)
+		chain.Index.SetStatusFlags(node, statusValid)
+		chain.Index.AddNode(node)
 	}
 	for _, node := range branch1Nodes {
 		if node.height < 18 {
-			chain.index.SetStatusFlags(node, statusValid)
+			chain.Index.SetStatusFlags(node, statusValid)
 		}
-		chain.index.AddNode(node)
+		chain.Index.AddNode(node)
 	}
 	chain.bestChain.SetTip(tip(branch0Nodes))
 

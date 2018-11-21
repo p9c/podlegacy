@@ -26,11 +26,11 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	// The height of this block is one more than the referenced previous
 	// block.
 	prevHash := &block.MsgBlock().Header.PrevBlock
-	prevNode := b.index.LookupNode(prevHash)
+	prevNode := b.Index.LookupNode(prevHash)
 	if prevNode == nil {
 		str := fmt.Sprintf("previous block %s is unknown", prevHash)
 		return false, ruleError(ErrPreviousBlockUnknown, str)
-	} else if b.index.NodeStatus(prevNode).KnownInvalid() {
+	} else if b.Index.NodeStatus(prevNode).KnownInvalid() {
 		str := fmt.Sprintf("previous block %s is known to be invalid", prevHash)
 		return false, ruleError(ErrInvalidAncestorBlock, str)
 	}
@@ -99,8 +99,8 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	newNode := newBlockNode(blockHeader, prevNode)
 	newNode.status = statusDataStored
 
-	b.index.AddNode(newNode)
-	err = b.index.flushToDB()
+	b.Index.AddNode(newNode)
+	err = b.Index.flushToDB()
 	if err != nil {
 		return false, err
 	}
