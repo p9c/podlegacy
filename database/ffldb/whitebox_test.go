@@ -21,8 +21,8 @@ import (
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil"
-	"github.com/parallelcointeam/pod/goleveldb/leveldb"
-	ldberrors "github.com/parallelcointeam/pod/goleveldb/leveldb/errors"
+	"github.com/btcsuite/goleveldb/leveldb"
+	ldberrors "github.com/btcsuite/goleveldb/leveldb/errors"
 )
 
 var (

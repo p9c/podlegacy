@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/parallelcointeam/pod/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // TestPongLatest tests the MsgPong API against the latest protocol version.

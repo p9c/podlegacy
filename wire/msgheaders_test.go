@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/parallelcointeam/pod/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // TestHeaders tests the MsgHeaders API.

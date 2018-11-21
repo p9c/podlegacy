@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/pod/crypto/scrypt"
+	"golang.org/x/crypto/scrypt"
 )
 
 // MaxBlockHeaderPayload is the maximum number of bytes a block header can be.

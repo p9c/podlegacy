@@ -27,10 +27,10 @@ import (
 	"github.com/parallelcointeam/pod/connmgr"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
-	flags "github.com/parallelcointeam/pod/go-flags"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/peer"
-	"github.com/parallelcointeam/pod/socks"
+	"github.com/btcsuite/go-socks/socks"
 )
 
 const (

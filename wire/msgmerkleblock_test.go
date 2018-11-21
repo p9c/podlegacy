@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/pod/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // TestMerkleBlock tests the MsgMerkleBlock API.

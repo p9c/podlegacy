@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/pod/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // TestGetData tests the MsgGetData API.

@@ -11,8 +11,8 @@ import (
 	"io"
 	"sort"
 
-	"github.com/parallelcointeam/pod/bstream"
-	"github.com/parallelcointeam/pod/crypto/siphash"
+	"github.com/aead/siphash"
+	"github.com/kkdai/bstream"
 	"github.com/parallelcointeam/pod/wire"
 )
 

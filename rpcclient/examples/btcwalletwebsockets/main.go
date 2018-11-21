@@ -12,7 +12,7 @@ import (
 
 	"github.com/parallelcointeam/pod/rpcclient"
 	"github.com/parallelcointeam/pod/btcutil"
-	"github.com/parallelcointeam/pod/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func main() {

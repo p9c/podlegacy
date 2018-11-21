@@ -13,7 +13,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
-	flags "github.com/parallelcointeam/pod/go-flags"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/wire"
 )
 

@@ -8,7 +8,7 @@ import (
 	"crypto/sha256"
 	"hash"
 
-	"github.com/parallelcointeam/pod/crypto/ripemd160"
+	"golang.org/x/crypto/ripemd160"
 )
 
 // Calculate the hash of hasher over buf.

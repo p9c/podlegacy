@@ -14,7 +14,7 @@ import (
 
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/btcutil"
-	"github.com/parallelcointeam/pod/crypto/ripemd160"
+	"golang.org/x/crypto/ripemd160"
 )
 
 func TestAddresses(t *testing.T) {

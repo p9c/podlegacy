@@ -23,7 +23,7 @@ import (
 	"github.com/parallelcointeam/pod/txscript"
 
 	"github.com/parallelcointeam/pod/btclog"
-	"github.com/parallelcointeam/pod/logrotate/rotator"
+	"github.com/jrick/logrotate/rotator"
 )
 
 // logWriter implements an io.Writer that outputs to both standard output and

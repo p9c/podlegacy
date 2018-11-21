@@ -17,7 +17,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/socks"
+	"github.com/btcsuite/go-socks/socks"
 )
 
 // conn mocks a network connection by implementing the net.Conn interface.  It

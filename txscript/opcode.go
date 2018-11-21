@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"hash"
 
-	"github.com/parallelcointeam/pod/crypto/ripemd160"
+	"golang.org/x/crypto/ripemd160"
 
 	"github.com/parallelcointeam/pod/btcec"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"

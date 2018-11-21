@@ -15,7 +15,7 @@ import (
 	"github.com/parallelcointeam/pod/btcutil/base58"
 	"github.com/parallelcointeam/pod/btcutil/bech32"
 	"github.com/parallelcointeam/pod/chaincfg"
-	"github.com/parallelcointeam/pod/crypto/ripemd160"
+	"golang.org/x/crypto/ripemd160"
 )
 
 // UnsupportedWitnessVerError describes an error where a segwit address being

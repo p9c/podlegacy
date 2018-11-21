@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // genTestTx creates a random transaction for uses within test cases.

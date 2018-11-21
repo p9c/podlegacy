@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/parallelcointeam/pod/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // TestVerAck tests the MsgVerAck API.
