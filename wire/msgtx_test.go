@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/go-spew/spew"
 )
 
 // TestTx tests the MsgTx API.

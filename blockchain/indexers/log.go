@@ -4,7 +4,7 @@
 
 package indexers
 
-import "github.com/parallelcointeam/btclog"
+import "github.com/parallelcointeam/pod/btclog"
 
 // log is a logger that is initialized with no output filters.  This
 // means the package will not perform any logging by default until the caller

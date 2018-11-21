@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/database/internal/treap"
-	"github.com/btcsuite/goleveldb/leveldb"
-	"github.com/btcsuite/goleveldb/leveldb/iterator"
-	"github.com/btcsuite/goleveldb/leveldb/util"
+	"github.com/parallelcointeam/pod/goleveldb/leveldb"
+	"github.com/parallelcointeam/pod/goleveldb/leveldb/iterator"
+	"github.com/parallelcointeam/pod/goleveldb/leveldb/util"
 )
 
 const (

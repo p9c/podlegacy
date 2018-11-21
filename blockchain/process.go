@@ -9,7 +9,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
@@ -272,6 +272,6 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 		return false, false, err
 	}
 
-	log.Debugf("Accepted block %v", blockHashWithAlgo)
+	log.Debugf("Accepted block %v, height %d", blockHashWithAlgo, block.Height)
 	return isMainChain, false, nil
 }

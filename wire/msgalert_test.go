@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/go-spew/spew"
 )
 
 // TestMsgAlert tests the MsgAlert API.

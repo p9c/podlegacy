@@ -11,7 +11,7 @@ import (
 
 	"github.com/parallelcointeam/pod/btcjson"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/btcutil"
 )
 
 // FutureGenerateResult is a future promise to deliver the result of a

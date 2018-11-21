@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/parallelcointeam/btclog"
+	"github.com/parallelcointeam/pod/btclog"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"

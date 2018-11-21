@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/go-spew/spew"
 )
 
 // TestSendHeaders tests the MsgSendHeaders API against the latest protocol

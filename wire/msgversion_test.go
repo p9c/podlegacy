@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/go-spew/spew"
 )
 
 // TestVersion tests the MsgVersion API.

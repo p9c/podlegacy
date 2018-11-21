@@ -5,7 +5,7 @@
 package txscript
 
 import (
-	"github.com/parallelcointeam/btclog"
+	"github.com/parallelcointeam/pod/btclog"
 )
 
 // log is a logger that is initialized with no output filters.  This

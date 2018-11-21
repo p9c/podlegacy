@@ -20,7 +20,7 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/crypto/ripemd160"
+	"github.com/parallelcointeam/pod/crypto/ripemd160"
 
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/btcjson"
@@ -29,8 +29,8 @@ import (
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
-	"github.com/btcsuite/websocket"
+	"github.com/parallelcointeam/pod/btcutil"
+	"github.com/parallelcointeam/pod/websocket"
 )
 
 const (

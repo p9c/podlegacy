@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/go-spew/spew"
 )
 
 type pubKeyTest struct {

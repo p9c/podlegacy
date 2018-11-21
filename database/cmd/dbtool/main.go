@@ -10,9 +10,9 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/parallelcointeam/pod/btclog"
 	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/btclog"
-	flags "github.com/jessevdk/go-flags"
+	flags "github.com/parallelcointeam/pod/go-flags"
 )
 
 const (

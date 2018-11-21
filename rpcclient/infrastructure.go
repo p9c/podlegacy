@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/btcjson"
-	"github.com/btcsuite/go-socks/socks"
-	"github.com/btcsuite/websocket"
+	"github.com/parallelcointeam/pod/socks"
+	"github.com/parallelcointeam/pod/websocket"
 )
 
 var (

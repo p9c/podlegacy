@@ -13,7 +13,7 @@ import (
 
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/btcutil"
 )
 
 var (

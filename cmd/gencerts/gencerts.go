@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/parallelcointeam/btcutil"
-	flags "github.com/jessevdk/go-flags"
+	"github.com/parallelcointeam/pod/btcutil"
+	flags "github.com/parallelcointeam/pod/go-flags"
 )
 
 type config struct {

@@ -15,7 +15,7 @@ import (
 	"github.com/parallelcointeam/pod/btcjson"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/btcutil"
 )
 
 // FutureDebugLevelResult is a future promise to deliver the result of a

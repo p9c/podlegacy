@@ -7,7 +7,7 @@ package mining
 import (
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/btcutil"
 )
 
 const (

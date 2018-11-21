@@ -7,7 +7,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/parallelcointeam/btclog"
+	"github.com/parallelcointeam/pod/btclog"
 )
 
 // Driver defines a structure for backend drivers to use when they registered

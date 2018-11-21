@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/go-spew/spew"
 )
 
 // mainNetGenesisHash is the hash of the first block in the block chain for the

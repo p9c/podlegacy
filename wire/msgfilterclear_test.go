@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/go-spew/spew"
 )
 
 // TestFilterCLearLatest tests the MsgFilterClear API against the latest

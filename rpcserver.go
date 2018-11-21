@@ -27,8 +27,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/btcsuite/websocket"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/websocket"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/blockchain/indexers"
 	"github.com/parallelcointeam/pod/btcec"

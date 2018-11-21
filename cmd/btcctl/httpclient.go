@@ -11,7 +11,7 @@ import (
 	"net/http"
 
 	"github.com/parallelcointeam/pod/btcjson"
-	"github.com/btcsuite/go-socks/socks"
+	"github.com/parallelcointeam/pod/socks"
 )
 
 // newHTTPClient returns a new HTTP client that is configured according to the
