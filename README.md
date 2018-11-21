@@ -12,7 +12,11 @@ Modular build for reproducibility and maintenance efficiency, therefore Go >=1.1
 
 The pod has no RPC wallet functionality, only core chain functions. It is fully compliant with the original [parallelcoind](https://github.com/marcetin/parallelcoin), though it will accept but not relay transactions with big S signatures (theoretical signature malleability double spend attack that enables an output to be spent by two private keys).
 
-It is intended that segwit and soft-forks will be able to be later enabled for this client as well, with the considerable benefits this brings.
+It also potentially can enable BIP9 softforks, a module system that makes it possible also for miners to vote for a fork, however this would fork from the legacy client so it would depend on overwhelming adoption of this new client. This also depends on other clients accepting the 'nonstandard' transactions that hardforks might require (witness, for example), which again will cause a fork.
+
+A hard fork will be scheduled for a block height in the near future once it has been developed and tested.
+
+Because it is not consensus but rather an RPC service and extra index, it has got compact filters available, which are used by the Neutrino SPV wallet and others which has already been largely integrated into this codebase.
 
 ## Installation
 
