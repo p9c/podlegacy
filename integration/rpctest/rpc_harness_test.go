@@ -28,7 +28,7 @@ func testSendOutputs(r *Harness, t *testing.T) {
 			t.Fatalf("unable to get new address: %v", err)
 		}
 
-		// Next, send amt BTC to this address, spending from one of our mature
+		// Next, send amt DUO to this address, spending from one of our mature
 		// coinbase outputs.
 		addrScript, err := txscript.PayToAddrScript(addr)
 		if err != nil {
@@ -478,7 +478,7 @@ func testMemWalletReorg(r *Harness, t *testing.T) {
 	}
 	defer harness.TearDown()
 
-	// The internal wallet of this harness should now have 250 BTC.
+	// The internal wallet of this harness should now have 250 DUO.
 	expectedBalance := btcutil.Amount(250 * btcutil.SatoshiPerBitcoin)
 	walletBalance := harness.ConfirmedBalance()
 	if expectedBalance != walletBalance {
@@ -496,7 +496,7 @@ func testMemWalletReorg(r *Harness, t *testing.T) {
 		t.Fatalf("unable to join node on blocks: %v", err)
 	}
 
-	// The original wallet should now have a balance of 0 BTC as its entire
+	// The original wallet should now have a balance of 0 DUO as its entire
 	// chain should have been decimated in favor of the main harness'
 	// chain.
 	expectedBalance = btcutil.Amount(0)
@@ -527,7 +527,7 @@ func testMemWalletLockedOutputs(r *Harness, t *testing.T) {
 		t.Fatalf("unable to create transaction: %v", err)
 	}
 
-	// The current wallet balance should now be at least 50 BTC less
+	// The current wallet balance should now be at least 50 DUO less
 	// (accounting for fees) than the period balance
 	currentBalance := r.ConfirmedBalance()
 	if !(currentBalance <= startingBalance-outputAmt) {
@@ -601,7 +601,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestHarness(t *testing.T) {
-	// We should have (numMatureOutputs * 50 BTC) of mature unspendable
+	// We should have (numMatureOutputs * 50 DUO) of mature unspendable
 	// outputs.
 	expectedBalance := btcutil.Amount(numMatureOutputs * 50 * btcutil.SatoshiPerBitcoin)
 	harnessBalance := mainHarness.ConfirmedBalance()

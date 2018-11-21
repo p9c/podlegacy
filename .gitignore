@@ -2,7 +2,7 @@
 *~
 
 # Databases
-btcd.db
+pod.db
 *-shm
 *-wal
 

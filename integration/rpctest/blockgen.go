@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/blockchain"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
 )
 
 // solveBlock attempts to find a nonce which makes the passed block header hash
@@ -133,7 +133,7 @@ func createCoinbaseTx(coinbaseScript []byte, nextBlockHeight int32,
 // second is used. Passing nil for the previous block results in a block that
 // builds off of the genesis block for the specified chain.
 func CreateBlock(prevBlock *btcutil.Block, inclusionTxs []*btcutil.Tx,
-	blockVersion int32, blockTime time.Time, miningAddr btcutil.Address,
+	blockVersion uint32, blockTime time.Time, miningAddr btcutil.Address,
 	mineTo []wire.TxOut, net *chaincfg.Params) (*btcutil.Block, error) {
 
 	var (

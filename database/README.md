@@ -1,18 +1,18 @@
 database
 ========
 
-[![Build Status](http://img.shields.io/travis/btcsuite/btcd.svg)](https://travis-ci.org/btcsuite/btcd)
+[![Build Status](http://img.shields.io/travis/parallelcointeam/pod.svg)](https://travis-ci.org/parallelcointeam/pod)
 [![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/parallelcointeam/pod/database)
 
 Package database provides a block and metadata storage database.
 
-Please note that this package is intended to enable btcd to support different
+Please note that this package is intended to enable pod to support different
 database backends and is not something that a client can directly access as only
 one entity can have the database open at a time (for most database backends),
-and that entity will be btcd.
+and that entity will be pod.
 
-When a client wants programmatic access to the data provided by btcd, they'll
+When a client wants programmatic access to the data provided by pod, they'll
 likely want to use the [rpcclient](https://github.com/parallelcointeam/pod/tree/master/rpcclient)
 package which makes use of the [JSON-RPC API](https://github.com/parallelcointeam/pod/tree/master/docs/json_rpc_api.md).
 

@@ -1,13 +1,13 @@
 rpcclient
 =========
 
-[![Build Status](http://img.shields.io/travis/btcsuite/btcd.svg)](https://travis-ci.org/btcsuite/btcd)
+[![Build Status](http://img.shields.io/travis/parallelcointeam/pod.svg)](https://travis-ci.org/parallelcointeam/pod)
 [![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/parallelcointeam/pod/rpcclient)
 
 rpcclient implements a Websocket-enabled Bitcoin JSON-RPC client package written
 in [Go](http://golang.org/).  It provides a robust and easy to use client for
-interfacing with a Bitcoin RPC server that uses a btcd/bitcoin core compatible
+interfacing with a Bitcoin RPC server that uses a pod/bitcoin core compatible
 Bitcoin JSON-RPC API.
 
 ## Status
@@ -19,8 +19,8 @@ implement and the API is not stable yet.
 ## Documentation
 
 * [API Reference](http://godoc.org/github.com/parallelcointeam/pod/rpcclient)
-* [btcd Websockets Example](https://github.com/parallelcointeam/pod/tree/master/rpcclient/examples/btcdwebsockets)
-  Connects to a btcd RPC server using TLS-secured websockets, registers for
+* [pod Websockets Example](https://github.com/parallelcointeam/pod/tree/master/rpcclient/examples/podwebsockets)
+  Connects to a pod RPC server using TLS-secured websockets, registers for
   block connected and block disconnected notifications, and gets the current
   block count
 * [btcwallet Websockets Example](https://github.com/parallelcointeam/pod/tree/master/rpcclient/examples/btcwalletwebsockets)
@@ -33,9 +33,9 @@ implement and the API is not stable yet.
 
 ## Major Features
 
-* Supports Websockets (btcd/btcwallet) and HTTP POST mode (bitcoin core)
-* Provides callback and registration functions for btcd/btcwallet notifications
-* Supports btcd extensions
+* Supports Websockets (pod/btcwallet) and HTTP POST mode (bitcoin core)
+* Provides callback and registration functions for pod/btcwallet notifications
+* Supports pod extensions
 * Translates to and from higher-level and easier to use Go types
 * Offers a synchronous (blocking) and asynchronous API
 * When running in Websockets mode (the default):

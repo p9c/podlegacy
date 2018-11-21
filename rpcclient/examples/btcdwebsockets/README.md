@@ -1,7 +1,7 @@
-btcd Websockets Example
+pod Websockets Example
 =======================
 
-This example shows how to use the rpcclient package to connect to a btcd RPC
+This example shows how to use the rpcclient package to connect to a pod RPC
 server using TLS-secured websockets, register for block connected and block
 disconnected notifications, and get the current block count.
 
@@ -27,7 +27,7 @@ password for the RPC server:
 Finally, navigate to the example's directory and run it with:
 
 ```bash
-$ cd $GOPATH/src/github.com/parallelcointeam/pod/rpcclient/examples/btcdwebsockets
+$ cd $GOPATH/src/github.com/parallelcointeam/pod/rpcclient/examples/podwebsockets
 $ go run *.go
 ```
 

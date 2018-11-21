@@ -130,7 +130,7 @@ type Policy struct {
 	// fraction of the max signature operations for a block.
 	MaxSigOpCostPerTx int
 
-	// MinRelayTxFee defines the minimum transaction fee in BTC/kB to be
+	// MinRelayTxFee defines the minimum transaction fee in DUO/kB to be
 	// considered a non-zero fee.
 	MinRelayTxFee btcutil.Amount
 }
