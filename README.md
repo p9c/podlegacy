@@ -1,7 +1,15 @@
+![](https://gitlab.com/parallelcoin/node/raw/master/assets/logo.png)
+
+# Parallelcoin Node
+
+Next generation full node for Parallelcoin, forked from [btcd](https://github.com/btcsuite/btcd)
+
+Modular build for reproducability and maintenance efficiency, therefore Go >=1.11 is required.
+
 btcd
 ====
 
-[![Build Status](https://travis-ci.org/btcsuite/btcd.png?branch=master)](https://travis-ci.org/btcsuite/btcd)
+<!-- [![Build Status](https://travis-ci.org/btcsuite/btcd.png?branch=master)](https://travis-ci.org/btcsuite/btcd) -->
 [![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/parallelcointeam/pod)
 
