@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/parallelcointeam/pod/rpcclient"
-	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/btcutil"
+	"github.com/parallelcointeam/pod/rpcclient"
 )
 
 func main() {
@@ -34,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 	connCfg := &rpcclient.ConnConfig{
-		Host:         "localhost:18332",
+		Host:         "localhost:11046",
 		Endpoint:     "ws",
 		User:         "yourrpcuser",
 		Pass:         "yourrpcpass",

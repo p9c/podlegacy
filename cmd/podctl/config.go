@@ -28,11 +28,11 @@ const (
 var (
 	podHomeDir            = btcutil.AppDataDir("pod", false)
 	podctlHomeDir         = btcutil.AppDataDir("podctl", false)
-	btcwalletHomeDir      = btcutil.AppDataDir("sac", false)
+	sacHomeDir            = btcutil.AppDataDir("sac", false)
 	defaultConfigFile     = filepath.Join(podctlHomeDir, "podctl.conf")
 	defaultRPCServer      = "localhost"
 	defaultRPCCertFile    = filepath.Join(podHomeDir, "rpc.cert")
-	defaultWalletCertFile = filepath.Join(btcwalletHomeDir, "rpc.cert")
+	defaultWalletCertFile = filepath.Join(sacHomeDir, "rpc.cert")
 )
 
 // listCommands categorizes and lists all of the usable commands along with
@@ -118,21 +118,21 @@ func normalizeAddress(addr string, useTestNet3, useSimNet, useWallet bool) strin
 		switch {
 		case useTestNet3:
 			if useWallet {
-				defaultPort = "18332"
+				defaultPort = "21046"
 			} else {
-				defaultPort = "18334"
+				defaultPort = "21048"
 			}
 		case useSimNet:
 			if useWallet {
-				defaultPort = "18554"
+				defaultPort = "41046"
 			} else {
-				defaultPort = "18556"
+				defaultPort = "41048"
 			}
 		default:
 			if useWallet {
-				defaultPort = "8332"
+				defaultPort = "11046"
 			} else {
-				defaultPort = "8334"
+				defaultPort = "11048"
 			}
 		}
 
@@ -209,16 +209,16 @@ func loadConfig() (*config, []string, error) {
 		listCommands()
 		os.Exit(0)
 	}
-
+	fmt.Println("conf file path", preCfg.ConfigFile)
 	if _, err := os.Stat(preCfg.ConfigFile); os.IsNotExist(err) {
 		// Use config file for RPC server to create default podctl config
 		var serverConfigPath string
 		if preCfg.Wallet {
-			serverConfigPath = filepath.Join(btcwalletHomeDir, "btcwallet.conf")
+			serverConfigPath = filepath.Join(sacHomeDir, "sac.conf")
 		} else {
 			serverConfigPath = filepath.Join(podHomeDir, "pod.conf")
 		}
-
+		fmt.Println("Creating default config...")
 		err := createDefaultConfigFile(preCfg.ConfigFile, serverConfigPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error creating a default config file: %v\n", err)
@@ -281,7 +281,7 @@ func loadConfig() (*config, []string, error) {
 
 // createDefaultConfig creates a basic config file at the given destination path.
 // For this it tries to read the config file for the RPC server (either pod or
-// btcwallet), and extract the RPC user and password from it.
+// sac), and extract the RPC user and password from it.
 func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 	// Read the RPC server config
 	serverConfigFile, err := os.Open(serverConfigPath)
@@ -293,6 +293,7 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 	if err != nil {
 		return err
 	}
+	// content := []byte(samplePodCtlConf)
 
 	// Extract the rpcuser
 	rpcUserRegexp, err := regexp.Compile(`(?m)^\s*rpcuser=([^\s]+)`)
@@ -328,11 +329,12 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("config path", destinationPath)
 	// Create the destination file and write the rpcuser and rpcpass to it
 	dest, err := os.OpenFile(destinationPath,
 		os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
+		fmt.Println("ERROR", err)
 		return err
 	}
 	defer dest.Close()
@@ -342,8 +344,8 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 	if noTLSSubmatches != nil {
 		destString += fmt.Sprintf("notls=%s\n", noTLSSubmatches[1])
 	}
-
-	dest.WriteString(destString)
+	output := ";;; Defaults created from local pod/sac configuration:\n" + destString + "\n" + samplePodCtlConf
+	dest.WriteString(output)
 
 	return nil
 }
