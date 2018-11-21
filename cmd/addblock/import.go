@@ -13,10 +13,10 @@ import (
 
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/blockchain/indexers"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
 )
 
 var zeroHash = chainhash.Hash{}
@@ -194,7 +194,7 @@ func (bi *blockImporter) logProgress() {
 
 	// Truncate the duration to 10s of milliseconds.
 	durationMillis := int64(duration / time.Millisecond)
-	tDuration := 10 * time.Millisecond * time.Duration(durationMillis/10)
+	tDuration := 1 * time.Millisecond * time.Duration(durationMillis/10)
 
 	// Log information about new block height.
 	blockStr := "blocks"

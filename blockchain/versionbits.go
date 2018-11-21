@@ -197,7 +197,7 @@ func (c deploymentChecker) Condition(node *blockNode) (bool, error) {
 // while this function accepts any block node.
 //
 // This function MUST be called with the chain state lock held (for writes).
-func (b *BlockChain) calcNextBlockVersion(prevNode *blockNode) (int32, error) {
+func (b *BlockChain) calcNextBlockVersion(prevNode *blockNode) (uint32, error) {
 	// Set the appropriate bits for each actively defined rule deployment
 	// that is either in the process of being voted on, or locked in for the
 	// activation at the next threshold window change.
@@ -214,7 +214,7 @@ func (b *BlockChain) calcNextBlockVersion(prevNode *blockNode) (int32, error) {
 			expectedVersion |= uint32(1) << deployment.BitNumber
 		}
 	}
-	return int32(expectedVersion), nil
+	return expectedVersion, nil
 }
 
 // CalcNextBlockVersion calculates the expected version of the block after the
@@ -222,7 +222,7 @@ func (b *BlockChain) calcNextBlockVersion(prevNode *blockNode) (int32, error) {
 // rule change deployments.
 //
 // This function is safe for concurrent access.
-func (b *BlockChain) CalcNextBlockVersion() (int32, error) {
+func (b *BlockChain) CalcNextBlockVersion() (uint32, error) {
 	b.chainLock.Lock()
 	version, err := b.calcNextBlockVersion(b.bestChain.Tip())
 	b.chainLock.Unlock()

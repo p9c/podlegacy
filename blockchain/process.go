@@ -179,19 +179,23 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 		// fmt.Println("did not find???")
 		DoNotCheckPow = true
 	}
-	pb := pn.GetPrevWithAlgo(block.MsgBlock().Header.Version)
+	var a uint32 = 2
+	if block.MsgBlock().Header.Version == 514 {
+		a = 514
+	}
+	pb := pn.GetPrevWithAlgo(a)
 	if pb == nil {
 		// fmt.Println("not enough prior blocks on algo")
 		pl = &chaincfg.AllOnes
 		DoNotCheckPow = true
 	} else {
 		switch block.MsgBlock().Header.Version {
-		case 2:
-			// fmt.Println("sha256d pow block")
-			pl = b.chainParams.PowLimit
 		case 514:
 			// fmt.Println("scrypt pow block")
 			pl = b.chainParams.ScryptPowLimit
+		default:
+			// fmt.Println("sha256d pow block")
+			pl = b.chainParams.PowLimit
 		}
 	}
 
@@ -272,6 +276,6 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 		return false, false, err
 	}
 
-	log.Debugf("Accepted block %v, height %d", blockHashWithAlgo, block.Height)
+	log.Debugf("Accepted block %v, height %d", blockHashWithAlgo, b.bestChain.Height())
 	return isMainChain, false, nil
 }

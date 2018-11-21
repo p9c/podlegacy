@@ -5,6 +5,7 @@
 package indexers
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -60,14 +61,14 @@ func (b *blockProgressLogger) LogBlockHeight(block *btcutil.Block) {
 	// Log information about new block height.
 	blockStr := "blocks"
 	if b.receivedLogBlocks == 1 {
-		blockStr = "block"
+		blockStr = "block "
 	}
 	txStr := "transactions"
 	if b.receivedLogTx == 1 {
-		txStr = "transaction"
+		txStr = "transaction "
 	}
-	b.subsystemLogger.Infof("%s %d %s in the last %s (%d %s, height %d, %s)",
-		b.progressAction, b.receivedLogBlocks, blockStr, tDuration, b.receivedLogTx,
+	b.subsystemLogger.Infof("%s %6d %s in the last %s (%6d %s, height %6d, %s)",
+		b.progressAction, b.receivedLogBlocks, blockStr, fmt.Sprintf("%0.1f", tDuration.Seconds()), b.receivedLogTx,
 		txStr, block.Height(), block.MsgBlock().Header.Timestamp)
 
 	b.receivedLogBlocks = 0

@@ -218,16 +218,16 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // This function differs from the exported CalcNextRequiredDifficulty in that
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
-func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo int32) (uint32, error) {
+func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo uint32) (uint32, error) {
 	var powLimit *big.Int
 	var powLimitBits uint32
 	switch algo {
-	case 2:
-		powLimit = b.chainParams.PowLimit
-		powLimitBits = b.chainParams.PowLimitBits
 	case 514:
 		powLimit = b.chainParams.ScryptPowLimit
 		powLimitBits = b.chainParams.ScryptPowLimitBits
+	default:
+		powLimit = b.chainParams.PowLimit
+		powLimitBits = b.chainParams.PowLimitBits
 	}
 
 	// Genesis block.
@@ -328,10 +328,9 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	// newTarget since conversion to the compact representation loses
 	// precision.
 	newTargetBits := BigToCompact(newTarget)
-	log.Debugf("Difficulty retarget at block height %d", lastNode.height+1)
-	log.Debugf("Old target %08x (%064x)", prevNode.bits, oldTarget)
-	log.Debugf("New target %08x (%064x)", newTargetBits, CompactToBig(newTargetBits))
-	log.Debugf("Actual timespan %v, adjusted timespan %v, target timespan %v",
+	log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, prevNode.bits, newTargetBits)
+	log.Tracef("Old %08x New %08x", prevNode.bits, oldTarget, newTargetBits, CompactToBig(newTargetBits))
+	log.Tracef("Actual timespan %v, adjusted timespan %v, target timespan %v",
 		actualTimespan,
 		adjustedTimespan,
 		b.chainParams.AveragingTargetTimespan)

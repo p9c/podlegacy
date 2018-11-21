@@ -13,7 +13,7 @@ type GetBlockHeaderVerboseResult struct {
 	Hash          string  `json:"hash"`
 	Confirmations int64   `json:"confirmations"`
 	Height        int32   `json:"height"`
-	Version       int32   `json:"version"`
+	Version       uint32  `json:"version"`
 	VersionHex    string  `json:"versionHex"`
 	MerkleRoot    string  `json:"merkleroot"`
 	Time          int64   `json:"time"`
@@ -34,7 +34,7 @@ type GetBlockVerboseResult struct {
 	Size          int32         `json:"size"`
 	Weight        int32         `json:"weight"`
 	Height        int64         `json:"height"`
-	Version       int32         `json:"version"`
+	Version       uint32        `json:"version"`
 	VersionHex    string        `json:"versionHex"`
 	MerkleRoot    string        `json:"merkleroot"`
 	Tx            []string      `json:"tx,omitempty"`
@@ -144,7 +144,7 @@ type GetBlockTemplateResult struct {
 	SizeLimit     int64                      `json:"sizelimit,omitempty"`
 	WeightLimit   int64                      `json:"weightlimit,omitempty"`
 	Transactions  []GetBlockTemplateResultTx `json:"transactions"`
-	Version       int32                      `json:"version"`
+	Version       uint32                     `json:"version"`
 	CoinbaseAux   *GetBlockTemplateResultAux `json:"coinbaseaux,omitempty"`
 	CoinbaseTxn   *GetBlockTemplateResultTx  `json:"coinbasetxn,omitempty"`
 	CoinbaseValue *int64                     `json:"coinbasevalue,omitempty"`

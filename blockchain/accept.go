@@ -43,12 +43,19 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	// Rather than pass the direct previous by height, we look for the previous of the same algorithm and pass that.
 	var DoNotCheckPow bool
 	var pn *blockNode
-	if prevNode.version != block.MsgBlock().Header.Version {
+	var a uint32 = 2
+	if block.MsgBlock().Header.Version == 514 {
+		a = 514
+	}
+	var aa uint32 = 2
+	if prevNode.version == 514 {
+		aa = 514
+	}
+	if a != aa {
 		var i int64
 		pn = prevNode
 		for ; i < b.chainParams.AveragingInterval-1; i++ {
-			pn = pn.GetPrevWithAlgo(block.MsgBlock().Header.Version)
-			// fmt.Println("pn ", pn)
+			pn = pn.GetPrevWithAlgo(a)
 			if pn == nil {
 				// fmt.Println("passed genesis looking for previous of algo")
 				break
@@ -58,11 +65,7 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	}
 
 	var err error
-	if pn == nil {
-		// fmt.Println("not enough blocks for adjustment")
-		// DoNotCheckPow = true
-		// return true, err
-	} else {
+	if pn != nil {
 		// The block must pass all of the validation rules which depend on the
 		// position of the block within the block chain.
 		// fmt.Println("enough blocks for adjustment")

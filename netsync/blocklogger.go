@@ -5,11 +5,12 @@
 package netsync
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
-	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/btclog"
+	"github.com/parallelcointeam/pod/btcutil"
 )
 
 // blockProgressLogger provides periodic logging for other services in order
@@ -49,7 +50,7 @@ func (b *blockProgressLogger) LogBlockHeight(block *btcutil.Block) {
 
 	now := time.Now()
 	duration := now.Sub(b.lastBlockLogTime)
-	if duration < time.Second*10 {
+	if duration < time.Second*2 {
 		return
 	}
 
@@ -66,8 +67,8 @@ func (b *blockProgressLogger) LogBlockHeight(block *btcutil.Block) {
 	if b.receivedLogTx == 1 {
 		txStr = "transaction"
 	}
-	b.subsystemLogger.Infof("%s %d %s in the last %s (%d %s, height %d, %s)",
-		b.progressAction, b.receivedLogBlocks, blockStr, tDuration, b.receivedLogTx,
+	b.subsystemLogger.Infof("%s %6d %s in the last %s (%6d %s, height %8d, %s)",
+		b.progressAction, b.receivedLogBlocks, blockStr, fmt.Sprintf("%0.1f", tDuration.Seconds()), b.receivedLogTx,
 		txStr, block.Height(), block.MsgBlock().Header.Timestamp)
 
 	b.receivedLogBlocks = 0
