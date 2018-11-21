@@ -7,12 +7,12 @@
 //
 // This package is internal now, but will eventually be exposed after the API
 // settles.
-package format // import "golang.org/x/text/internal/format"
+package format // import "github.com/parallelcointeam/pod/text/internal/format"
 
 import (
 	"fmt"
 
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 // State represents the printer state passed to custom formatters. It provides

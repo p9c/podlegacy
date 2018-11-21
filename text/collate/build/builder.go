@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package build // import "golang.org/x/text/collate/build"
+package build // import "github.com/parallelcointeam/pod/text/collate/build"
 
 import (
 	"fmt"
@@ -12,9 +12,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"golang.org/x/text/internal/colltab"
-	"golang.org/x/text/language"
-	"golang.org/x/text/unicode/norm"
+	"github.com/parallelcointeam/pod/text/internal/colltab"
+	"github.com/parallelcointeam/pod/text/language"
+	"github.com/parallelcointeam/pod/text/unicode/norm"
 )
 
 // TODO: optimizations:

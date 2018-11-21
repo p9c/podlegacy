@@ -12,10 +12,10 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"golang.org/x/text/internal/format"
-	"golang.org/x/text/internal/number"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message/catalog"
+	"github.com/parallelcointeam/pod/text/internal/format"
+	"github.com/parallelcointeam/pod/text/internal/number"
+	"github.com/parallelcointeam/pod/text/language"
+	"github.com/parallelcointeam/pod/text/message/catalog"
 )
 
 // Strings for use with buffer.WriteString.
@@ -64,7 +64,7 @@ func (p *printer) free() {
 }
 
 // printer is used to store a printer's state.
-// It implements "golang.org/x/text/internal/format".State.
+// It implements "github.com/parallelcointeam/pod/text/internal/format".State.
 type printer struct {
 	Printer
 
@@ -88,7 +88,7 @@ type printer struct {
 	erroring bool
 }
 
-// Language implements "golang.org/x/text/internal/format".State.
+// Language implements "github.com/parallelcointeam/pod/text/internal/format".State.
 func (p *printer) Language() language.Tag { return p.tag }
 
 func (p *printer) Width() (wid int, ok bool) { return p.fmt.Width, p.fmt.WidthPresent }

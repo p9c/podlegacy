@@ -17,7 +17,7 @@ import (
 	"runtime"
 	"testing"
 
-	"gitlab.com/parallelcoin/sys/unix"
+	"github.com/parallelcointeam/pod/sys/unix"
 )
 
 func TestSysctlUint64(t *testing.T) {

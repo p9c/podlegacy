@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"golang.org/x/text/internal/language"
+	"github.com/parallelcointeam/pod/text/internal/language"
 )
 
 func mustParse(s string) Tag {

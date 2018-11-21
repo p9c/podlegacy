@@ -6,7 +6,7 @@
 
 package blake2b
 
-import "gitlab.com/parallelcoin/sys/cpu"
+import "github.com/parallelcointeam/pod/sys/cpu"
 
 func init() {
 	useSSE4 = cpu.X86.HasSSE41

@@ -12,10 +12,10 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"golang.org/x/text/internal/testtext"
-	"golang.org/x/text/language"
-	"golang.org/x/text/transform"
-	"golang.org/x/text/unicode/norm"
+	"github.com/parallelcointeam/pod/text/internal/testtext"
+	"github.com/parallelcointeam/pod/text/language"
+	"github.com/parallelcointeam/pod/text/transform"
+	"github.com/parallelcointeam/pod/text/unicode/norm"
 )
 
 type testCase struct {

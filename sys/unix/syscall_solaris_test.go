@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/parallelcoin/sys/unix"
+	"github.com/parallelcointeam/pod/sys/unix"
 )
 
 func TestSelect(t *testing.T) {

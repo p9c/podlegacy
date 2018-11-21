@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/parallelcoin/sys/windows/svc"
-	"gitlab.com/parallelcoin/sys/windows/svc/debug"
-	"gitlab.com/parallelcoin/sys/windows/svc/eventlog"
+	"github.com/parallelcointeam/pod/sys/windows/svc"
+	"github.com/parallelcointeam/pod/sys/windows/svc/debug"
+	"github.com/parallelcointeam/pod/sys/windows/svc/eventlog"
 )
 
 var elog debug.Log

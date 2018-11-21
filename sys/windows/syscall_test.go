@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"testing"
 
-	"gitlab.com/parallelcoin/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows"
 )
 
 func testSetGetenv(t *testing.T, key, value string) {

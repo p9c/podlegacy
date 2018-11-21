@@ -9,12 +9,12 @@ import (
 	"errors"
 	"unicode/utf8"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-	"golang.org/x/text/runes"
-	"golang.org/x/text/secure/bidirule"
-	"golang.org/x/text/transform"
-	"golang.org/x/text/width"
+	"github.com/parallelcointeam/pod/text/cases"
+	"github.com/parallelcointeam/pod/text/language"
+	"github.com/parallelcointeam/pod/text/runes"
+	"github.com/parallelcointeam/pod/text/secure/bidirule"
+	"github.com/parallelcointeam/pod/text/transform"
+	"github.com/parallelcointeam/pod/text/width"
 )
 
 var (

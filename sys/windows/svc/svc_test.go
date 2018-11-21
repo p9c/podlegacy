@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/parallelcoin/sys/windows/svc"
-	"gitlab.com/parallelcoin/sys/windows/svc/mgr"
+	"github.com/parallelcointeam/pod/sys/windows/svc"
+	"github.com/parallelcointeam/pod/sys/windows/svc/mgr"
 )
 
 func getState(t *testing.T, s *mgr.Service) svc.State {
@@ -69,7 +69,7 @@ func TestExample(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	exepath := filepath.Join(dir, "a.exe")
-	o, err := exec.Command("go", "build", "-o", exepath, "gitlab.com/parallelcoin/sys/windows/svc/example").CombinedOutput()
+	o, err := exec.Command("go", "build", "-o", exepath, "github.com/parallelcointeam/pod/sys/windows/svc/example").CombinedOutput()
 	if err != nil {
 		t.Fatalf("failed to build service program: %v\n%v", err, string(o))
 	}

@@ -7,7 +7,7 @@ package cases
 import (
 	"testing"
 
-	"golang.org/x/text/internal/testtext"
+	"github.com/parallelcointeam/pod/text/internal/testtext"
 )
 
 var foldTestCases = []string{

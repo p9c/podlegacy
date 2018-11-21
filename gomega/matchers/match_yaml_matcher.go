@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/parallelcointeam/pod/gomega/format"
-	"gopkg.in/yaml.v2"
+	"github.com/parallelcointeam/pod/yaml"
 )
 
 type MatchYAMLMatcher struct {

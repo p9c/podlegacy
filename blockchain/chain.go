@@ -61,12 +61,13 @@ type orphanBlock struct {
 type BestState struct {
 	Hash        chainhash.Hash // The hash of the block.
 	Height      int32          // The height of the block.
-	Bits        uint32         // The difficulty bits of the block.
-	BlockSize   uint64         // The size of the block.
-	BlockWeight uint64         // The weight of the block.
-	NumTxns     uint64         // The number of txns in the block.
-	TotalTxns   uint64         // The total number of txns in the chain.
-	MedianTime  time.Time      // Median time as per CalcPastMedianTime.
+	Version     uint32
+	Bits        uint32    // The difficulty bits of the block.
+	BlockSize   uint64    // The size of the block.
+	BlockWeight uint64    // The weight of the block.
+	NumTxns     uint64    // The number of txns in the block.
+	TotalTxns   uint64    // The total number of txns in the chain.
+	MedianTime  time.Time // Median time as per CalcPastMedianTime.
 }
 
 // newBestState returns a new best stats instance for the given parameters.
@@ -76,6 +77,7 @@ func newBestState(node *blockNode, blockSize, blockWeight, numTxns,
 	return &BestState{
 		Hash:        node.hash,
 		Height:      node.height,
+		Version:     node.version,
 		Bits:        node.bits,
 		BlockSize:   blockSize,
 		BlockWeight: blockWeight,

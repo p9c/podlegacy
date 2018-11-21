@@ -9,8 +9,8 @@ package mgr
 import (
 	"syscall"
 
-	"gitlab.com/parallelcoin/sys/windows"
-	"gitlab.com/parallelcoin/sys/windows/svc"
+	"github.com/parallelcointeam/pod/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows/svc"
 )
 
 // TODO(brainman): Use EnumDependentServices to enumerate dependent services.

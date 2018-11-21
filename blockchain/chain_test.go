@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
 )
 
 // TestHaveBlock tests the HaveBlock API to ensure proper functionality.
@@ -122,7 +122,7 @@ func TestCalcSequenceLock(t *testing.T) {
 	// manually craft the block version that's used to signal the soft-fork
 	// activation.
 	csvBit := netParams.Deployments[chaincfg.DeploymentCSV].BitNumber
-	blockVersion := int32(0x20000000 | (uint32(1) << csvBit))
+	blockVersion := uint32(0x20000000 | (uint32(1) << csvBit))
 
 	// Generate enough synthetic blocks to activate CSV.
 	chain := newFakeChain(netParams)

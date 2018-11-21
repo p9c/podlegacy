@@ -15,7 +15,7 @@ import (
 	"time"
 	"unsafe"
 
-	"gitlab.com/parallelcoin/sys/windows/registry"
+	"github.com/parallelcointeam/pod/sys/windows/registry"
 )
 
 func randKeyName(prefix string) string {

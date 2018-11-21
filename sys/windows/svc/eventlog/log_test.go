@@ -9,7 +9,7 @@ package eventlog_test
 import (
 	"testing"
 
-	"gitlab.com/parallelcoin/sys/windows/svc/eventlog"
+	"github.com/parallelcointeam/pod/sys/windows/svc/eventlog"
 )
 
 func TestLog(t *testing.T) {

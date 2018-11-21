@@ -22,9 +22,9 @@ import (
 	"text/template"
 	"unicode"
 
-	"golang.org/x/text/internal"
-	"golang.org/x/text/language"
-	"golang.org/x/text/runes"
+	"github.com/parallelcointeam/pod/text/internal"
+	"github.com/parallelcointeam/pod/text/language"
+	"github.com/parallelcointeam/pod/text/runes"
 	"golang.org/x/tools/go/loader"
 )
 

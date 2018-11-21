@@ -11,8 +11,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"gitlab.com/parallelcoin/sys/windows/svc/eventlog"
-	"gitlab.com/parallelcoin/sys/windows/svc/mgr"
+	"github.com/parallelcointeam/pod/sys/windows/svc/eventlog"
+	"github.com/parallelcointeam/pod/sys/windows/svc/mgr"
 )
 
 func exePath() (string, error) {

@@ -6,7 +6,7 @@
 
 package blake2s
 
-import "gitlab.com/parallelcoin/sys/cpu"
+import "github.com/parallelcointeam/pod/sys/cpu"
 
 var (
 	useSSE4  = false

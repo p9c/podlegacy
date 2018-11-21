@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/parallelcoin/sys/windows/svc/mgr"
+	"github.com/parallelcointeam/pod/sys/windows/svc/mgr"
 )
 
 func TestOpenLanManServer(t *testing.T) {

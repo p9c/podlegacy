@@ -5,9 +5,9 @@ package bidi
 import (
 	"unicode"
 
-	"golang.org/x/text/internal/gen"
-	"golang.org/x/text/internal/ucd"
-	"golang.org/x/text/unicode/rangetable"
+	"github.com/parallelcointeam/pod/text/internal/gen"
+	"github.com/parallelcointeam/pod/text/internal/ucd"
+	"github.com/parallelcointeam/pod/text/unicode/rangetable"
 )
 
 // These tables are hand-extracted from:

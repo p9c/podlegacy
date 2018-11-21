@@ -20,7 +20,7 @@ import (
 	"os"
 	"strings"
 
-	"gitlab.com/parallelcoin/sys/windows/svc"
+	"github.com/parallelcointeam/pod/sys/windows/svc"
 )
 
 func usage(errmsg string) {

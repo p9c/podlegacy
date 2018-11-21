@@ -183,6 +183,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	if block.MsgBlock().Header.Version == 514 {
 		a = 514
 	}
+
 	pb := pn.GetPrevWithAlgo(a)
 	if pb == nil {
 		// fmt.Println("not enough prior blocks on algo")

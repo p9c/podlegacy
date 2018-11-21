@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"gitlab.com/parallelcoin/sys/unix"
+	"github.com/parallelcointeam/pod/sys/unix"
 )
 
 func TestXattr(t *testing.T) {

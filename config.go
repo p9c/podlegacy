@@ -20,17 +20,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/parallelcointeam/pod/socks"
-	flags "github.com/parallelcointeam/pod/go-flags"
-	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/blockchain"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/connmgr"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
+	flags "github.com/parallelcointeam/pod/go-flags"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/peer"
+	"github.com/parallelcointeam/pod/socks"
 )
 
 const (
@@ -71,6 +71,7 @@ const (
 	sampleConfigFilename         = "sample-pod.conf"
 	defaultTxIndex               = false
 	defaultAddrIndex             = false
+	defaultAlgo                  = "sha256d"
 )
 
 var (
@@ -151,6 +152,7 @@ type config struct {
 	NoRelayPriority      bool          `long:"norelaypriority" description:"Do not require free or low-fee transactions to have high priority for relaying"`
 	TrickleInterval      time.Duration `long:"trickleinterval" description:"Minimum time between attempts to send new inventory to a connected peer"`
 	MaxOrphanTxs         int           `long:"maxorphantx" description:"Max number of orphan transactions to keep in memory"`
+	Algo                 string        `long:"algo" description:"Sets the algorithm for the CPU miner (sha256d/scrypt default sha256d)"`
 	Generate             bool          `long:"generate" description:"Generate (mine) bitcoins using the CPU"`
 	MiningAddrs          []string      `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
 	BlockMinSize         uint32        `long:"blockminsize" description:"Mininum block size in bytes to be used when creating a block"`
@@ -436,6 +438,7 @@ func loadConfig() (*config, []string, error) {
 		Generate:             defaultGenerate,
 		TxIndex:              defaultTxIndex,
 		AddrIndex:            defaultAddrIndex,
+		Algo:                 defaultAlgo,
 	}
 
 	// Service options which are only added on Windows.
@@ -560,6 +563,16 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, err)
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
+	}
+
+	// Set the mining algorithm correctly, default to sha256d if unrecognised
+	switch cfg.Algo {
+	case "scrypt":
+		cfg.Algo = "scrypt"
+	case "sha256d":
+		cfg.Algo = "sha256d"
+	default:
+		cfg.Algo = "sha256d"
 	}
 
 	// Set the default policy for relaying non-standard transactions

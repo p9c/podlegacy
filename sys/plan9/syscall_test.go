@@ -9,7 +9,7 @@ package plan9_test
 import (
 	"testing"
 
-	"gitlab.com/parallelcoin/sys/plan9"
+	"github.com/parallelcointeam/pod/sys/plan9"
 )
 
 func testSetGetenv(t *testing.T, key, value string) {

@@ -14,13 +14,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
 )
 
 const (
@@ -354,8 +354,8 @@ func newFakeChain(params *chaincfg.Params) *BlockChain {
 	index := newBlockIndex(nil, params)
 	index.AddNode(node)
 
-	targetTimespan := int64(params.TargetTimespan / time.Second)
-	targetTimePerBlock := int64(params.TargetTimePerBlock / time.Second)
+	targetTimespan := int64(params.TargetTimespan)
+	targetTimePerBlock := int64(params.TargetTimePerBlock)
 	adjustmentFactor := params.RetargetAdjustmentFactor
 	return &BlockChain{
 		chainParams:         params,
@@ -372,7 +372,7 @@ func newFakeChain(params *chaincfg.Params) *BlockChain {
 
 // newFakeNode creates a block node connected to the passed parent with the
 // provided fields populated and fake values for the other fields.
-func newFakeNode(parent *blockNode, blockVersion int32, bits uint32, timestamp time.Time) *blockNode {
+func newFakeNode(parent *blockNode, blockVersion uint32, bits uint32, timestamp time.Time) *blockNode {
 	// Make up a header and create a block node from it.
 	header := &wire.BlockHeader{
 		Version:   blockVersion,

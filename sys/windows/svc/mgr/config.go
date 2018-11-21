@@ -11,7 +11,7 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
-	"gitlab.com/parallelcoin/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows"
 )
 
 const (

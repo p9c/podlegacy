@@ -17,7 +17,7 @@
 package terminal // import "github.com/parallelcointeam/pod/crypto/ssh/terminal"
 
 import (
-	"gitlab.com/parallelcoin/sys/unix"
+	"github.com/parallelcointeam/pod/sys/unix"
 )
 
 // State contains the state of a terminal.

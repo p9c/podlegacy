@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
 )
 
 // TestSequenceLocksActive tests the SequenceLockActive function to ensure it
@@ -154,7 +154,7 @@ func TestCheckBlockSanity(t *testing.T) {
 	powLimit := chaincfg.MainNetParams.PowLimit
 	block := btcutil.NewBlock(&Block100000)
 	timeSource := NewMedianTime()
-	err := CheckBlockSanity(block, powLimit, timeSource)
+	err := CheckBlockSanity(block, powLimit, timeSource, false)
 	if err != nil {
 		t.Errorf("CheckBlockSanity: %v", err)
 	}
@@ -163,7 +163,7 @@ func TestCheckBlockSanity(t *testing.T) {
 	// second fails.
 	timestamp := block.MsgBlock().Header.Timestamp
 	block.MsgBlock().Header.Timestamp = timestamp.Add(time.Nanosecond)
-	err = CheckBlockSanity(block, powLimit, timeSource)
+	err = CheckBlockSanity(block, powLimit, timeSource, false)
 	if err == nil {
 		t.Errorf("CheckBlockSanity: error is nil when it shouldn't be")
 	}

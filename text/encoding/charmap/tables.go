@@ -3,8 +3,8 @@
 package charmap
 
 import (
-	"golang.org/x/text/encoding"
-	"golang.org/x/text/encoding/internal/identifier"
+	"github.com/parallelcointeam/pod/text/encoding"
+	"github.com/parallelcointeam/pod/text/encoding/internal/identifier"
 )
 
 // CodePage037 is the IBM Code Page 037 encoding.

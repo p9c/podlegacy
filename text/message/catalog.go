@@ -8,8 +8,8 @@ package message
 // Documentation and method names will reflect this by using the exported name.
 
 import (
-	"golang.org/x/text/language"
-	"golang.org/x/text/message/catalog"
+	"github.com/parallelcointeam/pod/text/language"
+	"github.com/parallelcointeam/pod/text/message/catalog"
 )
 
 // MatchLanguage reports the matched tag obtained from language.MatchStrings for

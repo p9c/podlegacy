@@ -7,8 +7,8 @@ package cases_test
 import (
 	"fmt"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/cases"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 func Example() {

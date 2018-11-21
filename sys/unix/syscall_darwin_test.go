@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"gitlab.com/parallelcoin/sys/unix"
+	"github.com/parallelcointeam/pod/sys/unix"
 )
 
 // stringsFromByteSlice converts a sequence of attributes to a []string.

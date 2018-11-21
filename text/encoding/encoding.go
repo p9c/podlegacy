@@ -8,7 +8,7 @@
 // Encoding implementations are provided in other packages, such as
 // golang.org/x/text/encoding/charmap and
 // golang.org/x/text/encoding/japanese.
-package encoding // import "golang.org/x/text/encoding"
+package encoding // import "github.com/parallelcointeam/pod/text/encoding"
 
 import (
 	"errors"
@@ -16,8 +16,8 @@ import (
 	"strconv"
 	"unicode/utf8"
 
-	"golang.org/x/text/encoding/internal/identifier"
-	"golang.org/x/text/transform"
+	"github.com/parallelcointeam/pod/text/encoding/internal/identifier"
+	"github.com/parallelcointeam/pod/text/transform"
 )
 
 // TODO:

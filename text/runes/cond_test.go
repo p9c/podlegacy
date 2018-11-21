@@ -9,9 +9,9 @@ import (
 	"testing"
 	"unicode"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-	"golang.org/x/text/transform"
+	"github.com/parallelcointeam/pod/text/cases"
+	"github.com/parallelcointeam/pod/text/language"
+	"github.com/parallelcointeam/pod/text/transform"
 )
 
 var (

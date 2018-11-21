@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/parallelcoin/sys/unix"
+	"github.com/parallelcointeam/pod/sys/unix"
 )
 
 func TestGetfsstat(t *testing.T) {

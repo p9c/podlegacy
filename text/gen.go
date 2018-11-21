@@ -25,9 +25,9 @@ import (
 	"sync"
 	"unicode"
 
-	"golang.org/x/text/collate"
-	"golang.org/x/text/internal/gen"
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/collate"
+	"github.com/parallelcointeam/pod/text/internal/gen"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 var (
@@ -135,7 +135,7 @@ pkg unicode, var <new script or property> *RangeTable
 	all.Wait()
 
 	// Copy exported packages to the destination golang.org repo.
-	copyExported("golang.org/x/net/idna")
+	copyExported("github.com/parallelcointeam/pod/net/idna")
 
 	if updateCore {
 		copyVendored()
@@ -232,7 +232,7 @@ func copyExported(p string) {
 	copyPackage(
 		filepath.Join("internal", "export", path.Base(p)),
 		filepath.Join("..", filepath.FromSlash(p[len("golang.org/x"):])),
-		"golang.org/x/text/internal/export/"+path.Base(p),
+		"github.com/parallelcointeam/pod/text/internal/export/"+path.Base(p),
 		p)
 }
 

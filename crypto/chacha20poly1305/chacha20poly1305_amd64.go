@@ -10,7 +10,7 @@ import (
 	"encoding/binary"
 
 	"github.com/parallelcointeam/pod/crypto/internal/subtle"
-	"gitlab.com/parallelcoin/sys/cpu"
+	"github.com/parallelcointeam/pod/sys/cpu"
 )
 
 //go:noescape

@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"gitlab.com/parallelcoin/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows"
 )
 
 // State describes service execution state (Stopped, Running and so on).

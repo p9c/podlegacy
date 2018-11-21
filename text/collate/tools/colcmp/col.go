@@ -8,8 +8,8 @@ import (
 	"log"
 	"unicode/utf16"
 
-	"golang.org/x/text/collate"
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/collate"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 // Input holds an input string in both UTF-8 and UTF-16 format.

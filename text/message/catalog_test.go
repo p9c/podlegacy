@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"golang.org/x/text/language"
-	"golang.org/x/text/message/catalog"
+	"github.com/parallelcointeam/pod/text/language"
+	"github.com/parallelcointeam/pod/text/message/catalog"
 )
 
 func TestMatchLanguage(t *testing.T) {

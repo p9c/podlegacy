@@ -1041,12 +1041,18 @@ func handleGetBestBlockHash(s *rpcServer, cmd interface{}, closeChan <-chan stru
 
 // getDifficultyRatio returns the proof-of-work difficulty as a multiple of the
 // minimum difficulty using the passed bits field from the header of a block.
-func getDifficultyRatio(bits uint32, params *chaincfg.Params) float64 {
+func getDifficultyRatio(bits uint32, params *chaincfg.Params, algo uint32) float64 {
+	// a := uint32(algo)
 	// The minimum difficulty is the max possible proof-of-work limit bits
 	// converted back to a number.  Note this is not the same as the proof of
 	// work limit directly because the block difficulty is encoded in a block
 	// with the compact form which loses precision.
-	max := blockchain.CompactToBig(params.PowLimitBits)
+	max := blockchain.CompactToBig(0x1d00ffff)
+	// if a == 514 {
+	// 	max = chain.CompactToBig(0x1d00ffff)
+	// } else {
+	// 	// max := chain.CompactToBig(params.PowLimitBits)
+	// }
 	target := blockchain.CompactToBig(bits)
 
 	difficulty := new(big.Rat).SetFrac(max, target)
@@ -1118,10 +1124,20 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 
 	params := s.cfg.ChainParams
 	blockHeader := &blk.MsgBlock().Header
+	var a, powalgoid uint32 = 2, 0
+	algoname := "sha256d"
+	if blockHeader.Version == 514 {
+		a, powalgoid = 514, 1
+		algoname = "scrypt"
+	}
+
 	blockReply := btcjson.GetBlockVerboseResult{
 		Hash:          c.Hash,
 		Version:       blockHeader.Version,
 		VersionHex:    fmt.Sprintf("%08x", blockHeader.Version),
+		PowAlgoID :     powalgoid,
+		PowAlgo:        algoname,
+		PowHash   :     blk.MsgBlock().BlockHashWithAlgos().String(),
 		MerkleRoot:    blockHeader.MerkleRoot.String(),
 		PreviousHash:  blockHeader.PrevBlock.String(),
 		Nonce:         blockHeader.Nonce,
@@ -1132,7 +1148,7 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		StrippedSize:  int32(blk.MsgBlock().SerializeSizeStripped()),
 		Weight:        int32(blockchain.GetBlockWeight(blk)),
 		Bits:          strconv.FormatInt(int64(blockHeader.Bits), 16),
-		Difficulty:    getDifficultyRatio(blockHeader.Bits, params),
+		Difficulty:    getDifficultyRatio(blockHeader.Bits, params,a),
 		NextHash:      nextHashString,
 	}
 
@@ -1189,12 +1205,17 @@ func handleGetBlockChainInfo(s *rpcServer, cmd interface{}, closeChan <-chan str
 	chain := s.cfg.Chain
 	chainSnapshot := chain.BestSnapshot()
 
+	var a uint32 = 2
+	if chainSnapshot.Version == 514 {
+		a = 514
+	}
+
 	chainInfo := &btcjson.GetBlockChainInfoResult{
 		Chain:         params.Name,
 		Blocks:        chainSnapshot.Height,
 		Headers:       chainSnapshot.Height,
 		BestBlockHash: chainSnapshot.Hash.String(),
-		Difficulty:    getDifficultyRatio(chainSnapshot.Bits, params),
+		Difficulty:    getDifficultyRatio(chainSnapshot.Bits, params, a),
 		MedianTime:    chainSnapshot.MedianTime.Unix(),
 		Pruned:        false,
 		Bip9SoftForks: make(map[string]*btcjson.Bip9SoftForkDescription),
@@ -1360,6 +1381,10 @@ func handleGetBlockHeader(s *rpcServer, cmd interface{}, closeChan <-chan struct
 		}
 		nextHashString = nextHash.String()
 	}
+	var a uint32 = 2
+	if blockHeader.Version == 514 {
+		a = 514
+	}
 
 	params := s.cfg.ChainParams
 	blockHeaderReply := btcjson.GetBlockHeaderVerboseResult{
@@ -1374,7 +1399,7 @@ func handleGetBlockHeader(s *rpcServer, cmd interface{}, closeChan <-chan struct
 		Nonce:         uint64(blockHeader.Nonce),
 		Time:          blockHeader.Timestamp.Unix(),
 		Bits:          strconv.FormatInt(int64(blockHeader.Bits), 16),
-		Difficulty:    getDifficultyRatio(blockHeader.Bits, params),
+		Difficulty:    getDifficultyRatio(blockHeader.Bits, params,a),
 	}
 	return blockHeaderReply, nil
 }
@@ -2244,7 +2269,12 @@ func handleGetCurrentNet(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 // handleGetDifficulty implements the getdifficulty command.
 func handleGetDifficulty(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	best := s.cfg.Chain.BestSnapshot()
-	return getDifficultyRatio(best.Bits, s.cfg.ChainParams), nil
+	var a uint32 = 2
+	if best.Version == 514 {
+		a = 514
+	}
+
+	return getDifficultyRatio(best.Bits, s.cfg.ChainParams, a), nil
 }
 
 // handleGetGenerate implements the getgenerate command.
@@ -2301,21 +2331,91 @@ func handleGetHeaders(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) 
 // handleGetInfo implements the getinfo command. We only return the fields
 // that are not related to wallet functionality.
 func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	// fmt.Println("HandleGetInfo")
 	best := s.cfg.Chain.BestSnapshot()
+	v, _ := s.cfg.Chain.BlockByHash(&best.Hash)
+	ver := v.MsgBlock().Header.Version
+	if ver != 514 {
+		ver = 2
+	}
+
+	// gen := int32(s.cfg.ChainParams.GenerationAlgo)
+
+	var shabits, scryptbits uint32
+	if ver != 514 {
+		shabits = best.Bits
+		// now get last scrypt block
+		prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
+		if err != nil {
+			fmt.Println("ERROR", err)
+		}
+		for {
+			if prev.MsgBlock().Header.Version != 514 {
+				ph := prev.MsgBlock().Header.PrevBlock
+				prev, err = s.cfg.Chain.BlockByHash(&ph)
+				if err != nil {
+					fmt.Println("ERROR", err)
+				}
+				continue
+			}
+			scryptbits = uint32(prev.MsgBlock().Header.Bits)
+			break
+		}
+	}
+	if ver == 514 {
+		scryptbits = best.Bits
+		// now get last sha256d block
+		prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
+		if err != nil {
+			fmt.Println("ERROR", err)
+		}
+		for {
+			if prev.MsgBlock().Header.Version == 514 {
+				ph := prev.MsgBlock().Header.PrevBlock
+				prev, err = s.cfg.Chain.BlockByHash(&ph)
+				if err != nil {
+					fmt.Println("ERROR", err)
+				}
+				continue
+			}
+			shabits = uint32(prev.MsgBlock().Header.Bits)
+			break
+		}
+	}
+
+	bestBits := best.Bits
+	algoname := "sha256d"
+	algoid := uint32(0)
+	algover := uint32(2)
+	// fmt.Println(algoname, algoid)
+	switch s.cfg.AlgoID {
+	case 514:
+		algoname = "scrypt"
+		algoid = 1
+		algover = uint32(514)
+		bestBits = scryptbits
+	default:
+	}
+
 	ret := &btcjson.InfoChainResult{
-		Version:         int32(1000000*appMajor + 10000*appMinor + 100*appPatch),
-		ProtocolVersion: int32(maxProtocolVersion),
-		Blocks:          best.Height,
-		TimeOffset:      int64(s.cfg.TimeSource.Offset().Seconds()),
-		Connections:     s.cfg.ConnMgr.ConnectedCount(),
-		Proxy:           cfg.Proxy,
-		Difficulty:      getDifficultyRatio(best.Bits, s.cfg.ChainParams),
-		TestNet:         cfg.TestNet3,
-		RelayFee:        cfg.minRelayTxFee.ToBTC(),
+		Version:           int32(1000000*appMajor + 10000*appMinor + 100*appPatch),
+		ProtocolVersion:   int32(maxProtocolVersion),
+		Blocks:            best.Height,
+		TimeOffset:        int64(s.cfg.TimeSource.Offset().Seconds()),
+		Connections:       s.cfg.ConnMgr.ConnectedCount(),
+		Proxy:             cfg.Proxy,
+		PowAlgoID:         algoid,
+		PowAlgo:           algoname,
+		Difficulty:        getDifficultyRatio(bestBits, s.cfg.ChainParams, algover),
+		DifficultySHA256D: getDifficultyRatio(shabits, s.cfg.ChainParams, 2),
+		DifficultyScrypt:  getDifficultyRatio(scryptbits, s.cfg.ChainParams, 514),
+		TestNet:           cfg.TestNet3,
+		RelayFee:          cfg.minRelayTxFee.ToBTC(),
 	}
 
 	return ret, nil
 }
+
 
 // handleGetMempoolInfo implements the getmempoolinfo command.
 func handleGetMempoolInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
@@ -2352,14 +2452,76 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 			Message: "networkHashesPerSec is not an int64",
 		}
 	}
-
+	
 	best := s.cfg.Chain.BestSnapshot()
+	v, _ := s.cfg.Chain.BlockByHash(&best.Hash)
+	ver := v.MsgBlock().Header.Version
+
+	var shabits, scryptbits uint32
+	if ver != 514 {
+		shabits = best.Bits
+		// now get last scrypt block
+		prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
+		if err != nil {
+			fmt.Println("ERROR", err)
+		}
+		for {
+			if prev.MsgBlock().Header.Version != 514 {
+				ph := prev.MsgBlock().Header.PrevBlock
+				prev, err = s.cfg.Chain.BlockByHash(&ph)
+				if err != nil {
+					fmt.Println("ERROR", err)
+				}
+				continue
+			}
+			scryptbits = uint32(prev.MsgBlock().Header.Bits)
+			break
+		}
+	}
+	if ver == 514 {
+		scryptbits = best.Bits
+		// now get last sha256d block
+		prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
+		if err != nil {
+			fmt.Println("ERROR", err)
+		}
+		for {
+			if prev.MsgBlock().Header.Version == 514 {
+				ph := prev.MsgBlock().Header.PrevBlock
+				prev, err = s.cfg.Chain.BlockByHash(&ph)
+				if err != nil {
+					fmt.Println("ERROR", err)
+				}
+				continue
+			}
+			shabits = uint32(prev.MsgBlock().Header.Bits)
+			break
+		}
+	}
+
+	bestBits := best.Bits
+	algoname := "sha256d"
+	algoid := uint32(0)
+	algover := uint32(2)
+	// fmt.Println(algoname, algoid)
+	switch s.cfg.AlgoID {
+	case 514:
+		algoname = "scrypt"
+		algoid = 1
+		algover = uint32(514)
+		bestBits = scryptbits
+	default:
+	}
 	result := btcjson.GetMiningInfoResult{
 		Blocks:             int64(best.Height),
 		CurrentBlockSize:   best.BlockSize,
 		CurrentBlockWeight: best.BlockWeight,
 		CurrentBlockTx:     best.NumTxns,
-		Difficulty:         getDifficultyRatio(best.Bits, s.cfg.ChainParams),
+		PowAlgoID:         algoid,
+		PowAlgo:           algoname,
+		Difficulty:        getDifficultyRatio(bestBits, s.cfg.ChainParams, algover),
+		DifficultySHA256D: getDifficultyRatio(shabits, s.cfg.ChainParams, 2),
+		DifficultyScrypt:  getDifficultyRatio(scryptbits, s.cfg.ChainParams, 514),
 		Generate:           s.cfg.CPUMiner.IsMining(),
 		GenProcLimit:       s.cfg.CPUMiner.NumWorkers(),
 		HashesPerSec:       int64(s.cfg.CPUMiner.HashesPerSecond()),
@@ -4271,6 +4433,14 @@ type rpcserverConfig struct {
 	// The fee estimator keeps track of how long transactions are left in
 	// the mempool before they are mined into blocks.
 	FeeEstimator *mempool.FeeEstimator
+	
+	// AlgoID sets the algorithm expected from the RPC endpoint. This allows
+	// multiple ports to serve multiple types of miners with one main node
+	// per algorithm. Currently 514 for scrypt and anything else passes for
+	// sha256d.
+	// HARDFORK: multiple new algorithms and verifiers to be added, at least
+	// equihash, cryptonote 6, 7 and cuckoo, maybe others yet
+	AlgoID uint32
 }
 
 // newRPCServer returns a new instance of the rpcServer struct.

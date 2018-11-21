@@ -12,8 +12,8 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 
-	"golang.org/x/text/language"
-	"golang.org/x/text/unicode/norm"
+	"github.com/parallelcointeam/pod/text/language"
+	"github.com/parallelcointeam/pod/text/unicode/norm"
 )
 
 // TODO: replace with functionality in language package.

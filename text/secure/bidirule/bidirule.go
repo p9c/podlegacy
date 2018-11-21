@@ -12,8 +12,8 @@ import (
 	"errors"
 	"unicode/utf8"
 
-	"golang.org/x/text/transform"
-	"golang.org/x/text/unicode/bidi"
+	"github.com/parallelcointeam/pod/text/transform"
+	"github.com/parallelcointeam/pod/text/unicode/bidi"
 )
 
 // This file contains an implementation of RFC 5893: Right-to-Left Scripts for

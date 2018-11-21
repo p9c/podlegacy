@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 // A Renderer renders a Message.

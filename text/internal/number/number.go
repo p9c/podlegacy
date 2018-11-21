@@ -10,8 +10,8 @@ package number
 import (
 	"unicode/utf8"
 
-	"golang.org/x/text/internal/language/compact"
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/internal/language/compact"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 // Info holds number formatting configuration data.

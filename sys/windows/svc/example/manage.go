@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"time"
 
-	"gitlab.com/parallelcoin/sys/windows/svc"
-	"gitlab.com/parallelcoin/sys/windows/svc/mgr"
+	"github.com/parallelcointeam/pod/sys/windows/svc"
+	"github.com/parallelcointeam/pod/sys/windows/svc/mgr"
 )
 
 func startService(name string) error {

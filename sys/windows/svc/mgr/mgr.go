@@ -16,7 +16,7 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
-	"gitlab.com/parallelcoin/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows"
 )
 
 // Mgr is used to manage Windows service.

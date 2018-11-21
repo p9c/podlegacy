@@ -6,7 +6,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"gitlab.com/parallelcoin/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows"
 )
 
 var _ unsafe.Pointer

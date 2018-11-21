@@ -6,7 +6,7 @@
 
 package terminal
 
-import "gitlab.com/parallelcoin/sys/unix"
+import "github.com/parallelcointeam/pod/sys/unix"
 
 const ioctlReadTermios = unix.TIOCGETA
 const ioctlWriteTermios = unix.TIOCSETA

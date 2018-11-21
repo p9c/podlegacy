@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/text/internal/language"
+	"github.com/parallelcointeam/pod/text/internal/language"
 )
 
 // ValueError is returned by any of the parsing functions when the

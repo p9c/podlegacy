@@ -9,7 +9,7 @@ package main
 import (
 	"time"
 
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 // This file contains code common to gen.go and the package code.

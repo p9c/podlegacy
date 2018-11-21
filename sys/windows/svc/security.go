@@ -9,7 +9,7 @@ package svc
 import (
 	"unsafe"
 
-	"gitlab.com/parallelcoin/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows"
 )
 
 func allocSid(subAuth0 uint32) (*windows.SID, error) {

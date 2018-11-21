@@ -25,9 +25,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"golang.org/x/text/message/pipeline"
+	"github.com/parallelcointeam/pod/text/message/pipeline"
 
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/language"
 	"golang.org/x/tools/go/buildutil"
 )
 

@@ -9,7 +9,7 @@ package svc
 import (
 	"errors"
 
-	"gitlab.com/parallelcoin/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows"
 )
 
 // event represents auto-reset, initially non-signaled Windows event.

@@ -68,7 +68,7 @@ import (
 	"strings"
 	"sync"
 
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 // A Handle refers to a registered message type.
@@ -109,7 +109,7 @@ const (
 	numInternal = 20
 )
 
-const prefix = "golang.org/x/text/internal/catmsg."
+const prefix = "github.com/parallelcointeam/pod/text/internal/catmsg."
 
 var (
 	// TODO: find a more stable way to link handles to message types.

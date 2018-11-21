@@ -13,7 +13,7 @@ import (
 	"os"
 	"testing"
 
-	"gitlab.com/parallelcoin/sys/unix"
+	"github.com/parallelcointeam/pod/sys/unix"
 )
 
 // TestSCMCredentials tests the sending and receiving of credentials

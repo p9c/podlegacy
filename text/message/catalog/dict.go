@@ -7,9 +7,9 @@ package catalog
 import (
 	"sync"
 
-	"golang.org/x/text/internal"
-	"golang.org/x/text/internal/catmsg"
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/internal"
+	"github.com/parallelcointeam/pod/text/internal/catmsg"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 // TODO:

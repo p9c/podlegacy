@@ -17,8 +17,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"golang.org/x/text/internal/gen"
-	"golang.org/x/text/internal/testtext"
+	"github.com/parallelcointeam/pod/text/internal/gen"
+	"github.com/parallelcointeam/pod/text/internal/testtext"
 )
 
 var once sync.Once

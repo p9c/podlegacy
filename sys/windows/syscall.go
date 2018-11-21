@@ -22,7 +22,7 @@
 // These calls return err == nil to indicate success; otherwise
 // err represents an operating system error describing the failure and
 // holds a value of type syscall.Errno.
-package windows // import "gitlab.com/parallelcoin/sys/windows"
+package windows // import "github.com/parallelcointeam/pod/sys/windows"
 
 import (
 	"syscall"

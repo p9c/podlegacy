@@ -7,7 +7,7 @@
 
 package search
 
-import "golang.org/x/text/internal/colltab"
+import "github.com/parallelcointeam/pod/text/internal/colltab"
 
 const blockSize = 64
 

@@ -13,7 +13,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"gitlab.com/parallelcoin/sys/windows/svc"
+	"github.com/parallelcointeam/pod/sys/windows/svc"
 )
 
 // Run executes service name by calling appropriate handler function.

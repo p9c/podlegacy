@@ -9,8 +9,8 @@ package eventlog
 import (
 	"errors"
 
-	"gitlab.com/parallelcoin/sys/windows"
-	"gitlab.com/parallelcoin/sys/windows/registry"
+	"github.com/parallelcointeam/pod/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows/registry"
 )
 
 const (

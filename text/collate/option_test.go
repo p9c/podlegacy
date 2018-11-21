@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"golang.org/x/text/internal/colltab"
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/internal/colltab"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 var (

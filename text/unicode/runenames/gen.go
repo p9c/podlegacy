@@ -12,9 +12,9 @@ import (
 	"sort"
 	"strings"
 
-	"golang.org/x/text/internal/gen"
-	"golang.org/x/text/internal/gen/bitfield"
-	"golang.org/x/text/internal/ucd"
+	"github.com/parallelcointeam/pod/text/internal/gen"
+	"github.com/parallelcointeam/pod/text/internal/gen/bitfield"
+	"github.com/parallelcointeam/pod/text/internal/ucd"
 )
 
 var (

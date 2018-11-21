@@ -5,7 +5,7 @@
 package unicode
 
 import (
-	"golang.org/x/text/transform"
+	"github.com/parallelcointeam/pod/text/transform"
 )
 
 // BOMOverride returns a new decoder transformer that is identical to fallback,

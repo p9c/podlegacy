@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gitlab.com/parallelcoin/sys/unix"
+	"github.com/parallelcointeam/pod/sys/unix"
 )
 
 type testProc struct {

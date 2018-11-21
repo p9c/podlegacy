@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"testing"
 
-	"gitlab.com/parallelcoin/sys/cpu"
+	"github.com/parallelcointeam/pod/sys/cpu"
 )
 
 func TestAMD64minimalFeatures(t *testing.T) {

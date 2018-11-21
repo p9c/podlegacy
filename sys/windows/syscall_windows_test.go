@@ -12,7 +12,7 @@ import (
 	"testing"
 	"unsafe"
 
-	"gitlab.com/parallelcoin/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows"
 )
 
 func TestWin32finddata(t *testing.T) {

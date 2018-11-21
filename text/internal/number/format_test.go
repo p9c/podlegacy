@@ -9,7 +9,7 @@ import (
 	"log"
 	"testing"
 
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 func TestAppendDecimal(t *testing.T) {

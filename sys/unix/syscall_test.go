@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"testing"
 
-	"gitlab.com/parallelcoin/sys/unix"
+	"github.com/parallelcointeam/pod/sys/unix"
 )
 
 func testSetGetenv(t *testing.T, key, value string) {

@@ -7,8 +7,8 @@
 package main
 
 import (
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
+	"github.com/parallelcointeam/pod/text/language"
+	"github.com/parallelcointeam/pod/text/message"
 )
 
 // The printer defined here will be picked up by the first print statement

@@ -12,7 +12,7 @@ import (
 	"errors"
 	"syscall"
 
-	"gitlab.com/parallelcoin/sys/windows"
+	"github.com/parallelcointeam/pod/sys/windows"
 )
 
 // Log provides access to the system log.

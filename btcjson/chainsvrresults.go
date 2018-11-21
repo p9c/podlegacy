@@ -36,6 +36,9 @@ type GetBlockVerboseResult struct {
 	Height        int64         `json:"height"`
 	Version       uint32        `json:"version"`
 	VersionHex    string        `json:"versionHex"`
+	PowAlgoID     uint32        `json:"pow_algo_id"`
+	PowAlgo       string        `json:"pow_algo"`
+	PowHash       string        `json:"pow_hash"`
 	MerkleRoot    string        `json:"merkleroot"`
 	Tx            []string      `json:"tx,omitempty"`
 	RawTx         []TxRawResult `json:"rawtx,omitempty"`
@@ -466,7 +469,11 @@ type GetMiningInfoResult struct {
 	CurrentBlockSize   uint64  `json:"currentblocksize"`
 	CurrentBlockWeight uint64  `json:"currentblockweight"`
 	CurrentBlockTx     uint64  `json:"currentblocktx"`
+	PowAlgoID          uint32  `json:"pow_algo_id"`
+	PowAlgo            string  `json:"pow_algo"`
 	Difficulty         float64 `json:"difficulty"`
+	DifficultySHA256D  float64 `json:"difficulty_sha256d"`
+	DifficultyScrypt   float64 `json:"difficulty_scrypt"`
 	Errors             string  `json:"errors"`
 	Generate           bool    `json:"generate"`
 	GenProcLimit       int32   `json:"genproclimit"`
@@ -486,16 +493,20 @@ type GetWorkResult struct {
 
 // InfoChainResult models the data returned by the chain server getinfo command.
 type InfoChainResult struct {
-	Version         int32   `json:"version"`
-	ProtocolVersion int32   `json:"protocolversion"`
-	Blocks          int32   `json:"blocks"`
-	TimeOffset      int64   `json:"timeoffset"`
-	Connections     int32   `json:"connections"`
-	Proxy           string  `json:"proxy"`
-	Difficulty      float64 `json:"difficulty"`
-	TestNet         bool    `json:"testnet"`
-	RelayFee        float64 `json:"relayfee"`
-	Errors          string  `json:"errors"`
+	Version           int32   `json:"version"`
+	ProtocolVersion   int32   `json:"protocolversion"`
+	Blocks            int32   `json:"blocks"`
+	TimeOffset        int64   `json:"timeoffset"`
+	Connections       int32   `json:"connections"`
+	Proxy             string  `json:"proxy"`
+	PowAlgoID         uint32  `json:"pow_algo_id"`
+	PowAlgo           string  `json:"pow_algo"`
+	Difficulty        float64 `json:"difficulty"`
+	DifficultySHA256D float64 `json:"difficulty_sha256d"`
+	DifficultyScrypt  float64 `json:"difficulty_scrypt"`
+	TestNet           bool    `json:"testnet"`
+	RelayFee          float64 `json:"relayfee"`
+	Errors            string  `json:"errors"`
 }
 
 // TxRawResult models the data from the getrawtransaction command.

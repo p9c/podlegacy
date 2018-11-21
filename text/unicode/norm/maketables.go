@@ -21,9 +21,9 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/text/internal/gen"
-	"golang.org/x/text/internal/triegen"
-	"golang.org/x/text/internal/ucd"
+	"github.com/parallelcointeam/pod/text/internal/gen"
+	"github.com/parallelcointeam/pod/text/internal/triegen"
+	"github.com/parallelcointeam/pod/text/internal/ucd"
 )
 
 func main() {

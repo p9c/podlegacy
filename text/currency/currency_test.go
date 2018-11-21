@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"testing"
 
-	"golang.org/x/text/internal/testtext"
-	"golang.org/x/text/language"
+	"github.com/parallelcointeam/pod/text/internal/testtext"
+	"github.com/parallelcointeam/pod/text/language"
 )
 
 var (
@@ -141,7 +141,7 @@ func TestKindRounding(t *testing.T) {
 const body = `package main
 import (
 	"fmt"
-	"golang.org/x/text/currency"
+	"github.com/parallelcointeam/pod/text/currency"
 )
 func main() {
 	%s
