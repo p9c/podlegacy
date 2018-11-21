@@ -4,7 +4,7 @@
 
 Next generation full node for Parallelcoin, forked from [btcd](https://github.com/btcsuite/btcd)
 
-Modular build for reproducability and maintenance efficiency, therefore Go >=1.11 is required.
+Modular build for reproducibility and maintenance efficiency, therefore Go >=1.11 is required.
 
 btcd
 ====
