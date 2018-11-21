@@ -1,17 +1,31 @@
 ![](https://gitlab.com/parallelcoin/node/raw/master/assets/logo.png)
 
-# Parallelcoin Node
+
+
+
+# The Parallelcoin Pod [![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org) [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/parallelcointeam/pod)
+<!-- [![Build Status](https://travis-ci.org/btcsuite/btcd.png?branch=master)](https://travis-ci.org/btcsuite/btcd) -->
 
 Next generation full node for Parallelcoin, forked from [btcd](https://github.com/btcsuite/btcd)
 
 Modular build for reproducibility and maintenance efficiency, therefore Go >=1.11 is required.
 
+The pod has no RPC wallet functionality, only core chain functions. It is fully compliant with the original [parallelcoind](https://github.com/marcetin/parallelcoin), though it will accept but not relay transactions with big S signatures (theoretical signature malleability double spend attack that enables an output to be spent by two private keys).
+
+It is intended that segwit and soft-forks will be able to be later enabled for this client as well, with the considerable benefits this brings.
+
+## Installation
+
+For the main full node server:
+
+    go get github.com/parallelcointeam/pod
+
+You probably will also want CLI client (can also speak to other bitcoin protocol RPC endpoints):
+
+    go get github.com/parallelcointeam/pod/cmd/podctl
+
 btcd
 ====
-
-<!-- [![Build Status](https://travis-ci.org/btcsuite/btcd.png?branch=master)](https://travis-ci.org/btcsuite/btcd) -->
-[![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org)
-[![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/parallelcointeam/pod)
 
 btcd is an alternative full node bitcoin implementation written in Go (golang).
 
