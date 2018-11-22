@@ -272,13 +272,21 @@ func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32,
 				// Non-blocking select to fall through
 			}
 
+			var incr uint64
+			if header.Version == 514 {
+				incr = 1
+			}
+			if header.Version == 2 {
+				incr = 2
+			}
+
 			// Update the nonce and hash the block header.  Each
 			// hash is actually a double sha256 (two hashes), so
 			// increment the number of hashes completed for each
 			// attempt accordingly.
 			header.Nonce = i
-			hash := header.BlockHash()
-			hashesCompleted += 2
+			hash := header.BlockHashWithAlgos()
+			hashesCompleted += incr
 
 			// The block is solved when the new block hash is less
 			// than the target difficulty.  Yay!
