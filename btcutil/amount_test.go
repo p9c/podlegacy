@@ -119,40 +119,40 @@ func TestAmountUnitConversions(t *testing.T) {
 		s         string
 	}{
 		{
-			name:      "MBTC",
+			name:      "MDUO",
 			amount:    MaxSatoshi,
-			unit:      AmountMegaBTC,
+			unit:      AmountMegaDUO,
 			converted: 21,
-			s:         "21 MBTC",
+			s:         "21 MDUO",
 		},
 		{
-			name:      "kBTC",
+			name:      "kDUO",
 			amount:    44433322211100,
-			unit:      AmountKiloBTC,
+			unit:      AmountKiloDUO,
 			converted: 444.33322211100,
-			s:         "444.333222111 kBTC",
+			s:         "444.333222111 kDUO",
 		},
 		{
 			name:      "DUO",
 			amount:    44433322211100,
-			unit:      AmountBTC,
+			unit:      AmountDUO,
 			converted: 444333.22211100,
 			s:         "444333.222111 DUO",
 		},
 		{
-			name:      "mBTC",
+			name:      "mDUO",
 			amount:    44433322211100,
-			unit:      AmountMilliBTC,
+			unit:      AmountMilliDUO,
 			converted: 444333222.11100,
-			s:         "444333222.111 mBTC",
+			s:         "444333222.111 mDUO",
 		},
 		{
 
-			name:      "μBTC",
+			name:      "μDUO",
 			amount:    44433322211100,
-			unit:      AmountMicroBTC,
+			unit:      AmountMicroDUO,
 			converted: 444333222111.00,
-			s:         "444333222111 μBTC",
+			s:         "444333222111 μDUO",
 		},
 		{
 
@@ -185,15 +185,15 @@ func TestAmountUnitConversions(t *testing.T) {
 			continue
 		}
 
-		// Verify that Amount.ToBTC works as advertised.
-		f1 := test.amount.ToUnit(AmountBTC)
-		f2 := test.amount.ToBTC()
+		// Verify that Amount.ToDUO works as advertised.
+		f1 := test.amount.ToUnit(AmountDUO)
+		f2 := test.amount.ToDUO()
 		if f1 != f2 {
-			t.Errorf("%v: ToBTC does not match ToUnit(AmountBTC): %v != %v", test.name, f1, f2)
+			t.Errorf("%v: ToDUO does not match ToUnit(AmountDUO): %v != %v", test.name, f1, f2)
 		}
 
 		// Verify that Amount.String works as advertised.
-		s1 := test.amount.Format(AmountBTC)
+		s1 := test.amount.Format(AmountDUO)
 		s2 := test.amount.String()
 		if s1 != s2 {
 			t.Errorf("%v: String does not match Format(AmountBitcoin): %v != %v", test.name, s1, s2)

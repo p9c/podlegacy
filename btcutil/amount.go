@@ -19,11 +19,11 @@ type AmountUnit int
 // These constants define various units used when describing a bitcoin
 // monetary amount.
 const (
-	AmountMegaBTC  AmountUnit = 6
-	AmountKiloBTC  AmountUnit = 3
-	AmountBTC      AmountUnit = 0
-	AmountMilliBTC AmountUnit = -3
-	AmountMicroBTC AmountUnit = -6
+	AmountMegaDUO  AmountUnit = 6
+	AmountKiloDUO  AmountUnit = 3
+	AmountDUO      AmountUnit = 0
+	AmountMilliDUO AmountUnit = -3
+	AmountMicroDUO AmountUnit = -6
 	AmountSatoshi  AmountUnit = -8
 )
 
@@ -32,16 +32,16 @@ const (
 // units, "1eN DUO" is returned, where N is the AmountUnit.
 func (u AmountUnit) String() string {
 	switch u {
-	case AmountMegaBTC:
-		return "MBTC"
-	case AmountKiloBTC:
-		return "kBTC"
-	case AmountBTC:
+	case AmountMegaDUO:
+		return "MDUO"
+	case AmountKiloDUO:
+		return "kDUO"
+	case AmountDUO:
 		return "DUO"
-	case AmountMilliBTC:
-		return "mBTC"
-	case AmountMicroBTC:
-		return "μBTC"
+	case AmountMilliDUO:
+		return "mDUO"
+	case AmountMicroDUO:
+		return "μDUO"
 	case AmountSatoshi:
 		return "Satoshi"
 	default:
@@ -94,9 +94,9 @@ func (a Amount) ToUnit(u AmountUnit) float64 {
 	return float64(a) / math.Pow10(int(u+8))
 }
 
-// ToBTC is the equivalent of calling ToUnit with AmountBTC.
-func (a Amount) ToBTC() float64 {
-	return a.ToUnit(AmountBTC)
+// ToDUO is the equivalent of calling ToUnit with AmountDUO.
+func (a Amount) ToDUO() float64 {
+	return a.ToUnit(AmountDUO)
 }
 
 // Format formats a monetary amount counted in bitcoin base units as a
@@ -108,9 +108,9 @@ func (a Amount) Format(u AmountUnit) string {
 	return strconv.FormatFloat(a.ToUnit(u), 'f', -int(u+8), 64) + units
 }
 
-// String is the equivalent of calling Format with AmountBTC.
+// String is the equivalent of calling Format with AmountDUO.
 func (a Amount) String() string {
-	return a.Format(AmountBTC)
+	return a.Format(AmountDUO)
 }
 
 // MulF64 multiplies an Amount by a floating point value.  While this is not

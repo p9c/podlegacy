@@ -19,10 +19,10 @@ import (
 	"math/big"
 
 	"github.com/parallelcointeam/pod/btcec"
-	"github.com/parallelcointeam/pod/chaincfg"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/btcutil/base58"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 )
 
 const (
@@ -100,7 +100,7 @@ var (
 
 // masterKey is the master key used along with a random seed used to generate
 // the master node in the hierarchical tree.
-var masterKey = []byte("Bitcoin seed")
+var masterKey = []byte("Parallelcoin seed")
 
 // ExtendedKey houses all the information needed to support a hierarchical
 // deterministic extended key.  See the package overview documentation for
@@ -479,7 +479,7 @@ func NewMaster(seed []byte, net *chaincfg.Params) (*ExtendedKey, error) {
 	}
 
 	// First take the HMAC-SHA512 of the master key and the seed data:
-	//   I = HMAC-SHA512(Key = "Bitcoin seed", Data = S)
+	//   I = HMAC-SHA512(Key = "Parallelcoin seed", Data = S)
 	hmac512 := hmac.New(sha512.New, masterKey)
 	hmac512.Write(seed)
 	lr := hmac512.Sum(nil)

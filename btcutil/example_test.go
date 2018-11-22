@@ -61,16 +61,16 @@ func ExampleNewAmount() {
 func ExampleAmount_unitConversions() {
 	amount := btcutil.Amount(44433322211100)
 
-	fmt.Println("Satoshi to kBTC:", amount.Format(btcutil.AmountKiloBTC))
+	fmt.Println("Satoshi to kDUO:", amount.Format(btcutil.AmountKiloDUO))
 	fmt.Println("Satoshi to DUO:", amount)
-	fmt.Println("Satoshi to MilliBTC:", amount.Format(btcutil.AmountMilliBTC))
-	fmt.Println("Satoshi to MicroBTC:", amount.Format(btcutil.AmountMicroBTC))
+	fmt.Println("Satoshi to MilliDUO:", amount.Format(btcutil.AmountMilliDUO))
+	fmt.Println("Satoshi to MicroDUO:", amount.Format(btcutil.AmountMicroDUO))
 	fmt.Println("Satoshi to Satoshi:", amount.Format(btcutil.AmountSatoshi))
 
 	// Output:
-	// Satoshi to kBTC: 444.333222111 kBTC
+	// Satoshi to kDUO: 444.333222111 kDUO
 	// Satoshi to DUO: 444333.222111 DUO
-	// Satoshi to MilliBTC: 444333222.111 mBTC
-	// Satoshi to MicroBTC: 444333222111 μBTC
+	// Satoshi to MilliDUO: 444333222.111 mDUO
+	// Satoshi to MicroDUO: 444333222111 μDUO
 	// Satoshi to Satoshi: 44433322211100 Satoshi
 }

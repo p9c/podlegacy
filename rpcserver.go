@@ -727,7 +727,7 @@ func createVoutList(mtx *wire.MsgTx, chainParams *chaincfg.Params, filterAddrMap
 
 		var vout btcjson.Vout
 		vout.N = uint32(i)
-		vout.Value = btcutil.Amount(v.Value).ToBTC()
+		vout.Value = btcutil.Amount(v.Value).ToDUO()
 		vout.ScriptPubKey.Addresses = encodedAddrs
 		vout.ScriptPubKey.Asm = disbuf
 		vout.ScriptPubKey.Hex = hex.EncodeToString(v.PkScript)
@@ -2412,7 +2412,7 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		DifficultySHA256D: getDifficultyRatio(shabits, s.cfg.ChainParams, 2),
 		DifficultyScrypt:  getDifficultyRatio(scryptbits, s.cfg.ChainParams, 514),
 		TestNet:           cfg.TestNet3,
-		RelayFee:          cfg.minRelayTxFee.ToBTC(),
+		RelayFee:          cfg.minRelayTxFee.ToDUO(),
 	}
 
 	return ret, nil
@@ -2912,7 +2912,7 @@ func handleGetTxOut(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 	txOutReply := &btcjson.GetTxOutResult{
 		BestBlock:     bestBlockHash,
 		Confirmations: int64(confirmations),
-		Value:         btcutil.Amount(value).ToBTC(),
+		Value:         btcutil.Amount(value).ToDUO(),
 		ScriptPubKey: btcjson.ScriptPubKeyResult{
 			Asm:       disbuf,
 			Hex:       hex.EncodeToString(pkScript),
@@ -3169,7 +3169,7 @@ func createVinListPrevOut(s *rpcServer, mtx *wire.MsgTx, chainParams *chaincfg.P
 			vinListEntry := &vinList[len(vinList)-1]
 			vinListEntry.PrevOut = &btcjson.PrevOut{
 				Addresses: encodedAddrs,
-				Value:     btcutil.Amount(originTxOut.Value).ToBTC(),
+				Value:     btcutil.Amount(originTxOut.Value).ToDUO(),
 			}
 		}
 	}
