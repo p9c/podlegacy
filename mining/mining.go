@@ -845,7 +845,7 @@ mempoolLoop:
 	// is potentially adjusted to ensure it comes after the median time of
 	// the last several blocks per the chain consensus rules.
 	ts := medianAdjustedTime(best, g.timeSource)
-	reqDifficulty, err := g.chain.CalcNextRequiredDifficulty(ts)
+	reqDifficulty, err := g.chain.CalcNextRequiredDifficulty(ts, algo)
 	if err != nil {
 		return nil, err
 	}
@@ -856,7 +856,7 @@ mempoolLoop:
 	// if err != nil {
 	// 	return nil, err
 	// }
-	nextBlockVersion := uint32(2)
+	nextBlockVersion := algo
 
 	// Create a new block ready to be solved.
 	merkles := blockchain.BuildMerkleTreeStore(blockTxns, false)
@@ -913,7 +913,7 @@ func (g *BlkTmplGenerator) UpdateBlockTime(msgBlock *wire.MsgBlock) error {
 
 	// Recalculate the difficulty if running on a network that requires it.
 	if g.chainParams.ReduceMinDifficulty {
-		difficulty, err := g.chain.CalcNextRequiredDifficulty(newTime)
+		difficulty, err := g.chain.CalcNextRequiredDifficulty(newTime, msgBlock.Header.Version)
 		if err != nil {
 			return err
 		}

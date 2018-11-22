@@ -1598,7 +1598,7 @@ func (state *gbtWorkState) updateBlockTemplate(s *rpcServer, useCoinbaseValue bo
 		// appropriate address(es).
 		blkTemplate, err := generator.NewBlockTemplate(payAddr, state.algo)
 		if err != nil {
-			return internalRPCError("Failed to create new block "+
+			return internalRPCError("(rpcserver.go) Failed to create new block "+
 				"template: "+err.Error(), "")
 		}
 		template = blkTemplate
