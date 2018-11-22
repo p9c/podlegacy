@@ -2270,13 +2270,54 @@ func handleGetCurrentNet(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 // handleGetDifficulty implements the getdifficulty command.
 // TODO: This command should default to the configured algo for cpu mining and take an optional parameter to query by algo
 func handleGetDifficulty(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
+	c := cmd.(*btcjson.GetDifficultyCmd)
+	fmt.Println("Getting difficulty...", c.Algo)
 	best := s.cfg.Chain.BestSnapshot()
-	var a uint32 = 2
-	if best.Version == 514 {
-		a = 514
+	prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
+	if err != nil {
+		fmt.Println("ERROR", err)
 	}
-
-	return getDifficultyRatio(best.Bits, s.cfg.ChainParams, a), nil
+	var algo uint32 = prev.MsgBlock().Header.Version
+	fmt.Println(algo, best.Height)
+	if algo != 514 {
+		algo = 2
+	}
+	bestbits := best.Bits
+	fmt.Printf("%08x\n", bestbits)
+	if c.Algo == "scrypt" && algo != 514 {
+		fmt.Println("We were asked for scrypt but latest is sha256d")
+		algo=514
+		for {
+			if prev.MsgBlock().Header.Version != 514 {
+				ph := prev.MsgBlock().Header.PrevBlock
+				prev, err = s.cfg.Chain.BlockByHash(&ph)
+				if err != nil {
+					fmt.Println("ERROR", err)
+				}
+				continue
+			}
+			bestbits = uint32(prev.MsgBlock().Header.Bits)
+			break
+		}
+	}
+	if c.Algo == "sha256d" && algo != 2 {
+		fmt.Println("We were asked for sha256d but latest is scrypt")
+		algo=2
+		for {
+			if prev.MsgBlock().Header.Version == 514 {
+				ph := prev.MsgBlock().Header.PrevBlock
+				prev, err = s.cfg.Chain.BlockByHash(&ph)
+				if err != nil {
+					fmt.Println("ERROR", err)
+				}
+				continue
+			}
+			bestbits = uint32(prev.MsgBlock().Header.Bits)
+			break
+		}
+	}
+	fmt.Printf("bits %08x algo %d\n", bestbits, algo)
+	return getDifficultyRatio(bestbits, s.cfg.ChainParams, algo), nil
 }
 
 // handleGetGenerate implements the getgenerate command.

@@ -353,9 +353,10 @@ var helpDescsEnUS = map[string]string{
 	"getcurrentnet--result0":  "The network identifer",
 
 	// GetDifficultyCmd help.
-	"getdifficulty--synopsis": "Returns the proof-of-work difficulty as a multiple of the minimum difficulty, according to the currently configured cpu mining algorithm.",
-	"getdifficulty-algo":      "Defaults to the configured --algo for the CPU miner, can be set to sha256 or scrypt",
-	"getdifficulty--result0":  "The difficulty of the requested algorithm",
+	"getdifficulty--synopsis":   "Returns the proof-of-work difficulty as a multiple of the minimum difficulty, according to the currently configured cpu mining algorithm.",
+	"getdifficulty-algo":        "Defaults to the configured --algo for the CPU miner, can be set to sha256 or scrypt",
+	"getdifficulty--condition0": "algo=sha256d or scrypt",
+	"getdifficulty--result0":    "The difficulty of the requested algorithm",
 
 	// GetGenerateCmd help.
 	"getgenerate--synopsis": "Returns if the server is set to generate coins (mine) or not.",
