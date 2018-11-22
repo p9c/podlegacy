@@ -240,15 +240,15 @@ func (r FutureGetDifficultyResult) Receive() (float64, error) {
 // returned instance.
 //
 // See GetDifficulty for the blocking version and more details.
-func (c *Client) GetDifficultyAsync() FutureGetDifficultyResult {
-	cmd := btcjson.NewGetDifficultyCmd()
+func (c *Client) GetDifficultyAsync(algo string) FutureGetDifficultyResult {
+	cmd := btcjson.NewGetDifficultyCmd(algo)
 	return c.sendCmd(cmd)
 }
 
 // GetDifficulty returns the proof-of-work difficulty as a multiple of the
 // minimum difficulty.
-func (c *Client) GetDifficulty() (float64, error) {
-	return c.GetDifficultyAsync().Receive()
+func (c *Client) GetDifficulty(algo string) (float64, error) {
+	return c.GetDifficultyAsync(algo).Receive()
 }
 
 // FutureGetBlockChainInfoResult is a promise to deliver the result of a

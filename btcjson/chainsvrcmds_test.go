@@ -375,13 +375,13 @@ func TestChainSvrCmds(t *testing.T) {
 		{
 			name: "getdifficulty",
 			newCmd: func() (interface{}, error) {
-				return btcjson.NewCmd("getdifficulty")
+				return btcjson.NewCmd("getdifficulty", "123")
 			},
 			staticCmd: func() interface{} {
-				return btcjson.NewGetDifficultyCmd()
+				return btcjson.NewGetDifficultyCmd("123")
 			},
-			marshalled:   `{"jsonrpc":"1.0","method":"getdifficulty","params":[],"id":1}`,
-			unmarshalled: &btcjson.GetDifficultyCmd{},
+			marshalled:   `{"jsonrpc":"1.0","method":"getdifficulty","params":["123"],"id":1}`,
+			unmarshalled: &btcjson.GetDifficultyCmd{Algo: "123"},
 		},
 		{
 			name: "getgenerate",

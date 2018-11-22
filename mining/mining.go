@@ -11,11 +11,11 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/blockchain"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
 )
 
 const (
@@ -353,6 +353,7 @@ type BlkTmplGenerator struct {
 	timeSource  blockchain.MedianTimeSource
 	sigCache    *txscript.SigCache
 	hashCache   *txscript.HashCache
+	algo        uint32
 }
 
 // NewBlkTmplGenerator returns a new block template generator for the given
@@ -365,7 +366,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 	txSource TxSource, chain *blockchain.BlockChain,
 	timeSource blockchain.MedianTimeSource,
 	sigCache *txscript.SigCache,
-	hashCache *txscript.HashCache) *BlkTmplGenerator {
+	hashCache *txscript.HashCache, algo uint32) *BlkTmplGenerator {
 
 	return &BlkTmplGenerator{
 		policy:      policy,
@@ -375,6 +376,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 		timeSource:  timeSource,
 		sigCache:    sigCache,
 		hashCache:   hashCache,
+		algo:        algo,
 	}
 }
 
@@ -440,7 +442,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 //  |  transactions (while block size   |   |
 //  |  <= policy.BlockMinSize)          |   |
 //   -----------------------------------  --
-func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address) (*BlockTemplate, error) {
+func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo uint32) (*BlockTemplate, error) {
 	// Extend the most recently known best block.
 	best := g.chain.BestSnapshot()
 	nextBlockHeight := best.Height + 1
@@ -850,10 +852,11 @@ mempoolLoop:
 
 	// Calculate the next expected block version based on the state of the
 	// rule change deployments.
-	nextBlockVersion, err := g.chain.CalcNextBlockVersion()
-	if err != nil {
-		return nil, err
-	}
+	// nextBlockVersion, err := g.chain.CalcNextBlockVersion()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	nextBlockVersion := uint32(2)
 
 	// Create a new block ready to be solved.
 	merkles := blockchain.BuildMerkleTreeStore(blockTxns, false)

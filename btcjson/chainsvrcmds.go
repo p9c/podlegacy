@@ -331,12 +331,16 @@ func NewGetConnectionCountCmd() *GetConnectionCountCmd {
 }
 
 // GetDifficultyCmd defines the getdifficulty JSON-RPC command.
-type GetDifficultyCmd struct{}
+type GetDifficultyCmd struct {
+	Algo string
+}
 
 // NewGetDifficultyCmd returns a new instance which can be used to issue a
 // getdifficulty JSON-RPC command.
-func NewGetDifficultyCmd() *GetDifficultyCmd {
-	return &GetDifficultyCmd{}
+func NewGetDifficultyCmd(algo string) *GetDifficultyCmd {
+	return &GetDifficultyCmd{
+		Algo: algo,
+	}
 }
 
 // GetGenerateCmd defines the getgenerate JSON-RPC command.

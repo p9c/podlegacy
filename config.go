@@ -120,6 +120,7 @@ type config struct {
 	RPCLimitUser         string        `long:"rpclimituser" description:"Username for limited RPC connections"`
 	RPCLimitPass         string        `long:"rpclimitpass" default-mask:"-" description:"Password for limited RPC connections"`
 	RPCListeners         []string      `long:"rpclisten" description:"Add an interface/port to listen for RPC connections (default port: 11048, testnet: 21048)"`
+	ScryptListeners      []string      `long:"scryptlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
 	RPCCert              string        `long:"rpccert" description:"File containing the certificate file"`
 	RPCKey               string        `long:"rpckey" description:"File containing the certificate key"`
 	RPCMaxClients        int           `long:"rpcmaxclients" description:"Max number of RPC clients for standard connections"`
@@ -756,6 +757,11 @@ func loadConfig() (*config, []string, error) {
 		addrs, err := net.LookupHost("localhost")
 		if err != nil {
 			return nil, nil, err
+		}
+		cfg.ScryptListeners = make([]string, 0, len(addrs))
+		for _, addr := range addrs {
+			addr = net.JoinHostPort(addr, activeNetParams.ScryptRPCPort)
+			cfg.ScryptListeners = append(cfg.ScryptListeners, addr)
 		}
 		cfg.RPCListeners = make([]string, 0, len(addrs))
 		for _, addr := range addrs {

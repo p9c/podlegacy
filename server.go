@@ -211,6 +211,7 @@ type server struct {
 	sigCache             *txscript.SigCache
 	hashCache            *txscript.HashCache
 	rpcServer            *rpcServer
+	scryptRPCServer      *rpcServer
 	syncManager          *netsync.SyncManager
 	chain                *blockchain.BlockChain
 	txMemPool            *mempool.TxPool
@@ -246,6 +247,8 @@ type server struct {
 	// messages for each filter type.
 	cfCheckptCaches    map[wire.FilterType][]cfHeaderKV
 	cfCheckptCachesMtx sync.RWMutex
+
+	algo uint32
 }
 
 // serverPeer extends the peer to maintain state shared by the server and
@@ -2302,6 +2305,8 @@ func (s *server) Start() {
 		go s.rebroadcastHandler()
 
 		s.rpcServer.Start()
+		s.scryptRPCServer.Start()
+
 	}
 
 	// Start the CPU miner if generation is enabled.
@@ -2534,6 +2539,58 @@ func setupRPCListeners() ([]net.Listener, error) {
 	return listeners, nil
 }
 
+// setupScryptRPCListeners returns a slice of listeners that are configured for use
+// with the RPC server depending on the configuration settings for listen
+// addresses and TLS.
+func setupScryptRPCListeners() ([]net.Listener, error) {
+	// Setup TLS if not disabled.
+	listenFunc := net.Listen
+	if !cfg.DisableTLS {
+		// Generate the TLS cert and key file if both don't already
+		// exist.
+		if !fileExists(cfg.RPCKey) && !fileExists(cfg.RPCCert) {
+			err := genCertPair(cfg.RPCCert, cfg.RPCKey)
+			if err != nil {
+				return nil, err
+			}
+		}
+		keypair, err := tls.LoadX509KeyPair(cfg.RPCCert, cfg.RPCKey)
+		if err != nil {
+			return nil, err
+		}
+
+		tlsConfig := tls.Config{
+			Certificates: []tls.Certificate{keypair},
+			MinVersion:   tls.VersionTLS12,
+		}
+
+		// Change the standard net.Listen function to the tls one.
+		listenFunc = func(net string, laddr string) (net.Listener, error) {
+			return tls.Listen(net, laddr, &tlsConfig)
+		}
+	}
+
+	rpcsLog.Debug("ScryptListeners", cfg.ScryptListeners)
+
+	netAddrs, err := parseListeners(cfg.ScryptListeners)
+	if err != nil {
+		return nil, err
+	}
+
+	listeners := make([]net.Listener, 0, len(netAddrs))
+	for _, addr := range netAddrs {
+		listener, err := listenFunc(addr.Network(), addr.String())
+		if err != nil {
+			rpcsLog.Warnf("Can't listen on %s: %v", addr, err)
+			continue
+		}
+		listeners = append(listeners, listener)
+	}
+
+	return listeners, nil
+}
+
+
 // newServer returns a new pod server configured to listen on addr for the
 // bitcoin network type specified by chainParams.  Use start to begin accepting
 // connections from peers.
@@ -2724,9 +2781,14 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		BlockPrioritySize: cfg.BlockPrioritySize,
 		TxMinFreeFee:      cfg.minRelayTxFee,
 	}
+
+	scryptBlockTemplateGenerator := mining.NewBlkTmplGenerator(&policy,
+		s.chainParams, s.txMemPool, s.chain, s.timeSource,
+		s.sigCache, s.hashCache, 514)
 	blockTemplateGenerator := mining.NewBlkTmplGenerator(&policy,
 		s.chainParams, s.txMemPool, s.chain, s.timeSource,
-		s.sigCache, s.hashCache)
+		s.sigCache, s.hashCache, 2)
+
 	s.cpuMiner = cpuminer.New(&cpuminer.Config{
 		ChainParams:            chainParams,
 		BlockTemplateGenerator: blockTemplateGenerator,
@@ -2845,10 +2907,42 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 			AddrIndex:    s.addrIndex,
 			CfIndex:      s.cfIndex,
 			FeeEstimator: s.feeEstimator,
+			AlgoID: 2,
 		})
 		if err != nil {
 			return nil, err
 		}
+
+		scryptRPCListeners, err := setupScryptRPCListeners()
+		if err != nil {
+			return nil, err
+		}
+		if len(rpcListeners) == 0 {
+			return nil, errors.New("RPCS: No valid listen address")
+		}
+
+		s.scryptRPCServer, err = newRPCServer(&rpcserverConfig{
+			Listeners:    scryptRPCListeners,
+			StartupTime:  s.startupTime,
+			ConnMgr:      &rpcConnManager{&s},
+			SyncMgr:      &rpcSyncMgr{&s, s.syncManager},
+			TimeSource:   s.timeSource,
+			Chain:        s.chain,
+			ChainParams:  chainParams,
+			DB:           db,
+			TxMemPool:    s.txMemPool,
+			Generator:    scryptBlockTemplateGenerator,
+			CPUMiner:     s.cpuMiner,
+			TxIndex:      s.txIndex,
+			AddrIndex:    s.addrIndex,
+			CfIndex:      s.cfIndex,
+			FeeEstimator: s.feeEstimator,
+			AlgoID:         514,
+		})
+		if err != nil {
+			return nil, err
+		}
+
 
 		// Signal process shutdown when the RPC server requests it.
 		go func() {
