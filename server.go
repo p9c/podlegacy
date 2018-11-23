@@ -2496,7 +2496,7 @@ out:
 func setupRPCListeners() ([]net.Listener, error) {
 	// Setup TLS if not disabled.
 	listenFunc := net.Listen
-	if !cfg.DisableTLS {
+	if cfg.TLS {
 		// Generate the TLS cert and key file if both don't already
 		// exist.
 		if !fileExists(cfg.RPCKey) && !fileExists(cfg.RPCCert) {
@@ -2545,7 +2545,7 @@ func setupRPCListeners() ([]net.Listener, error) {
 func setupScryptRPCListeners() ([]net.Listener, error) {
 	// Setup TLS if not disabled.
 	listenFunc := net.Listen
-	if !cfg.DisableTLS {
+	if cfg.TLS {
 		// Generate the TLS cert and key file if both don't already
 		// exist.
 		if !fileExists(cfg.RPCKey) && !fileExists(cfg.RPCCert) {

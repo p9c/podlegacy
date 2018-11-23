@@ -5,8 +5,8 @@
 package main
 
 import (
-	"bytes"
 	"bufio"
+	"bytes"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
@@ -21,6 +21,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/btcsuite/go-socks/socks"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
@@ -28,10 +30,8 @@ import (
 	"github.com/parallelcointeam/pod/connmgr"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
-	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/peer"
-	"github.com/btcsuite/go-socks/socks"
 )
 
 const (
@@ -70,9 +70,9 @@ const (
 	defaultMaxOrphanTxSize       = 100000
 	defaultSigCacheMaxSize       = 100000
 	// sampleConfigFilename         = "sample-pod.conf"
-	defaultTxIndex               = false
-	defaultAddrIndex             = false
-	defaultAlgo                  = "sha256d"
+	defaultTxIndex   = false
+	defaultAddrIndex = false
+	defaultAlgo      = "sha256d"
 )
 
 var (
@@ -128,7 +128,7 @@ type config struct {
 	RPCMaxConcurrentReqs int           `long:"rpcmaxconcurrentreqs" description:"Max number of concurrent RPC requests that may be processed concurrently"`
 	RPCQuirks            bool          `long:"rpcquirks" description:"Mirror some JSON-RPC quirks of Bitcoin Core -- NOTE: Discouraged unless interoperability issues need to be worked around"`
 	DisableRPC           bool          `long:"norpc" description:"Disable built-in RPC server -- NOTE: The RPC server is disabled by default if no rpcuser/rpcpass or rpclimituser/rpclimitpass is specified"`
-	DisableTLS           bool          `long:"notls" description:"Disable TLS for the RPC server -- NOTE: This is only allowed if the RPC server is bound to localhost"`
+	TLS           bool          `long:"TLS" description:"Enable TLS for the RPC server"`
 	DisableDNSSeed       bool          `long:"nodnsseed" description:"Disable DNS seeding for peers"`
 	ExternalIPs          []string      `long:"externalip" description:"Add an ip to the list of local addresses we claim to listen on to peers"`
 	Proxy                string        `long:"proxy" description:"Connect via SOCKS5 proxy (eg. 127.0.0.1:9050)"`
@@ -935,32 +935,32 @@ func loadConfig() (*config, []string, error) {
 
 	// Only allow TLS to be disabled if the RPC is bound to localhost
 	// addresses.
-	if !cfg.DisableRPC && cfg.DisableTLS {
-		allowedTLSListeners := map[string]struct{}{
-			"localhost": {},
-			"127.0.0.1": {},
-			"::1":       {},
-			"0.0.0.0":   {},
-		}
+	if !cfg.DisableRPC && !cfg.TLS {
+		// allowedTLSListeners := map[string]struct{}{
+		// 	"localhost": {},
+		// 	"127.0.0.1": {},
+		// 	"::1":       {},
+		// 	"0.0.0.0":   {},
+		// }
 		for _, addr := range cfg.RPCListeners {
-			host, _, err := net.SplitHostPort(addr)
 			if err != nil {
 				str := "%s: RPC listen interface '%s' is " +
-					"invalid: %v"
+				"invalid: %v"
 				err := fmt.Errorf(str, funcName, addr, err)
 				fmt.Fprintln(os.Stderr, err)
 				fmt.Fprintln(os.Stderr, usageMessage)
 				return nil, nil, err
 			}
-			if _, ok := allowedTLSListeners[host]; !ok {
-				str := "%s: the --notls option may not be used " +
-					"when binding RPC to non localhost " +
-					"addresses: %s"
-				err := fmt.Errorf(str, funcName, addr)
-				fmt.Fprintln(os.Stderr, err)
-				fmt.Fprintln(os.Stderr, usageMessage)
-				return nil, nil, err
-			}
+			// host, _, err := net.SplitHostPort(addr)
+			// if _, ok := allowedTLSListeners[host]; !ok {
+			// 	str := "%s: the --TLS option may not be used " +
+			// 		"when binding RPC to non localhost " +
+			// 		"addresses: %s"
+			// 	err := fmt.Errorf(str, funcName, addr)
+			// 	fmt.Fprintln(os.Stderr, err)
+			// 	fmt.Fprintln(os.Stderr, usageMessage)
+			// 	return nil, nil, err
+			// }
 		}
 	}
 

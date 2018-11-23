@@ -14,8 +14,8 @@ import (
 	"runtime"
 	"time"
 
-	rpc "github.com/parallelcointeam/pod/rpcclient"
 	"github.com/parallelcointeam/pod/btcutil"
+	rpc "github.com/parallelcointeam/pod/rpcclient"
 )
 
 // nodeConfig contains all the args, and data required to launch a pod process
@@ -48,8 +48,8 @@ func newConfig(prefix, certFile, keyFile string, extra []string) (*nodeConfig, e
 	}
 
 	a := &nodeConfig{
-		listen:    "127.0.0.1:18555",
-		rpcListen: "127.0.0.1:18556",
+		listen:    "127.0.0.1:41047",
+		rpcListen: "127.0.0.1:41048",
 		rpcUser:   "user",
 		rpcPass:   "pass",
 		extra:     extra,

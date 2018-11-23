@@ -12,9 +12,7 @@ A few things to note regarding the RPC server:
   IPv6 interfaces by default.  You will need to override the RPC listen
   interfaces to include external interfaces if you want to connect from a remote
   machine.
-* The RPC server has TLS enabled by default, even for localhost.  You may use
-  the `--notls` option to disable it, but only when all listeners are on
-  localhost interfaces.
+* The RPC server has TLS disabled by default.  You may use the `--TLS` option to enable it.
 * The `--rpclisten` flag can be specified multiple times to listen on multiple
   interfaces as a couple of the examples below illustrate.
 * The RPC server is disabled by default when using the `--regtest` and

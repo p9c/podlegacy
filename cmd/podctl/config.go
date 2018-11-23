@@ -99,7 +99,7 @@ type config struct {
 	RPCPassword   string `short:"P" long:"rpcpass" default-mask:"-" description:"RPC password"`
 	RPCServer     string `short:"s" long:"rpcserver" description:"RPC server to connect to"`
 	RPCCert       string `short:"c" long:"rpccert" description:"RPC server certificate chain for validation"`
-	NoTLS         bool   `long:"notls" description:"Disable TLS"`
+	TLS           bool   `long:"tls" description:"Enable TLS"`
 	Proxy         string `long:"proxy" description:"Connect via SOCKS5 proxy (eg. 127.0.0.1:9050)"`
 	ProxyUser     string `long:"proxyuser" description:"Username for proxy server"`
 	ProxyPass     string `long:"proxypass" default-mask:"-" description:"Password for proxy server"`
@@ -317,12 +317,12 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 		return nil
 	}
 
-	// Extract the notls
-	noTLSRegexp, err := regexp.Compile(`(?m)^\s*notls=(0|1)(?:\s|$)`)
+	// Extract the TLS
+	TLSRegexp, err := regexp.Compile(`(?m)^\s*TLS=(0|1)(?:\s|$)`)
 	if err != nil {
 		return err
 	}
-	noTLSSubmatches := noTLSRegexp.FindSubmatch(content)
+	TLSSubmatches := TLSRegexp.FindSubmatch(content)
 
 	// Create the destination directory if it does not exists
 	err = os.MkdirAll(filepath.Dir(destinationPath), 0700)
@@ -341,8 +341,8 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 
 	destString := fmt.Sprintf("rpcuser=%s\nrpcpass=%s\n",
 		string(userSubmatches[1]), string(passSubmatches[1]))
-	if noTLSSubmatches != nil {
-		destString += fmt.Sprintf("notls=%s\n", noTLSSubmatches[1])
+	if TLSSubmatches != nil {
+		destString += fmt.Sprintf("TLS=%s\n", TLSSubmatches[1])
 	}
 	output := ";;; Defaults created from local pod/sac configuration:\n" + destString + "\n" + samplePodCtlConf
 	dest.WriteString(output)
