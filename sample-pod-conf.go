@@ -1,8 +1,8 @@
 package main
 
 var samplePodConf = []byte(`[Application Options]
-;datadir=              Directory to store data (default: /home/loki/.pod/data)
-;;;  Directory to log output. (default: /home/loki/.pod/logs)
+;datadir=              Directory to store data (default: ~/.pod/data)
+;;;  Directory to log output. (default: ~/.pod/logs)
 ;logdir=               
 ;;;  Add a peer to connect with at startup
 ;addpeer=              
@@ -32,9 +32,9 @@ var samplePodConf = []byte(`[Application Options]
 ;rpclimitpass=         
 ;;;  Add an interface/port to listen for RPC connections (default port: 11048, testnet: 21048)
 ;rpclisten=            
-;;;  File containing the certificate file (default: /home/loki/.pod/rpc.cert)
+;;;  File containing the certificate file (default: ~/.pod/rpc.cert)
 ;rpccert=              
-;;;  File containing the certificate key (default: /home/loki/.pod/rpc.key)
+;;;  File containing the certificate key (default: ~/.pod/rpc.key)
 ;rpckey=               
 ;;;  Max number of RPC clients for standard connections (default: 10)
 ;rpcmaxclients=        
@@ -43,11 +43,11 @@ var samplePodConf = []byte(`[Application Options]
 ;;;  Max number of concurrent RPC requests that may be processed concurrently (default: 20)
 ;rpcmaxconcurrentreqs= 
 ;;;  Mirror some JSON-RPC quirks of Bitcoin Core -- NOTE: Discouraged unless interoperability issues need to be worked around
-;rpcquirks             
+;rpcquirks=1
 ;;;  Disable built-in RPC server -- NOTE: The RPC server is disabled by default if no rpcuser/rpcpass or rpclimituser/rpclimitpass is specified
-;norpc                 
+;norpc=1
 ;;;  Enable TLS for the RPC server
-;tls                 
+;tls=1
 ;;;  Disable DNS seeding for peers
 ;nodnsseed             
 ;;;  Add an ip to the list of local addresses we claim to listen on to peers
@@ -67,17 +67,17 @@ var samplePodConf = []byte(`[Application Options]
 ;;;  Disable connecting to tor hidden services
 ;noonion               
 ;;;  Enable Tor stream isolation by randomizing user credentials for each connection.
-;torisolation          
+;torisolation=1
 ;;;  Use the test network
-;testnet               
+;testnet=1
 ;;;  Use the regression test network
-;regtest               
+;regtest=1
 ;;;  Use the simulation test network
-;simnet                
+;simnet=1
 ;;;  Add a custom checkpoint.  Format: '<height>:<hash>'
 ;addcheckpoint=        
 ;;;  Disable built-in checkpoints.  Don't do this unless you know what you're doing.
-;nocheckpoints         
+;nocheckpoints=1
 ;;;  Database backend to use for the Block Chain (default: ffldb)
 ;dbtype=               
 ;;;  Enable HTTP profiling on given port -- NOTE port must be between 1024 and 65536
@@ -87,7 +87,7 @@ var samplePodConf = []byte(`[Application Options]
 ;;;  Logging level for all subsystems {trace, debug, info, warn, error, critical} -- You may also specify <subsystem>=<level>,<subsystem2>=<level>,... to set the  level for individual subsystems -- Use show to list ;available subsystems (default: info)
 ;debuglevel=           
 ;;;  Use UPnP to map our listening port outside of NAT
-;upnp                  
+;upnp=1
 ;;;  The minimum transaction fee in DUO/kB to be considered a non-zero fee. (default: 1e-05)
 ;minrelaytxfee=        
 ;;;  Limit relay of transactions with no transaction fee to the given amount in thousands of bytes per minute (default: 15)
