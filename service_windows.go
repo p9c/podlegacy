@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/parallelcointeam/pod/winsvc/eventlog"
-	"github.com/parallelcointeam/pod/winsvc/mgr"
-	"github.com/parallelcointeam/pod/winsvc/svc"
+	"github.com/btcsuite/winsvc/eventlog"
+	"github.com/btcsuite/winsvc/mgr"
+	"github.com/btcsuite/winsvc/svc"
 )
 
 const (

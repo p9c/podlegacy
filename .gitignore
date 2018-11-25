@@ -37,3 +37,5 @@ pod/pod
 
 ^pod
 
+pod_*
+podctl_*
