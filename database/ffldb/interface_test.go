@@ -1,6 +1,6 @@
 // Copyright (c) 2015-2016 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 // This file intended to be copied into each backend driver directory.  Each
 // driver should have their own driver_test.go file which creates a database and

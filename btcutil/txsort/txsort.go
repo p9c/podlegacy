@@ -1,6 +1,6 @@
 // Copyright (c) 2015-2016 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 // Provides functions for sorting tx inputs and outputs according to BIP 69
 // (https://github.com/bitcoin/bips/blob/master/bip-0069.mediawiki)

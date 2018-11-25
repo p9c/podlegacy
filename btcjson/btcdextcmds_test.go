@@ -1,7 +1,7 @@
 // Copyright (c) 2014-2016 The btcsuite developers
 // Copyright (c) 2015-2016 The Decred developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 package btcjson_test
 
@@ -15,11 +15,11 @@ import (
 	"github.com/parallelcointeam/pod/btcjson"
 )
 
-// TestBtcdExtCmds tests all of the pod extended commands marshal and unmarshal
+// TestPodExtCmds tests all of the pod extended commands marshal and unmarshal
 // into valid results include handling of optional fields being omitted in the
 // marshalled command, while optional fields with defaults have the default
 // assigned on unmarshalled commands.
-func TestBtcdExtCmds(t *testing.T) {
+func TestPodExtCmds(t *testing.T) {
 	t.Parallel()
 
 	testID := int(1)

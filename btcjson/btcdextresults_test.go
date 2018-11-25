@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2017 The btcsuite developers
 // Copyright (c) 2015-2016 The Decred developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 package btcjson_test
 
@@ -12,10 +12,10 @@ import (
 	"github.com/parallelcointeam/pod/btcjson"
 )
 
-// TestBtcdExtCustomResults ensures any results that have custom marshalling
+// TestPodExtCustomResults ensures any results that have custom marshalling
 // work as inteded.
 // and unmarshal code of results are as expected.
-func TestBtcdExtCustomResults(t *testing.T) {
+func TestPodExtCustomResults(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {

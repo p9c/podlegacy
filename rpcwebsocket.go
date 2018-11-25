@@ -1,7 +1,7 @@
 // Copyright (c) 2013-2017 The btcsuite developers
 // Copyright (c) 2015-2017 The Decred developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 package main
 
@@ -22,15 +22,15 @@ import (
 
 	"golang.org/x/crypto/ripemd160"
 
+	"github.com/btcsuite/websocket"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/btcjson"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
-	"github.com/btcsuite/websocket"
 )
 
 const (
@@ -1356,7 +1356,7 @@ out:
 		// Bitcoin Core serves requests with "id":null or even an absent "id",
 		// and responds to such requests with "id":null in the response.
 		//
-		// Btcd does not respond to any request without and "id" or "id":null,
+		// Pod does not respond to any request without and "id" or "id":null,
 		// regardless the indicated JSON-RPC protocol version unless RPC quirks
 		// are enabled. With RPC quirks enabled, such requests will be responded
 		// to if the reqeust does not indicate JSON-RPC version.

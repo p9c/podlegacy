@@ -1,6 +1,6 @@
 // Copyright 2015 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 // This file is ignored during the regular build due to the following build tag.
 // It is called by go generate and used to automatically generate pre-computed
@@ -42,8 +42,8 @@ func main() {
 	base64.StdEncoding.Encode(encoded, compressed.Bytes())
 
 	fmt.Fprintln(fi, "// Copyright (c) 2015 The btcsuite developers")
-	fmt.Fprintln(fi, "// Use of this source code is governed by an ISC")
-	fmt.Fprintln(fi, "// license that can be found in the LICENSE file.")
+	fmt.Fprintln(fi, "")
+	fmt.Fprintln(fi, "")
 	fmt.Fprintln(fi)
 	fmt.Fprintln(fi, "package btcec")
 	fmt.Fprintln(fi)

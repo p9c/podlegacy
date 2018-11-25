@@ -1,6 +1,6 @@
-// Copyright (c) 2014 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
+
 
 package btcjson_test
 
@@ -49,10 +49,10 @@ func TestWalletSvrWsNtfns(t *testing.T) {
 				return btcjson.NewCmd("podconnected", true)
 			},
 			staticNtfn: func() interface{} {
-				return btcjson.NewBtcdConnectedNtfn(true)
+				return btcjson.NewPodConnectedNtfn(true)
 			},
 			marshalled: `{"jsonrpc":"1.0","method":"podconnected","params":[true],"id":null}`,
-			unmarshalled: &btcjson.BtcdConnectedNtfn{
+			unmarshalled: &btcjson.PodConnectedNtfn{
 				Connected: true,
 			},
 		},

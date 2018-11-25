@@ -1,6 +1,6 @@
-// Copyright (c) 2013-2016 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
+
 
 package main
 
@@ -22,7 +22,7 @@ const (
 	// svcDisplayName is the service name that will be shown in the windows
 	// services list.  Not the svcName is the "real" name which is used
 	// to control the service.  This is only for display purposes.
-	svcDisplayName = "Btcd Service"
+	svcDisplayName = "Pod Service"
 
 	// svcDesc is the description of the service.
 	svcDesc = "Downloads and stays synchronized with the bitcoin block " +

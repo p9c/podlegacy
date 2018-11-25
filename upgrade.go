@@ -1,6 +1,5 @@
-// Copyright (c) 2013-2014 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 package main
 
@@ -28,10 +27,10 @@ func dirEmpty(dirPath string) (bool, error) {
 	return len(names) == 0, nil
 }
 
-// oldBtcdHomeDir returns the OS specific home directory pod used prior to
+// oldPodHomeDir returns the OS specific home directory pod used prior to
 // version 0.3.3.  This has since been replaced with btcutil.AppDataDir, but
 // this function is still provided for the automatic upgrade path.
-func oldBtcdHomeDir() string {
+func oldPodHomeDir() string {
 	// Search for Windows APPDATA first.  This won't exist on POSIX OSes.
 	appData := os.Getenv("APPDATA")
 	if appData != "" {
@@ -95,7 +94,7 @@ func upgradeDBPaths() error {
 	// their names were suffixed by "testnet" and "regtest" for their
 	// respective networks.  Check for the old database and update it to the
 	// new path introduced with version 0.2.0 accordingly.
-	oldDbRoot := filepath.Join(oldBtcdHomeDir(), "db")
+	oldDbRoot := filepath.Join(oldPodHomeDir(), "db")
 	upgradeDBPathNet(filepath.Join(oldDbRoot, "pod.db"), "mainnet")
 	upgradeDBPathNet(filepath.Join(oldDbRoot, "pod_testnet.db"), "testnet")
 	upgradeDBPathNet(filepath.Join(oldDbRoot, "pod_regtest.db"), "regtest")
@@ -108,7 +107,7 @@ func upgradeDBPaths() error {
 // version 0.3.3 to its new location.
 func upgradeDataPaths() error {
 	// No need to migrate if the old and new home paths are the same.
-	oldHomePath := oldBtcdHomeDir()
+	oldHomePath := oldPodHomeDir()
 	newHomePath := defaultHomeDir
 	if oldHomePath == newHomePath {
 		return nil
