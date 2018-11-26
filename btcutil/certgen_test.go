@@ -1,7 +1,3 @@
-// Copyright (c) 2013-2015 The btcsuite developers
-
-
-
 package btcutil_test
 
 import (
