@@ -1,7 +1,5 @@
 // Copyright (c) 2014-2016 The btcsuite developers
 
-
-
 package chaincfg
 
 import (
@@ -10,6 +8,8 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
 )
+
+var testnetBits uint32 = 0x1e0fffff
 
 // genesisCoinbaseTx is the coinbase transaction for the genesis blocks for
 // the main network, regression test network, and test network (version 3).
@@ -125,15 +125,6 @@ var regTestGenesisBlock = wire.MsgBlock{
 	Transactions: []*wire.MsgTx{&genesisCoinbaseTx},
 }
 
-// testNet3GenesisHash is the hash of the first block in the block chain for the
-// test network (version 3).
-var testNet3GenesisHash = chainhash.Hash([chainhash.HashSize]byte{
-	0xdf, 0x0c, 0xb3, 0x5f, 0x69, 0x72, 0x75, 0xe1,
-	0x8f, 0x66, 0xa2, 0x7d, 0xc8, 0xbb, 0x12, 0xfa,
-	0x85, 0x4d, 0xed, 0x22, 0x2c, 0x0c, 0x1b, 0xf9,
-	0x5e, 0xa3, 0xba, 0xec, 0x41, 0x0e, 0x00, 0x00,
-})
-
 // testNet3GenesisMerkleRoot is the hash of the first transaction in the genesis
 // block for the test network (version 3).  It is the same as the merkle root
 // for the main network.
@@ -147,11 +138,22 @@ var testNet3GenesisBlock = wire.MsgBlock{
 		PrevBlock:  chainhash.Hash{}, // 0000000000000000000000000000000000000000000000000000000000000000
 		MerkleRoot: testNet3GenesisMerkleRoot,
 		Timestamp:  time.Unix(0x53c9ea84, 0),
-		Bits:       0x1e0fffff, // 486604799 [00000000ffff0000000000000000000000000000000000000000000000000000]
-		Nonce:      0x001adf18, // 417274368
+		Bits:       testnetBits, // 0x1e0fffff, // 486604799 [00000000ffff0000000000000000000000000000000000000000000000000000]
+		Nonce:      0x001adf18,  // 417274368
 	},
 	Transactions: []*wire.MsgTx{&genesisCoinbaseTx},
 }
+
+// testNet3GenesisHash is the hash of the first block in the block chain for the
+// test network (version 3).
+// var testNet3GenesisHash = chainhash.Hash([chainhash.HashSize]byte{
+// 	0xdf, 0x0c, 0xb3, 0x5f, 0x69, 0x72, 0x75, 0xe1,
+// 	0x8f, 0x66, 0xa2, 0x7d, 0xc8, 0xbb, 0x12, 0xfa,
+// 	0x85, 0x4d, 0xed, 0x22, 0x2c, 0x0c, 0x1b, 0xf9,
+// 	0x5e, 0xa3, 0xba, 0xec, 0x41, 0x0e, 0x00, 0x00,
+// })
+
+var testNet3GenesisHash = testNet3GenesisBlock.Header.BlockHash()
 
 // simNetGenesisHash is the hash of the first block in the block chain for the
 // simulation test network.

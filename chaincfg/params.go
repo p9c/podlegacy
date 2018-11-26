@@ -1,7 +1,5 @@
 // Copyright (c) 2014-2016 The btcsuite developers
 
-
-
 package chaincfg
 
 import (
@@ -48,13 +46,29 @@ var (
 	// can have for the regression test network.  It is the value 2^255 - 1, all ones, 256 bits.
 	regressionPowLimit = &AllOnes
 
-	// testNet3PowLimit is the highest proof of work value a Bitcoin block
-	// can have for the test network (version 3).  It is the maximum target / 2^160
-	testNet3PowLimit = mainPowLimit
+	testNet3PowLimit = *compactToBig(testnetBits)
+	// func() big.Int {
+	// 	mplb, _ := hex.DecodeString("0fffff0000000000000000000000000000000000000000000000000000000000")
+	// 	return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
+	// }()
 
 	// simNetPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the simulation test network.  It is the value 2^255 - 1, all ones, 256 bits.
 	simNetPowLimit = &AllOnes
+
+	TargetTimespan          int64 = 30000
+	TargetTimePerBlock      int64 = 300
+	AveragingTargetTimespan int64 = 3000
+	Interval                int64 = 100
+	MaxAdjustDown           int64 = 10
+	MaxAdjustUp             int64 = 20
+
+	TestnetTargetTimespan          int64 = 1000
+	TestnetTargetTimePerBlock      int64 = 10
+	TestnetAveragingTargetTimespan int64 = 100
+	TestnetInterval                int64 = 100
+	TestnetMaxAdjustDown           int64 = 10
+	TestnetMaxAdjustUp             int64 = 20
 )
 
 // Checkpoint identifies a known good point in the block chain.  Using
@@ -275,8 +289,8 @@ var MainNetParams = Params{
 	BIP0066Height:            1000000,
 	CoinbaseMaturity:         100,
 	SubsidyReductionInterval: 250000,
-	TargetTimespan:           30000,
-	TargetTimePerBlock:       300,
+	TargetTimespan:           TargetTimespan,
+	TargetTimePerBlock:       TargetTimePerBlock,
 	RetargetAdjustmentFactor: 2, // 50% less, 200% more (not used in parallelcoin)
 	ReduceMinDifficulty:      false,
 	MinDiffReductionTime:     0,
@@ -335,14 +349,14 @@ var MainNetParams = Params{
 
 	// Parallelcoin specific difficulty adjustment parameters
 
-	Interval:                100,
+	Interval:                Interval,
 	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
-	AveragingTargetTimespan: 3000,
-	MaxAdjustDown:           10,
-	MaxAdjustUp:             20,
-	TargetTimespanAdjDown:   3000 * (100 + 10) / 100,
-	MinActualTimespan:       3000 * (100 - 20) / 100,
-	MaxActualTimespan:       3000 * (100 + 10) / 100,
+	AveragingTargetTimespan: AveragingTargetTimespan,
+	MaxAdjustDown:           MaxAdjustDown,
+	MaxAdjustUp:             MaxAdjustUp,
+	TargetTimespanAdjDown:   AveragingTargetTimespan * (Interval + MaxAdjustDown) / Interval,
+	MinActualTimespan:       AveragingTargetTimespan * (Interval - MaxAdjustUp) / Interval,
+	MaxActualTimespan:       AveragingTargetTimespan * (Interval + MaxAdjustDown) / Interval,
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
@@ -422,14 +436,14 @@ var RegressionNetParams = Params{
 
 	// Parallelcoin specific difficulty adjustment parameters
 
-	Interval:                100,
+	Interval:                Interval,
 	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
-	AveragingTargetTimespan: 10 * 300,
-	MaxAdjustDown:           10,
-	MaxAdjustUp:             20,
-	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
-	MinActualTimespan:       10 * 300 * (100 - 20) / 100,
-	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
+	AveragingTargetTimespan: AveragingTargetTimespan,
+	MaxAdjustDown:           MaxAdjustDown,
+	MaxAdjustUp:             MaxAdjustUp,
+	TargetTimespanAdjDown:   AveragingTargetTimespan * (Interval + MaxAdjustDown) / Interval,
+	MinActualTimespan:       AveragingTargetTimespan * (Interval - MaxAdjustUp) / Interval,
+	MaxActualTimespan:       AveragingTargetTimespan * (Interval + MaxAdjustDown) / Interval,
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
@@ -438,7 +452,7 @@ var RegressionNetParams = Params{
 // (version 3).  Not to be confused with the regression test network, this
 // network is sometimes simply called "testnet".
 var TestNet3Params = Params{
-	Name:        "testnet3",
+	Name:        "testnet",
 	Net:         wire.TestNet3,
 	DefaultPort: "21047",
 	DNSSeeds:    []DNSSeed{
@@ -449,7 +463,7 @@ var TestNet3Params = Params{
 	GenesisBlock:             &testNet3GenesisBlock,
 	GenesisHash:              &testNet3GenesisHash,
 	PowLimit:                 &testNet3PowLimit,
-	PowLimitBits:             0x1d00ffff,
+	PowLimitBits:             testnetBits,
 	BIP0034Height:            1000000, // 0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8
 	BIP0065Height:            1000000, // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
 	BIP0066Height:            1000000, // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
@@ -515,14 +529,14 @@ var TestNet3Params = Params{
 
 	// Parallelcoin specific difficulty adjustment parameters
 
-	Interval:                100,
-	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
-	AveragingTargetTimespan: 10 * 300,
-	MaxAdjustDown:           10,
-	MaxAdjustUp:             20,
-	TargetTimespanAdjDown:   300 * (100 + 10) / 100,
-	MinActualTimespan:       10 * 300 * (100 - 20) / 100,
-	MaxActualTimespan:       10 * 300 * (100 + 10) / 100,
+	Interval:                TestnetInterval,
+	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardforkTestnet
+	AveragingTargetTimespan: TestnetAveragingTargetTimespan,
+	MaxAdjustDown:           TestnetMaxAdjustDown,
+	MaxAdjustUp:             TestnetMaxAdjustUp,
+	TargetTimespanAdjDown:   TestnetAveragingTargetTimespan * (TestnetInterval + TestnetMaxAdjustDown) / TestnetInterval,
+	MinActualTimespan:       TestnetAveragingTargetTimespan * (TestnetInterval - TestnetMaxAdjustUp) / TestnetInterval,
+	MaxActualTimespan:       TestnetAveragingTargetTimespan * (TestnetInterval + TestnetMaxAdjustDown) / TestnetInterval,
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
