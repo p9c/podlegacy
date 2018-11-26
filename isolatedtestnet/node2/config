@@ -11,3 +11,4 @@ debuglevel=debug
 ;generate=1
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
+genthreads=1

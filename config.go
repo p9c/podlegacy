@@ -1,7 +1,5 @@
 // Copyright (c) 2013-2017 The btcsuite developers
 
-
-
 package main
 
 import (
@@ -156,6 +154,7 @@ type config struct {
 	MaxOrphanTxs         int           `long:"maxorphantx" description:"Max number of orphan transactions to keep in memory"`
 	Algo                 string        `long:"algo" description:"Sets the algorithm for the CPU miner (sha256d/scrypt default sha256d)"`
 	Generate             bool          `long:"generate" description:"Generate (mine) bitcoins using the CPU"`
+	GenThreads           int32         `long:"genthreads" description:"Number of CPU threads to use with CPU miner -1 = all cores"`
 	MiningAddrs          []string      `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
 	BlockMinSize         uint32        `long:"blockminsize" description:"Mininum block size in bytes to be used when creating a block"`
 	BlockMaxSize         uint32        `long:"blockmaxsize" description:"Maximum block size in bytes to be used when creating a block"`
@@ -438,6 +437,7 @@ func loadConfig() (*config, []string, error) {
 		MaxOrphanTxs:         defaultMaxOrphanTransactions,
 		SigCacheMaxSize:      defaultSigCacheMaxSize,
 		Generate:             defaultGenerate,
+		GenThreads:           -1,
 		TxIndex:              defaultTxIndex,
 		AddrIndex:            defaultAddrIndex,
 		Algo:                 defaultAlgo,

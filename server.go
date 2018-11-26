@@ -1,8 +1,6 @@
 // Copyright (c) 2013-2017 The btcsuite developers
 // Copyright (c) 2015-2018 The Decred developers
 
-
-
 package main
 
 import (
@@ -22,11 +20,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/parallelcointeam/pod/btcutil"
-	"github.com/parallelcointeam/pod/btcutil/bloom"
 	"github.com/parallelcointeam/pod/addrmgr"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/blockchain/indexers"
+	"github.com/parallelcointeam/pod/btcutil"
+	"github.com/parallelcointeam/pod/btcutil/bloom"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/connmgr"
@@ -248,7 +246,8 @@ type server struct {
 	cfCheckptCaches    map[wire.FilterType][]cfHeaderKV
 	cfCheckptCachesMtx sync.RWMutex
 
-	algo uint32
+	algo       uint32
+	numthreads uint32
 }
 
 // serverPeer extends the peer to maintain state shared by the server and
@@ -2590,7 +2589,6 @@ func setupScryptRPCListeners() ([]net.Listener, error) {
 	return listeners, nil
 }
 
-
 // newServer returns a new pod server configured to listen on addr for the
 // bitcoin network type specified by chainParams.  Use start to begin accepting
 // connections from peers.
@@ -2618,6 +2616,14 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		}
 	}
 
+	nthr := uint32(runtime.NumCPU())
+	var thr uint32
+	if cfg.GenThreads == -1 || thr > nthr {
+		thr = uint32(nthr)
+	} else {
+		thr = uint32(cfg.GenThreads)
+	}
+
 	s := server{
 		chainParams:          chainParams,
 		addrManager:          amgr,
@@ -2637,6 +2643,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		sigCache:             txscript.NewSigCache(cfg.SigCacheMaxSize),
 		hashCache:            txscript.NewHashCache(cfg.SigCacheMaxSize),
 		cfCheckptCaches:      make(map[wire.FilterType][]cfHeaderKV),
+		numthreads:           thr,
 	}
 
 	// Create the transaction and address indexes if needed.
@@ -2796,6 +2803,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		ProcessBlock:           s.syncManager.ProcessBlock,
 		ConnectedCount:         s.ConnectedCount,
 		IsCurrent:              s.syncManager.IsCurrent,
+		NumThreads:             s.numthreads,
 	})
 
 	// Only setup a function to return new addresses to connect to when
@@ -2907,7 +2915,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 			AddrIndex:    s.addrIndex,
 			CfIndex:      s.cfIndex,
 			FeeEstimator: s.feeEstimator,
-			AlgoID: 2,
+			AlgoID:       2,
 		})
 		if err != nil {
 			return nil, err
@@ -2937,12 +2945,11 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 			AddrIndex:    s.addrIndex,
 			CfIndex:      s.cfIndex,
 			FeeEstimator: s.feeEstimator,
-			AlgoID:         514,
+			AlgoID:       514,
 		})
 		if err != nil {
 			return nil, err
 		}
-
 
 		// Signal process shutdown when the RPC server requests it.
 		go func() {

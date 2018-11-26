@@ -9,7 +9,7 @@ import (
 	"github.com/parallelcointeam/pod/wire"
 )
 
-var testnetBits uint32 = 0x1e0fffff
+var testnetBits uint32 = 0x2007ffff
 
 // genesisCoinbaseTx is the coinbase transaction for the genesis blocks for
 // the main network, regression test network, and test network (version 3).

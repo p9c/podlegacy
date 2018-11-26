@@ -12,3 +12,4 @@ generate=1
 algo=sha256d
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
+genthreads=1

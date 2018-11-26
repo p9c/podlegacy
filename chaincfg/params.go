@@ -472,8 +472,8 @@ var TestNet3Params = Params{
 	TargetTimespan:           30000,
 	TargetTimePerBlock:       300,
 	RetargetAdjustmentFactor: 2,
-	ReduceMinDifficulty:      true,
-	MinDiffReductionTime:     time.Minute * 10, // TargetTimePerBlock * 2
+	ReduceMinDifficulty:      false,
+	MinDiffReductionTime:     0, // time.Minute * 10, // TargetTimePerBlock * 2
 	GenerateSupported:        false,
 
 	// Checkpoints ordered from oldest to newest.
