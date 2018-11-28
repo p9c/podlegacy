@@ -1,8 +1,6 @@
 // Copyright (c) 2013-2018 The btcsuite developers
 // Copyright (c) 2015-2018 The Decred developers
 
-
-
 package blockchain
 
 import (
@@ -1323,7 +1321,7 @@ func (b *BlockChain) LatestBlockLocator() (BlockLocator, error) {
 func (b *BlockChain) BlockHeightByHash(hash *chainhash.Hash) (int32, error) {
 	node := b.Index.LookupNode(hash)
 	if node == nil || !b.bestChain.Contains(node) {
-		str := fmt.Sprintf("block %s is not in the main chain", hash)
+		str := fmt.Sprintf("BlockHeightByHash: block %s is not in the main chain", hash)
 		return 0, errNotInMainChain(str)
 	}
 
@@ -1337,7 +1335,7 @@ func (b *BlockChain) BlockHeightByHash(hash *chainhash.Hash) (int32, error) {
 func (b *BlockChain) BlockHashByHeight(blockHeight int32) (*chainhash.Hash, error) {
 	node := b.bestChain.NodeByHeight(blockHeight)
 	if node == nil {
-		str := fmt.Sprintf("no block at height %d exists", blockHeight)
+		str := fmt.Sprintf("BlockHashByHeight: no block at height %d exists", blockHeight)
 		return nil, errNotInMainChain(str)
 
 	}

@@ -1,7 +1,5 @@
 // Copyright (c) 2015-2017 The btcsuite developers
 
-
-
 package blockchain
 
 import (
@@ -873,7 +871,7 @@ func dbFetchHeightByHash(dbTx database.Tx, hash *chainhash.Hash) (int32, error) 
 	hashIndex := meta.Bucket(hashIndexBucketName)
 	serializedHeight := hashIndex.Get(hash[:])
 	if serializedHeight == nil {
-		str := fmt.Sprintf("block %s is not in the main chain", hash)
+		str := fmt.Sprintf("dbFetchHeightByHash: block %s is not in the main chain", hash)
 		return 0, errNotInMainChain(str)
 	}
 
@@ -1406,7 +1404,7 @@ func (b *BlockChain) BlockByHash(hash *chainhash.Hash) (*btcutil.Block, error) {
 	// chain.
 	node := b.Index.LookupNode(hash)
 	if node == nil || !b.bestChain.Contains(node) {
-		str := fmt.Sprintf("block %s is not in the main chain", hash)
+		str := fmt.Sprintf("BlockByHash: block %s is not in the main chain", hash)
 		return nil, errNotInMainChain(str)
 	}
 

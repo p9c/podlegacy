@@ -2372,58 +2372,73 @@ func handleGetHeaders(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) 
 // handleGetInfo implements the getinfo command. We only return the fields
 // that are not related to wallet functionality.
 func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
-	// fmt.Println("HandleGetInfo")
+	var shabits, scryptbits uint32
 	best := s.cfg.Chain.BestSnapshot()
 	v, _ := s.cfg.Chain.BlockByHash(&best.Hash)
-	ver := v.MsgBlock().Header.Version
-	if ver != 514 {
-		ver = 2
-	}
+	if v.Height() < 10 {
 
-	// gen := int32(s.cfg.ChainParams.GenerationAlgo)
-
-	var shabits, scryptbits uint32
-	if ver != 514 {
-		shabits = best.Bits
-		// now get last scrypt block
-		prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
-		if err != nil {
-			fmt.Println("ERROR", err)
+		ver := v.MsgBlock().Header.Version
+		if ver != 514 {
+			ver = 2
 		}
-		for {
-			if prev.MsgBlock().Header.Version != 514 {
-				ph := prev.MsgBlock().Header.PrevBlock
-				prev, err = s.cfg.Chain.BlockByHash(&ph)
+
+		// gen := int32(s.cfg.ChainParams.GenerationAlgo)
+
+		if ver != 514 {
+			shabits = best.Bits
+			// now get last scrypt block
+			prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
+			if err != nil {
+				fmt.Println("ERROR", err)
+			}
+			if prev == nil {
+				fmt.Println("no previous block of sha256")
+			} else {
+				for {
+					if prev.MsgBlock().Header.Version != 514 {
+						ph := prev.MsgBlock().Header.PrevBlock
+						prev, err = s.cfg.Chain.BlockByHash(&ph)
+						if err != nil {
+							// fmt.Println("ERROR", err)
+						}
+						if prev == nil {
+							break
+						}
+						continue
+					}
+					scryptbits = uint32(prev.MsgBlock().Header.Bits)
+					break
+				}
+			}
+			if ver == 514 {
+				scryptbits = best.Bits
+				// now get last sha256d block
+				prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
 				if err != nil {
 					fmt.Println("ERROR", err)
 				}
-				continue
-			}
-			scryptbits = uint32(prev.MsgBlock().Header.Bits)
-			break
-		}
-	}
-	if ver == 514 {
-		scryptbits = best.Bits
-		// now get last sha256d block
-		prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
-		if err != nil {
-			fmt.Println("ERROR", err)
-		}
-		for {
-			if prev.MsgBlock().Header.Version == 514 {
-				ph := prev.MsgBlock().Header.PrevBlock
-				prev, err = s.cfg.Chain.BlockByHash(&ph)
-				if err != nil {
-					fmt.Println("ERROR", err)
+				if prev == nil {
+					fmt.Println("no previous block of scrypt")
+				} else {
+					for {
+						if prev.MsgBlock().Header.Version == 514 {
+							ph := prev.MsgBlock().Header.PrevBlock
+							prev, err = s.cfg.Chain.BlockByHash(&ph)
+							if err != nil {
+								// fmt.Println("ERROR", err)
+							}
+							if prev == nil {
+								break
+							}
+							continue
+						}
+						shabits = uint32(prev.MsgBlock().Header.Bits)
+						break
+					}
 				}
-				continue
 			}
-			shabits = uint32(prev.MsgBlock().Header.Bits)
-			break
 		}
 	}
-
 	bestBits := best.Bits
 	algoname := "sha256d"
 	algoid := uint32(0)
@@ -2437,6 +2452,14 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		bestBits = scryptbits
 	default:
 	}
+	Difficulty := getDifficultyRatio(bestBits, s.cfg.ChainParams, algover)
+	var DifficultyScrypt, DifficultySHA256D float64
+	if shabits != 0 {
+		DifficultySHA256D = getDifficultyRatio(shabits, s.cfg.ChainParams, 2)
+	}
+	if scryptbits != 0 {
+		DifficultyScrypt = getDifficultyRatio(scryptbits, s.cfg.ChainParams, 514)
+	}
 
 	ret := &btcjson.InfoChainResult{
 		Version:           int32(1000000*appMajor + 10000*appMinor + 100*appPatch),
@@ -2447,9 +2470,9 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		Proxy:             cfg.Proxy,
 		PowAlgoID:         algoid,
 		PowAlgo:           algoname,
-		Difficulty:        getDifficultyRatio(bestBits, s.cfg.ChainParams, algover),
-		DifficultySHA256D: getDifficultyRatio(shabits, s.cfg.ChainParams, 2),
-		DifficultyScrypt:  getDifficultyRatio(scryptbits, s.cfg.ChainParams, 514),
+		Difficulty:        Difficulty,
+		DifficultySHA256D: DifficultySHA256D,
+		DifficultyScrypt:  DifficultyScrypt,
 		TestNet:           cfg.TestNet3,
 		RelayFee:          cfg.minRelayTxFee.ToDUO(),
 	}
