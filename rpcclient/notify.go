@@ -1,7 +1,7 @@
 // Copyright (c) 2014-2017 The btcsuite developers
 // Copyright (c) 2015-2017 The Decred developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 package rpcclient
 
@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/btcjson"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
 )
 
 var (
@@ -179,12 +179,12 @@ type NotificationHandlers struct {
 	// made to register for the notification and the function is non-nil.
 	OnTxAcceptedVerbose func(txDetails *btcjson.TxRawResult)
 
-	// OnBtcdConnected is invoked when a wallet connects or disconnects from
+	// OnPodConnected is invoked when a wallet connects or disconnects from
 	// pod.
 	//
 	// This will only be available when client is connected to a wallet
 	// server such as btcwallet.
-	OnBtcdConnected func(connected bool)
+	OnPodConnected func(connected bool)
 
 	// OnAccountBalance is invoked with account balance updates.
 	//
@@ -409,22 +409,22 @@ func (c *Client) handleNotification(ntfn *rawNotification) {
 
 		c.ntfnHandlers.OnTxAcceptedVerbose(rawTx)
 
-	// OnBtcdConnected
-	case btcjson.BtcdConnectedNtfnMethod:
+	// OnPodConnected
+	case btcjson.PodConnectedNtfnMethod:
 		// Ignore the notification if the client is not interested in
 		// it.
-		if c.ntfnHandlers.OnBtcdConnected == nil {
+		if c.ntfnHandlers.OnPodConnected == nil {
 			return
 		}
 
-		connected, err := parseBtcdConnectedNtfnParams(ntfn.Params)
+		connected, err := parsePodConnectedNtfnParams(ntfn.Params)
 		if err != nil {
 			log.Warnf("Received invalid pod connected "+
 				"notification: %v", err)
 			return
 		}
 
-		c.ntfnHandlers.OnBtcdConnected(connected)
+		c.ntfnHandlers.OnPodConnected(connected)
 
 	// OnAccountBalance
 	case btcjson.AccountBalanceNtfnMethod:
@@ -775,9 +775,9 @@ func parseTxAcceptedVerboseNtfnParams(params []json.RawMessage) (*btcjson.TxRawR
 	return &rawTx, nil
 }
 
-// parseBtcdConnectedNtfnParams parses out the connection status of pod
+// parsePodConnectedNtfnParams parses out the connection status of pod
 // and btcwallet from the parameters of a podconnected notification.
-func parseBtcdConnectedNtfnParams(params []json.RawMessage) (bool, error) {
+func parsePodConnectedNtfnParams(params []json.RawMessage) (bool, error) {
 	if len(params) != 1 {
 		return false, wrongNumParams(len(params))
 	}

@@ -1,6 +1,6 @@
 // Copyright (c) 2014-2017 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 package main
 
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// Connect to local btcwallet RPC server using websockets.
-	certHomeDir := btcutil.AppDataDir("btcwallet", false)
+	certHomeDir := btcutil.AppDataDir("mod", false)
 	certs, err := ioutil.ReadFile(filepath.Join(certHomeDir, "rpc.cert"))
 	if err != nil {
 		log.Fatal(err)

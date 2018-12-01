@@ -10,8 +10,8 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/parallelcointeam/pod/btcjson"
 	"github.com/btcsuite/go-socks/socks"
+	"github.com/parallelcointeam/pod/btcjson"
 )
 
 // newHTTPClient returns a new HTTP client that is configured according to the
@@ -36,7 +36,7 @@ func newHTTPClient(cfg *config) (*http.Client, error) {
 
 	// Configure TLS if needed.
 	var tlsConfig *tls.Config
-	if !cfg.NoTLS && cfg.RPCCert != "" {
+	if cfg.TLS && cfg.RPCCert != "" {
 		pem, err := ioutil.ReadFile(cfg.RPCCert)
 		if err != nil {
 			return nil, err
@@ -68,7 +68,7 @@ func newHTTPClient(cfg *config) (*http.Client, error) {
 func sendPostRequest(marshalledJSON []byte, cfg *config) ([]byte, error) {
 	// Generate a request to the configured RPC server.
 	protocol := "http"
-	if !cfg.NoTLS {
+	if cfg.TLS {
 		protocol = "https"
 	}
 	url := protocol + "://" + cfg.RPCServer

@@ -1,7 +1,3 @@
-// Copyright (c) 2013-2015 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
-
 package btcutil
 
 import (
@@ -110,7 +106,7 @@ func NewTLSCertPair(organization string, validUntil time.Time, extraHosts []stri
 
 		KeyUsage: x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature |
 			x509.KeyUsageCertSign,
-		IsCA: true, // so can sign self.
+		IsCA:                  true, // so can sign self.
 		BasicConstraintsValid: true,
 
 		DNSNames:    dnsNames,

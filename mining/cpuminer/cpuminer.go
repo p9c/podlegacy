@@ -1,6 +1,4 @@
 // Copyright (c) 2014-2016 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
 
 package cpuminer
 
@@ -84,6 +82,9 @@ type Config struct {
 
 	// Algo is the block version number, signifying the type of PoW used for the block header.
 	Algo uint32
+
+	// NumThreads is the number of threads set in the configuration for the CPUMiner
+	NumThreads uint32
 }
 
 // CPUMiner provides facilities for solving blocks (mining) using the CPU in
@@ -394,6 +395,7 @@ func (m *CPUMiner) miningWorkerController() {
 		}
 	}
 
+	log.Debugf("Spawning %d worker(s)", m.numWorkers)
 	// Launch the current number of workers by default.
 	runningWorkers = make([]chan struct{}, 0, m.numWorkers)
 	launchWorkers(m.numWorkers)
@@ -642,10 +644,11 @@ func (m *CPUMiner) GenerateNBlocks(n uint32) ([]*chainhash.Hash, error) {
 // Use Start to begin the mining process.  See the documentation for CPUMiner
 // type for more details.
 func New(cfg *Config) *CPUMiner {
+
 	return &CPUMiner{
 		g:                 cfg.BlockTemplateGenerator,
 		cfg:               *cfg,
-		numWorkers:        defaultNumWorkers,
+		numWorkers:        cfg.NumThreads,
 		updateNumWorkers:  make(chan struct{}),
 		queryHashesPerSec: make(chan float64),
 		updateHashes:      make(chan uint64),

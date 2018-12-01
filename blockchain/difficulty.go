@@ -1,6 +1,4 @@
 // Copyright (c) 2013-2017 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
 
 package blockchain
 
@@ -219,6 +217,7 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
 func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo uint32) (uint32, error) {
+	log.Debug("calcNextRequiredDifficulty")
 	var powLimit *big.Int
 	var powLimitBits uint32
 	switch algo {

@@ -1,6 +1,6 @@
 // Copyright (c) 2014-2017 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 /*
 Package rpcclient implements a websocket-enabled Bitcoin JSON-RPC client.
@@ -18,11 +18,14 @@ btcwallet provide a websocket interface that is more efficient than the standard
 HTTP POST method of accessing RPC.  The section below discusses the differences
 between HTTP POST and websockets.
 
-By default, this client assumes the RPC server supports websockets and has
+**TODO:** The sense of TLS is reversed because many third party apps don't understand it
+and it complicates setup, so this next paragraph is wrong:
+
+~~By default, this client assumes the RPC server supports websockets and has
 TLS enabled.  In practice, this currently means it assumes you are talking to
 pod or btcwallet by default.  However, configuration options are provided to
 fall back to HTTP POST and disable TLS to support talking with inferior bitcoin
-core style RPC servers.
+core style RPC servers.~~
 
 Websockets vs HTTP POST
 

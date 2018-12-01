@@ -1,7 +1,3 @@
-// Copyright (c) 2013-2015 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
-
 package txscript
 
 import (
@@ -9,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/parallelcointeam/pod/btcec"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
 )
 
 // RawTxInWitnessSignature returns the serialized ECDA signature for the input

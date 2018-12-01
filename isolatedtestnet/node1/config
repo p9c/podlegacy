@@ -1,0 +1,15 @@
+listen=127.0.0.1:11447
+rpclisten=127.0.0.1:11448
+scryptlisten=127.0.0.1:11449
+;connect=127.0.0.1:11347
+connect=127.0.0.1:11547
+maxpeers=8
+rpcuser=user
+rpcpass=pa55word
+debuglevel=debug
+;miningaddr=aYkXUHNCV4hVhgskUxzWKL7416z9Yw1AWY
+generate=1
+algo=sha256d
+testnet=1
+miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
+genthreads=1

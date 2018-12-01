@@ -1,6 +1,6 @@
 // Copyright (c) 2016 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 // The vast majority of the rules tested in this package were ported from the
 // the original Java-based 'official' block acceptance tests at

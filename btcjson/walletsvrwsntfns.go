@@ -1,6 +1,6 @@
-// Copyright (c) 2014 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
+
 
 // NOTE: This file is intended to house the RPC websocket notifications that are
 // supported by a wallet server.
@@ -12,9 +12,9 @@ const (
 	// notifications.
 	AccountBalanceNtfnMethod = "accountbalance"
 
-	// BtcdConnectedNtfnMethod is the method used for notifications when
+	// PodConnectedNtfnMethod is the method used for notifications when
 	// a wallet server is connected to a chain server.
-	BtcdConnectedNtfnMethod = "podconnected"
+	PodConnectedNtfnMethod = "podconnected"
 
 	// WalletLockStateNtfnMethod is the method used to notify the lock state
 	// of a wallet has changed.
@@ -42,15 +42,15 @@ func NewAccountBalanceNtfn(account string, balance float64, confirmed bool) *Acc
 	}
 }
 
-// BtcdConnectedNtfn defines the podconnected JSON-RPC notification.
-type BtcdConnectedNtfn struct {
+// PodConnectedNtfn defines the podconnected JSON-RPC notification.
+type PodConnectedNtfn struct {
 	Connected bool
 }
 
-// NewBtcdConnectedNtfn returns a new instance which can be used to issue a
+// NewPodConnectedNtfn returns a new instance which can be used to issue a
 // podconnected JSON-RPC notification.
-func NewBtcdConnectedNtfn(connected bool) *BtcdConnectedNtfn {
-	return &BtcdConnectedNtfn{
+func NewPodConnectedNtfn(connected bool) *PodConnectedNtfn {
+	return &PodConnectedNtfn{
 		Connected: connected,
 	}
 }
@@ -89,7 +89,7 @@ func init() {
 	flags := UFWalletOnly | UFWebsocketOnly | UFNotification
 
 	MustRegisterCmd(AccountBalanceNtfnMethod, (*AccountBalanceNtfn)(nil), flags)
-	MustRegisterCmd(BtcdConnectedNtfnMethod, (*BtcdConnectedNtfn)(nil), flags)
+	MustRegisterCmd(PodConnectedNtfnMethod, (*PodConnectedNtfn)(nil), flags)
 	MustRegisterCmd(WalletLockStateNtfnMethod, (*WalletLockStateNtfn)(nil), flags)
 	MustRegisterCmd(NewTxNtfnMethod, (*NewTxNtfn)(nil), flags)
 }

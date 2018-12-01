@@ -1,6 +1,4 @@
 // Copyright (c) 2013-2017 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
 
 package blockchain
 
@@ -40,7 +38,7 @@ const (
 
 	// baseSubsidy is the starting subsidy amount for mined blocks.  This
 	// value is halved every SubsidyHalvingInterval blocks.
-	baseSubsidy = 50 * btcutil.SatoshiPerBitcoin
+	baseSubsidy = 2 * btcutil.SatoshiPerBitcoin
 )
 
 var (

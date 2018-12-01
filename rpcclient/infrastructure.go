@@ -1,6 +1,6 @@
 // Copyright (c) 2014-2017 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 package rpcclient
 
@@ -806,7 +806,7 @@ func receiveFuture(f chan *response) ([]byte, error) {
 func (c *Client) sendPost(jReq *jsonRequest) {
 	// Generate a request to the configured RPC server.
 	protocol := "http"
-	if !c.config.DisableTLS {
+	if c.config.TLS {
 		protocol = "https"
 	}
 	url := protocol + "://" + c.config.Host
@@ -1065,11 +1065,11 @@ type ConnConfig struct {
 	// Pass is the passphrase to use to authenticate to the RPC server.
 	Pass string
 
-	// DisableTLS specifies whether transport layer security should be
-	// disabled.  It is recommended to always use TLS if the RPC server
+	// TLS enables transport layer security encryption.
+	// It is recommended to always use TLS if the RPC server
 	// supports it as otherwise your username and password is sent across
 	// the wire in cleartext.
-	DisableTLS bool
+	TLS bool
 
 	// Certificates are the bytes for a PEM-encoded certificate chain used
 	// for the TLS connection.  It has no effect if the DisableTLS parameter
@@ -1128,7 +1128,7 @@ func newHTTPClient(config *ConnConfig) (*http.Client, error) {
 
 	// Configure TLS if needed.
 	var tlsConfig *tls.Config
-	if !config.DisableTLS {
+	if !config.TLS {
 		if len(config.Certificates) > 0 {
 			pool := x509.NewCertPool()
 			pool.AppendCertsFromPEM(config.Certificates)
@@ -1154,7 +1154,7 @@ func dial(config *ConnConfig) (*websocket.Conn, error) {
 	// Setup TLS if not disabled.
 	var tlsConfig *tls.Config
 	var scheme = "ws"
-	if !config.DisableTLS {
+	if !config.TLS {
 		tlsConfig = &tls.Config{
 			MinVersion: tls.VersionTLS12,
 		}

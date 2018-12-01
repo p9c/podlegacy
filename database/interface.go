@@ -1,6 +1,6 @@
 // Copyright (c) 2015-2016 The btcsuite developers
-// Use of this source code is governed by an ISC
-// license that can be found in the LICENSE file.
+
+
 
 // Parts of this interface were inspired heavily by the excellent boltdb project
 // at https://github.com/boltdb/bolt by Ben B. Johnson.

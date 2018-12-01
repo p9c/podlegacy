@@ -11,7 +11,7 @@
             "mode": "auto",
             "program": "${fileDirname}",
             "env": {},
-            "args": ["connect=127.0.0.1:11047", "txindex=1", "addrindex=1", "debuglevel=debug", "blocksonly=1", "nocheckpoints=1"]
+            "args": ["--rpclisten=127.0.0.1:11348", "--txindex", "--addrindex", "debuglevel=debug", "--testnet"]
         }
     ]
 }

@@ -37,3 +37,7 @@ pod/pod
 
 ^pod
 
+pod_*
+podctl_*
+isolatedtestnet/node?/mainnet
+isolatedtestnet/node?/testnet
