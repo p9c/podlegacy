@@ -46,7 +46,13 @@ var (
 	// can have for the regression test network.  It is the value 2^255 - 1, all ones, 256 bits.
 	regressionPowLimit = &AllOnes
 
-	testNet3PowLimit = *compactToBig(testnetBits)
+	testNet3PowLimit = func() big.Int {
+		mplb, _ := hex.DecodeString("00000f0000000000000000000000000000000000000000000000000000000000")
+		return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
+	}()
+
+	testnetBits = BigToCompact(&testNet3PowLimit)
+
 	// func() big.Int {
 	// 	mplb, _ := hex.DecodeString("0fffff0000000000000000000000000000000000000000000000000000000000")
 	// 	return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
@@ -56,19 +62,26 @@ var (
 	// can have for the simulation test network.  It is the value 2^255 - 1, all ones, 256 bits.
 	simNetPowLimit = &AllOnes
 
-	TargetTimespan          int64 = 30000
+	numAlgos int64 = 2
+
 	TargetTimePerBlock      int64 = 300
 	AveragingTargetTimespan int64 = 3000
 	Interval                int64 = 100
+	AveragingInterval       int64 = 10
+	TargetTimespan                = AveragingInterval * TargetTimePerBlock
 	MaxAdjustDown           int64 = 10
 	MaxAdjustUp             int64 = 20
 
-	TestnetTargetTimespan          int64 = 1000
-	TestnetTargetTimePerBlock      int64 = 10
-	TestnetAveragingTargetTimespan int64 = 100
-	TestnetInterval                int64 = 100
-	TestnetMaxAdjustDown           int64 = 10
-	TestnetMaxAdjustUp             int64 = 20
+	TestnetTargetTimePerBlock      int64 = 5
+	TestnetInterval                int64 = 288
+	TestnetAveragingInterval             = TestnetInterval * TestnetTargetTimePerBlock //4032 / numAlgos / 4
+	TestnetAveragingTargetTimespan       = TestnetTargetTimePerBlock * TestnetAveragingInterval
+	TestnetTargetTimespan                = TestnetAveragingInterval * TestnetTargetTimePerBlock
+	TestnetMaxAdjustDown           int64 = 50
+	TestnetMaxAdjustUp             int64 = 100
+	TestnetTargetTimespanAdjDown         = TestnetAveragingTargetTimespan * (TestnetInterval + TestnetMaxAdjustDown) / TestnetInterval
+	TestnetMinActualTimespan             = TestnetAveragingTargetTimespan * (TestnetInterval - TestnetMaxAdjustUp) / TestnetInterval
+	TestnetMaxActualTimespan             = TestnetAveragingTargetTimespan * (TestnetInterval + TestnetMaxAdjustDown) / TestnetInterval
 )
 
 // Checkpoint identifies a known good point in the block chain.  Using
@@ -350,13 +363,106 @@ var MainNetParams = Params{
 	// Parallelcoin specific difficulty adjustment parameters
 
 	Interval:                Interval,
-	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
+	AveragingInterval:       AveragingInterval, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
 	AveragingTargetTimespan: AveragingTargetTimespan,
 	MaxAdjustDown:           MaxAdjustDown,
 	MaxAdjustUp:             MaxAdjustUp,
-	TargetTimespanAdjDown:   AveragingTargetTimespan * (Interval + MaxAdjustDown) / Interval,
-	MinActualTimespan:       AveragingTargetTimespan * (Interval - MaxAdjustUp) / Interval,
-	MaxActualTimespan:       AveragingTargetTimespan * (Interval + MaxAdjustDown) / Interval,
+	TargetTimespanAdjDown:   TestnetTargetTimespanAdjDown,
+	MinActualTimespan:       TestnetMinActualTimespan,
+	MaxActualTimespan:       TestnetMaxActualTimespan,
+	ScryptPowLimit:          &scryptPowLimit,
+	ScryptPowLimitBits:      ScryptPowLimitBits,
+}
+
+// TestNet3Params defines the network parameters for the test Bitcoin network
+// (version 3).  Not to be confused with the regression test network, this
+// network is sometimes simply called "testnet".
+var TestNet3Params = Params{
+	Name:        "testnet",
+	Net:         wire.TestNet3,
+	DefaultPort: "21047",
+	DNSSeeds:    []DNSSeed{
+		// {"testnet-seed.bitcoin.jonasschnelli.ch", true},
+	},
+
+	// Chain parameters
+	GenesisBlock:             &testNet3GenesisBlock,
+	GenesisHash:              &testNet3GenesisHash,
+	PowLimit:                 &testNet3PowLimit,
+	PowLimitBits:             testnetBits,
+	BIP0034Height:            1000000, // 0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8
+	BIP0065Height:            1000000, // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
+	BIP0066Height:            1000000, // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
+	CoinbaseMaturity:         5,
+	SubsidyReductionInterval: 250000,
+	TargetTimespan:           TestnetTargetTimespan,
+	TargetTimePerBlock:       TestnetTargetTimePerBlock,
+	RetargetAdjustmentFactor: 2,
+	ReduceMinDifficulty:      false,
+	MinDiffReductionTime:     3000, // time.Minute * 10, // TargetTimePerBlock * 2
+	GenerateSupported:        true,
+
+	// Checkpoints ordered from oldest to newest.
+	Checkpoints: []Checkpoint{
+		// {546, newHashFromStr("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")},
+	},
+
+	// Consensus rule change deployments.
+	//
+	// The miner confirmation window is defined as:
+	//   target proof of work timespan / target proof of work spacing
+	RuleChangeActivationThreshold: 1512, // 75% of MinerConfirmationWindow
+	MinerConfirmationWindow:       2016,
+	Deployments: [DefinedDeployments]ConsensusDeployment{
+		DeploymentTestDummy: {
+			BitNumber:  28,
+			StartTime:  1199145601, // January 1, 2008 UTC
+			ExpireTime: 1230767999, // December 31, 2008 UTC
+		},
+		DeploymentCSV: {
+			BitNumber:  0,
+			StartTime:  1456790400, // March 1st, 2016
+			ExpireTime: 1493596800, // May 1st, 2017
+		},
+		DeploymentSegwit: {
+			BitNumber:  1,
+			StartTime:  1462060800, // May 1, 2016 UTC
+			ExpireTime: 1493596800, // May 1, 2017 UTC.
+		},
+	},
+
+	// Mempool parameters
+	RelayNonStdTxs: true,
+
+	// Human-readable part for Bech32 encoded segwit addresses, as defined in
+	// BIP 173.
+	Bech32HRPSegwit: "tb", // always tb for test net
+
+	// Address encoding magics
+	PubKeyHashAddrID:        18,   // starts with m or n
+	ScriptHashAddrID:        188,  // starts with 2
+	WitnessPubKeyHashAddrID: 0x03, // starts with QW
+	WitnessScriptHashAddrID: 0x28, // starts with T7n
+	PrivateKeyID:            239,  // starts with 9 (uncompressed) or c (compressed)
+
+	// BIP32 hierarchical deterministic extended key magics
+	HDPrivateKeyID: [4]byte{0x04, 0x35, 0x83, 0x94}, // starts with tprv
+	HDPublicKeyID:  [4]byte{0x04, 0x35, 0x87, 0xcf}, // starts with tpub
+
+	// BIP44 coin type used in the hierarchical deterministic path for
+	// address generation.
+	HDCoinType: 1,
+
+	// Parallelcoin specific difficulty adjustment parameters
+
+	Interval:                TestnetInterval,
+	AveragingInterval:       TestnetAveragingInterval, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardforkTestnet
+	AveragingTargetTimespan: TestnetAveragingTargetTimespan,
+	MaxAdjustDown:           TestnetMaxAdjustDown,
+	MaxAdjustUp:             TestnetMaxAdjustUp,
+	TargetTimespanAdjDown:   TestnetAveragingTargetTimespan * (TestnetInterval + TestnetMaxAdjustDown) / TestnetInterval,
+	MinActualTimespan:       TestnetAveragingTargetTimespan * (TestnetInterval - TestnetMaxAdjustUp) / TestnetInterval,
+	MaxActualTimespan:       TestnetAveragingTargetTimespan * (TestnetInterval + TestnetMaxAdjustDown) / TestnetInterval,
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
@@ -444,99 +550,6 @@ var RegressionNetParams = Params{
 	TargetTimespanAdjDown:   AveragingTargetTimespan * (Interval + MaxAdjustDown) / Interval,
 	MinActualTimespan:       AveragingTargetTimespan * (Interval - MaxAdjustUp) / Interval,
 	MaxActualTimespan:       AveragingTargetTimespan * (Interval + MaxAdjustDown) / Interval,
-	ScryptPowLimit:          &scryptPowLimit,
-	ScryptPowLimitBits:      ScryptPowLimitBits,
-}
-
-// TestNet3Params defines the network parameters for the test Bitcoin network
-// (version 3).  Not to be confused with the regression test network, this
-// network is sometimes simply called "testnet".
-var TestNet3Params = Params{
-	Name:        "testnet",
-	Net:         wire.TestNet3,
-	DefaultPort: "21047",
-	DNSSeeds:    []DNSSeed{
-		// {"testnet-seed.bitcoin.jonasschnelli.ch", true},
-	},
-
-	// Chain parameters
-	GenesisBlock:             &testNet3GenesisBlock,
-	GenesisHash:              &testNet3GenesisHash,
-	PowLimit:                 &testNet3PowLimit,
-	PowLimitBits:             testnetBits,
-	BIP0034Height:            1000000, // 0000000023b3a96d3484e5abb3755c413e7d41500f8e2a5c3f0dd01299cd8ef8
-	BIP0065Height:            1000000, // 00000000007f6655f22f98e72ed80d8b06dc761d5da09df0fa1dc4be4f861eb6
-	BIP0066Height:            1000000, // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
-	CoinbaseMaturity:         100,
-	SubsidyReductionInterval: 250000,
-	TargetTimespan:           30000,
-	TargetTimePerBlock:       300,
-	RetargetAdjustmentFactor: 2,
-	ReduceMinDifficulty:      false,
-	MinDiffReductionTime:     0, // time.Minute * 10, // TargetTimePerBlock * 2
-	GenerateSupported:        false,
-
-	// Checkpoints ordered from oldest to newest.
-	Checkpoints: []Checkpoint{
-		// {546, newHashFromStr("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")},
-	},
-
-	// Consensus rule change deployments.
-	//
-	// The miner confirmation window is defined as:
-	//   target proof of work timespan / target proof of work spacing
-	RuleChangeActivationThreshold: 1512, // 75% of MinerConfirmationWindow
-	MinerConfirmationWindow:       2016,
-	Deployments: [DefinedDeployments]ConsensusDeployment{
-		DeploymentTestDummy: {
-			BitNumber:  28,
-			StartTime:  1199145601, // January 1, 2008 UTC
-			ExpireTime: 1230767999, // December 31, 2008 UTC
-		},
-		DeploymentCSV: {
-			BitNumber:  0,
-			StartTime:  1456790400, // March 1st, 2016
-			ExpireTime: 1493596800, // May 1st, 2017
-		},
-		DeploymentSegwit: {
-			BitNumber:  1,
-			StartTime:  1462060800, // May 1, 2016 UTC
-			ExpireTime: 1493596800, // May 1, 2017 UTC.
-		},
-	},
-
-	// Mempool parameters
-	RelayNonStdTxs: true,
-
-	// Human-readable part for Bech32 encoded segwit addresses, as defined in
-	// BIP 173.
-	Bech32HRPSegwit: "tb", // always tb for test net
-
-	// Address encoding magics
-	PubKeyHashAddrID:        18,   // starts with m or n
-	ScriptHashAddrID:        188,  // starts with 2
-	WitnessPubKeyHashAddrID: 0x03, // starts with QW
-	WitnessScriptHashAddrID: 0x28, // starts with T7n
-	PrivateKeyID:            239,  // starts with 9 (uncompressed) or c (compressed)
-
-	// BIP32 hierarchical deterministic extended key magics
-	HDPrivateKeyID: [4]byte{0x04, 0x35, 0x83, 0x94}, // starts with tprv
-	HDPublicKeyID:  [4]byte{0x04, 0x35, 0x87, 0xcf}, // starts with tpub
-
-	// BIP44 coin type used in the hierarchical deterministic path for
-	// address generation.
-	HDCoinType: 1,
-
-	// Parallelcoin specific difficulty adjustment parameters
-
-	Interval:                TestnetInterval,
-	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardforkTestnet
-	AveragingTargetTimespan: TestnetAveragingTargetTimespan,
-	MaxAdjustDown:           TestnetMaxAdjustDown,
-	MaxAdjustUp:             TestnetMaxAdjustUp,
-	TargetTimespanAdjDown:   TestnetAveragingTargetTimespan * (TestnetInterval + TestnetMaxAdjustDown) / TestnetInterval,
-	MinActualTimespan:       TestnetAveragingTargetTimespan * (TestnetInterval - TestnetMaxAdjustUp) / TestnetInterval,
-	MaxActualTimespan:       TestnetAveragingTargetTimespan * (TestnetInterval + TestnetMaxAdjustDown) / TestnetInterval,
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
@@ -765,4 +778,46 @@ func init() {
 	mustRegister(&TestNet3Params)
 	mustRegister(&RegressionNetParams)
 	mustRegister(&SimNetParams)
+}
+
+// BigToCompact converts a whole number N to a compact representation using
+// an unsigned 32-bit number.  The compact representation only provides 23 bits
+// of precision, so values larger than (2^23 - 1) only encode the most
+// significant digits of the number.  See CompactToBig for details.
+func BigToCompact(n *big.Int) uint32 {
+	// No need to do any work if it's zero.
+	if n.Sign() == 0 {
+		return 0
+	}
+
+	// Since the base for the exponent is 256, the exponent can be treated
+	// as the number of bytes.  So, shift the number right or left
+	// accordingly.  This is equivalent to:
+	// mantissa = mantissa / 256^(exponent-3)
+	var mantissa uint32
+	exponent := uint(len(n.Bytes()))
+	if exponent <= 3 {
+		mantissa = uint32(n.Bits()[0])
+		mantissa <<= 8 * (3 - exponent)
+	} else {
+		// Use a copy to avoid modifying the caller's original number.
+		tn := new(big.Int).Set(n)
+		mantissa = uint32(tn.Rsh(tn, 8*(exponent-3)).Bits()[0])
+	}
+
+	// When the mantissa already has the sign bit set, the number is too
+	// large to fit into the available 23-bits, so divide the number by 256
+	// and increment the exponent accordingly.
+	if mantissa&0x00800000 != 0 {
+		mantissa >>= 8
+		exponent++
+	}
+
+	// Pack the exponent, sign bit, and mantissa into an unsigned 32-bit
+	// int and return it.
+	compact := uint32(exponent<<24) | mantissa
+	if n.Sign() < 0 {
+		compact |= 0x00800000
+	}
+	return compact
 }
