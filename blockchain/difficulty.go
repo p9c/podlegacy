@@ -3,6 +3,7 @@
 package blockchain
 
 import (
+	"math"
 	"math/big"
 	"time"
 
@@ -308,15 +309,19 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		}
 		height := int64(lastNode.height)
 		if height <= b.chainParams.Interval {
+			// if we have less than the interval number of blocks, we work from block 1 time, assuming a new network starting up
 			firstblock, _ = b.BlockByHeight(1)
 		} else {
+			// if there is enough blocks to get the prescribed interval number of blocks, we use the block at interval blocks past as our window
 			firstblock, _ = b.BlockByHeight(int32(height - b.chainParams.Interval))
 		}
 		prevbits = newestblock.bits
 		prevdiff := CompactToBig(prevbits)
 		alltime := newBlockTime.Unix() - firstblock.MsgBlock().Header.Timestamp.Unix()
 		prec := int64(65536)
+		// the window is the number of blocks we are calculating against, to generate the average block time
 		window := height - int64(firstblock.Height()) + 1
+		// we now have the past ratio of divergence from the target. We are using `prec` precision to improve the accuracy of the calculation, this 2^16, 16 bits of precision
 		avperblock := alltime * prec / window
 		shouldtime := b.chainParams.TargetTimePerBlock * prec
 
@@ -327,62 +332,60 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		fsh := float64(shouldtime)
 		fsh /= float64(prec)
 		ratio := fav / fsh
-		// log.Debugf("target missed by: %0.4f", ratio)
+
+		var smoothing float64 = 10
+		var factor float64 = 2
+
+		exponent := 1 + (smoothing*factor*ratio-smoothing*factor)*(smoothing*factor)/10*smoothing*factor*ratio
+
+		newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(int64(math.Pow(float64(avperblock), exponent))))
+		newdiff = big.NewInt(0).Div(newdiff, big.NewInt(int64(math.Pow(float64(shouldtime), exponent))))
+
+		// We now have the ratio of divergence as a 64 bit floating point number, which will be used with the adjustment filter
+		//
+
 		// switch {
-		// case ratio > 1:
-		// 	newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(int64(math.Pow(float64(avperblock), ratio*3))))
-		// 	newdiff = big.NewInt(0).Div(newdiff, big.NewInt(int64(math.Pow(float64(shouldtime), ratio*3))))
-		// 	log.Debugf("%03.2f diff: %064x", ratio, newdiff)
-		// case ratio < 1:
-		// 	newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(int64(math.Pow(float64(avperblock), 1/ratio*3))))
-		// 	newdiff = big.NewInt(0).Div(newdiff, big.NewInt(int64(math.Pow(float64(shouldtime), 1/ratio*3))))
-		// 	log.Debugf("%03.2f diff: %064x", ratio, newdiff)
+		// case ratio < 0.5:
+		// newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock*avperblock))
+		// newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime*shouldtime))
+		// log.Debugf("cold and low %03.2f diff: %064x", ratio, newdiff)
+		// case ratio < 0.75:
+		// newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock))
+		// newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime))
+		// log.Debugf("warm and low %03.2f diff: %064x", ratio, newdiff)
+		// case ratio < 0.8:
+		// newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock))
+		// newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime))
+		// log.Debugf("hot and low %03.2f diff: %064x", ratio, newdiff)
+		// case ratio < 0.9:
+		// newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock))
+		// newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime))
+		// log.Debugf("boiling and low %03.2f diff: %064x", ratio, newdiff)
+		// case ratio > 1.11:
+		// newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock))
+		// newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime))
+		// log.Debugf("boiling and high %03.2f diff: %064x", ratio, newdiff)
+		// case ratio > 1.25:
+		// newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock))
+		// newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime))
+		// log.Debugf("hot and high %03.2f diff: %064x", ratio, newdiff)
+		// case ratio > 1.5:
+		// newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock))
+		// newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime))
+		// log.Debugf("warm and high %03.2f diff: %064x", ratio, newdiff)
+		// case ratio > 2:
+		// newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock*avperblock))
+		// newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime*shouldtime))
+		// log.Debugf("cold and high %03.2f diff: %064x", ratio, newdiff)
 		// default:
-		// 	newdiff = prevdiff
-		// 	log.Debugf("boiling! %03.2f diff: %064x", ratio, newdiff)
+		// newdiff = prevdiff
+		// log.Debugf("DINGDINGDING! %03.2f diff: %064x", ratio, newdiff)
 		// }
-		switch {
-		case ratio < 0.5:
-			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock*avperblock))
-			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime*shouldtime))
-			log.Debugf("cold and low %03.2f diff: %064x", ratio, newdiff)
-		case ratio < 0.75:
-			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock))
-			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime))
-			log.Debugf("warm and low %03.2f diff: %064x", ratio, newdiff)
-		case ratio < 0.8:
-			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock))
-			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime))
-			log.Debugf("hot and low %03.2f diff: %064x", ratio, newdiff)
-		case ratio < 0.9:
-			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock))
-			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime))
-			log.Debugf("boiling and low %03.2f diff: %064x", ratio, newdiff)
-		case ratio > 1.11:
-			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock))
-			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime))
-			log.Debugf("boiling and high %03.2f diff: %064x", ratio, newdiff)
-		case ratio > 1.25:
-			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock))
-			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime))
-			log.Debugf("hot and high %03.2f diff: %064x", ratio, newdiff)
-		case ratio > 1.5:
-			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock))
-			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime))
-			log.Debugf("warm and high %03.2f diff: %064x", ratio, newdiff)
-		case ratio > 2:
-			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock*avperblock))
-			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime*shouldtime))
-			log.Debugf("cold and high %03.2f diff: %064x", ratio, newdiff)
-		default:
-			newdiff = prevdiff
-			log.Debugf("DINGDINGDING! %03.2f diff: %064x", ratio, newdiff)
-		}
-		if newdiff.Cmp(b.chainParams.PowLimit) > 0 {
-			newdiff = b.chainParams.PowLimit
-		}
-		// log.Debugf("prev: %08x %064x", prevbits, prevdiff)
-		// log.Debugf("next: %08x %064x", BigToCompact(newdiff), newdiff)
+		// if newdiff.Cmp(b.chainParams.PowLimit) > 0 {
+		// newdiff = b.chainParams.PowLimit
+		// }
+		log.Debugf("prev: %08x %064x", prevbits, prevdiff)
+		log.Debugf("next: %08x %064x", BigToCompact(newdiff), newdiff)
 
 		return BigToCompact(newdiff), nil
 	}
