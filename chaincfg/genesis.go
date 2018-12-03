@@ -9,8 +9,6 @@ import (
 	"github.com/parallelcointeam/pod/wire"
 )
 
-var testnetBits uint32 = 0x1e07ffff
-
 // genesisCoinbaseTx is the coinbase transaction for the genesis blocks for
 // the main network, regression test network, and test network (version 3).
 var genesisCoinbaseTx = wire.MsgTx{
@@ -91,7 +89,7 @@ var genesisBlock = wire.MsgBlock{
 		PrevBlock:  chainhash.Hash{},
 		MerkleRoot: genesisMerkleRoot,
 		Timestamp:  time.Unix(0x53c9ecdc, 0), // 2014-07-19 03:58:20 +0000 UTC
-		Bits:       0x1e0fffff,               // 4294905630[00000fffff000000000000000000000000000000000000000000000000000000]
+		Bits:       0x1d0fffff,               // 4294905630[00000fffff000000000000000000000000000000000000000000000000000000]
 		Nonce:      0x10281,                  // 2164392192
 	},
 	Transactions: []*wire.MsgTx{&genesisCoinbaseTx},

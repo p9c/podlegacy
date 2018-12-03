@@ -217,7 +217,6 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
 func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo uint32) (uint32, error) {
-	log.Debug("calcNextRequiredDifficulty")
 	var powLimit *big.Int
 	var powLimitBits uint32
 	switch algo {
@@ -228,120 +227,169 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		powLimit = b.chainParams.PowLimit
 		powLimitBits = b.chainParams.PowLimitBits
 	}
-
+	if lastNode.height < 2 && lastNode.height > 0 {
+		// time.Sleep(time.Second * time.Duration(b.chainParams.TargetTimePerBlock))
+		return b.chainParams.PowLimitBits, nil
+	}
 	// Genesis block.
 	if lastNode == nil {
 		return powLimitBits, nil
 	}
 
-	prevNode := lastNode
-	// fmt.Printf("lastNode bits %08x %d %d\n", prevNode.bits, prevNode.height, prevNode.version)
-	if prevNode.version != algo {
-		prevNode = prevNode.GetPrevWithAlgo(algo)
-	}
-	// fmt.Printf("prevNode bits %08x %d %d\n", prevNode.bits, prevNode.height, prevNode.version)
-	// Return the previous block's difficulty requirements if this block
-	// is not at a difficulty retarget interval.
-	// if (lastNode.height+1)%b.blocksPerRetarget != 0 {
-	// For networks that support it, allow special reduction of the
-	// required difficulty once too much time has elapsed without
-	// mining a block.
-	if b.chainParams.ReduceMinDifficulty {
-		// Return minimum difficulty when more than the desired
-		// amount of time has elapsed without mining a block.
-		reductionTime := int64(b.chainParams.MinDiffReductionTime)
-		allowMinTime := lastNode.timestamp + reductionTime
-		if newBlockTime.Unix() > allowMinTime {
-			return b.chainParams.PowLimitBits, nil
+	switch b.chainParams.Name {
+	case "mainnet":
+		prevNode := lastNode
+		if prevNode.version != algo {
+			prevNode = prevNode.GetPrevWithAlgo(algo)
 		}
 
-		// The block was mined within the desired timeframe, so
-		// return the difficulty for the last block which did
-		// not have the special minimum difficulty rule applied.
-		return b.findPrevTestNetDifficulty(lastNode), nil
+		// Return the previous block's difficulty requirements if this block is not at a difficulty retarget interval. For networks that support it, allow special reduction of the required difficulty once too much time has elapsed without mining a block.
+		if b.chainParams.ReduceMinDifficulty {
+			// Return minimum difficulty when more than the desired amount of time has elapsed without mining a block.
+			reductionTime := int64(b.chainParams.MinDiffReductionTime)
+			allowMinTime := lastNode.timestamp + reductionTime
+			if newBlockTime.Unix() > allowMinTime {
+				return b.chainParams.PowLimitBits, nil
+			}
+
+			// The block was mined within the desired timeframe, so return the difficulty for the last block which did not have the special minimum difficulty rule applied.
+			return b.findPrevTestNetDifficulty(lastNode), nil
+		}
+
+		// Get the block node at the previous retarget (targetTimespan days worth of blocks).
+		firstNode := prevNode.GetPrevWithAlgo(algo)
+		for i := int64(1); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
+			firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo)
+		}
+		if firstNode == nil {
+			return powLimitBits, nil
+		}
+
+		// Limit the amount of adjustment that can occur to the previous difficulty.
+		actualTimespan := prevNode.timestamp - firstNode.timestamp
+
+		adjustedTimespan := actualTimespan
+		if actualTimespan < b.chainParams.MinActualTimespan {
+			adjustedTimespan = b.chainParams.MinActualTimespan
+		} else if actualTimespan > b.chainParams.MaxActualTimespan {
+			adjustedTimespan = b.chainParams.MaxActualTimespan
+		}
+
+		oldTarget := CompactToBig(prevNode.bits)
+		newTarget := new(big.Int).Mul(oldTarget, big.NewInt(adjustedTimespan))
+		newTarget = newTarget.Div(newTarget, big.NewInt(b.chainParams.AveragingTargetTimespan))
+
+		// Limit new value to the proof of work limit.
+		if newTarget.Cmp(powLimit) > 0 {
+			newTarget.Set(powLimit)
+		}
+
+		// Log new target difficulty and return it.  The new target logging is intentionally converting the bits back to a number instead of using newTarget since conversion to the compact representation loses precision.
+		newTargetBits := BigToCompact(newTarget)
+		log.Debugf("Difficulty retarget at block height %d, old %08x new %08x",
+			lastNode.height+1, prevNode.bits, newTargetBits)
+		log.Tracef("Old %08x New %08x",
+			prevNode.bits, oldTarget, newTargetBits, CompactToBig(newTargetBits))
+		log.Tracef("Actual timespan %v, adjusted timespan %v, target timespan %v",
+			actualTimespan, adjustedTimespan, b.chainParams.AveragingTargetTimespan)
+		return newTargetBits, nil
+	case "testnet":
+		firstblock, _ := b.BlockByHeight(0)
+		newestblock := lastNode.GetPrevWithAlgo(algo)
+		var prevbits uint32
+		if newestblock == nil {
+			switch firstblock.MsgBlock().Header.Version {
+			case 514:
+				prevbits = powLimitBits
+			default:
+				prevbits = firstblock.MsgBlock().Header.Bits
+			}
+			return prevbits, nil
+		}
+		height := int64(lastNode.height)
+		if height <= b.chainParams.Interval {
+			firstblock, _ = b.BlockByHeight(1)
+		} else {
+			firstblock, _ = b.BlockByHeight(int32(height - b.chainParams.Interval))
+		}
+		prevbits = newestblock.bits
+		prevdiff := CompactToBig(prevbits)
+		alltime := newBlockTime.Unix() - firstblock.MsgBlock().Header.Timestamp.Unix()
+		prec := int64(65536)
+		window := height - int64(firstblock.Height()) + 1
+		avperblock := alltime * prec / window
+		shouldtime := b.chainParams.TargetTimePerBlock * prec
+
+		var newdiff *big.Int
+		// log.Debugf("average per block %d should be %d", avperblock/prec, shouldtime/prec)
+		fav := float64(avperblock)
+		fav /= float64(prec)
+		fsh := float64(shouldtime)
+		fsh /= float64(prec)
+		ratio := fav / fsh
+		// log.Debugf("target missed by: %0.4f", ratio)
+		// switch {
+		// case ratio > 1:
+		// 	newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(int64(math.Pow(float64(avperblock), ratio*3))))
+		// 	newdiff = big.NewInt(0).Div(newdiff, big.NewInt(int64(math.Pow(float64(shouldtime), ratio*3))))
+		// 	log.Debugf("%03.2f diff: %064x", ratio, newdiff)
+		// case ratio < 1:
+		// 	newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(int64(math.Pow(float64(avperblock), 1/ratio*3))))
+		// 	newdiff = big.NewInt(0).Div(newdiff, big.NewInt(int64(math.Pow(float64(shouldtime), 1/ratio*3))))
+		// 	log.Debugf("%03.2f diff: %064x", ratio, newdiff)
+		// default:
+		// 	newdiff = prevdiff
+		// 	log.Debugf("boiling! %03.2f diff: %064x", ratio, newdiff)
+		// }
+		switch {
+		case ratio < 0.5:
+			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock*avperblock))
+			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime*shouldtime))
+			log.Debugf("cold and low %03.2f diff: %064x", ratio, newdiff)
+		case ratio < 0.75:
+			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock))
+			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime))
+			log.Debugf("warm and low %03.2f diff: %064x", ratio, newdiff)
+		case ratio < 0.8:
+			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock))
+			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime))
+			log.Debugf("hot and low %03.2f diff: %064x", ratio, newdiff)
+		case ratio < 0.9:
+			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock))
+			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime))
+			log.Debugf("boiling and low %03.2f diff: %064x", ratio, newdiff)
+		case ratio > 1.11:
+			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock))
+			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime))
+			log.Debugf("boiling and high %03.2f diff: %064x", ratio, newdiff)
+		case ratio > 1.25:
+			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock))
+			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime))
+			log.Debugf("hot and high %03.2f diff: %064x", ratio, newdiff)
+		case ratio > 1.5:
+			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock))
+			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime))
+			log.Debugf("warm and high %03.2f diff: %064x", ratio, newdiff)
+		case ratio > 2:
+			newdiff = big.NewInt(0).Mul(prevdiff, big.NewInt(avperblock*avperblock*avperblock*avperblock))
+			newdiff = big.NewInt(0).Div(newdiff, big.NewInt(shouldtime*shouldtime*shouldtime*shouldtime))
+			log.Debugf("cold and high %03.2f diff: %064x", ratio, newdiff)
+		default:
+			newdiff = prevdiff
+			log.Debugf("DINGDINGDING! %03.2f diff: %064x", ratio, newdiff)
+		}
+		if newdiff.Cmp(b.chainParams.PowLimit) > 0 {
+			newdiff = b.chainParams.PowLimit
+		}
+		// log.Debugf("prev: %08x %064x", prevbits, prevdiff)
+		// log.Debugf("next: %08x %064x", BigToCompact(newdiff), newdiff)
+
+		return BigToCompact(newdiff), nil
 	}
-
-	// For the main network (or any unrecognized networks), simply
-	// return the previous block's difficulty requirements.
-	// return lastNode.bits, nil
-	// }
-
-	// // Get the block node at the previous retarget (targetTimespan days
-	// // worth of blocks).
-	// firstNode := lastNode.RelativeAncestor(b.blocksPerRetarget - 1)
-	// if firstNode == nil {
-	// 	return 0, AssertError("unable to obtain previous retarget block")
-	// }
-
-	firstNode := prevNode.GetPrevWithAlgo(algo) //.RelativeAncestor(1)
-	for i := int64(1); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
-		firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo)
-	}
-	if firstNode == nil {
-		return powLimitBits, nil
-	}
-	// fmt.Printf("firstNode bits %08x %d %d\n", firstNode.bits, firstNode.height, firstNode.version)
-
-	// Limit the amount of adjustment that can occur to the previous
-	// difficulty.
-	actualTimespan := prevNode.timestamp - firstNode.timestamp
-	// fmt.Println("actual timespan  ", actualTimespan)
-
-	adjustedTimespan := actualTimespan
-	if actualTimespan < b.chainParams.MinActualTimespan {
-		// fmt.Println("less than min actual timespan")
-		adjustedTimespan = b.chainParams.MinActualTimespan
-	} else if actualTimespan > b.chainParams.MaxActualTimespan {
-		// fmt.Println("more than max actual timespan")
-		adjustedTimespan = b.chainParams.MaxActualTimespan
-	}
-
-	// Calculate new target difficulty as:
-	//  currentDifficulty * (adjustedTimespan / targetTimespan)
-	// The result uses integer division which means it will be slightly
-	// rounded down.  Bitcoind also uses integer division to calculate this
-	// result.
-
-	// This has to be the lastNode of the same algorithm (version number)
-
-	oldTarget := CompactToBig(prevNode.bits)
-	// fmt.Printf("OldTarget %d %064x\n", lastNode.bits, OldTarget)
-	// oldTarget := CompactToBig(ln.bits)
-	// fmt.Printf("oldTarget           %08x, %d\n", prevNode.bits, oldTarget)
-	newTarget := new(big.Int).Mul(oldTarget, big.NewInt(adjustedTimespan))
-	// fmt.Println("adjusted timespan  ", adjustedTimespan)
-	newTarget = newTarget.Div(newTarget, big.NewInt(b.chainParams.AveragingTargetTimespan))
-	// fmt.Println("averaging timespan ", b.chainParams.AveragingTargetTimespan)
-	// fmt.Printf("newTarget           %08x %064x\n", BigToCompact(newTarget), newTarget)
-	// fmt.Println("newTarget-oldTarget", newTarget.Sub(newTarget, oldTarget))
-	// fmt.Println("oldTarget-newTarget", oldTarget.Sub(oldTarget, newTarget))
-
-	// Limit new value to the proof of work limit.
-	if newTarget.Cmp(powLimit) > 0 {
-		// fmt.Println("hit limit", powLimit)
-		newTarget.Set(powLimit)
-	}
-
-	// Log new target difficulty and return it.  The new target logging is
-	// intentionally converting the bits back to a number instead of using
-	// newTarget since conversion to the compact representation loses
-	// precision.
-	newTargetBits := BigToCompact(newTarget)
-	log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, prevNode.bits, newTargetBits)
-	log.Tracef("Old %08x New %08x", prevNode.bits, oldTarget, newTargetBits, CompactToBig(newTargetBits))
-	log.Tracef("Actual timespan %v, adjusted timespan %v, target timespan %v",
-		actualTimespan,
-		adjustedTimespan,
-		b.chainParams.AveragingTargetTimespan)
-
-	return newTargetBits, nil
+	return powLimitBits, nil
 }
 
-// CalcNextRequiredDifficulty calculates the required difficulty for the block
-// after the end of the current best chain based on the difficulty retarget
-// rules.
-//
-// This function is safe for concurrent access.
+// CalcNextRequiredDifficulty calculates the required difficulty for the block after the end of the current best chain based on the difficulty retarget rules. This function is safe for concurrent access.
 func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time, algo uint32) (uint32, error) {
 	b.chainLock.Lock()
 	difficulty, err := b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, algo)
