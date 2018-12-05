@@ -66,7 +66,8 @@ var (
 	TestnetTargetTimespan          int64 = 1000
 	TestnetTargetTimePerBlock      int64 = 10
 	TestnetAveragingTargetTimespan int64 = 100
-	TestnetInterval                int64 = 100
+	TestnetInterval                int64 = 288
+	TestnetAveragingInterval             = TestnetInterval * TestnetTargetTimePerBlock
 	TestnetMaxAdjustDown           int64 = 10
 	TestnetMaxAdjustUp             int64 = 20
 )
@@ -469,8 +470,8 @@ var TestNet3Params = Params{
 	BIP0066Height:            1000000, // 000000002104c8c45e99a8853285a3b592602a3ccde2b832481da85e9e4ba182
 	CoinbaseMaturity:         100,
 	SubsidyReductionInterval: 250000,
-	TargetTimespan:           30000,
-	TargetTimePerBlock:       300,
+	TargetTimespan:           TestnetTargetTimespan,
+	TargetTimePerBlock:       TestnetTargetTimePerBlock,
 	RetargetAdjustmentFactor: 2,
 	ReduceMinDifficulty:      false,
 	MinDiffReductionTime:     0, // time.Minute * 10, // TargetTimePerBlock * 2
