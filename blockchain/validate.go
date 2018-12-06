@@ -1280,6 +1280,7 @@ func (b *BlockChain) CheckConnectBlockTemplate(block *btcutil.Block) error {
 
 	err := checkBlockSanity(block, b.chainParams.PowLimit, b.timeSource, flags, true)
 	if err != nil {
+		log.Debugf("CheckConnectBlockTemplate, %064x %s", b.chainParams.PowLimit, b.chainParams.Name)
 		return err
 	}
 

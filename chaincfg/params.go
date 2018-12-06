@@ -46,7 +46,8 @@ var (
 	// can have for the regression test network.  It is the value 2^255 - 1, all ones, 256 bits.
 	regressionPowLimit = &AllOnes
 
-	testNet3PowLimit = *compactToBig(testnetBits)
+	testnetBits      = ScryptPowLimitBits
+	testNet3PowLimit = ScryptPowLimit
 	// func() big.Int {
 	// 	mplb, _ := hex.DecodeString("0fffff0000000000000000000000000000000000000000000000000000000000")
 	// 	return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
@@ -56,20 +57,21 @@ var (
 	// can have for the simulation test network.  It is the value 2^255 - 1, all ones, 256 bits.
 	simNetPowLimit = &AllOnes
 
-	TargetTimespan          int64 = 30000
-	TargetTimePerBlock      int64 = 300
-	AveragingTargetTimespan int64 = 3000
 	Interval                int64 = 100
 	MaxAdjustDown           int64 = 10
 	MaxAdjustUp             int64 = 20
+	TargetTimePerBlock      int64 = 300
+	AveragingInterval       int64 = 10
+	AveragingTargetTimespan       = TargetTimePerBlock * AveragingInterval
+	TargetTimespan                = Interval * TargetTimePerBlock
 
-	TestnetTargetTimespan          int64 = 1000
-	TestnetTargetTimePerBlock      int64 = 10
-	TestnetAveragingTargetTimespan int64 = 100
-	TestnetInterval                int64 = 288
-	TestnetAveragingInterval             = TestnetInterval * TestnetTargetTimePerBlock
+	TestnetInterval                int64 = 100
 	TestnetMaxAdjustDown           int64 = 10
 	TestnetMaxAdjustUp             int64 = 20
+	TestnetTargetTimePerBlock      int64 = 10
+	TestnetAveragingInterval       int64 = 288
+	TestnetAveragingTargetTimespan       = TestnetTargetTimePerBlock * TestnetAveragingInterval
+	TestnetTargetTimespan                = TestnetInterval * TestnetTargetTimePerBlock
 )
 
 // Checkpoint identifies a known good point in the block chain.  Using
@@ -351,7 +353,7 @@ var MainNetParams = Params{
 	// Parallelcoin specific difficulty adjustment parameters
 
 	Interval:                Interval,
-	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
+	AveragingInterval:       AveragingInterval, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardfork
 	AveragingTargetTimespan: AveragingTargetTimespan,
 	MaxAdjustDown:           MaxAdjustDown,
 	MaxAdjustUp:             MaxAdjustUp,

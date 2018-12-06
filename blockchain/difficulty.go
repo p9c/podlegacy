@@ -237,8 +237,6 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 
 	switch b.chainParams.Name {
 	case "mainnet":
-		log.Debug("calcNextRequiredDifficulty")
-
 		prevNode := lastNode
 		if prevNode.version != algo {
 			prevNode = prevNode.GetPrevWithAlgo(algo)
@@ -279,7 +277,53 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			adjustedTimespan,
 			b.chainParams.AveragingTargetTimespan)
 	case "testnet":
+		last := lastNode
+		if last == nil {
+			// We are at the genesis block
+			return powLimitBits, nil
+		}
+		if last.version != algo {
+			last = last.GetPrevWithAlgo(algo)
+			if last == nil {
+				// This is the first block of the algo
+				return powLimitBits, nil
+			}
+		}
+		lastheight := last.height
+		firstheight := lastheight - int32(b.chainParams.AveragingInterval)
+		if firstheight < 1 {
+			firstheight = 1
+			if lastheight == firstheight {
+				return powLimitBits, nil
+			}
+		}
+		log.Debugf("first %d last %d", firstheight, lastheight)
+		first, _ := b.BlockByHeight(firstheight)
+		lasttime := last.timestamp
+		firsttime := first.MsgBlock().Header.Timestamp.Unix()
+		numblocks := lastheight - firstheight
+		interval := float64(lasttime - firsttime)
+		avblocktime := interval / float64(numblocks)
+		log.Debugf("firsttime %d lasttime %d interval %d avblocktime %.8f", firsttime, lasttime, interval, avblocktime)
+		// divergence := float64(b.chainParams.TargetTimePerBlock) / float64(avblocktime)
+		divergence := avblocktime / float64(b.chainParams.TargetTimePerBlock)
+		log.Debugf("target %d divergence %.8f", b.chainParams.TargetTimePerBlock, divergence)
 
+		// Now we have the divergence in the averaging period, we now use this formula: https://github.com/parallelcointeam/pod/raw/master/docs/parabolic-diff-adjustment-filter-formula.png
+		// This is the expanded version as will be required:
+		// adjustment = 1 + (20 * divergence - 20) * (20 * divergence - 20) / 200 * divergence
+		adjustment := 1 - (20*divergence-20)*(20*divergence-20)/200*divergence
+		log.Debugf("adjustment %.8f", adjustment)
+		bigadjustment := big.NewFloat(adjustment)
+		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
+		bigfnewtarget := big.NewFloat(0.0).Mul(bigadjustment, bigoldtarget)
+		newtarget, accuracy := bigfnewtarget.Int(nil)
+		log.Debugf("newtarget %064x accuracy %d", newtarget, accuracy)
+		if newtarget.Cmp(powLimit) > 0 {
+			newTargetBits = powLimitBits
+		} else {
+			newTargetBits = BigToCompact(newtarget)
+		}
 	}
 	return newTargetBits, nil
 }

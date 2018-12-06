@@ -4,4 +4,4 @@
 # 
 # testnet.sh datadir
 
-pod --nobanning --configfile=$1/config --datadir=$1 $2 
+pod --testnet --nobanning --configfile=$1/config --datadir=$1 $2 
