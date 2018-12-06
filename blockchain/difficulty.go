@@ -291,6 +291,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		}
 		lastheight := last.height
 		firstheight := lastheight - int32(b.chainParams.AveragingInterval)
+		log.Debugf("averaging interval %d", b.chainParams.AveragingInterval)
 		if firstheight < 1 {
 			firstheight = 1
 			if lastheight == firstheight {
@@ -304,7 +305,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		numblocks := lastheight - firstheight
 		interval := float64(lasttime - firsttime)
 		avblocktime := interval / float64(numblocks)
-		log.Debugf("firsttime %d lasttime %d interval %d avblocktime %.8f", firsttime, lasttime, interval, avblocktime)
+		log.Debugf("firsttime %d lasttime %d interval %.0f avblocktime %.8f", firsttime, lasttime, interval, avblocktime)
 		// divergence := float64(b.chainParams.TargetTimePerBlock) / float64(avblocktime)
 		divergence := avblocktime / float64(b.chainParams.TargetTimePerBlock)
 		log.Debugf("target %d divergence %.8f", b.chainParams.TargetTimePerBlock, divergence)
@@ -313,6 +314,9 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		// This is the expanded version as will be required:
 		// adjustment = 1 + (20 * divergence - 20) * (20 * divergence - 20) / 200 * divergence
 		adjustment := 1 - (20*divergence-20)*(20*divergence-20)/200*divergence
+		if adjustment < 0.0 {
+			adjustment *= -1
+		}
 		log.Debugf("adjustment %.8f", adjustment)
 		bigadjustment := big.NewFloat(adjustment)
 		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))

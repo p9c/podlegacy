@@ -68,7 +68,7 @@ var (
 	TestnetInterval                int64 = 100
 	TestnetMaxAdjustDown           int64 = 10
 	TestnetMaxAdjustUp             int64 = 20
-	TestnetTargetTimePerBlock      int64 = 10
+	TestnetTargetTimePerBlock      int64 = 5
 	TestnetAveragingInterval       int64 = 288
 	TestnetAveragingTargetTimespan       = TestnetTargetTimePerBlock * TestnetAveragingInterval
 	TestnetTargetTimespan                = TestnetInterval * TestnetTargetTimePerBlock
@@ -533,7 +533,7 @@ var TestNet3Params = Params{
 	// Parallelcoin specific difficulty adjustment parameters
 
 	Interval:                TestnetInterval,
-	AveragingInterval:       10, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardforkTestnet
+	AveragingInterval:       TestnetAveragingInterval, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardforkTestnet
 	AveragingTargetTimespan: TestnetAveragingTargetTimespan,
 	MaxAdjustDown:           TestnetMaxAdjustDown,
 	MaxAdjustUp:             TestnetMaxAdjustUp,
