@@ -293,7 +293,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		}
 		lastheight := last.height
 		firstheight := lastheight - int32(b.chainParams.AveragingInterval)
-		log.Debugf("averaging interval %d", b.chainParams.AveragingInterval)
+		// log.Debugf("averaging interval %d", b.chainParams.AveragingInterval)
 		if firstheight < 1 {
 			firstheight = 1
 			if lastheight == firstheight {
@@ -316,7 +316,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		// Now we have the divergence in the averaging period, we now use this formula: https://github.com/parallelcointeam/pod/raw/master/docs/parabolic-diff-adjustment-filter-formula.png
 		// This is the expanded version as will be required:
 		// adjustment = 1 + (20 * divergence - 20) * (20 * divergence - 20) / 200 * divergence
-		adjustment := 1 - (20*divergence-20)*(20*divergence-20)/200*divergence
+		adjustment := 1 + (divergence-1)*(divergence-1)*(divergence-1)
 		if adjustment < 0.0 {
 			adjustment *= -1
 		}
@@ -324,8 +324,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		bigadjustment := big.NewFloat(adjustment)
 		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
 		bigfnewtarget := big.NewFloat(0.0).Mul(bigadjustment, bigoldtarget)
-		newtarget, accuracy := bigfnewtarget.Int(nil)
-		log.Debugf("newtarget %064x accuracy %d", newtarget, accuracy)
+		newtarget, _ := bigfnewtarget.Int(nil)
+		// log.Debugf("newtarget %064x accuracy %d", newtarget, accuracy)
 		if newtarget.Cmp(powLimit) > 0 {
 			newTargetBits = powLimitBits
 		} else {

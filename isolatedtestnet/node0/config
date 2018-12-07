@@ -1,9 +1,14 @@
 listen=127.0.0.1:11347
 rpclisten=127.0.0.1:11348
 scryptlisten=127.0.0.1:11349
-connect=127.0.0.1:11447
-connect=127.0.0.1:11547
-maxpeers=8
+
+# addpeer=127.0.0.1:11347
+addpeer=127.0.0.1:11447
+addpeer=127.0.0.1:11547
+addpeer=127.0.0.1:11647
+
+maxpeers=6
+
 rpcuser=user
 rpcpass=pa55word
 debuglevel=debug
