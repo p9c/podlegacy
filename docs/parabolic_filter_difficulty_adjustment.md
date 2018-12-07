@@ -1,51 +1,51 @@
 # Parabolic Filter Difficulty Adjustment
 
-Proof of Work difficulty adjustment algorithms are basically aimed at taking a poisson process and altering its parameters so that it approaches clock-like regularity. In order to understand what they are meant to achieve, analogies relating the phenomena of block solution frequency to physical phenomena more familiar to most people.
-
-The simplest, albeit three dimensional, is light. A point light source will emit a photon in every direction around it, and given a grid of a particular scale, one knows at a given point in space, inside a given area perpendicular to the axis with the source, will receive a certain number of photons within a certain amount of time.
-
-In order to focus the light, one uses a parabolic mirror. The parabolic mirror will create a point in space of maximum density formed from the photons emitted in all directions, with some degree of fuzziness to the edge, and if one aims to narrow this down even further, partial mirrors and miniscule apertures give you the laser, which uses a pinhole as a lens instead of a reflector. A lens also achieves the same end, but can be stacked to change the spread and density of the beam.
-
-So, immediately you understand that capturing the output of a random process and focusing it into a linear pattern requires a parabolic geometry to the filter. A parabola is basically anything other than a perfect semicircle or flat circle, and in 3d, for light, lathed into a mirror or from some kind of glass.
-
-However, the distribution of times to solutions is not pure poisson, because, naturally, it is limited by computational precision and the nature of the data. So there is a normal distribution, that peaks around the real hashrate. The hashrate is opaque, none of the participants in the network disclose their hashrates and any such information could not be trusted anyway. Only solutions tell you anything.
-
-So, to help visualise it, and see why the light analogy helps to understand the proper way to approach this problem, is to see the curves:
+The difficulty adjustment algorithm implemented on the testnet, which can be found [here](../blockchain/difficulty.go) uses a simple cubic binomial formula that generates a variance against a straight linear multiplication of the average divergence from target that has a relatively wide, flat area that acts as a trap due to the minimal adjustment it computes within the centre 1/3, approximately, though as can be seen it is a little sharper above 1 than below:
 
 ![](parabolic-diff-adjustment-filter.png)
 
-You can see that the lowest point of the curve crosses through 1,1 and the curve on the right is basically the same as the one on the left except for being squashed to half the width up to 1. The line crosses y=2 at 0.5 and 2.
-
-This is the formula that creates this:
+The formula is as follows:
 
 ![](parabolic-diff-adjustment-filter-formula.png)
 
-The graph represents the deviation from the target clock tick, whatever the chain sets as the block time interval, in the case of Parallelcoin it is 5 minutes. Because of the nature of the network and the constant shuffling of the peers from each node in the network, there is a trade-off between block time and orphan count.  
+The data used for adjustment is the timestamps of the most recent block of an algorithm, and a fixed averaging window, which will initially be set at approximately 5 days (1440 blocks). Weighting, removing outliers, and other techniques were considered, but due to the fact that this essentially both a fuzzy logic control system, and being a poisson point process, it has been decided that for the first hard fork, as proven in initial testing, is already far superior to the previous mechanism that captures the most recent 10 blocks of a given algorithm, independently.
 
-As the distribution, while normal, nevertheless can see any given block time has a varying chance of being from one hash rate or another, in proportion to the normal curve (this curve is derived from Gauss's normal distrbiution aka "bell curve") one can precisely compute a difficulty adjustment that has a provable probability of converging on the invisible real network hashrate.
+The performance of the original continuous difficulty adjustment system is very problematic. It settles into a very wide variance, with clusters of short blocks followed by very long gaps. It is further destabilised by wide variance of network hashpower, and the red line in the chart above roughly illustrates the variance/response that currently exists, though it fails even to work as well as a simple variance of the target directly by multiplying the divergence ratio by the previous difficulty, even with only one algorithm running, on a loopback testnet.
 
-This curve indicates via the height at a given x-axis position how to modify the difficulty in order to adjust it. As more blocks come in, the subsequent adjustments will have an equal chance of hitting the target, and thus compound rapidly. One has a 50/50 chance of being above or below in the first round. Second round adds another 25%, then 12%, and so on. At 3 blocks the likelihood of being within 10% of the target is 90%, and at 10 blocks 99.9% chance, roughly, of being exactly on the target.
+## The problems of existing difficulty adjustment regimes
 
-## Problems with most existing algorithms
+Different cryptocurrencies have implemented a wide variety of difficulty adjustment schemes, generally the older coins with a bigger miner userbase have simpler, not even continuous adjusting, bitcoin simply makes an adjustment every 2016 (2 weeks) blocks. This kind of strategy is adequate in the case of a relatively stable hashrate on the network, but increasingly miners are using automated systems to mine the most profitable/and/or/easy (difficulty) coins instead, which often leads to even more volatile hashrates and consequent stress testing of the difficulty adjustments.
 
-The block time has a very coarse precision, and is compounded with the variance of clocks and the latency of the network and, on top, the blind luck of being close to the origin of a new block as it is first submitted. So the real resolution of the event clock is more like 5 seconds just to account for all the transmission delays. Sometimes two halves of the network are only connected by a few and the message started on the opposite side of the graph. 
+### Aliasing, the number one problem
 
-The Steem network demonstrates that at best the synchrony of merely 19 nodes is around 3 seconds, likely it could not be much better than this on average given average variance in network latency and so on.
+The biggest problem with difficulty adjustment systems tends to be based on the low precision of the block timestamps, the low effective difficulty targeting precision, and due to the square-edged stair-step nature of such coarse resolution, is very vulnerable to falling into resonance feedback as the sharp harmonics implicitly existing in a coarse sampling system can rapidly get caught in wildly incorrect adjustments.
 
-So really, for a 10 minute block our resolution is 200. 5 minutes is 100, 2.5 is 50, so you can easily see the influence of rounding errors will start to creep into the difficulty adjustment. This is also why the Parallelcoin hard fork will not shorten the block time. 
+The fundamental fact is that what we call 'square' in mathematics is in fact literally infinite exponents. You can see this very easily by simply plotting y=x<sup>n</sup> curves with large values of `n`. In an adjustment, the calculation can jump dramatically between one point and the next in the grid, and then it can trigger resonances built from common factors in the coarse granuality, sending difficulty either up or down far beyond the change in actual hashrate.
 
-The other problem with Proof of Work and its clock-dependency is that even if the precision was higher, it would only improve the difficulty adjustment marginally, and only if the adjustment algorithm was bumpy instead of smooth. There is naturally aliasing caused by the numbers themselves, and the difficulty regime will amplify them the more linear it is, as each corner behaves like a trap. 
+The problem grows worse and worse as you try to reduce the block time, and then further compounding the dysregulation, random network latency, partitioning and partial partitioning such as near-partitioning can cause parts of the network to desynchronise dramatically, and the resonant cascades are fed with further fluctuating changes in latency, leading to high levels of orphan blocks, inaccurate adjustments, and dwells on outlying edges of the normal of the target.
 
-Thus also, as the technique is very effective in digital audio decoding, one can eliminate much of the alias distortion with normalised noise varying the very edge bits a few up and down. To replicate this deterministically, one would just hash the source hash one time, and copy over the lowest bits.
+For this, the difficulty adjustment flips the last two bits of the compressed 'bits' value. This is not an excessive variance, and basically tends to 'wiggle the tail' of the adjustments so that they are far less likely to fall into dwell points and go nonlinear. Because it is deterministic, all nodes can easily agree on the correct value based on a block timestamp and previous block difficulty target, but the result, like the source data, is stochastic, which helps eliminate the effects of aliasing distortion.
 
-Which brings me to the last issue, the precision of the compressed difficulty target, called 'Bits', provides 23 bits of precision, and for some reason, has a sign bit. So, whatever adjustment is made, the target it must meet has only this much real resolution. Though, it is 8 million places, far more than the clock anyway.
+### Parabolic response curve
 
-## Pseudocode description
+Most proof of work difficulty adjustment regimes use linear functions to find the target created in a block for the next block to hit. This geometry implicitly creates increasing instability because of the aliasing, as an angular edge, as mentioned before, has very high harmonics (power/parabolic function with a high index). So in this algorithm we use the nice, smooth cubic binomial as shown above, which basically adjusts the difficulty less the closer it is to target.
 
-1. Calculate the average block time of some arbitrary, but reasonable number of past blocks. For this we will start with 288, or 24 hours.
+The area has to be reasonably wide, but not too wide. The constant linear adjustment caused by a linear averaging filter will cause this target to frequenntly be missed, and most often resulting in a periodic variance that never really gets satisfactorily close to keeping the block time stable.
 
-2. Divide the average by the target block time. This is the ratio of divergence.
+But the worst part of a linear adjustment is that its intrinsic harmonics, created by granularity and aliasing, provide an attack surface for hashrate based attacks. 
 
-3. The ratio of divergence indicates a y coordinate from the parabolic graph that will be applied to the current difficulty.
+So the parabolic filter adjustment will instead converge slowly, and because of the dithering of the lowest bits of the difficulty target, it will usually avoid dwell points and compounding of common factors. The dithering also helps make it so that as the divergence starts to grow, if hashrate has significantly changed, its stochastic nature will make it more possible for the adjustment to more rapidly adjust.
 
-4. The y coordinate is multiplied by the current difficulty, with fixed precision of 1 at the 32nd bit meaning 1. Thereby, short blocks will have the target lowered (difficulty raised), and the long blocks will have their difficulty increased, thus increasing the chance the next block will come closer to the target.
+## Conclusion
+
+By adding a small amount of extra noise to the computations, we diminish the effect of common factors leading to dwells and sharp variation, and when wide variance occurs, the curve increases the attack of the adjustment in proportion, smoothly, with the width of the divergence.
+
+The issue of difficulty adjustment becomes a bigger and bigger problem for Proof of Work blockchains the greater the amount of available hashpower becomes. Chains that are on the margins of hashrate distribution between chains are more and more vulnerable to 51% attacks and more sophisticated timing based attacks that usually aim to freeze the clock in a high work side chain that passes the chain tip.
+
+These issues are a huge problem and the only solution can be, without abandoning the anti-spam proof of work system altogether, to improve the defences against the various attacks. Eliminating resonances is a big part of this, as they often are the easiest way to lower the real hashpower requuired to launch a 51% attack.
+
+Further techniques, which will become more relevant with a higher transaction volume, is to diminish the incentive for very large miners to gobble up all the available transactions far outside of the normal, leaving the rest of the miners, of which many are loyal to a coin, out of pocket.
+
+The withholding attack on pools is another issue, and part of the solution with this lies in ensuring that transactions are more spread out in their placement in blocks, the way that this will be done is inspired by the ideas in Freshcoin, which raises difficulty target along with the block weight.
+
+Another approach that will be explored is low reward minimum difficulty blocks. These are tricky to implement in a live network with a lot of miners because of the problem of network synchronisation. The solution would seem to lie in setting a boundary but making it fuzzy enough that these blocks do not cause large numbers of orphans. The other problem with this is to do with block timestamp based attacks. So for this reason, such changes will be put off for future exploration.
