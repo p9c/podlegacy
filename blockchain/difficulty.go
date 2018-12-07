@@ -280,13 +280,15 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		last := lastNode
 		if last == nil {
 			// We are at the genesis block
-			return powLimitBits, nil
+			// return powLimitBits, nil
+			return b.chainParams.GenesisBlock.Header.Bits, nil
 		}
 		if last.version != algo {
 			last = last.GetPrevWithAlgo(algo)
 			if last == nil {
 				// This is the first block of the algo
-				return powLimitBits, nil
+				// return powLimitBits, nil
+				return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
 		}
 		lastheight := last.height
@@ -295,7 +297,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if firstheight < 1 {
 			firstheight = 1
 			if lastheight == firstheight {
-				return powLimitBits, nil
+				// return powLimitBits, nil
+				return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
 		}
 		log.Debugf("first %d last %d", firstheight, lastheight)
@@ -328,6 +331,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		} else {
 			newTargetBits = BigToCompact(newtarget)
 		}
+		newTargetBits ^= 0x00000003
 	}
 	return newTargetBits, nil
 }

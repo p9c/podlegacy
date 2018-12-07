@@ -65,13 +65,14 @@ var (
 	AveragingTargetTimespan       = TargetTimePerBlock * AveragingInterval
 	TargetTimespan                = Interval * TargetTimePerBlock
 
-	TestnetInterval                int64 = 100
-	TestnetMaxAdjustDown           int64 = 10
-	TestnetMaxAdjustUp             int64 = 20
-	TestnetTargetTimePerBlock      int64 = 5
-	TestnetAveragingInterval       int64 = 288
-	TestnetAveragingTargetTimespan       = TestnetTargetTimePerBlock * TestnetAveragingInterval
-	TestnetTargetTimespan                = TestnetInterval * TestnetTargetTimePerBlock
+	TestnetCoefficient             float64 = 0.12
+	TestnetInterval                int64   = 100
+	TestnetMaxAdjustDown           int64   = 10
+	TestnetMaxAdjustUp             int64   = 20
+	TestnetTargetTimePerBlock      int64   = 300
+	TestnetAveragingInterval       int64   = 300
+	TestnetAveragingTargetTimespan         = TestnetTargetTimePerBlock * TestnetAveragingInterval
+	TestnetTargetTimespan                  = TestnetInterval * TestnetTargetTimePerBlock
 )
 
 // Checkpoint identifies a known good point in the block chain.  Using
@@ -256,6 +257,7 @@ type Params struct {
 
 	// Parallelcoin specific difficulty adjustment parameters
 
+	Coefficient             float64
 	Interval                int64
 	AveragingInterval       int64
 	AveragingTargetTimespan int64
@@ -532,6 +534,7 @@ var TestNet3Params = Params{
 
 	// Parallelcoin specific difficulty adjustment parameters
 
+	Coefficient:             TestnetCoefficient,
 	Interval:                TestnetInterval,
 	AveragingInterval:       TestnetAveragingInterval, // Extend to target timespan to adjust better to hashpower (30000/300=100) post hardforkTestnet
 	AveragingTargetTimespan: TestnetAveragingTargetTimespan,

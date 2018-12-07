@@ -136,8 +136,8 @@ var testNet3GenesisBlock = wire.MsgBlock{
 		PrevBlock:  chainhash.Hash{}, // 0000000000000000000000000000000000000000000000000000000000000000
 		MerkleRoot: testNet3GenesisMerkleRoot,
 		Timestamp:  time.Unix(0x53c9ea84, 0),
-		Bits:       testnetBits, // 0x1e0fffff, // 486604799 [00000000ffff0000000000000000000000000000000000000000000000000000]
-		Nonce:      0x001adf18,  // 417274368
+		Bits:       0x1e00f1ea, //testnetBits, // 0x1e0fffff, // 486604799 [00000000ffff0000000000000000000000000000000000000000000000000000]
+		Nonce:      0x001adf18, // 417274368
 	},
 	Transactions: []*wire.MsgTx{&genesisCoinbaseTx},
 }
