@@ -280,38 +280,34 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		last := lastNode
 		if last == nil {
 			// We are at the genesis block
-			// return powLimitBits, nil
-			return b.chainParams.GenesisBlock.Header.Bits, nil
+			return powLimitBits, nil
+			// return b.chainParams.GenesisBlock.Header.Bits, nil
 		}
 		if last.version != algo {
 			last = last.GetPrevWithAlgo(algo)
 			if last == nil {
 				// This is the first block of the algo
-				// return powLimitBits, nil
-				return b.chainParams.GenesisBlock.Header.Bits, nil
+				return powLimitBits, nil
+				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
 		}
 		lastheight := last.height
 		firstheight := lastheight - int32(b.chainParams.AveragingInterval)
-		// log.Debugf("averaging interval %d", b.chainParams.AveragingInterval)
 		if firstheight < 1 {
 			firstheight = 1
 			if lastheight == firstheight {
-				// return powLimitBits, nil
-				return b.chainParams.GenesisBlock.Header.Bits, nil
+				return powLimitBits, nil
+				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
 		}
-		log.Debugf("first %d last %d", firstheight, lastheight)
 		first, _ := b.BlockByHeight(firstheight)
 		lasttime := last.timestamp
 		firsttime := first.MsgBlock().Header.Timestamp.Unix()
 		numblocks := lastheight - firstheight
 		interval := float64(lasttime - firsttime)
 		avblocktime := interval / float64(numblocks)
-		log.Debugf("firsttime %d lasttime %d interval %.0f avblocktime %.8f", firsttime, lasttime, interval, avblocktime)
 		// divergence := float64(b.chainParams.TargetTimePerBlock) / float64(avblocktime)
 		divergence := avblocktime / float64(b.chainParams.TargetTimePerBlock)
-		log.Debugf("target %d divergence %.8f", b.chainParams.TargetTimePerBlock, divergence)
 
 		// Now we have the divergence in the averaging period, we now use this formula: https://github.com/parallelcointeam/pod/raw/master/docs/parabolic-diff-adjustment-filter-formula.png
 		// This is the expanded version as will be required:
@@ -320,18 +316,24 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if adjustment < 0.0 {
 			adjustment *= -1
 		}
-		log.Debugf("adjustment %.8f", adjustment)
+		// log.Debugf("adjustment %.8f", adjustment)
 		bigadjustment := big.NewFloat(adjustment)
 		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
 		bigfnewtarget := big.NewFloat(0.0).Mul(bigadjustment, bigoldtarget)
 		newtarget, _ := bigfnewtarget.Int(nil)
+		// log.Debugf("firsttime %d lasttime %d interval %.0f avblocktime %.8f", firsttime, lasttime, interval, avblocktime)
+		// log.Debugf("target %d divergence %.8f", b.chainParams.TargetTimePerBlock, divergence)
 		// log.Debugf("newtarget %064x accuracy %d", newtarget, accuracy)
 		if newtarget.Cmp(powLimit) > 0 {
 			newTargetBits = powLimitBits
 		} else {
 			newTargetBits = BigToCompact(newtarget)
 		}
+		basetargetbits := newTargetBits
 		newTargetBits ^= 0x00000003
+		log.Warnf("height %d av %d blocks: %.8f target: %d, divergence: %.4f adjustment: %.4f dither: %08x -> %08x", lastheight, numblocks, avblocktime, b.chainParams.TargetTimePerBlock, divergence, adjustment, basetargetbits, newTargetBits)
+		log.Warnf("old: %064x", CompactToBig(last.bits))
+		log.Warnf("new: %064x", CompactToBig(BigToCompact(newtarget)))
 	}
 	return newTargetBits, nil
 }
