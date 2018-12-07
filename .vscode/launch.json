@@ -11,7 +11,14 @@
             "mode": "auto",
             "program": "${fileDirname}",
             "env": {},
-            "args": ["--rpclisten=127.0.0.1:11348", "--txindex", "--addrindex", "debuglevel=debug", "--testnet"]
+            "args": [
+                "--rpclisten=127.0.0.1:11348",
+                "--txindex",
+                "--addrindex",
+                "--debuglevel=debug",
+                "--testnet",
+                "--addpeer=127.0.0.1:11547",
+            ]
         }
     ]
 }

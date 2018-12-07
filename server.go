@@ -2592,7 +2592,7 @@ func setupScryptRPCListeners() ([]net.Listener, error) {
 // newServer returns a new pod server configured to listen on addr for the
 // bitcoin network type specified by chainParams.  Use start to begin accepting
 // connections from peers.
-func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, interrupt <-chan struct{}) (*server, error) {
+func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, interrupt <-chan struct{}, algo uint32) (*server, error) {
 	services := defaultServices
 	if cfg.NoPeerBloomFilters {
 		services &^= wire.SFNodeBloom
@@ -2644,6 +2644,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		hashCache:            txscript.NewHashCache(cfg.SigCacheMaxSize),
 		cfCheckptCaches:      make(map[wire.FilterType][]cfHeaderKV),
 		numthreads:           thr,
+		algo:                 algo,
 	}
 
 	// Create the transaction and address indexes if needed.
@@ -2804,6 +2805,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		ConnectedCount:         s.ConnectedCount,
 		IsCurrent:              s.syncManager.IsCurrent,
 		NumThreads:             s.numthreads,
+		Algo:                   s.algo,
 	})
 
 	// Only setup a function to return new addresses to connect to when

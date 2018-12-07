@@ -1,7 +1,5 @@
 // Copyright (c) 2014-2016 The btcsuite developers
 
-
-
 package mining
 
 import (
@@ -846,6 +844,7 @@ mempoolLoop:
 	// the last several blocks per the chain consensus rules.
 	ts := medianAdjustedTime(best, g.timeSource)
 	reqDifficulty, err := g.chain.CalcNextRequiredDifficulty(ts, algo)
+	log.Debugf("reqDifficulty %064x", blockchain.CompactToBig(reqDifficulty))
 	if err != nil {
 		return nil, err
 	}
@@ -878,10 +877,18 @@ mempoolLoop:
 	// consensus rules to ensure it properly connects to the current best
 	// chain with no issues.
 	block := btcutil.NewBlock(&msgBlock)
+	log.Debugf("%064x", blockchain.CompactToBig(msgBlock.Header.Bits))
+	log.Debugf("BORK %064x", blockchain.CompactToBig(block.MsgBlock().Header.Bits))
 	block.SetHeight(nextBlockHeight)
-	if err := g.chain.CheckConnectBlockTemplate(block); err != nil {
+	log.Debugf("%064x", blockchain.CompactToBig(msgBlock.Header.Bits))
+	log.Debugf("BORK %064x", blockchain.CompactToBig(block.MsgBlock().Header.Bits))
+	err = g.chain.CheckConnectBlockTemplate(block)
+	if err != nil {
+		log.Debugf("checkconnectblocktemplate err: %s", err.Error())
 		return nil, err
 	}
+	log.Debugf("%064x", blockchain.CompactToBig(msgBlock.Header.Bits))
+	log.Debugf("BORK %064x", blockchain.CompactToBig(block.MsgBlock().Header.Bits))
 
 	log.Debugf("Created new block template (%d transactions, %d in "+
 		"fees, %d signature operations cost, %d weight, target difficulty "+

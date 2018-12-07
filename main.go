@@ -1,7 +1,3 @@
-
-
-
-
 package main
 
 import (
@@ -143,10 +139,18 @@ func podMain(serverChan chan<- *server) error {
 
 		return nil
 	}
-
+	var algo uint32
+	switch cfg.Algo {
+	case "sha256d":
+		algo = 2
+	case "scrypt":
+		algo = 514
+	default:
+		algo = 2
+	}
 	// Create server and start it.
 	server, err := newServer(cfg.Listeners, db, activeNetParams.Params,
-		interrupt)
+		interrupt, algo)
 	if err != nil {
 		// TODO: this logging could do with some beautifying.
 		podLog.Errorf("Unable to start server on %v: %v",

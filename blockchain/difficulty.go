@@ -223,13 +223,17 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	case 514:
 		powLimit = b.chainParams.ScryptPowLimit
 		powLimitBits = b.chainParams.ScryptPowLimitBits
+		log.Debugf("algo: scrypt %064x %08x", powLimit, powLimitBits)
 	default:
+		// log.Debug("algo: sha256d")
 		powLimit = b.chainParams.PowLimit
 		powLimitBits = b.chainParams.PowLimitBits
 	}
+	log.Debugf("%064x %08x", powLimit, powLimitBits)
 
 	// Genesis block.
 	if lastNode == nil {
+		log.Debugf("powLimitBits %08x", powLimitBits)
 		return powLimitBits, nil
 	}
 
@@ -277,8 +281,10 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			adjustedTimespan,
 			b.chainParams.AveragingTargetTimespan)
 	case "testnet":
+
 		last := lastNode
 		if last == nil {
+			log.Debugf("genesis block")
 			// We are at the genesis block
 			return powLimitBits, nil
 			// return b.chainParams.GenesisBlock.Header.Bits, nil
@@ -287,6 +293,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			last = last.GetPrevWithAlgo(algo)
 			if last == nil {
 				// This is the first block of the algo
+				log.Debugf("first block of algo %08x", powLimitBits)
 				return powLimitBits, nil
 				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
@@ -296,6 +303,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if firstheight < 1 {
 			firstheight = 1
 			if lastheight == firstheight {
+				log.Debugf("second block of algo")
 				return powLimitBits, nil
 				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}

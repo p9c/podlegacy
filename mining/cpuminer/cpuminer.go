@@ -289,6 +289,8 @@ func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32,
 			hash := header.BlockHashWithAlgos()
 			hashesCompleted += incr
 
+			// log.Debugf("algo %d", header.Version)
+
 			// The block is solved when the new block hash is less
 			// than the target difficulty.  Yay!
 			if blockchain.HashToBig(&hash).Cmp(targetDifficulty) <= 0 {
@@ -354,6 +356,7 @@ out:
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
 		template, err := m.g.NewBlockTemplate(payToAddr, m.cfg.Algo)
+		log.Debugf("algo %d", m.cfg.Algo)
 		m.submitBlockLock.Unlock()
 		if err != nil {
 			errStr := fmt.Sprintf("(cpuminer.go 1) Failed to create new block "+
