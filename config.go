@@ -444,7 +444,7 @@ func loadConfig() (*config, []string, error) {
 		MaxOrphanTxs:         defaultMaxOrphanTransactions,
 		SigCacheMaxSize:      defaultSigCacheMaxSize,
 		Generate:             defaultGenerate,
-		GenThreads:           -1,
+		GenThreads:           1,
 		TxIndex:              defaultTxIndex,
 		AddrIndex:            defaultAddrIndex,
 		Algo:                 defaultAlgo,
@@ -771,6 +771,41 @@ func loadConfig() (*config, []string, error) {
 		for _, addr := range addrs {
 			addr = net.JoinHostPort(addr, activeNetParams.rpcPort)
 			cfg.RPCListeners = append(cfg.RPCListeners, addr)
+		}
+		cfg.Blake2bListeners = make([]string, 0, len(addrs))
+		for _, addr := range addrs {
+			addr = net.JoinHostPort(addr, activeNetParams.Blake2bRPCPort)
+			cfg.Blake2bListeners = append(cfg.Blake2bListeners, addr)
+		}
+		cfg.Blake14lrListeners = make([]string, 0, len(addrs))
+		for _, addr := range addrs {
+			addr = net.JoinHostPort(addr, activeNetParams.Blake14lrRPCPort)
+			cfg.Blake14lrListeners = append(cfg.Blake14lrListeners, addr)
+		}
+		cfg.KeccakListeners = make([]string, 0, len(addrs))
+		for _, addr := range addrs {
+			addr = net.JoinHostPort(addr, activeNetParams.KeccakRPCPort)
+			cfg.KeccakListeners = append(cfg.KeccakListeners, addr)
+		}
+		cfg.Lyra2rev2Listeners = make([]string, 0, len(addrs))
+		for _, addr := range addrs {
+			addr = net.JoinHostPort(addr, activeNetParams.Lyra2rev2RPCPort)
+			cfg.Lyra2rev2Listeners = append(cfg.Lyra2rev2Listeners, addr)
+		}
+		cfg.SkeinListeners = make([]string, 0, len(addrs))
+		for _, addr := range addrs {
+			addr = net.JoinHostPort(addr, activeNetParams.SkeinRPCPort)
+			cfg.SkeinListeners = append(cfg.SkeinListeners, addr)
+		}
+		cfg.X11Listeners = make([]string, 0, len(addrs))
+		for _, addr := range addrs {
+			addr = net.JoinHostPort(addr, activeNetParams.X11RPCPort)
+			cfg.X11Listeners = append(cfg.X11Listeners, addr)
+		}
+		cfg.X13Listeners = make([]string, 0, len(addrs))
+		for _, addr := range addrs {
+			addr = net.JoinHostPort(addr, activeNetParams.X13RPCPort)
+			cfg.X13Listeners = append(cfg.X13Listeners, addr)
 		}
 	}
 

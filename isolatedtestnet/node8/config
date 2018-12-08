@@ -23,3 +23,6 @@ debuglevel=debug
 algo=keccak
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
+generate=0
+genthreads=1
+

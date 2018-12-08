@@ -240,7 +240,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		powLimit = b.chainParams.PowLimit
 		powLimitBits = b.chainParams.PowLimitBits
 	}
-	// log.Debugf("calcNextRequiredDifficulty %d %064x %08x", algo, powLimit, powLimitBits)
+	log.Debugf("algo %d %064x %08x", algo, powLimit, powLimitBits)
 
 	// Genesis block.
 	if lastNode == nil {
@@ -292,7 +292,9 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			adjustedTimespan,
 			b.chainParams.AveragingTargetTimespan)
 	case "testnet":
-
+		// if algo != 2 {
+		// log.Debugf("limits: %064x %08x", powLimit, powLimitBits)
+		// }
 		last := lastNode
 		if last == nil {
 			// We are at the genesis block
@@ -316,8 +318,14 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 				return powLimitBits, nil
 				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
+			if firstheight == 0 {
+				return powLimitBits, nil
+			}
 		}
 		first, _ := b.BlockByHeight(firstheight)
+		if first == nil {
+			return powLimitBits, nil
+		}
 		lasttime := last.timestamp
 		firsttime := first.MsgBlock().Header.Timestamp.Unix()
 		numblocks := lastheight - firstheight
