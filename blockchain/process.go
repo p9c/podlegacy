@@ -1,7 +1,5 @@
 // Copyright (c) 2013-2017 The btcsuite developers
 
-
-
 package blockchain
 
 import (
@@ -151,7 +149,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	fastAdd := flags&BFFastAdd == BFFastAdd
 
 	blockHash := block.Hash()
-	blockHashWithAlgo := block.MsgBlock().BlockHashWithAlgos()
+	blockHashWithAlgo := block.MsgBlock().BlockHashWithAlgos(b.chainParams.Name != "mainnet")
 	log.Tracef("Processing block %v", blockHashWithAlgo)
 
 	// The block must not already exist in the main chain or side chains.

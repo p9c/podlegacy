@@ -1,7 +1,3 @@
-
-
-
-
 package wire
 
 import (
@@ -272,8 +268,8 @@ func (msg *MsgBlock) BlockHash() chainhash.Hash {
 }
 
 // BlockHashWithAlgos computes the block identifier hash for this block.
-func (msg *MsgBlock) BlockHashWithAlgos() chainhash.Hash {
-	return msg.Header.BlockHashWithAlgos()
+func (msg *MsgBlock) BlockHashWithAlgos(hf bool) chainhash.Hash {
+	return msg.Header.BlockHashWithAlgos(hf)
 }
 
 // TxHashes returns a slice of hashes of all of transactions in this block.

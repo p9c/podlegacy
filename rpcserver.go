@@ -1136,7 +1136,7 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		VersionHex:    fmt.Sprintf("%08x", blockHeader.Version),
 		PowAlgoID:     powalgoid,
 		PowAlgo:       algoname,
-		PowHash:       blk.MsgBlock().BlockHashWithAlgos().String(),
+		PowHash:       blk.MsgBlock().BlockHashWithAlgos(s.cfg.ChainParams.Name != "mainnet").String(),
 		MerkleRoot:    blockHeader.MerkleRoot.String(),
 		PreviousHash:  blockHeader.PrevBlock.String(),
 		Nonce:         blockHeader.Nonce,

@@ -1,7 +1,3 @@
-
-
-
-
 package wire
 
 import (
@@ -10,7 +6,14 @@ import (
 	"io"
 	"time"
 
+	"github.com/aguycalled/gox13hash"
+	x11 "github.com/bitbandi/go-x11"
+	"github.com/bitgoin/lyra2rev2"
+	"github.com/dchest/blake256"
+	"github.com/ebfe/keccak"
+	"github.com/farces/skein512/skein"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/scrypt"
 )
 
@@ -77,7 +80,7 @@ func (h *BlockHeader) BlockHash() (out chainhash.Hash) {
 }
 
 // BlockHashWithAlgos computes the block identifier hash for the given block header. This function is additional because the sync manager and the parallelcoin protocol only use SHA256D hashes for inventories and calculating the scrypt (or other) hash for these blocks when requested via that route causes an 'unrequested block' error.
-func (h *BlockHeader) BlockHashWithAlgos() (out chainhash.Hash) {
+func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
 	// Encode the header and double sha256 everything prior to the number of
 	// transactions.  Ignore the error returns since there is no way the
 	// encode could fail except being out of memory which would cause a
@@ -85,7 +88,37 @@ func (h *BlockHeader) BlockHashWithAlgos() (out chainhash.Hash) {
 	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
 	_ = writeBlockHeader(buf, 0, h)
 	switch h.Version {
-	case 514:
+	case 3: // Blake14lr (decred)
+		a := blake256.New()
+		a.Write(buf.Bytes())
+		out.SetBytes(a.Sum(nil))
+	case 6: // Blake2b (sia)
+		out = blake2b.Sum256(buf.Bytes())
+	case 10: // Lyra2REv2 (verge)
+		o, _ := lyra2rev2.Sum(buf.Bytes())
+		out.SetBytes(o)
+	case 18: // Skein (skein512 + SHA256 as myriad)
+		o := buf.Bytes()
+		hasher := skein.NewSkein512()
+		o2 := hasher.Hash(o)
+		o3 := make([]byte, 64)
+		for i := range o2 {
+			o3[i] = byte(o2[i])
+		}
+		out = chainhash.HashH(o3)
+	case 34: // X11
+		o := [32]byte{}
+		x := x11.New()
+		x.Hash(buf.Bytes(), o[:])
+		out.SetBytes(o[:])
+	case 66: // X13
+		out = gox13hash.Sum(buf.Bytes())
+	case 130: // keccac/SHA3
+		k := keccak.New256()
+		k.Reset()
+		k.Write(buf.Bytes())
+		out.SetBytes(k.Sum(nil))
+	case 514: // scrypt
 		// b := chainhash.DoubleHashH(buf.Bytes())
 		b := buf.Bytes()
 		c := make([]byte, len(b))
@@ -98,11 +131,11 @@ func (h *BlockHeader) BlockHashWithAlgos() (out chainhash.Hash) {
 			fmt.Println(fmt.Errorf("Unable to generate scrypt key: %s", err))
 			return
 		}
-
 		for i := range dk {
 			out[i] = dk[len(dk)-1-i]
 		}
 		copy(out[:], dk)
+	case 2: // sha256d
 	default:
 		out = chainhash.DoubleHashH(buf.Bytes())
 	}

@@ -231,9 +231,10 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	var powLimit *big.Int
 	var powLimitBits uint32
 	switch algo {
-	case 514:
+	case 514, 3, 6, 10, 18, 34, 66, 130:
 		powLimit = b.chainParams.ScryptPowLimit
 		powLimitBits = b.chainParams.ScryptPowLimitBits
+	case 2: // after hardfork this will be enforced and any other values rejected
 	default:
 		// log.Debug("algo: sha256d")
 		powLimit = b.chainParams.PowLimit

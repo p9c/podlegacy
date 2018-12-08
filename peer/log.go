@@ -1,7 +1,5 @@
 // Copyright (c) 2015-2016 The btcsuite developers
 
-
-
 package peer
 
 import (
@@ -178,7 +176,7 @@ func messageSummary(msg wire.Message) string {
 
 	case *wire.MsgBlock:
 		header := &msg.Header
-		return fmt.Sprintf("hash %s, ver %d, %d tx, %s", msg.BlockHashWithAlgos(),
+		return fmt.Sprintf("hash %s, ver %d, %d tx, %s", msg.BlockHash(),
 			header.Version, len(msg.Transactions), header.Timestamp)
 
 	case *wire.MsgInv:

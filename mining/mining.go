@@ -365,7 +365,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 	timeSource blockchain.MedianTimeSource,
 	sigCache *txscript.SigCache,
 	hashCache *txscript.HashCache, algo uint32) *BlkTmplGenerator {
-	log.Debug("NewBlkTmplGenerator")
+	// log.Debug("NewBlkTmplGenerator")
 
 	return &BlkTmplGenerator{
 		policy:      policy,
@@ -910,7 +910,7 @@ mempoolLoop:
 // based on the new time for the test networks since their target difficulty can
 // change based upon time.
 func (g *BlkTmplGenerator) UpdateBlockTime(msgBlock *wire.MsgBlock) error {
-	log.Debug("UpdateBlockTime")
+	// log.Debug("UpdateBlockTime")
 
 	// The new timestamp is potentially adjusted to ensure it comes after
 	// the median time of the last several blocks per the chain consensus

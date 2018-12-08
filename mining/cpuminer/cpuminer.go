@@ -274,9 +274,9 @@ func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32,
 			}
 
 			var incr uint64
-			if header.Version == 514 {
-				incr = 1
-			}
+			// if header.Version == 514 {
+			incr = 1
+			// }
 			if header.Version == 2 {
 				incr = 2
 			}
@@ -286,7 +286,7 @@ func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32,
 			// increment the number of hashes completed for each
 			// attempt accordingly.
 			header.Nonce = i
-			hash := header.BlockHashWithAlgos()
+			hash := header.BlockHashWithAlgos(m.cfg.ChainParams.Name != "mainnet")
 			hashesCompleted += incr
 
 			// log.Debugf("algo %d", header.Version)

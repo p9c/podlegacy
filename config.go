@@ -119,6 +119,13 @@ type config struct {
 	RPCLimitPass         string        `long:"rpclimitpass" default-mask:"-" description:"Password for limited RPC connections"`
 	RPCListeners         []string      `long:"rpclisten" description:"Add an interface/port to listen for RPC connections (default port: 11048, testnet: 21048)"`
 	ScryptListeners      []string      `long:"scryptlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	Blake2bListeners     []string      `long:"blake2blisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	Blake14lrListeners   []string      `long:"blake14lrlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	KeccakListeners      []string      `long:"keccaklisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	Lyra2rev2Listeners   []string      `long:"lyra2rev2listen" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	SkeinListeners       []string      `long:"skeinlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	X11Listeners         []string      `long:"x11listen" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	X13Listeners         []string      `long:"x13listen" description:"Secondary RPC port that delivers scrypt versioned block templates"`
 	RPCCert              string        `long:"rpccert" description:"File containing the certificate file"`
 	RPCKey               string        `long:"rpckey" description:"File containing the certificate key"`
 	RPCMaxClients        int           `long:"rpcmaxclients" description:"Max number of RPC clients for standard connections"`
@@ -152,7 +159,7 @@ type config struct {
 	NoRelayPriority      bool          `long:"norelaypriority" description:"Do not require free or low-fee transactions to have high priority for relaying"`
 	TrickleInterval      time.Duration `long:"trickleinterval" description:"Minimum time between attempts to send new inventory to a connected peer"`
 	MaxOrphanTxs         int           `long:"maxorphantx" description:"Max number of orphan transactions to keep in memory"`
-	Algo                 string        `long:"algo" description:"Sets the algorithm for the CPU miner (sha256d/scrypt default sha256d)"`
+	Algo                 string        `long:"algo" description:"Sets the algorithm for the CPU miner ( blake14lr, blake2b, keccak, lyra2rev2, scrypt, skein, x11, x13, sha256d, scrypt default sha256d)"`
 	Generate             bool          `long:"generate" description:"Generate (mine) bitcoins using the CPU"`
 	GenThreads           int32         `long:"genthreads" description:"Number of CPU threads to use with CPU miner -1 = all cores"`
 	MiningAddrs          []string      `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
@@ -569,10 +576,7 @@ func loadConfig() (*config, []string, error) {
 
 	// Set the mining algorithm correctly, default to sha256d if unrecognised
 	switch cfg.Algo {
-	case "scrypt":
-		cfg.Algo = "scrypt"
-	case "sha256d":
-		cfg.Algo = "sha256d"
+	case "blake14lr", "blake2b", "keccak", "lyra2rev2", "scrypt", "skein", "x11", "x13":
 	default:
 		cfg.Algo = "sha256d"
 	}
