@@ -137,17 +137,23 @@ func BigToCompact(n *big.Int) uint32 {
 // potential division by zero and really small floating point numbers, the
 // result adds 1 to the denominator and multiplies the numerator by 2^256.
 func CalcWork(bits uint32) *big.Int {
+	// log.Debugf("CalcWork %08x %064x", bits, CompactToBig(bits))
+
 	// Return a work value of zero if the passed difficulty bits represent
 	// a negative number. Note this should not happen in practice with valid
 	// blocks, but an invalid block could trigger it.
 	difficultyNum := CompactToBig(bits)
 	if difficultyNum.Sign() <= 0 {
+		// log.Debugf("negative diff")
 		return big.NewInt(0)
 	}
 
 	// (1 << 256) / (difficultyNum + 1)
 	denominator := new(big.Int).Add(difficultyNum, bigOne)
-	return new(big.Int).Div(oneLsh256, denominator)
+	// log.Debugf("denominator %064x", denominator)
+	r := new(big.Int).Div(oneLsh256, denominator)
+	// log.Debugf("result %064x", r)
+	return r
 }
 
 // calcEasiestDifficulty calculates the easiest possible difficulty that a block
@@ -155,6 +161,7 @@ func CalcWork(bits uint32) *big.Int {
 // verify that claimed proof of work by a block is sane as compared to a
 // known good checkpoint.
 func (b *BlockChain) calcEasiestDifficulty(bits uint32, duration time.Duration) uint32 {
+	log.Debug("calcEasiestDifficulty")
 	// Convert types used in the calculations below.
 	durationVal := int64(duration / time.Second)
 	adjustmentFactor := big.NewInt(b.chainParams.RetargetAdjustmentFactor)
@@ -162,13 +169,13 @@ func (b *BlockChain) calcEasiestDifficulty(bits uint32, duration time.Duration) 
 	// The test network rules allow minimum difficulty blocks after more
 	// than twice the desired amount of time needed to generate a block has
 	// elapsed.
-	if b.chainParams.ReduceMinDifficulty {
-		reductionTime := int64(b.chainParams.MinDiffReductionTime /
-			time.Second)
-		if durationVal > reductionTime {
-			return b.chainParams.PowLimitBits
-		}
-	}
+	// if b.chainParams.ReduceMinDifficulty {
+	// 	reductionTime := int64(b.chainParams.MinDiffReductionTime /
+	// 		time.Second)
+	// 	if durationVal > reductionTime {
+	// 		return b.chainParams.PowLimitBits
+	// 	}
+	// }
 
 	// Since easier difficulty equates to higher numbers, the easiest
 	// difficulty for a given duration is the largest value possible given
@@ -182,6 +189,7 @@ func (b *BlockChain) calcEasiestDifficulty(bits uint32, duration time.Duration) 
 
 	// Limit new value to the proof of work limit.
 	if newTarget.Cmp(b.chainParams.PowLimit) > 0 {
+		// log.Debugf("Setting minimum difficulty %064x", b.chainParams.PowLimit)
 		newTarget.Set(b.chainParams.PowLimit)
 	}
 
@@ -193,6 +201,8 @@ func (b *BlockChain) calcEasiestDifficulty(bits uint32, duration time.Duration) 
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
+	log.Debug("findPrevTestNetDifficulty")
+
 	// Search backwards through the chain for the last block without
 	// the special rule applied.
 	iterNode := startNode
@@ -217,23 +227,23 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
 func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo uint32) (uint32, error) {
+
 	var powLimit *big.Int
 	var powLimitBits uint32
 	switch algo {
 	case 514:
 		powLimit = b.chainParams.ScryptPowLimit
 		powLimitBits = b.chainParams.ScryptPowLimitBits
-		log.Debugf("algo: scrypt %064x %08x", powLimit, powLimitBits)
 	default:
 		// log.Debug("algo: sha256d")
 		powLimit = b.chainParams.PowLimit
 		powLimitBits = b.chainParams.PowLimitBits
 	}
-	log.Debugf("%064x %08x", powLimit, powLimitBits)
+	// log.Debugf("calcNextRequiredDifficulty %d %064x %08x", algo, powLimit, powLimitBits)
 
 	// Genesis block.
 	if lastNode == nil {
-		log.Debugf("powLimitBits %08x", powLimitBits)
+		// log.Debugf("powLimitBits %08x", powLimitBits)
 		return powLimitBits, nil
 	}
 
@@ -245,14 +255,14 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if prevNode.version != algo {
 			prevNode = prevNode.GetPrevWithAlgo(algo)
 		}
-		if b.chainParams.ReduceMinDifficulty {
-			reductionTime := int64(b.chainParams.MinDiffReductionTime)
-			allowMinTime := lastNode.timestamp + reductionTime
-			if newBlockTime.Unix() > allowMinTime {
-				return b.chainParams.PowLimitBits, nil
-			}
-			return b.findPrevTestNetDifficulty(lastNode), nil
-		}
+		// if b.chainParams.ReduceMinDifficulty {
+		// 	reductionTime := int64(b.chainParams.MinDiffReductionTime)
+		// 	allowMinTime := lastNode.timestamp + reductionTime
+		// 	if newBlockTime.Unix() > allowMinTime {
+		// 		return b.chainParams.PowLimitBits, nil
+		// 	}
+		// 	return b.findPrevTestNetDifficulty(lastNode), nil
+		// }
 		firstNode := prevNode.GetPrevWithAlgo(algo) //.RelativeAncestor(1)
 		for i := int64(1); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
 			firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo)
@@ -284,7 +294,6 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 
 		last := lastNode
 		if last == nil {
-			log.Debugf("genesis block")
 			// We are at the genesis block
 			return powLimitBits, nil
 			// return b.chainParams.GenesisBlock.Header.Bits, nil
@@ -293,7 +302,6 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			last = last.GetPrevWithAlgo(algo)
 			if last == nil {
 				// This is the first block of the algo
-				log.Debugf("first block of algo %08x", powLimitBits)
 				return powLimitBits, nil
 				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
@@ -303,7 +311,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if firstheight < 1 {
 			firstheight = 1
 			if lastheight == firstheight {
-				log.Debugf("second block of algo")
+				// log.Debugf("second block of algo")
 				return powLimitBits, nil
 				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
@@ -337,12 +345,13 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		} else {
 			newTargetBits = BigToCompact(newtarget)
 		}
-		basetargetbits := newTargetBits
+		// basetargetbits := newTargetBits
 		newTargetBits ^= 0x00000003
-		log.Warnf("height %d av %d blocks: %.8f target: %d, divergence: %.4f adjustment: %.4f dither: %08x -> %08x", lastheight, numblocks, avblocktime, b.chainParams.TargetTimePerBlock, divergence, adjustment, basetargetbits, newTargetBits)
-		log.Warnf("old: %064x", CompactToBig(last.bits))
-		log.Warnf("new: %064x", CompactToBig(BigToCompact(newtarget)))
+		// log.Warnf("height %d av %d blocks: %.8f target: %d, divergence: %.4f adjustment: %.4f dither: %08x -> %08x", lastheight, numblocks, avblocktime, b.chainParams.TargetTimePerBlock, divergence, adjustment, basetargetbits, newTargetBits)
+		// log.Warnf("old: %064x", CompactToBig(last.bits))
+		// log.Warnf("new: %064x", CompactToBig(BigToCompact(newtarget)))
 	}
+	// log.Debugf("new target %064x %08x", CompactToBig(newTargetBits), newTargetBits)
 	return newTargetBits, nil
 }
 
@@ -352,6 +361,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time, algo uint32) (uint32, error) {
+	// log.Debugf("CalcNextRequiredDifficulty")
+
 	b.chainLock.Lock()
 	difficulty, err := b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, algo)
 	b.chainLock.Unlock()

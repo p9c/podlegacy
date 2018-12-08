@@ -1,7 +1,5 @@
 // Copyright (c) 2015-2017 The btcsuite developers
 
-
-
 package blockchain
 
 import (
@@ -106,6 +104,7 @@ type blockNode struct {
 // This function is NOT safe for concurrent access.  It must only be called when
 // initially creating a node.
 func initBlockNode(node *blockNode, blockHeader *wire.BlockHeader, parent *blockNode) {
+	// log.Debugf("initBlockNode %08x %064x", blockHeader.Bits, CalcWork(blockHeader.Bits))
 	*node = blockNode{
 		hash:       blockHeader.BlockHash(),
 		workSum:    CalcWork(blockHeader.Bits),

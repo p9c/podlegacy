@@ -1604,6 +1604,8 @@ func (state *gbtWorkState) updateBlockTemplate(s *rpcServer, useCoinbaseValue bo
 		targetDifficulty = fmt.Sprintf("%064x",
 			blockchain.CompactToBig(msgBlock.Header.Bits))
 
+		fmt.Printf("targetDifficulty %s", targetDifficulty)
+
 		// Get the minimum allowed timestamp for the block based on the
 		// median timestamp of the last several blocks per the chain
 		// consensus rules.
@@ -3720,10 +3722,22 @@ func verifyChain(s *rpcServer, level, depth int32) error {
 			return err
 		}
 
+		var powLimit *big.Int
+		// var powLimitBits uint32
+
 		// Level 1 does basic chain sanity checks.
 		if level > 0 {
+			switch block.MsgBlock().Header.Version {
+			case 514:
+				powLimit = s.cfg.ChainParams.ScryptPowLimit
+				// powLimitBits = s.cfg.ChainParams.ScryptPowLimitBits
+			case 2:
+			default:
+				powLimit = s.cfg.ChainParams.PowLimit
+				// powLimitBits = s.cfg.ChainParams.PowLimitBits
+			}
 			err := blockchain.CheckBlockSanity(block,
-				s.cfg.ChainParams.PowLimit, s.cfg.TimeSource, true)
+				powLimit, s.cfg.TimeSource, true)
 			if err != nil {
 				rpcsLog.Errorf("Verify is unable to validate "+
 					"block at hash %v height %d: %v",

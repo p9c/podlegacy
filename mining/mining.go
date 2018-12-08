@@ -365,6 +365,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 	timeSource blockchain.MedianTimeSource,
 	sigCache *txscript.SigCache,
 	hashCache *txscript.HashCache, algo uint32) *BlkTmplGenerator {
+	log.Debug("NewBlkTmplGenerator")
 
 	return &BlkTmplGenerator{
 		policy:      policy,
@@ -441,6 +442,8 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 //  |  <= policy.BlockMinSize)          |   |
 //   -----------------------------------  --
 func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo uint32) (*BlockTemplate, error) {
+	// log.Debugf("NewBlockTemplate algo %d", algo)
+
 	// Extend the most recently known best block.
 	best := g.chain.BestSnapshot()
 	nextBlockHeight := best.Height + 1
@@ -844,10 +847,11 @@ mempoolLoop:
 	// the last several blocks per the chain consensus rules.
 	ts := medianAdjustedTime(best, g.timeSource)
 	reqDifficulty, err := g.chain.CalcNextRequiredDifficulty(ts, algo)
-	log.Debugf("reqDifficulty %064x", blockchain.CompactToBig(reqDifficulty))
 	if err != nil {
+		// log.Debugf("reqDifficulty %064x %s", reqDifficulty, err)
 		return nil, err
 	}
+	// log.Debugf("reqDifficulty %064x", reqDifficulty)
 
 	// Calculate the next expected block version based on the state of the
 	// rule change deployments.
@@ -877,18 +881,12 @@ mempoolLoop:
 	// consensus rules to ensure it properly connects to the current best
 	// chain with no issues.
 	block := btcutil.NewBlock(&msgBlock)
-	log.Debugf("%064x", blockchain.CompactToBig(msgBlock.Header.Bits))
-	log.Debugf("BORK %064x", blockchain.CompactToBig(block.MsgBlock().Header.Bits))
 	block.SetHeight(nextBlockHeight)
-	log.Debugf("%064x", blockchain.CompactToBig(msgBlock.Header.Bits))
-	log.Debugf("BORK %064x", blockchain.CompactToBig(block.MsgBlock().Header.Bits))
 	err = g.chain.CheckConnectBlockTemplate(block)
 	if err != nil {
-		log.Debugf("checkconnectblocktemplate err: %s", err.Error())
+		// log.Debugf("checkconnectblocktemplate err: %s", err.Error())
 		return nil, err
 	}
-	log.Debugf("%064x", blockchain.CompactToBig(msgBlock.Header.Bits))
-	log.Debugf("BORK %064x", blockchain.CompactToBig(block.MsgBlock().Header.Bits))
 
 	log.Debugf("Created new block template (%d transactions, %d in "+
 		"fees, %d signature operations cost, %d weight, target difficulty "+
@@ -912,6 +910,8 @@ mempoolLoop:
 // based on the new time for the test networks since their target difficulty can
 // change based upon time.
 func (g *BlkTmplGenerator) UpdateBlockTime(msgBlock *wire.MsgBlock) error {
+	log.Debug("UpdateBlockTime")
+
 	// The new timestamp is potentially adjusted to ensure it comes after
 	// the median time of the last several blocks per the chain consensus
 	// rules.
@@ -919,13 +919,13 @@ func (g *BlkTmplGenerator) UpdateBlockTime(msgBlock *wire.MsgBlock) error {
 	msgBlock.Header.Timestamp = newTime
 
 	// Recalculate the difficulty if running on a network that requires it.
-	if g.chainParams.ReduceMinDifficulty {
-		difficulty, err := g.chain.CalcNextRequiredDifficulty(newTime, msgBlock.Header.Version)
-		if err != nil {
-			return err
-		}
-		msgBlock.Header.Bits = difficulty
-	}
+	// if g.chainParams.ReduceMinDifficulty {
+	// 	difficulty, err := g.chain.CalcNextRequiredDifficulty(newTime, msgBlock.Header.Version)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	msgBlock.Header.Bits = difficulty
+	// }
 
 	return nil
 }
@@ -935,6 +935,8 @@ func (g *BlkTmplGenerator) UpdateBlockTime(msgBlock *wire.MsgBlock) error {
 // height.  It also recalculates and updates the new merkle root that results
 // from changing the coinbase script.
 func (g *BlkTmplGenerator) UpdateExtraNonce(msgBlock *wire.MsgBlock, blockHeight int32, extraNonce uint64) error {
+	// log.Debug("UpdateExtraNonce")
+
 	coinbaseScript, err := standardCoinbaseScript(blockHeight, extraNonce)
 	if err != nil {
 		return err
@@ -965,6 +967,8 @@ func (g *BlkTmplGenerator) UpdateExtraNonce(msgBlock *wire.MsgBlock, blockHeight
 //
 // This function is safe for concurrent access.
 func (g *BlkTmplGenerator) BestSnapshot() *blockchain.BestState {
+	// log.Debug("BestSnapshot")
+
 	return g.chain.BestSnapshot()
 }
 
@@ -972,5 +976,7 @@ func (g *BlkTmplGenerator) BestSnapshot() *blockchain.BestState {
 //
 // This function is safe for concurrent access.
 func (g *BlkTmplGenerator) TxSource() TxSource {
+	// log.Debug("TxSource")
+
 	return g.txSource
 }

@@ -476,7 +476,7 @@ func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource Median
 	// fmt.Println("checkBlockSanity")
 	msgBlock := block.MsgBlock()
 	header := &msgBlock.Header
-	log.Debugf("checkBlockSanity %08x", header.Bits)
+	// log.Debugf("checkBlockSanity %08x", header.Bits)
 	err := checkBlockHeaderSanity(header, powLimit, timeSource, flags)
 	if err != nil {
 		return err
@@ -1263,6 +1263,7 @@ func (b *BlockChain) checkConnectBlock(node *blockNode, block *btcutil.Block, vi
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) CheckConnectBlockTemplate(block *btcutil.Block) error {
+	// log.Debugf("CheckConnectBlockTemplate")
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
 
@@ -1281,13 +1282,13 @@ func (b *BlockChain) CheckConnectBlockTemplate(block *btcutil.Block) error {
 
 	err := checkBlockSanity(block, b.chainParams.PowLimit, b.timeSource, flags, true)
 	if err != nil {
-		log.Debugf("CheckConnectBlockTemplate, %064x %s", b.chainParams.PowLimit, b.chainParams.Name)
+		// log.Debugf("CheckConnectBlockTemplate, %064x %s", b.chainParams.PowLimit, b.chainParams.Name)
 		return err
 	}
 
 	err = b.checkBlockContext(block, tip, flags, true)
 	if err != nil {
-		log.Debugf("checkblockcontext: %064x %s", b.chainParams.PowLimit, b.chainParams.Name)
+		// log.Debugf("checkblockcontext: %064x %s", b.chainParams.PowLimit, b.chainParams.Name)
 		return err
 	}
 

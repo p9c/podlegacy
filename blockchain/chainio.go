@@ -1002,6 +1002,7 @@ func dbPutBestState(dbTx database.Tx, snapshot *BestState, workSum *big.Int) err
 // genesis block.  This includes creating the necessary buckets and inserting
 // the genesis block, so it must only be called on an uninitialized database.
 func (b *BlockChain) createChainState() error {
+	// log.Debugf("createChainState")
 	// Create a new node from the genesis block and set it as the best node.
 	genesisBlock := btcutil.NewBlock(b.chainParams.GenesisBlock)
 	xx, _ := genesisBlock.Bytes()

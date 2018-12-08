@@ -1,7 +1,5 @@
 // Copyright (c) 2013-2017 The btcsuite developers
 
-
-
 package blockchain
 
 import (
