@@ -85,19 +85,24 @@ func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
 	// transactions.  Ignore the error returns since there is no way the
 	// encode could fail except being out of memory which would cause a
 	// run-time panic.
+	// fmt.Printf("algo %d\n", h.Version)
 	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
 	_ = writeBlockHeader(buf, 0, h)
 	switch h.Version {
 	case 3: // Blake14lr (decred)
+		// fmt.Printf("hashing with Blake14lr\n")
 		a := blake256.New()
 		a.Write(buf.Bytes())
 		out.SetBytes(a.Sum(nil))
 	case 6: // Blake2b (sia)
+		// fmt.Printf("hashing with Blake2b\n")
 		out = blake2b.Sum256(buf.Bytes())
 	case 10: // Lyra2REv2 (verge)
+		// fmt.Printf("hashing with Lyra2REv2\n")
 		o, _ := lyra2rev2.Sum(buf.Bytes())
 		out.SetBytes(o)
 	case 18: // Skein (skein512 + SHA256 as myriad)
+		// fmt.Printf("hashing with Skein\n")
 		o := buf.Bytes()
 		hasher := skein.NewSkein512()
 		o2 := hasher.Hash(o)
@@ -107,18 +112,22 @@ func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
 		}
 		out = chainhash.HashH(o3)
 	case 34: // X11
+		// fmt.Printf("hashing with X11\n")
 		o := [32]byte{}
 		x := x11.New()
 		x.Hash(buf.Bytes(), o[:])
 		out.SetBytes(o[:])
 	case 66: // X13
+		// fmt.Printf("hashing with X13\n")
 		out = gox13hash.Sum(buf.Bytes())
 	case 130: // keccac/SHA3
+		// fmt.Printf("hashing with keccac\n")
 		k := keccak.New256()
 		k.Reset()
 		k.Write(buf.Bytes())
 		out.SetBytes(k.Sum(nil))
 	case 514: // scrypt
+		// fmt.Printf("hashing with scrypt\n")
 		// b := chainhash.DoubleHashH(buf.Bytes())
 		b := buf.Bytes()
 		c := make([]byte, len(b))
@@ -136,8 +145,11 @@ func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
 		}
 		copy(out[:], dk)
 	case 2: // sha256d
+		// fmt.Printf("hashing with sha256d\n")
+		out.SetBytes(chainhash.DoubleHashB(buf.Bytes()))
+		// fmt.Printf("%064x\n", out)
 	default:
-		out = chainhash.DoubleHashH(buf.Bytes())
+		out.SetBytes(chainhash.DoubleHashB(buf.Bytes()))
 	}
 	return
 }

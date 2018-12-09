@@ -331,7 +331,7 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 	if flags&BFNoPoWCheck != BFNoPoWCheck {
 		// The block hash must be less than the claimed target.
 		// Unless there is less than 10 previous with the same version (algo)...
-		hash := header.BlockHash()
+		hash := header.BlockHashWithAlgos(true)
 		hashNum := HashToBig(&hash)
 		if hashNum.Cmp(target) > 0 {
 			str := fmt.Sprintf("block hash of %064x is higher than "+

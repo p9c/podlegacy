@@ -211,6 +211,8 @@ func (m *CPUMiner) submitBlock(block *btcutil.Block) bool {
 func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32,
 	ticker *time.Ticker, quit chan struct{}) bool {
 
+	// log.Debugf("solveBlock %d %d", msgBlock.Header.Version, m.cfg.Algo)
+
 	// Choose a random extra nonce offset for this block template and
 	// worker.
 	enOffset, err := wire.RandomUint64()
@@ -289,7 +291,7 @@ func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32,
 			hash := header.BlockHashWithAlgos(m.cfg.ChainParams.Name != "mainnet")
 			hashesCompleted += incr
 
-			// log.Debugf("algo %d", header.Version)
+			// log.Debugf("algo %d %064x", header.Version, hash)
 
 			// The block is solved when the new block hash is less
 			// than the target difficulty.  Yay!

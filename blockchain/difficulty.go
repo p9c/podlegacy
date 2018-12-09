@@ -3,6 +3,7 @@
 package blockchain
 
 import (
+	"encoding/hex"
 	"math/big"
 	"time"
 
@@ -10,6 +11,13 @@ import (
 )
 
 var (
+	scryptPowLimit = func() big.Int {
+		mplb, _ := hex.DecodeString("000000039fcaa04ac30b6384471f337748ef5c87c7aeffce5e51770ce6283137,")
+		return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
+	}()
+	ScryptPowLimit     = scryptPowLimit
+	ScryptPowLimitBits = BigToCompact(&scryptPowLimit)
+
 	// bigOne is 1 represented as a big.Int.  It is defined here to avoid
 	// the overhead of creating it multiple times.
 	bigOne = big.NewInt(1)
@@ -230,17 +238,17 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 
 	var powLimit *big.Int
 	var powLimitBits uint32
+	powLimit = &ScryptPowLimit
+	powLimitBits = ScryptPowLimitBits
+	// log.Debugf("algo", algo)
 	switch algo {
-	case 514, 3, 6, 10, 18, 34, 66, 130:
-		powLimit = b.chainParams.ScryptPowLimit
-		powLimitBits = b.chainParams.ScryptPowLimitBits
 	case 2: // after hardfork this will be enforced and any other values rejected
 	default:
 		// log.Debug("algo: sha256d")
 		powLimit = b.chainParams.PowLimit
 		powLimitBits = b.chainParams.PowLimitBits
 	}
-	log.Debugf("algo %d %064x %08x", algo, powLimit, powLimitBits)
+	// log.Debugf("algo %d %064x %08x", algo, powLimit, powLimitBits)
 
 	// Genesis block.
 	if lastNode == nil {
@@ -311,10 +319,14 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		}
 		lastheight := last.height
 		firstheight := lastheight - int32(b.chainParams.AveragingInterval)
+		// Consensus rule, if an algorithm does not appear for a day its difficulty not adjusted from the previous, as the difficulty adjusts from the previous of the algorithm, but if there was only one in a day it gets a free one, and this is to also keep all 9 algorithms running and add reverberation perturbation in addition to the difficulty bit flip
+		if last.GetPrevWithAlgo(algo).height < firstheight {
+			return last.bits, nil
+		}
 		if firstheight < 1 {
 			firstheight = 1
 			if lastheight == firstheight {
-				// log.Debugf("second block of algo")
+				log.Debugf("second block of algo")
 				return powLimitBits, nil
 				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
@@ -341,7 +353,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if adjustment < 0.0 {
 			adjustment *= -1
 		}
-		// log.Debugf("adjustment %.8f", adjustment)
+		log.Debugf("divergence %.7f adjustment %.7f numblocks %d interval %.0f avblocktime %.7f", divergence, adjustment, numblocks, interval, avblocktime)
 		bigadjustment := big.NewFloat(adjustment)
 		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
 		bigfnewtarget := big.NewFloat(0.0).Mul(bigadjustment, bigoldtarget)
@@ -355,10 +367,11 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			newTargetBits = BigToCompact(newtarget)
 		}
 		// basetargetbits := newTargetBits
-		newTargetBits ^= 0x00000003
+		newTargetBits ^= 0x00000001
 		// log.Warnf("height %d av %d blocks: %.8f target: %d, divergence: %.4f adjustment: %.4f dither: %08x -> %08x", lastheight, numblocks, avblocktime, b.chainParams.TargetTimePerBlock, divergence, adjustment, basetargetbits, newTargetBits)
 		// log.Warnf("old: %064x", CompactToBig(last.bits))
 		// log.Warnf("new: %064x", CompactToBig(BigToCompact(newtarget)))
+		log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, last.bits, newTargetBits)
 	}
 	// log.Debugf("new target %064x %08x", CompactToBig(newTargetBits), newTargetBits)
 	return newTargetBits, nil
