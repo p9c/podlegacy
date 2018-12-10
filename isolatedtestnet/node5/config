@@ -13,7 +13,6 @@ addpeer=127.0.0.1:11447
 addpeer=127.0.0.1:11547
 addpeer=127.0.0.1:11647
 addpeer=127.0.0.1:11747
-addpeer=127.0.0.1:11847
 addpeer=127.0.0.1:11947
 addpeer=127.0.0.1:12047
 addpeer=127.0.0.1:12147
@@ -27,3 +26,5 @@ miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
 generate=0
 genthreads=1
 
+txindex=1
+addrindex=1

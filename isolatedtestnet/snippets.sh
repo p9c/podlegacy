@@ -39,3 +39,5 @@ for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0
 for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0.0.1:11348 getblock `podctl -s 127.0.0.1:11348 getblockhash $i`|grep pow_hash\"|cut -f2 -d':'|cut -f1 -d","; done
 
 for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0.0.1:11348 getblock `podctl -s 127.0.0.1:11348 getblockhash $i`|grep time\"|cut -f2 -d':'|cut -f1 -d","; done
+
+podctl -s 127.0.0.1:11348 getinfo
