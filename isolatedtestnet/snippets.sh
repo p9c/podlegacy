@@ -34,6 +34,9 @@ podctl -s 127.0.0.1:12148 setgenerate false 1
 
 for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0.0.1:11348 getblock `podctl -s 127.0.0.1:11348 getblockhash $i`|grep version\"|cut -f2 -d':'|cut -f1 -d","; done
 
+echo $(for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0.0.1:11348 getblock `podctl -s 127.0.0.1:11348 getblockhash $i`|grep version\"|cut -f2 -d':'|cut -f1 -d","; done)|xargs -n1 echo|sort|uniq
+
+
 for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0.0.1:11348 getblock `podctl -s 127.0.0.1:11348 getblockhash $i`; done
 
 for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0.0.1:11348 getblock `podctl -s 127.0.0.1:11348 getblockhash $i`|grep pow_hash\"|cut -f2 -d':'|cut -f1 -d","; done

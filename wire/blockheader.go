@@ -32,7 +32,7 @@ var (
 		"lyra2rev2": AlgoParams{10, 0x1e4e4273},
 		"skein":     AlgoParams{18, 0x1e0a2ee3},
 		"x11":       AlgoParams{34, 0x1e3acf01},
-		"gost":      AlgoParams{66, 0x1e00ffff},
+		"gost":      AlgoParams{66, 0x1f0fffff},
 		"keccak":    AlgoParams{130, 0x1e050502},
 		"scrypt":    AlgoParams{514, 0x1f04aa1c},
 	}
@@ -152,7 +152,8 @@ func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
 		x.Hash(buf.Bytes(), o[:])
 		out.SetBytes(o[:])
 	case Algos["gost"].Version:
-		out.SetBytes(gost.Hash(buf.Bytes(), "256"))
+		o := gost.Hash(buf.Bytes(), "256")
+		out.SetBytes(o)
 	case Algos["keccak"].Version:
 		// fmt.Printf("hashing with keccac\n")
 		k := keccak.New256()
