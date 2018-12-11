@@ -147,7 +147,7 @@ func podMain(serverChan chan<- *server) error {
 		algo = 514
 	case "blake14lr": // (decred)
 		algo = 3
-	case "blake2b": //(sia)
+	case "whirlpool": //(sia)
 		algo = 6
 	case "lyra2rev2": //(verge)
 		algo = 10
@@ -155,7 +155,7 @@ func podMain(serverChan chan<- *server) error {
 		algo = 18
 	case "x11":
 		algo = 34
-	case "x13":
+	case "gost":
 		algo = 66
 	case "keccak":
 		algo = 130

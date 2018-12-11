@@ -12,8 +12,8 @@ import (
 	"github.com/dchest/blake256"
 	"github.com/ebfe/keccak"
 	"github.com/farces/skein512/skein"
-	gost "github.com/martinlindhe/gogost/gost34112012256"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	gost "github.com/programmer10110/gostreebog"
 	"golang.org/x/crypto/scrypt"
 )
 
@@ -32,7 +32,7 @@ var (
 		"lyra2rev2": AlgoParams{10, 0x1e4e4273},
 		"skein":     AlgoParams{18, 0x1e0a2ee3},
 		"x11":       AlgoParams{34, 0x1e3acf01},
-		"gost":      AlgoParams{66, 0x1e3595d2},
+		"gost":      AlgoParams{66, 0x1e00ffff},
 		"keccak":    AlgoParams{130, 0x1e050502},
 		"scrypt":    AlgoParams{514, 0x1f04aa1c},
 	}
@@ -152,8 +152,7 @@ func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
 		x.Hash(buf.Bytes(), o[:])
 		out.SetBytes(o[:])
 	case Algos["gost"].Version:
-		ghash := gost.New()
-		out.SetBytes(ghash.Sum(buf.Bytes()))
+		out.SetBytes(gost.Hash(buf.Bytes(), "256"))
 	case Algos["keccak"].Version:
 		// fmt.Printf("hashing with keccac\n")
 		k := keccak.New256()

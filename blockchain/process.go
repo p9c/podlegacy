@@ -11,6 +11,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 // BehaviorFlags is a bitmask defining tweaks to the normal behavior when
@@ -275,6 +276,6 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 		return false, false, err
 	}
 
-	log.Debugf("Accepted block %v, height %d", blockHashWithAlgo, b.bestChain.Height())
+	log.Debugf("Accepted block %s %v, height %d", wire.AlgoVers[block.MsgBlock().Header.Version], blockHashWithAlgo, b.bestChain.Height())
 	return isMainChain, false, nil
 }
