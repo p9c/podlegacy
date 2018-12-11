@@ -16,7 +16,6 @@ addpeer=127.0.0.1:11747
 addpeer=127.0.0.1:11847
 addpeer=127.0.0.1:11947
 addpeer=127.0.0.1:12047
-addpeer=127.0.0.1:12147
 maxpeers=18
 rpcuser=user
 rpcpass=pa55word
@@ -24,7 +23,7 @@ debuglevel=debug
 algo=keccak
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
-generate=0
+generate=1
 genthreads=1
 
 txindex=1

@@ -38,6 +38,25 @@ for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0
 
 for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0.0.1:11348 getblock `podctl -s 127.0.0.1:11348 getblockhash $i`|grep pow_hash\"|cut -f2 -d':'|cut -f1 -d","; done
 
+for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0.0.1:11348 getblock `podctl -s 127.0.0.1:11348 getblockhash $i`|grep -e version\" -e pow_hash\" -e time\" -e bits\" -e height\"|cut -f2 -d':'|cut -f1 -d","|xargs echo; done
+
+
 for i in $(seq 0 $(podctl -s 127.0.0.1:11348 getblockcount)); do podctl -s 127.0.0.1:11348 getblock `podctl -s 127.0.0.1:11348 getblockhash $i`|grep time\"|cut -f2 -d':'|cut -f1 -d","; done
 
 podctl -s 127.0.0.1:11348 getinfo
+podctl -s 127.0.0.1:11448 getinfo
+podctl -s 127.0.0.1:11548 getinfo
+podctl -s 127.0.0.1:11648 getinfo
+podctl -s 127.0.0.1:11748 getinfo
+podctl -s 127.0.0.1:11848 getinfo
+podctl -s 127.0.0.1:11948 getinfo
+podctl -s 127.0.0.1:12048 getinfo
+podctl -s 127.0.0.1:12148 getinfo
+
+clear;rm -rf node0/testnet; ./testnet.sh node0|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
+clear;rm -rf node1/testnet; ./testnet.sh node1|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
+clear;rm -rf node2/testnet; ./testnet.sh node2|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
+clear;rm -rf node4/testnet; ./testnet.sh node4|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
+clear;rm -rf node5/testnet; ./testnet.sh node5|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
+clear;rm -rf node6/testnet; ./testnet.sh node6|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
+clear;rm -rf node8/testnet; ./testnet.sh node8|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset

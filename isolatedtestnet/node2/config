@@ -10,7 +10,6 @@ x11listen=127.0.0.1:11555
 x13listen=127.0.0.1:11556
 addpeer=127.0.0.1:11347
 addpeer=127.0.0.1:11447
-addpeer=127.0.0.1:11547
 addpeer=127.0.0.1:11647
 addpeer=127.0.0.1:11747
 addpeer=127.0.0.1:11847
@@ -24,7 +23,7 @@ debuglevel=debug
 algo=blake14lr
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
-generate=0
+generate=1
 genthreads=1
 
 txindex=1

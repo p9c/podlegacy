@@ -23,8 +23,7 @@ debuglevel=debug
 algo=lyra2rev2
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
-generate=0
+generate=1
 genthreads=1
-
 txindex=1
 addrindex=1

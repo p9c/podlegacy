@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/wire"
 )
 
 var (
@@ -238,8 +239,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 
 	var powLimit *big.Int
 	var powLimitBits uint32
-	powLimit = &ScryptPowLimit
-	powLimitBits = ScryptPowLimitBits
+	powLimitBits = wire.Algos[wire.AlgoVers[algo]].MinBits
+	powLimit = CompactToBig(powLimitBits)
 	// log.Debugf("algo", algo)
 	switch algo {
 	case 2: // after hardfork this will be enforced and any other values rejected
@@ -300,6 +301,9 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			adjustedTimespan,
 			b.chainParams.AveragingTargetTimespan)
 	case "testnet":
+		powLimitBits = wire.Algos[wire.AlgoVers[algo]].MinBits
+		powLimit = CompactToBig(powLimitBits)
+
 		// if algo != 2 {
 		// log.Debugf("limits: %064x %08x", powLimit, powLimitBits)
 		// }
@@ -323,20 +327,21 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if last.GetPrevWithAlgo(algo).height < firstheight {
 			return last.bits, nil
 		}
+		bits := last.bits
 		if firstheight < 1 {
 			firstheight = 1
 			if lastheight == firstheight {
-				log.Debugf("second block of algo")
-				return powLimitBits, nil
+				// log.Debugf("second block of algo")
+				return bits, nil
 				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
 			if firstheight == 0 {
-				return powLimitBits, nil
+				return bits, nil
 			}
 		}
 		first, _ := b.BlockByHeight(firstheight)
 		if first == nil {
-			return powLimitBits, nil
+			return bits, nil
 		}
 		lasttime := last.timestamp
 		firsttime := first.MsgBlock().Header.Timestamp.Unix()
@@ -349,10 +354,11 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		// Now we have the divergence in the averaging period, we now use this formula: https://github.com/parallelcointeam/pod/raw/master/docs/parabolic-diff-adjustment-filter-formula.png
 		// This is the expanded version as will be required:
 		// adjustment = 1 + (20 * divergence - 20) * (20 * divergence - 20) / 200 * divergence
-		adjustment := 1 + (divergence-1)*(divergence-1)*(divergence-1)
-		if adjustment < 0.0 {
-			adjustment *= -1
-		}
+		adjustment := divergence
+		// adjustment := 1 + (divergence-1)*(divergence-1)*(divergence-1)
+		// if adjustment < 0.0 {
+		// 	adjustment *= -1
+		// }
 		log.Debugf("divergence %.7f adjustment %.7f numblocks %d interval %.0f avblocktime %.7f", divergence, adjustment, numblocks, interval, avblocktime)
 		bigadjustment := big.NewFloat(adjustment)
 		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
@@ -367,7 +373,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			newTargetBits = BigToCompact(newtarget)
 		}
 		// basetargetbits := newTargetBits
-		newTargetBits ^= 0x00000001
+		newTargetBits ^= 0x00000fff
 		// log.Warnf("height %d av %d blocks: %.8f target: %d, divergence: %.4f adjustment: %.4f dither: %08x -> %08x", lastheight, numblocks, avblocktime, b.chainParams.TargetTimePerBlock, divergence, adjustment, basetargetbits, newTargetBits)
 		// log.Warnf("old: %064x", CompactToBig(last.bits))
 		// log.Warnf("new: %064x", CompactToBig(BigToCompact(newtarget)))
