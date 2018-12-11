@@ -1123,18 +1123,16 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 
 	params := s.cfg.ChainParams
 	blockHeader := &blk.MsgBlock().Header
-	var a, powalgoid uint32 = 2, 0
-	algoname := "sha256d"
-	if blockHeader.Version == 514 {
-		a, powalgoid = 514, 1
-		algoname = "scrypt"
-	}
+
+	algoname := wire.AlgoVers[blockHeader.Version]
+	a := wire.Algos[algoname].Version
+	algoid := wire.Algos[algoname].AlgoID
 
 	blockReply := btcjson.GetBlockVerboseResult{
 		Hash:          c.Hash,
 		Version:       blockHeader.Version,
 		VersionHex:    fmt.Sprintf("%08x", blockHeader.Version),
-		PowAlgoID:     powalgoid,
+		PowAlgoID:     algoid,
 		PowAlgo:       algoname,
 		PowHash:       blk.MsgBlock().BlockHashWithAlgos(s.cfg.ChainParams.Name != "mainnet").String(),
 		MerkleRoot:    blockHeader.MerkleRoot.String(),
