@@ -119,13 +119,13 @@ type config struct {
 	RPCLimitPass         string        `long:"rpclimitpass" default-mask:"-" description:"Password for limited RPC connections"`
 	RPCListeners         []string      `long:"rpclisten" description:"Add an interface/port to listen for RPC connections (default port: 11048, testnet: 21048)"`
 	ScryptListeners      []string      `long:"scryptlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
-	Blake2bListeners     []string      `long:"blake2blisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	WhirlpoolListeners   []string      `long:"whirlpoollisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
 	Blake14lrListeners   []string      `long:"blake14lrlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
 	KeccakListeners      []string      `long:"keccaklisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
 	Lyra2rev2Listeners   []string      `long:"lyra2rev2listen" description:"Secondary RPC port that delivers scrypt versioned block templates"`
 	SkeinListeners       []string      `long:"skeinlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
 	X11Listeners         []string      `long:"x11listen" description:"Secondary RPC port that delivers scrypt versioned block templates"`
-	X13Listeners         []string      `long:"x13listen" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	GostListeners        []string      `long:"gostlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
 	RPCCert              string        `long:"rpccert" description:"File containing the certificate file"`
 	RPCKey               string        `long:"rpckey" description:"File containing the certificate key"`
 	RPCMaxClients        int           `long:"rpcmaxclients" description:"Max number of RPC clients for standard connections"`
@@ -772,10 +772,10 @@ func loadConfig() (*config, []string, error) {
 			addr = net.JoinHostPort(addr, activeNetParams.rpcPort)
 			cfg.RPCListeners = append(cfg.RPCListeners, addr)
 		}
-		cfg.Blake2bListeners = make([]string, 0, len(addrs))
+		cfg.WhirlpoolListeners = make([]string, 0, len(addrs))
 		for _, addr := range addrs {
-			addr = net.JoinHostPort(addr, activeNetParams.Blake2bRPCPort)
-			cfg.Blake2bListeners = append(cfg.Blake2bListeners, addr)
+			addr = net.JoinHostPort(addr, activeNetParams.WhirlpoolListeners)
+			cfg.WhirlpoolListeners = append(cfg.WhirlpoolListeners, addr)
 		}
 		cfg.Blake14lrListeners = make([]string, 0, len(addrs))
 		for _, addr := range addrs {
@@ -802,10 +802,10 @@ func loadConfig() (*config, []string, error) {
 			addr = net.JoinHostPort(addr, activeNetParams.X11RPCPort)
 			cfg.X11Listeners = append(cfg.X11Listeners, addr)
 		}
-		cfg.X13Listeners = make([]string, 0, len(addrs))
+		cfg.GostListeners = make([]string, 0, len(addrs))
 		for _, addr := range addrs {
-			addr = net.JoinHostPort(addr, activeNetParams.X13RPCPort)
-			cfg.X13Listeners = append(cfg.X13Listeners, addr)
+			addr = net.JoinHostPort(addr, activeNetParams.GostRPCPort)
+			cfg.GostListeners = append(cfg.GostListeners, addr)
 		}
 	}
 

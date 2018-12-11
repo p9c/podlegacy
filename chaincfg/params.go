@@ -69,8 +69,8 @@ var (
 	TestnetInterval                int64   = 100
 	TestnetMaxAdjustDown           int64   = 10
 	TestnetMaxAdjustUp             int64   = 20
-	TestnetTargetTimePerBlock      int64   = 293
-	TestnetAveragingInterval       int64   = 1439
+	TestnetTargetTimePerBlock      int64   = 19  // 293
+	TestnetAveragingInterval       int64   = 239 // 1439
 	TestnetAveragingTargetTimespan         = TestnetTargetTimePerBlock * TestnetAveragingInterval
 	TestnetTargetTimespan                  = TestnetInterval * TestnetTargetTimePerBlock
 )

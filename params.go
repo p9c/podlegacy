@@ -13,15 +13,15 @@ var activeNetParams = &mainNetParams
 // network and test networks.
 type params struct {
 	*chaincfg.Params
-	rpcPort          string
-	ScryptRPCPort    string
-	Blake2bRPCPort   string
-	Blake14lrRPCPort string
-	KeccakRPCPort    string
-	Lyra2rev2RPCPort string
-	SkeinRPCPort     string
-	X11RPCPort       string
-	X13RPCPort       string
+	rpcPort            string
+	ScryptRPCPort      string
+	WhirlpoolListeners string
+	Blake14lrRPCPort   string
+	KeccakRPCPort      string
+	Lyra2rev2RPCPort   string
+	SkeinRPCPort       string
+	X11RPCPort         string
+	GostRPCPort        string
 }
 
 // mainNetParams contains parameters specific to the main network
@@ -31,16 +31,16 @@ type params struct {
 // it does not handle on to pod.  This approach allows the wallet process
 // to emulate the full reference implementation RPC API.
 var mainNetParams = params{
-	Params:           &chaincfg.MainNetParams,
-	rpcPort:          "11048",
-	ScryptRPCPort:    "11049",
-	Blake2bRPCPort:   "11050",
-	Blake14lrRPCPort: "11051",
-	KeccakRPCPort:    "11052",
-	Lyra2rev2RPCPort: "11053",
-	SkeinRPCPort:     "11054",
-	X11RPCPort:       "11055",
-	X13RPCPort:       "11056",
+	Params:             &chaincfg.MainNetParams,
+	rpcPort:            "11048",
+	ScryptRPCPort:      "11049",
+	WhirlpoolListeners: "11050",
+	Blake14lrRPCPort:   "11051",
+	KeccakRPCPort:      "11052",
+	Lyra2rev2RPCPort:   "11053",
+	SkeinRPCPort:       "11054",
+	X11RPCPort:         "11055",
+	GostRPCPort:        "11056",
 }
 
 // regressionNetParams contains parameters specific to the regression test
@@ -48,47 +48,47 @@ var mainNetParams = params{
 // than the reference implementation - see the mainNetParams comment for
 // details.
 var regressionNetParams = params{
-	Params:           &chaincfg.RegressionNetParams,
-	rpcPort:          "31048",
-	ScryptRPCPort:    "31049",
-	Blake2bRPCPort:   "31050",
-	Blake14lrRPCPort: "31051",
-	KeccakRPCPort:    "31052",
-	Lyra2rev2RPCPort: "31053",
-	SkeinRPCPort:     "31054",
-	X11RPCPort:       "31055",
-	X13RPCPort:       "31056",
+	Params:             &chaincfg.RegressionNetParams,
+	rpcPort:            "31048",
+	ScryptRPCPort:      "31049",
+	WhirlpoolListeners: "31050",
+	Blake14lrRPCPort:   "31051",
+	KeccakRPCPort:      "31052",
+	Lyra2rev2RPCPort:   "31053",
+	SkeinRPCPort:       "31054",
+	X11RPCPort:         "31055",
+	GostRPCPort:        "31056",
 }
 
 // testNet3Params contains parameters specific to the test network (version 3)
 // (wire.TestNet3).  NOTE: The RPC port is intentionally different than the
 // reference implementation - see the mainNetParams comment for details.
 var testNet3Params = params{
-	Params:           &chaincfg.TestNet3Params,
-	rpcPort:          "21048",
-	ScryptRPCPort:    "21049",
-	Blake2bRPCPort:   "21050",
-	Blake14lrRPCPort: "21051",
-	KeccakRPCPort:    "21052",
-	Lyra2rev2RPCPort: "21053",
-	SkeinRPCPort:     "21054",
-	X11RPCPort:       "21055",
-	X13RPCPort:       "21056",
+	Params:             &chaincfg.TestNet3Params,
+	rpcPort:            "21048",
+	ScryptRPCPort:      "21049",
+	WhirlpoolListeners: "21050",
+	Blake14lrRPCPort:   "21051",
+	KeccakRPCPort:      "21052",
+	Lyra2rev2RPCPort:   "21053",
+	SkeinRPCPort:       "21054",
+	X11RPCPort:         "21055",
+	GostRPCPort:        "21056",
 }
 
 // simNetParams contains parameters specific to the simulation test network
 // (wire.SimNet).
 var simNetParams = params{
-	Params:           &chaincfg.SimNetParams,
-	rpcPort:          "41048",
-	ScryptRPCPort:    "41049",
-	Blake2bRPCPort:   "41050",
-	Blake14lrRPCPort: "41051",
-	KeccakRPCPort:    "41052",
-	Lyra2rev2RPCPort: "41053",
-	SkeinRPCPort:     "41054",
-	X11RPCPort:       "41055",
-	X13RPCPort:       "41056",
+	Params:             &chaincfg.SimNetParams,
+	rpcPort:            "41048",
+	ScryptRPCPort:      "41049",
+	WhirlpoolListeners: "41050",
+	Blake14lrRPCPort:   "41051",
+	KeccakRPCPort:      "41052",
+	Lyra2rev2RPCPort:   "41053",
+	SkeinRPCPort:       "41054",
+	X11RPCPort:         "41055",
+	GostRPCPort:        "41056",
 }
 
 // netName returns the name used when referring to a bitcoin network.  At the

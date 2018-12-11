@@ -373,7 +373,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			newTargetBits = BigToCompact(newtarget)
 		}
 		// basetargetbits := newTargetBits
-		newTargetBits ^= 0x00000fff
+		newTargetBits ^= 0x00000003
 		// log.Warnf("height %d av %d blocks: %.8f target: %d, divergence: %.4f adjustment: %.4f dither: %08x -> %08x", lastheight, numblocks, avblocktime, b.chainParams.TargetTimePerBlock, divergence, adjustment, basetargetbits, newTargetBits)
 		// log.Warnf("old: %064x", CompactToBig(last.bits))
 		// log.Warnf("new: %064x", CompactToBig(BigToCompact(newtarget)))

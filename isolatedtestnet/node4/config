@@ -1,13 +1,13 @@
 listen=127.0.0.1:11747
 rpclisten=127.0.0.1:11748
 scryptlisten=127.0.0.1:11749
-blake2blisten=127.0.0.1:11750
+whirlpoollisten=127.0.0.1:11750
 blake14lrlisten=127.0.0.1:11751
 keccaklisten=127.0.0.1:11752
 lyra2rev2listen=127.0.0.1:11753
 skeinlisten=127.0.0.1:11754
 x11listen=127.0.0.1:11755
-x13listen=127.0.0.1:11756
+gostlisten=127.0.0.1:11756
 addpeer=127.0.0.1:11347
 addpeer=127.0.0.1:11447
 addpeer=127.0.0.1:11547

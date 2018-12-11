@@ -6,11 +6,13 @@ import (
 	"io"
 	"time"
 
+	"github.com/balacode/zr-whirl"
 	x11 "github.com/bitbandi/go-x11"
 	"github.com/bitgoin/lyra2rev2"
 	"github.com/dchest/blake256"
 	"github.com/ebfe/keccak"
 	"github.com/farces/skein512/skein"
+	gost "github.com/martinlindhe/gogost/gost34112012256"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"golang.org/x/crypto/scrypt"
 )
@@ -26,11 +28,11 @@ var (
 	Algos = map[string]AlgoParams{
 		"sha256d":   AlgoParams{2, 0x1d0f9f35},
 		"blake14lr": AlgoParams{3, 0x1e0290ff},
-		"blake2b":   AlgoParams{6, 0x1e03da75},
+		"whirlpool": AlgoParams{6, 0x1e03da75},
 		"lyra2rev2": AlgoParams{10, 0x1e4e4273},
 		"skein":     AlgoParams{18, 0x1e0a2ee3},
 		"x11":       AlgoParams{34, 0x1e3acf01},
-		"x13":       AlgoParams{66, 0x1e3595d2},
+		"gost":      AlgoParams{66, 0x1e3595d2},
 		"keccak":    AlgoParams{130, 0x1e050502},
 		"scrypt":    AlgoParams{514, 0x1f04aa1c},
 	}
@@ -38,11 +40,11 @@ var (
 	AlgoVers = map[uint32]string{
 		2:   "sha256d",
 		3:   "blake14lr",
-		6:   "blake2b",
+		6:   "whirlpool",
 		10:  "lyra2rev2",
 		18:  "skein",
 		34:  "x11",
-		66:  "x13",
+		66:  "gost",
 		130: "keccak",
 		514: "scrypt",
 	}
@@ -125,9 +127,10 @@ func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
 		a := blake256.New()
 		a.Write(buf.Bytes())
 		out.SetBytes(a.Sum(nil))
-	// case Algos["blake2b"].Version:
-	// 	// fmt.Printf("hashing with Blake2b\n")
-	// 	out = blake2b.Sum256(buf.Bytes())
+	case Algos["whirlpool"].Version:
+		// fmt.Printf("hashing with Blake2b\n")
+		o := whirl.Sum512(buf.Bytes())
+		out.SetBytes(o[:32])
 	case Algos["lyra2rev2"].Version:
 		// fmt.Printf("hashing with Lyra2REv2\n")
 		o, _ := lyra2rev2.Sum(buf.Bytes())
@@ -148,9 +151,9 @@ func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
 		x := x11.New()
 		x.Hash(buf.Bytes(), o[:])
 		out.SetBytes(o[:])
-	// case Algos["x13"].Version:
-	// 	// fmt.Printf("hashing with X13\n")
-	// 	out = gox13hash.Sum(buf.Bytes())
+	case Algos["gost"].Version:
+		ghash := gost.New()
+		out.SetBytes(ghash.Sum(buf.Bytes()))
 	case Algos["keccak"].Version:
 		// fmt.Printf("hashing with keccac\n")
 		k := keccak.New256()
@@ -158,13 +161,8 @@ func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
 		k.Write(buf.Bytes())
 		out.SetBytes(k.Sum(nil))
 	case Algos["scrypt"].Version:
-		// fmt.Printf("hashing with scrypt\n")
-		// b := chainhash.DoubleHashH(buf.Bytes())
 		b := buf.Bytes()
 		c := make([]byte, len(b))
-		// for i := range b {
-		// 	c[i] = b[len(b)-1-i]
-		// }
 		copy(c, b[:])
 		dk, err := scrypt.Key(c, c, 1024, 1, 1, 32)
 		if err != nil {
@@ -176,9 +174,7 @@ func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
 		}
 		copy(out[:], dk)
 	case 2: // sha256d
-		// fmt.Printf("hashing with sha256d\n")
 		out.SetBytes(chainhash.DoubleHashB(buf.Bytes()))
-		// fmt.Printf("%064x\n", out)
 	default:
 		out.SetBytes(chainhash.DoubleHashB(buf.Bytes()))
 	}
