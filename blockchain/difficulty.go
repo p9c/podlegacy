@@ -354,11 +354,11 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		// Now we have the divergence in the averaging period, we now use this formula: https://github.com/parallelcointeam/pod/raw/master/docs/parabolic-diff-adjustment-filter-formula.png
 		// This is the expanded version as will be required:
 		// adjustment = 1 + (20 * divergence - 20) * (20 * divergence - 20) / 200 * divergence
-		adjustment := divergence
-		// adjustment := 1 + (divergence-1)*(divergence-1)*(divergence-1)
-		// if adjustment < 0.0 {
-		// 	adjustment *= -1
-		// }
+		// adjustment := divergence
+		adjustment := 1 + (divergence-1)*(divergence-1)*(divergence-1)
+		if adjustment < 0.0 {
+			adjustment *= -1
+		}
 		log.Debugf("algo %s divergence %.7f adjustment %.7f numblocks %d interval %.0f avblocktime %.7f", wire.AlgoVers[algo], divergence, adjustment, numblocks, interval, avblocktime)
 		bigadjustment := big.NewFloat(adjustment)
 		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
@@ -373,7 +373,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			newTargetBits = BigToCompact(newtarget)
 		}
 		// basetargetbits := newTargetBits
-		newTargetBits ^= 0x0000008f
+		newTargetBits ^= 0x00000003
 		// log.Warnf("height %d av %d blocks: %.8f target: %d, divergence: %.4f adjustment: %.4f dither: %08x -> %08x", lastheight, numblocks, avblocktime, b.chainParams.TargetTimePerBlock, divergence, adjustment, basetargetbits, newTargetBits)
 		// log.Warnf("old: %064x", CompactToBig(last.bits))
 		// log.Warnf("new: %064x", CompactToBig(BigToCompact(newtarget)))
