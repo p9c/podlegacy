@@ -41,3 +41,4 @@ pod_*
 podctl_*
 isolatedtestnet/node?/mainnet
 isolatedtestnet/node?/testnet
+isolatedtestnet/node*/testnet
