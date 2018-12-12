@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-var jsonrpc = NewJSONRPC("user", "pa55word", "127.0.0.1", 11348)
+var jsonrpc = NewJSONRPC("user", "pa55word", "127.0.0.1", 11349)
 
 func main() {
 	fmt.Println("Simple Block Explorer")
