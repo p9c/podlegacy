@@ -2442,6 +2442,28 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		height--
 	}
 
+	switch wire.AlgoVers[s.cfg.AlgoID] {
+	case "sha256d":
+		Difficulty = dSHA256D
+	case "blake14lr":
+		Difficulty = dBlake14lr
+	case "whirlpool":
+		Difficulty = dWhirlpool
+	case "lyra2rev2":
+		Difficulty = dLyra2rev2
+	case "skein":
+		Difficulty = dSkein
+	case "x11":
+		Difficulty = dX11
+	case "gost":
+		Difficulty = dGost
+	case "keccak":
+		Difficulty = dKeccak
+	case "scrypt":
+		Difficulty = dScrypt
+	default:
+	}
+
 	ret := &btcjson.InfoChainResult{
 		Version:             int32(1000000*appMajor + 10000*appMinor + 100*appPatch),
 		ProtocolVersion:     int32(maxProtocolVersion),
