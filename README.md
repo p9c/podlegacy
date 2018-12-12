@@ -31,7 +31,7 @@ After the upcoming hardfork, Parallelcoin will have the following features in it
 
 - Deterministic noise is added to the difficulty adjustment in a similar way as is done with digital audio and images to improve the effective resolution of the signal
 
-- To address the issue of recovery after a drop in hashrate, miners have the option of producing a block with zero block reward and one transaction, with a relaxation of target by 1 byte or a factor of 256 (one pair of hex digits in the hash less must be zero). This zero reward block with one tx fee serves the function of resetting the target (based on the previous target and the time), which puts the target back in reach of the remaining miners on the chain.
+- ~~To address the issue of recovery after a drop in hashrate, miners have the option of producing a block with zero block reward and one transaction, with a relaxation of target by 1 byte or a factor of 256 (one pair of hex digits in the hash less must be zero). This zero reward block with one tx fee serves the function of resetting the target (based on the previous target and the time), which puts the target back in reach of the remaining miners on the chain.~~
 
 Modular build for reproducibility and maintenance efficiency, therefore Go >=1.11 is required.
 
