@@ -285,6 +285,9 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			adjustedTimespan,
 			b.chainParams.AveragingTargetTimespan)
 	case 1: // Plan 9 from Crypto Space
+		powLimitBits = wire.Algos[wire.AlgoVers[algo]].MinBits
+		powLimit = CompactToBig(powLimitBits)
+
 		last := lastNode
 		if last.version != algo {
 			last = last.GetPrevWithAlgo(algo)

@@ -12,6 +12,11 @@ var (
 	// List is the list of existing hard forks and when they activate
 	List = []HardForks{
 		HardForks{
+			Number:           0,
+			Name:             "Halcyon days",
+			ActivationHeight: 0, // Approximately 18 Jan 2019
+		},
+		HardForks{
 			Number:           1,
 			Name:             "Plan 9 from Crypto Space",
 			ActivationHeight: 184158, // Approximately 18 Jan 2019
