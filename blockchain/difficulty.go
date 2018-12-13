@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/fork"
 	"github.com/parallelcointeam/pod/wire"
 )
 
@@ -210,8 +211,6 @@ func (b *BlockChain) calcEasiestDifficulty(bits uint32, duration time.Duration) 
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
-	log.Debug("findPrevTestNetDifficulty")
-
 	// Search backwards through the chain for the last block without
 	// the special rule applied.
 	iterNode := startNode
@@ -236,43 +235,28 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
 func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo uint32) (uint32, error) {
-
+	var newTargetBits uint32
 	var powLimit *big.Int
 	var powLimitBits uint32
-	powLimitBits = wire.Algos[wire.AlgoVers[algo]].MinBits
-	powLimit = CompactToBig(powLimitBits)
-	// log.Debugf("algo", algo)
-	switch algo {
-	case 2: // after hardfork this will be enforced and any other values rejected
-	default:
-		// log.Debug("algo: sha256d")
-		powLimit = b.chainParams.PowLimit
-		powLimitBits = b.chainParams.PowLimitBits
-	}
-	// log.Debugf("algo %d %064x %08x", algo, powLimit, powLimitBits)
 
-	// Genesis block.
-	if lastNode == nil {
-		// log.Debugf("powLimitBits %08x", powLimitBits)
-		return powLimitBits, nil
-	}
-
-	var newTargetBits uint32
-
-	switch b.chainParams.Name {
-	case "mainnet":
+	switch fork.GetCurrent(uint64(lastNode.height+1), b.chainParams.Name == "testnet") {
+	case 0:
+		powLimitBits = wire.Algos[wire.AlgoVers[algo]].MinBits
+		powLimit = CompactToBig(powLimitBits)
+		switch algo {
+		case 2:
+		default:
+			powLimit = b.chainParams.PowLimit
+			powLimitBits = b.chainParams.PowLimitBits
+		}
+		// Genesis block.
+		if lastNode == nil {
+			return powLimitBits, nil
+		}
 		prevNode := lastNode
 		if prevNode.version != algo {
 			prevNode = prevNode.GetPrevWithAlgo(algo)
 		}
-		// if b.chainParams.ReduceMinDifficulty {
-		// 	reductionTime := int64(b.chainParams.MinDiffReductionTime)
-		// 	allowMinTime := lastNode.timestamp + reductionTime
-		// 	if newBlockTime.Unix() > allowMinTime {
-		// 		return b.chainParams.PowLimitBits, nil
-		// 	}
-		// 	return b.findPrevTestNetDifficulty(lastNode), nil
-		// }
 		firstNode := prevNode.GetPrevWithAlgo(algo) //.RelativeAncestor(1)
 		for i := int64(1); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
 			firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo)
@@ -300,19 +284,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			actualTimespan,
 			adjustedTimespan,
 			b.chainParams.AveragingTargetTimespan)
-	case "testnet":
-		powLimitBits = wire.Algos[wire.AlgoVers[algo]].MinBits
-		powLimit = CompactToBig(powLimitBits)
-
-		// if algo != 2 {
-		// log.Debugf("limits: %064x %08x", powLimit, powLimitBits)
-		// }
+	case 1: // Plan 9 from Crypto Space
 		last := lastNode
-		if last == nil {
-			// We are at the genesis block
-			return powLimitBits, nil
-			// return b.chainParams.GenesisBlock.Header.Bits, nil
-		}
 		if last.version != algo {
 			last = last.GetPrevWithAlgo(algo)
 			if last == nil {
@@ -379,7 +352,6 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		// log.Warnf("new: %064x", CompactToBig(BigToCompact(newtarget)))
 		log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, last.bits, newTargetBits)
 	}
-	// log.Debugf("new target %064x %08x", CompactToBig(newTargetBits), newTargetBits)
 	return newTargetBits, nil
 }
 
