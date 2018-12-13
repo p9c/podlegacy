@@ -2426,7 +2426,8 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 		}
 	case 1:
 		foundcount, height := 0, best.Height
-		for foundcount < 9 && height > 0 {
+		for foundcount < 9 &&
+			uint64(height) > fork.List[fork.GetCurrent(uint64(height), s.cfg.ChainParams.Name == "testnet")].ActivationHeight-512 {
 			switch wire.AlgoVers[v.Header().Version] {
 			case "sha256d":
 				if lastbitsSHA256D == 0 {
@@ -2582,7 +2583,7 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 
 	switch fork.GetCurrent(uint64(height), s.cfg.ChainParams.Name == "testnet") {
 	case 0:
-		for foundcount < 9 && height > 0 {
+		for foundcount < 2 && height > 0 {
 			switch wire.AlgoVers[v.Header().Version] {
 			case "sha256d":
 				if lastbitsSHA256D == 0 {
@@ -2628,7 +2629,8 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 		}
 	case 1:
 		foundcount, height := 0, best.Height
-		for foundcount < 9 && height > 0 {
+
+		for foundcount < 9 && uint64(height) > fork.List[fork.GetCurrent(uint64(height), s.cfg.ChainParams.Name == "testnet")].ActivationHeight-512 {
 			switch wire.AlgoVers[v.Header().Version] {
 			case "sha256d":
 				if lastbitsSHA256D == 0 {
