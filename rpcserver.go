@@ -159,6 +159,7 @@ var rpcHandlersBeforeInit = map[string]commandHandler{
 	"getrawmempool":         handleGetRawMempool,
 	"getrawtransaction":     handleGetRawTransaction,
 	"gettxout":              handleGetTxOut,
+	"getwork":               handleGetWork,
 	"help":                  handleHelp,
 	"node":                  handleNode,
 	"ping":                  handlePing,
@@ -1968,7 +1969,7 @@ func handleGetBlockTemplateRequest(s *rpcServer, request *btcjson.TemplateReques
 
 		return nil, &btcjson.RPCError{
 			Code:    btcjson.ErrRPCClientNotConnected,
-			Message: "Bitcoin is not connected",
+			Message: "Pod is not connected to network",
 		}
 	}
 
@@ -1977,7 +1978,7 @@ func handleGetBlockTemplateRequest(s *rpcServer, request *btcjson.TemplateReques
 	if currentHeight != 0 && !s.cfg.SyncMgr.IsCurrent() {
 		return nil, &btcjson.RPCError{
 			Code:    btcjson.ErrRPCClientInInitialDownload,
-			Message: "Bitcoin is downloading blocks...",
+			Message: "Pod is not yet synchronised...",
 		}
 	}
 

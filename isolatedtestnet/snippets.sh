@@ -56,10 +56,13 @@ podctl -s 127.0.0.1:11948 getinfo
 podctl -s 127.0.0.1:12048 getinfo
 podctl -s 127.0.0.1:12148 getinfo
 
-clear;rm -rf node0/testnet; ./testnet.sh node0|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
-clear;rm -rf node1/testnet; ./testnet.sh node1|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
-clear;rm -rf node2/testnet; ./testnet.sh node2|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
-clear;rm -rf node4/testnet; ./testnet.sh node4|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
-clear;rm -rf node5/testnet; ./testnet.sh node5|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
-clear;rm -rf node6/testnet; ./testnet.sh node6|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
-clear;rm -rf node8/testnet; ./testnet.sh node8|grep -v PEER|grep -v CMGR|grep -v AMGR|grep -v sample|grep -v SRVR|grep -v SYNC|grep -v offset
+clear;rm -rf node0/testnet; ./testnet.sh node0
+clear;rm -rf node1/testnet; ./testnet.sh node1
+clear;rm -rf node2/testnet; ./testnet.sh node2
+clear;rm -rf node4/testnet; ./testnet.sh node4
+clear;rm -rf node5/testnet; ./testnet.sh node5
+clear;rm -rf node6/testnet; ./testnet.sh node6
+clear;rm -rf node8/testnet; ./testnet.sh node8
+
+clear;rm -rf mining0/testnet; ./testnet.sh mining0
+clear;rm -rf mining1/testnet; ./testnet.sh mining1
