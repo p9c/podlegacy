@@ -71,15 +71,25 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 	state.Lock()
 	defer state.Unlock()
 
-	if *c.Data != "" {
+	if c.Data != nil {
 		return handleGetWorkSubmission(s, *c.Data)
 	}
 
+	// Choose a payment address at random.
+	rand.Seed(time.Now().UnixNano())
+	payToAddr := cfg.miningAddrs[rand.Intn(len(cfg.miningAddrs))]
 	lastTxUpdate := s.gbtWorkState.lastTxUpdate // .txMemPool.LastUpdated()
 	// latestHash, latestHeight := s.
 	latestHash := &s.cfg.Chain.BestSnapshot().Hash
-	msgBlock := state.template.Block
 	generator := s.cfg.Generator
+	if state.template == nil {
+		var err error
+		state.template, err = generator.NewBlockTemplate(payToAddr, wire.Algos[cfg.Algo].Version)
+		if err != nil {
+			return nil, err
+		}
+	}
+	msgBlock := state.template.Block
 	if msgBlock == nil || state.prevHash == nil ||
 		!state.prevHash.IsEqual(latestHash) ||
 		(state.lastTxUpdate != lastTxUpdate &&
@@ -98,9 +108,6 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		// again.
 		state.prevHash = nil
 
-		// Choose a payment address at random.
-		rand.Seed(time.Now().UnixNano())
-		payToAddr := cfg.miningAddrs[rand.Intn(len(cfg.miningAddrs))]
 		template, err := generator.NewBlockTemplate(payToAddr, wire.Algos[cfg.Algo].Version)
 		if err != nil {
 			errStr := fmt.Sprintf("Failed to create new block "+
