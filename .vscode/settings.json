@@ -1,3 +1,4 @@
 {
-    "search.usePCRE2": true
+    "search.usePCRE2": true,
+    "editor.fontSize": 16
 }

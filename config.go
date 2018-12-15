@@ -117,15 +117,15 @@ type config struct {
 	RPCPass              string        `short:"P" long:"rpcpass" default-mask:"-" description:"Password for RPC connections"`
 	RPCLimitUser         string        `long:"rpclimituser" description:"Username for limited RPC connections"`
 	RPCLimitPass         string        `long:"rpclimitpass" default-mask:"-" description:"Password for limited RPC connections"`
-	RPCListeners         []string      `long:"rpclisten" description:"Add an interface/port to listen for RPC connections (default port: 11048, testnet: 21048)"`
-	ScryptListeners      []string      `long:"scryptlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
-	WhirlpoolListeners   []string      `long:"whirlpoollisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
-	Blake14lrListeners   []string      `long:"blake14lrlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
-	KeccakListeners      []string      `long:"keccaklisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
-	Lyra2rev2Listeners   []string      `long:"lyra2rev2listen" description:"Secondary RPC port that delivers scrypt versioned block templates"`
-	SkeinListeners       []string      `long:"skeinlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
-	X11Listeners         []string      `long:"x11listen" description:"Secondary RPC port that delivers scrypt versioned block templates"`
-	GostListeners        []string      `long:"gostlisten" description:"Secondary RPC port that delivers scrypt versioned block templates"`
+	RPCListeners         []string      `long:"rpclisten" description:"Add an interface/port to listen for RPC connections (default port: 11048, testnet: 21048) gives sha256d block templates"`
+	ScryptListeners      []string      `long:"scryptlisten" description:"Additional RPC port that delivers scrypt versioned block templates"`
+	Blake14lrListeners   []string      `long:"blake14lrlisten" description:"Additional RPC port that delivers scrypt versioned block templates"`
+	GostListeners        []string      `long:"gostlisten" description:"Additional RPC port that delivers scrypt versioned block templates"`
+	KeccakListeners      []string      `long:"keccaklisten" description:"Additional RPC port that delivers scrypt versioned block templates"`
+	Lyra2rev2Listeners   []string      `long:"lyra2rev2listen" description:"Additional RPC port that delivers scrypt versioned block templates"`
+	SkeinListeners       []string      `long:"skeinlisten" description:"Additional RPC port that delivers scrypt versioned block templates"`
+	WhirlpoolListeners   []string      `long:"whirlpoollisten" description:"Additional RPC port that delivers scrypt versioned block templates"`
+	X11Listeners         []string      `long:"x11listen" description:"Additional RPC port that delivers scrypt versioned block templates"`
 	RPCCert              string        `long:"rpccert" description:"File containing the certificate file"`
 	RPCKey               string        `long:"rpckey" description:"File containing the certificate key"`
 	RPCMaxClients        int           `long:"rpcmaxclients" description:"Max number of RPC clients for standard connections"`

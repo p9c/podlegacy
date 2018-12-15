@@ -208,8 +208,7 @@ type server struct {
 	connManager          *connmgr.ConnManager
 	sigCache             *txscript.SigCache
 	hashCache            *txscript.HashCache
-	rpcServer            *rpcServer
-	scryptRPCServer      *rpcServer
+	rpcServers           []*rpcServer
 	syncManager          *netsync.SyncManager
 	chain                *blockchain.BlockChain
 	txMemPool            *mempool.TxPool
@@ -1379,8 +1378,10 @@ func (s *server) AnnounceNewTransactions(txns []*mempool.TxDesc) {
 
 	// Notify both websocket and getblocktemplate long poll clients of all
 	// newly accepted transactions.
-	if s.rpcServer != nil {
-		s.rpcServer.NotifyNewTransactions(txns)
+	for i := range s.rpcServers {
+		if s.rpcServers[i] != nil {
+			s.rpcServers[i].NotifyNewTransactions(txns)
+		}
 	}
 }
 
@@ -1388,8 +1389,10 @@ func (s *server) AnnounceNewTransactions(txns []*mempool.TxDesc) {
 // longer needing rebroadcasting.
 func (s *server) TransactionConfirmed(tx *btcutil.Tx) {
 	// Rebroadcasting is only necessary when the RPC server is active.
-	if s.rpcServer == nil {
-		return
+	for i := range s.rpcServers {
+		if s.rpcServers[i] == nil {
+			return
+		}
 	}
 
 	iv := wire.NewInvVect(wire.InvTypeTx, tx.Hash())
@@ -2303,8 +2306,9 @@ func (s *server) Start() {
 		// the RPC server are rebroadcast until being included in a block.
 		go s.rebroadcastHandler()
 
-		s.rpcServer.Start()
-		s.scryptRPCServer.Start()
+		for i := range s.rpcServers {
+			s.rpcServers[i].Start()
+		}
 
 	}
 
@@ -2330,7 +2334,9 @@ func (s *server) Stop() error {
 
 	// Shutdown the RPC server if it's not disabled.
 	if !cfg.DisableRPC {
-		s.rpcServer.Stop()
+		for i := range s.rpcServers {
+			s.rpcServers[i].Stop()
+		}
 	}
 
 	// Save fee estimator state in the database.
@@ -2492,7 +2498,7 @@ out:
 // setupRPCListeners returns a slice of listeners that are configured for use
 // with the RPC server depending on the configuration settings for listen
 // addresses and TLS.
-func setupRPCListeners() ([]net.Listener, error) {
+func setupRPCListeners(urls []string) ([]net.Listener, error) {
 	// Setup TLS if not disabled.
 	listenFunc := net.Listen
 	if cfg.TLS {
@@ -2520,58 +2526,7 @@ func setupRPCListeners() ([]net.Listener, error) {
 		}
 	}
 
-	netAddrs, err := parseListeners(cfg.RPCListeners)
-	if err != nil {
-		return nil, err
-	}
-
-	listeners := make([]net.Listener, 0, len(netAddrs))
-	for _, addr := range netAddrs {
-		listener, err := listenFunc(addr.Network(), addr.String())
-		if err != nil {
-			rpcsLog.Warnf("Can't listen on %s: %v", addr, err)
-			continue
-		}
-		listeners = append(listeners, listener)
-	}
-
-	return listeners, nil
-}
-
-// setupScryptRPCListeners returns a slice of listeners that are configured for use
-// with the RPC server depending on the configuration settings for listen
-// addresses and TLS.
-func setupScryptRPCListeners() ([]net.Listener, error) {
-	// Setup TLS if not disabled.
-	listenFunc := net.Listen
-	if cfg.TLS {
-		// Generate the TLS cert and key file if both don't already
-		// exist.
-		if !fileExists(cfg.RPCKey) && !fileExists(cfg.RPCCert) {
-			err := genCertPair(cfg.RPCCert, cfg.RPCKey)
-			if err != nil {
-				return nil, err
-			}
-		}
-		keypair, err := tls.LoadX509KeyPair(cfg.RPCCert, cfg.RPCKey)
-		if err != nil {
-			return nil, err
-		}
-
-		tlsConfig := tls.Config{
-			Certificates: []tls.Certificate{keypair},
-			MinVersion:   tls.VersionTLS12,
-		}
-
-		// Change the standard net.Listen function to the tls one.
-		listenFunc = func(net string, laddr string) (net.Listener, error) {
-			return tls.Listen(net, laddr, &tlsConfig)
-		}
-	}
-
-	rpcsLog.Debug("ScryptListeners", cfg.ScryptListeners)
-
-	netAddrs, err := parseListeners(cfg.ScryptListeners)
+	netAddrs, err := parseListeners(urls)
 	if err != nil {
 		return nil, err
 	}
@@ -2790,12 +2745,9 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		TxMinFreeFee:      cfg.minRelayTxFee,
 	}
 
-	scryptBlockTemplateGenerator := mining.NewBlkTmplGenerator(&policy,
-		s.chainParams, s.txMemPool, s.chain, s.timeSource,
-		s.sigCache, s.hashCache, 514)
 	blockTemplateGenerator := mining.NewBlkTmplGenerator(&policy,
 		s.chainParams, s.txMemPool, s.chain, s.timeSource,
-		s.sigCache, s.hashCache, 2)
+		s.sigCache, s.hashCache, s.algo)
 
 	s.cpuMiner = cpuminer.New(&cpuminer.Config{
 		ChainParams:            chainParams,
@@ -2808,12 +2760,12 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		Algo:                   s.algo,
 	})
 
-	// Only setup a function to return new addresses to connect to when
-	// not running in connect-only mode.  The simulation network is always
-	// in connect-only mode since it is only intended to connect to
-	// specified peers and actively avoid advertising and connecting to
-	// discovered peers in order to prevent it from becoming a public test
-	// network.
+	/*	Only setup a function to return new addresses to connect to when
+		not running in connect-only mode.  The simulation network is always
+		in connect-only mode since it is only intended to connect to
+		specified peers and actively avoid advertising and connecting to
+		discovered peers in order to prevent it from becoming a public test
+		network. */
 	var newAddressFunc func() (net.Addr, error)
 	if !cfg.SimNet && len(cfg.ConnectPeers) == 0 {
 		newAddressFunc = func() (net.Addr, error) {
@@ -2823,19 +2775,18 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 					break
 				}
 
-				// Address will not be invalid, local or unroutable
-				// because addrmanager rejects those on addition.
-				// Just check that we don't already have an address
-				// in the same group so that we are not connecting
-				// to the same network segment at the expense of
-				// others.
+				/*	Address will not be invalid, local or unroutable
+					because addrmanager rejects those on addition.
+					Just check that we don't already have an address
+					in the same group so that we are not connecting
+					to the same network segment at the expense of
+					others. */
 				key := addrmgr.GroupKey(addr.NetAddress())
 				if s.OutboundGroupCount(key) != 0 {
 					continue
 				}
 
-				// only allow recent nodes (10mins) after we failed 30
-				// times
+				// only allow recent nodes (10mins) after we failed 30 times
 				if tries < 30 && time.Since(addr.LastAttempt()) < 10*time.Minute {
 					continue
 				}
@@ -2891,71 +2842,57 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 	}
 
 	if !cfg.DisableRPC {
-		// Setup listeners for the configured RPC listen addresses and
-		// TLS settings.
-		rpcListeners, err := setupRPCListeners()
-		if err != nil {
-			return nil, err
-		}
-		if len(rpcListeners) == 0 {
-			return nil, errors.New("RPCS: No valid listen address")
+		/*	Setup listeners for the configured RPC listen addresses and
+			TLS settings. */
+
+		listeners := map[string][]string{
+			"sha256d":   cfg.RPCListeners,
+			"scrypt":    cfg.ScryptListeners,
+			"blake14lr": cfg.Blake14lrListeners,
+			"gost":      cfg.GostListeners,
+			"keccak":    cfg.KeccakListeners,
+			"lyra2rev2": cfg.Lyra2rev2Listeners,
+			"skein":     cfg.SkeinListeners,
+			"whirlpool": cfg.WhirlpoolListeners,
+			"x11":       cfg.X11Listeners,
 		}
 
-		s.rpcServer, err = newRPCServer(&rpcserverConfig{
-			Listeners:    rpcListeners,
-			StartupTime:  s.startupTime,
-			ConnMgr:      &rpcConnManager{&s},
-			SyncMgr:      &rpcSyncMgr{&s, s.syncManager},
-			TimeSource:   s.timeSource,
-			Chain:        s.chain,
-			ChainParams:  chainParams,
-			DB:           db,
-			TxMemPool:    s.txMemPool,
-			Generator:    blockTemplateGenerator,
-			CPUMiner:     s.cpuMiner,
-			TxIndex:      s.txIndex,
-			AddrIndex:    s.addrIndex,
-			CfIndex:      s.cfIndex,
-			FeeEstimator: s.feeEstimator,
-			AlgoID:       2,
-		})
-		if err != nil {
-			return nil, err
+		for l := range listeners {
+			rpcListeners, err := setupRPCListeners(listeners[l])
+			if err != nil {
+				return nil, err
+			}
+			if len(rpcListeners) == 0 {
+				return nil, errors.New("RPCS: No valid listen address")
+			}
+			rp, err := newRPCServer(&rpcserverConfig{
+				Listeners:    rpcListeners,
+				StartupTime:  s.startupTime,
+				ConnMgr:      &rpcConnManager{&s},
+				SyncMgr:      &rpcSyncMgr{&s, s.syncManager},
+				TimeSource:   s.timeSource,
+				Chain:        s.chain,
+				ChainParams:  chainParams,
+				DB:           db,
+				TxMemPool:    s.txMemPool,
+				Generator:    blockTemplateGenerator,
+				CPUMiner:     s.cpuMiner,
+				TxIndex:      s.txIndex,
+				AddrIndex:    s.addrIndex,
+				CfIndex:      s.cfIndex,
+				FeeEstimator: s.feeEstimator,
+				Algo:         l,
+			})
+			if err != nil {
+				return nil, err
+			}
+			s.rpcServers = append(s.rpcServers, rp)
 		}
-
-		scryptRPCListeners, err := setupScryptRPCListeners()
-		if err != nil {
-			return nil, err
-		}
-		if len(rpcListeners) == 0 {
-			return nil, errors.New("RPCS: No valid listen address")
-		}
-
-		s.scryptRPCServer, err = newRPCServer(&rpcserverConfig{
-			Listeners:    scryptRPCListeners,
-			StartupTime:  s.startupTime,
-			ConnMgr:      &rpcConnManager{&s},
-			SyncMgr:      &rpcSyncMgr{&s, s.syncManager},
-			TimeSource:   s.timeSource,
-			Chain:        s.chain,
-			ChainParams:  chainParams,
-			DB:           db,
-			TxMemPool:    s.txMemPool,
-			Generator:    scryptBlockTemplateGenerator,
-			CPUMiner:     s.cpuMiner,
-			TxIndex:      s.txIndex,
-			AddrIndex:    s.addrIndex,
-			CfIndex:      s.cfIndex,
-			FeeEstimator: s.feeEstimator,
-			AlgoID:       514,
-		})
-		if err != nil {
-			return nil, err
-		}
-
 		// Signal process shutdown when the RPC server requests it.
 		go func() {
-			<-s.rpcServer.RequestedProcessShutdown()
+			for i := range s.rpcServers {
+				<-s.rpcServers[i].RequestedProcessShutdown()
+			}
 			shutdownRequestChannel <- struct{}{}
 		}()
 	}
@@ -2963,9 +2900,9 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 	return &s, nil
 }
 
-// initListeners initializes the configured net listeners and adds any bound
-// addresses to the address manager. Returns the listeners and a NAT interface,
-// which is non-nil if UPnP is in use.
+/*	initListeners initializes the configured net listeners and adds any bound
+	addresses to the address manager. Returns the listeners and a NAT interface,
+	which is non-nil if UPnP is in use. */
 func initListeners(amgr *addrmgr.AddrManager, listenAddrs []string, services wire.ServiceFlag) ([]net.Listener, NAT, error) {
 	// Listen for TCP connections at the configured addresses
 	netAddrs, err := parseListeners(listenAddrs)
@@ -3041,10 +2978,10 @@ func initListeners(amgr *addrmgr.AddrManager, listenAddrs []string, services wir
 	return listeners, nat, nil
 }
 
-// addrStringToNetAddr takes an address in the form of 'host:port' and returns
-// a net.Addr which maps to the original address with any host names resolved
-// to IP addresses.  It also handles tor addresses properly by returning a
-// net.Addr that encapsulates the address.
+/*	addrStringToNetAddr takes an address in the form of 'host:port' and returns
+	a net.Addr which maps to the original address with any host names resolved
+	to IP addresses.  It also handles tor addresses properly by returning a
+	net.Addr that encapsulates the address. */
 func addrStringToNetAddr(addr string) (net.Addr, error) {
 	host, strPort, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -3089,8 +3026,8 @@ func addrStringToNetAddr(addr string) (net.Addr, error) {
 	}, nil
 }
 
-// addLocalAddress adds an address that this node is listening on to the
-// address manager so that it may be relayed to peers.
+/*	addLocalAddress adds an address that this node is listening on to the
+	address manager so that it may be relayed to peers. */
 func addLocalAddress(addrMgr *addrmgr.AddrManager, addr string, services wire.ServiceFlag) error {
 	host, portStr, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -3114,8 +3051,8 @@ func addLocalAddress(addrMgr *addrmgr.AddrManager, addr string, services wire.Se
 				continue
 			}
 
-			// If bound to 0.0.0.0, do not add IPv6 interfaces and if bound to
-			// ::, do not add IPv4 interfaces.
+			/*	If bound to 0.0.0.0, do not add IPv6 interfaces and if bound to
+				::, do not add IPv4 interfaces. */
 			if (ip.To4() == nil) != (ifaceIP.To4() == nil) {
 				continue
 			}
@@ -3135,10 +3072,10 @@ func addLocalAddress(addrMgr *addrmgr.AddrManager, addr string, services wire.Se
 	return nil
 }
 
-// dynamicTickDuration is a convenience function used to dynamically choose a
-// tick duration based on remaining time.  It is primarily used during
-// server shutdown to make shutdown warnings more frequent as the shutdown time
-// approaches.
+/*	dynamicTickDuration is a convenience function used to dynamically choose a
+	tick duration based on remaining time.  It is primarily used during
+	server shutdown to make shutdown warnings more frequent as the shutdown time
+	approaches. */
 func dynamicTickDuration(remaining time.Duration) time.Duration {
 	switch {
 	case remaining <= time.Second*5:
@@ -3157,8 +3094,8 @@ func dynamicTickDuration(remaining time.Duration) time.Duration {
 	return time.Hour
 }
 
-// isWhitelisted returns whether the IP address is included in the whitelisted
-// networks and IPs.
+/*	isWhitelisted returns whether the IP address is included in the whitelisted
+	networks and IPs. */
 func isWhitelisted(addr net.Addr) bool {
 	if len(cfg.whitelists) == 0 {
 		return false
@@ -3183,43 +3120,39 @@ func isWhitelisted(addr net.Addr) bool {
 	return false
 }
 
-// checkpointSorter implements sort.Interface to allow a slice of checkpoints to
-// be sorted.
+// checkpointSorter implements sort.Interface to allow a slice of checkpoints to be sorted.
 type checkpointSorter []chaincfg.Checkpoint
 
-// Len returns the number of checkpoints in the slice.  It is part of the
-// sort.Interface implementation.
+// Len returns the number of checkpoints in the slice.  It is part of the sort.Interface implementation.
 func (s checkpointSorter) Len() int {
 	return len(s)
 }
 
-// Swap swaps the checkpoints at the passed indices.  It is part of the
-// sort.Interface implementation.
+// Swap swaps the checkpoints at the passed indices.  It is part of the sort.Interface implementation.
 func (s checkpointSorter) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-// Less returns whether the checkpoint with index i should sort before the
-// checkpoint with index j.  It is part of the sort.Interface implementation.
+/*	Less returns whether the checkpoint with index i should sort before the
+	checkpoint with index j.  It is part of the sort.Interface implementation. */
 func (s checkpointSorter) Less(i, j int) bool {
 	return s[i].Height < s[j].Height
 }
 
-// mergeCheckpoints returns two slices of checkpoints merged into one slice
-// such that the checkpoints are sorted by height.  In the case the additional
-// checkpoints contain a checkpoint with the same height as a checkpoint in the
-// default checkpoints, the additional checkpoint will take precedence and
-// overwrite the default one.
+/*	mergeCheckpoints returns two slices of checkpoints merged into one slice
+	such that the checkpoints are sorted by height.  In the case the additional
+	checkpoints contain a checkpoint with the same height as a checkpoint in the
+	default checkpoints, the additional checkpoint will take precedence and
+	overwrite the default one. */
 func mergeCheckpoints(defaultCheckpoints, additional []chaincfg.Checkpoint) []chaincfg.Checkpoint {
-	// Create a map of the additional checkpoints to remove duplicates while
-	// leaving the most recently-specified checkpoint.
+	/*	Create a map of the additional checkpoints to remove duplicates while
+		leaving the most recently-specified checkpoint. */
 	extra := make(map[int32]chaincfg.Checkpoint)
 	for _, checkpoint := range additional {
 		extra[checkpoint.Height] = checkpoint
 	}
 
-	// Add all default checkpoints that do not have an override in the
-	// additional checkpoints.
+	// Add all default checkpoints that do not have an override in the additional checkpoints.
 	numDefault := len(defaultCheckpoints)
 	checkpoints := make([]chaincfg.Checkpoint, 0, numDefault+len(extra))
 	for _, checkpoint := range defaultCheckpoints {

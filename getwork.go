@@ -9,6 +9,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/parallelcointeam/pod/fork"
+
 	"github.com/conformal/fastsha256"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/btcutil"
@@ -19,20 +21,20 @@ import (
 )
 
 var (
-	// getworkDataLen is the length of the data field of the getwork RPC.
-	// It consists of the serialized block header plus the internal sha256
-	// padding.  The internal sha256 padding consists of a single 1 bit
-	// followed by enough zeros to pad the message out to 56 bytes followed
-	// by length of the message in bits encoded as a big-endian uint64
-	// (8 bytes).  Thus, the resulting length is a multiple of the sha256
-	// block size (64 bytes).
+	/*	getworkDataLen is the length of the data field of the getwork RPC.
+		It consists of the serialized block header plus the internal sha256
+		padding.  The internal sha256 padding consists of a single 1 bit
+		followed by enough zeros to pad the message out to 56 bytes followed
+		by length of the message in bits encoded as a big-endian uint64
+		(8 bytes).  Thus, the resulting length is a multiple of the sha256
+		block size (64 bytes). */
 	getworkDataLen = (1 + ((wire.MaxBlockHeaderPayload + 8) /
 		fastsha256.BlockSize)) * fastsha256.BlockSize
 
-	// hash1Len is the length of the hash1 field of the getwork RPC.  It
-	// consists of a zero hash plus the internal sha256 padding.  See
-	// the getworkDataLen comment for details about the internal sha256
-	// padding format.
+	/*	hash1Len is the length of the hash1 field of the getwork RPC.  It
+		consists of a zero hash plus the internal sha256 padding.  See
+		the getworkDataLen comment for details about the internal sha256
+		padding format. */
 	hash1Len = (1 + ((chainhash.HashSize + 8) / fastsha256.BlockSize)) *
 		fastsha256.BlockSize
 )
@@ -95,17 +97,17 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		(state.lastTxUpdate != lastTxUpdate &&
 			time.Now().After(state.lastGenerated.Add(time.Minute))) {
 
-		// Reset the extra nonce and clear all cached template
-		// variations if the best block changed.
+		/*	Reset the extra nonce and clear all cached template
+			variations if the best block changed. */
 		if state.prevHash != nil && !state.prevHash.IsEqual(latestHash) {
 			// state.extraNonce = 0
 			// state.blockInfo = make(map[btcwire.ShaHash]*workStateBlockInfo)
 			state.updateBlockTemplate(s, false)
 		}
 
-		// Reset the previous best hash the block template was generated
-		// against so any errors below cause the next invocation to try
-		// again.
+		/*	Reset the previous best hash the block template was generated
+			against so any errors below cause the next invocation to try
+			again. */
 		state.prevHash = nil
 
 		template, err := generator.NewBlockTemplate(payToAddr, wire.Algos[cfg.Algo].Version)
@@ -135,22 +137,22 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 			msgBlock.Header.MerkleRoot,
 			msgBlock.Transactions[0].TxIn[0].SignatureScript)
 	} else {
-		// At this point, there is a saved block template and a new
-		// request for work was made, but either the available
-		// transactions haven't change or it hasn't been long enough to
-		// trigger a new block template to be generated.  So, update the
-		// existing block template and track the variations so each
-		// variation can be regenerated if a caller finds an answer and
-		// makes a submission against it.
+		/*	At this point, there is a saved block template and a new
+			request for work was made, but either the available
+			transactions haven't change or it hasn't been long enough to
+			trigger a new block template to be generated.  So, update the
+			existing block template and track the variations so each
+			variation can be regenerated if a caller finds an answer and
+			makes a submission against it.
 
-		// Update the time of the block template to the current time
-		// while accounting for the median time of the past several
-		// blocks per the chain consensus rules.
-		generator.UpdateBlockTime(msgBlock)
+			Update the time of the block template to the current time
+			while accounting for the median time of the past several
+			blocks per the chain consensus rules.
+			generator.UpdateBlockTime(msgBlock)
 
-		// Increment the extra nonce and update the block template
-		// with the new value by regenerating the coinbase script and
-		// setting the merkle root to the new value.
+			Increment the extra nonce and update the block template
+			with the new value by regenerating the coinbase script and
+			setting the merkle root to the new value. */
 		// state.extraNonce++
 		// err := UpdateExtraNonce(msgBlock, latestHeight+1, state.extraNonce)
 		// if err != nil {
@@ -172,21 +174,22 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 			msgBlock.Transactions[0].TxIn[0].SignatureScript)
 	}
 
-	// In order to efficiently store the variations of block templates that
-	// have been provided to callers, save a pointer to the block as well as
-	// the modified signature script keyed by the merkle root.  This
-	// information, along with the data that is included in a work
-	// submission, is used to rebuild the block before checking the
-	// submitted solution.
-	// coinbaseTx := msgBlock.Transactions[0]
-	// state.blockInfo[msgBlock.Header.MerkleRoot] = &workStateBlockInfo{
-	// 	msgBlock:        msgBlock,
-	// 	signatureScript: coinbaseTx.TxIn[0].SignatureScript,
-	// }
+	/*	In order to efficiently store the variations of block templates that
+		have been provided to callers, save a pointer to the block as well as
+		the modified signature script keyed by the merkle root.  This
+		information, along with the data that is included in a work
+		submission, is used to rebuild the block before checking the
+		submitted solution. */
+	/*	coinbaseTx := msgBlock.Transactions[0]
+		state.blockInfo[msgBlock.Header.MerkleRoot] = &workStateBlockInfo{
+			msgBlock:        msgBlock,
+			signatureScript: coinbaseTx.TxIn[0].SignatureScript,
+		}
+	*/
 
-	// Serialize the block header into a buffer large enough to hold the
-	// the block header and the internal sha256 padding that is added and
-	// retuned as part of the data below.
+	/*	Serialize the block header into a buffer large enough to hold the
+		the block header and the internal sha256 padding that is added and
+		retuned as part of the data below. */
 	data := make([]byte, 0, getworkDataLen)
 	buf := bytes.NewBuffer(data)
 	err := msgBlock.Header.Serialize(buf)
@@ -198,47 +201,46 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 			Message: errStr,
 		}
 	}
-	// _, _, _ = c, state, request
-	// return nil, nil
-	// Calculate the midstate for the block header.  The midstate here is
-	// the internal state of the sha256 algorithm for the first chunk of the
-	// block header (sha256 operates on 64-byte chunks) which is before the
-	// nonce.  This allows sophisticated callers to avoid hashing the first
-	// chunk over and over while iterating the nonce range.
+
+	/*	Calculate the midstate for the block header.  The midstate here is
+		the internal state of the sha256 algorithm for the first chunk of the
+		block header (sha256 operates on 64-byte chunks) which is before the
+		nonce.  This allows sophisticated callers to avoid hashing the first
+		chunk over and over while iterating the nonce range. */
 	data = data[:buf.Len()]
 	midstate := fastsha256.MidState256(data)
 
-	// Expand the data slice to include the full data buffer and apply the
-	// internal sha256 padding which consists of a single 1 bit followed
-	// by enough zeros to pad the message out to 56 bytes followed by the
-	// length of the message in bits encoded as a big-endian uint64
-	// (8 bytes).  Thus, the resulting length is a multiple of the sha256
-	// block size (64 bytes).  This makes the data ready for sophisticated
-	// caller to make use of only the second chunk along with the midstate
-	// for the first chunk.
+	/*	Expand the data slice to include the full data buffer and apply the
+		internal sha256 padding which consists of a single 1 bit followed
+		by enough zeros to pad the message out to 56 bytes followed by the
+		length of the message in bits encoded as a big-endian uint64
+		(8 bytes).  Thus, the resulting length is a multiple of the sha256
+		block size (64 bytes).  This makes the data ready for sophisticated
+		caller to make use of only the second chunk along with the midstate
+		for the first chunk. */
 	data = data[:getworkDataLen]
 	data[wire.MaxBlockHeaderPayload] = 0x80
 	binary.BigEndian.PutUint64(data[len(data)-8:],
 		wire.MaxBlockHeaderPayload*8)
 
-	// Create the hash1 field which is a zero hash along with the internal
-	// sha256 padding as described above.  This field is really quite
-	// useless, but it is required for compatibility with the reference
-	// implementation.
+	/*	Create the hash1 field which is a zero hash along with the internal
+		sha256 padding as described above.  This field is really quite
+		useless, but it is required for compatibility with the reference
+		implementation. */
 	var hash1 = make([]byte, hash1Len)
 	hash1[chainhash.HashSize] = 0x80
 	binary.BigEndian.PutUint64(hash1[len(hash1)-8:], chainhash.HashSize*8)
 
-	// The final result reverses the each of the fields to little endian.
-	// In particular, the data, hash1, and midstate fields are treated as
-	// arrays of uint32s (per the internal sha256 hashing state) which are
-	// in big endian, and thus each 4 bytes is byte swapped.  The target is
-	// also in big endian, but it is treated as a uint256 and byte swapped
-	// to little endian accordingly.
-	//
-	// The fact the fields are reversed in this way is rather odd and likey
-	// an artifact of some legacy internal state in the reference
-	// implementation, but it is required for compatibility.
+	/*	The final result reverses the each of the fields to little endian.
+		In particular, the data, hash1, and midstate fields are treated as
+		arrays of uint32s (per the internal sha256 hashing state) which are
+		in big endian, and thus each 4 bytes is byte swapped.  The target is
+		also in big endian, but it is treated as a uint256 and byte swapped
+		to little endian accordingly.
+
+		The fact the fields are reversed in this way is rather odd and likey
+		an artifact of some legacy internal state in the reference
+		implementation, but it is required for compatibility. */
 	reverseUint32Array(data)
 	reverseUint32Array(hash1[:])
 	reverseUint32Array(midstate[:])
@@ -252,10 +254,10 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 	return reply, nil
 }
 
-// handleGetWorkSubmission is a helper for handleGetWork which deals with
-// the calling submitting work to be verified and processed.
-//
-// This function MUST be called with the RPC workstate locked.
+/*	handleGetWorkSubmission is a helper for handleGetWork which deals with
+	the calling submitting work to be verified and processed.
+
+	This function MUST be called with the RPC workstate locked. */
 func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) {
 	// Ensure the provided data is sane.
 	if len(hexData)%2 != 0 {
@@ -278,11 +280,11 @@ func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) 
 		}
 	}
 
-	// Reverse the data as if it were an array of 32-bit unsigned integers.
-	// The fact the getwork request and submission data is reversed in this
-	// way is rather odd and likey an artifact of some legacy internal state
-	// in the reference implementation, but it is required for
-	// compatibility.
+	/*	Reverse the data as if it were an array of 32-bit unsigned integers.
+		The fact the getwork request and submission data is reversed in this
+		way is rather odd and likey an artifact of some legacy internal state
+		in the reference implementation, but it is required for
+		compatibility. */
 	reverseUint32Array(data)
 
 	// Deserialize the block header from the data.
@@ -297,9 +299,9 @@ func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) 
 		}
 	}
 
-	// Look up the full block for the provided data based on the
-	// merkle root.  Return false to indicate the solve failed if
-	// it's not available.
+	/*	Look up the full block for the provided data based on the
+		merkle root.  Return false to indicate the solve failed if
+		it's not available. */
 	state := s.gbtWorkState
 	if state.template.Block.Header.MerkleRoot.String() == "" {
 		rpcsLog.Debugf("Block submitted via getwork has no matching "+
@@ -318,10 +320,17 @@ func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) 
 	msgBlock.Header.MerkleRoot = *merkles[len(merkles)-1]
 
 	// Ensure the submitted block hash is less than the target difficulty.
-	err = blockchain.CheckProofOfWork(block, blockchain.CompactToBig(wire.Algos[wire.AlgoVers[s.cfg.AlgoID]].MinBits))
+	var bits uint32
+	switch fork.GetCurrent(uint64(wire.Algos[s.cfg.Algo].Version), s.cfg.ChainParams.Name == "testnet") {
+	case 0:
+		bits = wire.Algos[s.cfg.Algo].Version
+	case 1:
+		bits = wire.P9Algos[s.cfg.Algo].Version
+	}
+	err = blockchain.CheckProofOfWork(block, blockchain.CompactToBig(bits))
 	if err != nil {
-		// Anything other than a rule violation is an unexpected error,
-		// so return that error as an internal error.
+		/*	Anything other than a rule violation is an unexpected error,
+			so return that error as an internal error. */
 		if _, ok := err.(blockchain.RuleError); !ok {
 			return nil, &btcjson.RPCError{
 				Code: btcjson.ErrRPCInternal.Code,
@@ -342,13 +351,13 @@ func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) 
 		return false, nil
 	}
 
-	// Process this block using the same rules as blocks coming from other
-	// nodes.  This will in turn relay it to the network like normal.
+	/*	Process this block using the same rules as blocks coming from other
+		nodes.  This will in turn relay it to the network like normal. */
 	_, isOrphan, err := s.cfg.Chain.ProcessBlock(block, 0)
 	// .ProcessBlock(block)
 	if err != nil || isOrphan {
-		// Anything other than a rule violation is an unexpected error,
-		// so return that error as an internal error.
+		/*	Anything other than a rule violation is an unexpected error,
+			so return that error as an internal error. */
 		if _, ok := err.(blockchain.RuleError); !ok {
 			return nil, &btcjson.RPCError{
 				Code:    btcjson.ErrRPCInternal.Code,
@@ -366,9 +375,9 @@ func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) 
 	return true, nil
 }
 
-// reverseUint32Array treats the passed bytes as a series of uint32s and
-// reverses the byte order of each uint32.  The passed byte slice must be a
-// multiple of 4 for a correct result.  The passed bytes slice is modified.
+/*	reverseUint32Array treats the passed bytes as a series of uint32s and
+	reverses the byte order of each uint32.  The passed byte slice must be a
+	multiple of 4 for a correct result.  The passed bytes slice is modified. */
 func reverseUint32Array(b []byte) {
 	blen := len(b)
 	for i := 0; i < blen; i += 4 {
@@ -377,9 +386,9 @@ func reverseUint32Array(b []byte) {
 	}
 }
 
-// bigToLEUint256 returns the passed big integer as an unsigned 256-bit integer
-// encoded as little-endian bytes.  Numbers which are larger than the max
-// unsigned 256-bit integer are truncated.
+/*	bigToLEUint256 returns the passed big integer as an unsigned 256-bit integer
+	encoded as little-endian bytes.  Numbers which are larger than the max
+	unsigned 256-bit integer are truncated. */
 func bigToLEUint256(n *big.Int) [uint256Size]byte {
 	// Pad or truncate the big-endian big int to correct number of bytes.
 	nBytes := n.Bytes()

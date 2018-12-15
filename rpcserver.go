@@ -2277,7 +2277,7 @@ func handleGetDifficulty(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 	if err != nil {
 		fmt.Println("ERROR", err)
 	}
-	var algo uint32 = prev.MsgBlock().Header.Version
+	var algo = prev.MsgBlock().Header.Version
 	fmt.Println(algo, best.Height)
 	if algo != 514 {
 		algo = 2
@@ -2403,7 +2403,7 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 			height--
 		}
 
-		switch wire.AlgoVers[s.cfg.AlgoID] {
+		switch s.cfg.Algo {
 		case "sha256d":
 			Difficulty = dSHA256D
 		case "scrypt":
@@ -2417,8 +2417,8 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 			TimeOffset:        int64(s.cfg.TimeSource.Offset().Seconds()),
 			Connections:       s.cfg.ConnMgr.ConnectedCount(),
 			Proxy:             cfg.Proxy,
-			PowAlgoID:         wire.Algos[wire.AlgoVers[s.cfg.AlgoID]].AlgoID,
-			PowAlgo:           wire.AlgoVers[s.cfg.AlgoID],
+			PowAlgoID:         wire.Algos[s.cfg.Algo].AlgoID,
+			PowAlgo:           s.cfg.Algo,
 			Difficulty:        Difficulty,
 			DifficultySHA256D: dSHA256D,
 			DifficultyScrypt:  dScrypt,
@@ -2490,7 +2490,7 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 			height--
 		}
 
-		switch wire.AlgoVers[s.cfg.AlgoID] {
+		switch s.cfg.Algo {
 		case "sha256d":
 			Difficulty = dSHA256D
 		case "blake14lr":
@@ -2511,6 +2511,7 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 			Difficulty = dScrypt
 		default:
 		}
+		fmt.Println(version)
 		ret = &btcjson.InfoChainResult{
 			Version:             int32(1000000*appMajor + 10000*appMinor + 100*appPatch),
 			ProtocolVersion:     int32(maxProtocolVersion),
@@ -2518,8 +2519,8 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 			TimeOffset:          int64(s.cfg.TimeSource.Offset().Seconds()),
 			Connections:         s.cfg.ConnMgr.ConnectedCount(),
 			Proxy:               cfg.Proxy,
-			PowAlgoID:           wire.Algos[wire.AlgoVers[s.cfg.AlgoID]].AlgoID,
-			PowAlgo:             wire.AlgoVers[s.cfg.AlgoID],
+			PowAlgoID:           wire.P9Algos[s.cfg.Algo].AlgoID,
+			PowAlgo:             s.cfg.Algo,
 			Difficulty:          Difficulty,
 			DifficultySHA256D:   dSHA256D,
 			DifficultyScrypt:    dScrypt,
@@ -2534,7 +2535,6 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 			RelayFee:            cfg.minRelayTxFee.ToDUO(),
 		}
 	}
-
 	return ret, nil
 }
 
@@ -2604,7 +2604,7 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 			height--
 		}
 
-		switch wire.AlgoVers[s.cfg.AlgoID] {
+		switch s.cfg.Algo {
 		case "sha256d":
 			Difficulty = dSHA256D
 		case "scrypt":
@@ -2616,8 +2616,8 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 			CurrentBlockSize:   best.BlockSize,
 			CurrentBlockWeight: best.BlockWeight,
 			CurrentBlockTx:     best.NumTxns,
-			PowAlgoID:          wire.Algos[wire.AlgoVers[s.cfg.AlgoID]].AlgoID,
-			PowAlgo:            wire.AlgoVers[s.cfg.AlgoID],
+			PowAlgoID:          wire.Algos[s.cfg.Algo].AlgoID,
+			PowAlgo:            s.cfg.Algo,
 			Difficulty:         Difficulty,
 			DifficultySHA256D:  dSHA256D,
 			DifficultyScrypt:   dScrypt,
@@ -2693,7 +2693,7 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 			height--
 		}
 
-		switch wire.AlgoVers[s.cfg.AlgoID] {
+		switch s.cfg.Algo {
 		case "sha256d":
 			Difficulty = dSHA256D
 		case "blake14lr":
@@ -2719,8 +2719,8 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 			CurrentBlockSize:    best.BlockSize,
 			CurrentBlockWeight:  best.BlockWeight,
 			CurrentBlockTx:      best.NumTxns,
-			PowAlgoID:           wire.Algos[wire.AlgoVers[s.cfg.AlgoID]].AlgoID,
-			PowAlgo:             wire.AlgoVers[s.cfg.AlgoID],
+			PowAlgoID:           wire.Algos[s.cfg.Algo].AlgoID,
+			PowAlgo:             s.cfg.Algo,
 			Difficulty:          Difficulty,
 			DifficultySHA256D:   dSHA256D,
 			DifficultyScrypt:    dScrypt,
@@ -4659,13 +4659,11 @@ type rpcserverConfig struct {
 	// the mempool before they are mined into blocks.
 	FeeEstimator *mempool.FeeEstimator
 
-	// AlgoID sets the algorithm expected from the RPC endpoint. This allows
+	// Algo sets the algorithm expected from the RPC endpoint. This allows
 	// multiple ports to serve multiple types of miners with one main node
 	// per algorithm. Currently 514 for scrypt and anything else passes for
 	// sha256d.
-	// HARDFORK: multiple new algorithms and verifiers to be added, at least
-	// equihash, cryptonote 6, 7 and cuckoo, maybe others yet
-	AlgoID uint32
+	Algo string
 }
 
 // newRPCServer returns a new instance of the rpcServer struct.
@@ -4673,7 +4671,7 @@ func newRPCServer(config *rpcserverConfig) (*rpcServer, error) {
 	rpc := rpcServer{
 		cfg:                    *config,
 		statusLines:            make(map[int]string),
-		gbtWorkState:           newGbtWorkState(config.TimeSource, config.AlgoID),
+		gbtWorkState:           newGbtWorkState(config.TimeSource, wire.Algos[config.Algo].Version),
 		helpCacher:             newHelpCacher(),
 		requestProcessShutdown: make(chan struct{}),
 		quit:                   make(chan int),
