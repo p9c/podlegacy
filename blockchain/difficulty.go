@@ -4,6 +4,7 @@ package blockchain
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -235,20 +236,22 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
 func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo uint32) (uint32, error) {
-	var newTargetBits uint32
-	var powLimit *big.Int
-	var powLimitBits uint32
-
+	var newTargetBits, powLimitBits uint32
+	var algoStr string
+	powLimit := CompactToBig(powLimitBits)
 	switch fork.GetCurrent(uint64(lastNode.height+1), b.chainParams.Name == "testnet") {
 	case 0:
-		powLimitBits = wire.Algos[wire.AlgoVers[algo]].MinBits
-		powLimit = CompactToBig(powLimitBits)
-		switch algo {
-		case 2:
-		default:
-			powLimit = b.chainParams.PowLimit
-			powLimitBits = b.chainParams.PowLimitBits
-		}
+		fmt.Println("On pre hardfork version")
+		algoStr = wire.AlgoVers[algo]
+		powLimitBits = wire.Algos[algoStr].MinBits
+		fmt.Println("algo", algo, algoStr)
+		fmt.Printf("bits %08x full %064x\n", powLimitBits, powLimit)
+		// switch algo {
+		// case 2:
+		// default:
+		// 	powLimit = b.chainParams.PowLimit
+		// 	powLimitBits = b.chainParams.PowLimitBits
+		// }
 		// Genesis block.
 		if lastNode == nil {
 			return powLimitBits, nil
@@ -285,9 +288,12 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			adjustedTimespan,
 			b.chainParams.AveragingTargetTimespan)
 	case 1: // Plan 9 from Crypto Space
-		powLimitBits = wire.Algos[wire.AlgoVers[algo]].MinBits
+		fmt.Println("On hardfork version 1")
+		algoStr = wire.P9AlgoVers[algo]
+		powLimitBits = wire.P9Algos[algoStr].MinBits
 		powLimit = CompactToBig(powLimitBits)
-
+		fmt.Println("algo", algo, algoStr)
+		fmt.Printf("bits %08x full %064x\n", powLimitBits, powLimit)
 		last := lastNode
 		if last.version != algo {
 			last = last.GetPrevWithAlgo(algo)

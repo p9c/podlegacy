@@ -1136,7 +1136,7 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		VersionHex:    fmt.Sprintf("%08x", blockHeader.Version),
 		PowAlgoID:     algoid,
 		PowAlgo:       algoname,
-		PowHash:       blk.MsgBlock().BlockHashWithAlgos(s.cfg.ChainParams.Name != "mainnet").String(),
+		PowHash:       blk.MsgBlock().BlockHashWithAlgos(fork.GetCurrent(uint64(s.cfg.Chain.BestSnapshot().Height+1), s.cfg.ChainParams.Name != "mainnet")).String(),
 		MerkleRoot:    blockHeader.MerkleRoot.String(),
 		PreviousHash:  blockHeader.PrevBlock.String(),
 		Nonce:         blockHeader.Nonce,
@@ -1594,6 +1594,7 @@ func (state *gbtWorkState) updateBlockTemplate(s *rpcServer, useCoinbaseValue bo
 		// block template doesn't include the coinbase, so the caller
 		// will ultimately create their own coinbase which pays to the
 		// appropriate address(es).
+
 		blkTemplate, err := generator.NewBlockTemplate(payAddr, state.algo)
 		if err != nil {
 			return internalRPCError("(rpcserver.go) Failed to create new block "+
@@ -3866,22 +3867,24 @@ func verifyChain(s *rpcServer, level, depth int32) error {
 			return err
 		}
 
-		var powLimit *big.Int
+		powLimit := blockchain.CompactToBig(wire.Algos[wire.AlgoVers[block.MsgBlock().Header.Version]].MinBits)
 		// var powLimitBits uint32
 
 		// Level 1 does basic chain sanity checks.
 		if level > 0 {
-			switch block.MsgBlock().Header.Version {
-			case 514:
-				powLimit = s.cfg.ChainParams.ScryptPowLimit
-				// powLimitBits = s.cfg.ChainParams.ScryptPowLimitBits
-			case 2:
-			default:
-				powLimit = s.cfg.ChainParams.PowLimit
-				// powLimitBits = s.cfg.ChainParams.PowLimitBits
-			}
+			fmt.Printf("pl %064x\n", powLimit)
+
+			// switch block.MsgBlock().Header.Version {
+			// case 514:
+			// 	powLimit = s.cfg.ChainParams.ScryptPowLimit
+			// 	// powLimitBits = s.cfg.ChainParams.ScryptPowLimitBits
+			// case 2:
+			// default:
+			// 	powLimit = s.cfg.ChainParams.PowLimit
+			// 	// powLimitBits = s.cfg.ChainParams.PowLimitBits
+			// }
 			err := blockchain.CheckBlockSanity(block,
-				powLimit, s.cfg.TimeSource, true)
+				powLimit, s.cfg.TimeSource, true, uint64(block.Height()), s.cfg.ChainParams.Name == "testnet")
 			if err != nil {
 				rpcsLog.Errorf("Verify is unable to validate "+
 					"block at hash %v height %d: %v",

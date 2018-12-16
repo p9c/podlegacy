@@ -7,6 +7,8 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/parallelcointeam/pod/fork"
+
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
@@ -144,14 +146,22 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bool, bool, error) {
+	fmt.Println("ProcessBlock")
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
-
 	fastAdd := flags&BFFastAdd == BFFastAdd
-
 	blockHash := block.Hash()
-	blockHashWithAlgo := block.MsgBlock().BlockHashWithAlgos(b.chainParams.Name != "mainnet")
+	blockHashWithAlgo := block.MsgBlock().BlockHashWithAlgos(fork.GetCurrent(uint64(block.Height()), b.chainParams.Name == "testnet"))
 	log.Tracef("Processing block %v", blockHashWithAlgo)
+	var algo uint32
+	switch fork.GetCurrent(uint64(block.Height()), b.chainParams.Name == "testnet") {
+	case 0:
+		if block.MsgBlock().Header.Version != 514 {
+			algo = 2
+		}
+	case 1:
+		algo = block.MsgBlock().Header.Version
+	}
 
 	// The block must not already exist in the main chain or side chains.
 	exists, err := b.blockExists(blockHash)
@@ -172,34 +182,23 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	// Perform preliminary sanity checks on the block and its transactions.
 	var DoNotCheckPow bool
 	var pl *big.Int
+	pl = CompactToBig(wire.Algos[wire.AlgoVers[block.MsgBlock().Header.Version]].MinBits)
 	ph := &block.MsgBlock().Header.PrevBlock
 	pn := b.Index.LookupNode(ph)
 	if pn == nil {
 		// fmt.Println("did not find???")
 		DoNotCheckPow = true
 	}
-	var a uint32 = 2
-	if block.MsgBlock().Header.Version == 514 {
-		a = 514
-	}
-	//TODO: HANDLE ALL BLOCKS FOR TESTNET MODE
-	pb := pn.GetPrevWithAlgo(a)
+	pb := pn.GetPrevWithAlgo(algo)
 	if pb == nil {
-		// fmt.Println("not enough prior blocks on algo")
+		fmt.Println("not enough prior blocks on algo")
 		pl = &chaincfg.AllOnes
 		DoNotCheckPow = true
-	} else {
-		switch block.MsgBlock().Header.Version {
-		case 514:
-			// fmt.Println("scrypt pow block")
-			pl = b.chainParams.ScryptPowLimit
-		default:
-			// fmt.Println("sha256d pow block")
-			pl = b.chainParams.PowLimit
-		}
+		fmt.Printf("pl %064x\n", pl)
 	}
 
-	err = checkBlockSanity(block, pl, b.timeSource, flags, DoNotCheckPow)
+	fmt.Printf("pl %064x\n", pl)
+	err = checkBlockSanity(block, pl, b.timeSource, flags, DoNotCheckPow, uint64(block.Height()), b.chainParams.Name == "testnet")
 	if err != nil {
 		return false, false, err
 	}
@@ -225,20 +224,13 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 			return false, false, ruleError(ErrCheckpointTimeTooOld, str)
 		}
 		if !fastAdd {
-			// Even though the checks prior to now have already ensured the
-			// proof of work exceeds the claimed amount, the claimed amount
-			// is a field in the block header which could be forged.  This
-			// check ensures the proof of work is at least the minimum
-			// expected based on elapsed time since the last checkpoint and
-			// maximum adjustment allowed by the retarget rules.
+			// Even though the checks prior to now have already ensured the proof of work exceeds the claimed amount, the claimed amount is a field in the block header which could be forged.  This check ensures the proof of work is at least the minimum expected based on elapsed time since the last checkpoint and maximum adjustment allowed by the retarget rules.
 			duration := blockHeader.Timestamp.Sub(checkpointTime)
 			requiredTarget := CompactToBig(b.calcEasiestDifficulty(
 				checkpointNode.bits, duration))
 			currentTarget := CompactToBig(blockHeader.Bits)
 			if currentTarget.Cmp(requiredTarget) > 0 {
-				str := fmt.Sprintf("block target difficulty of %064x "+
-					"is too low when compared to the previous "+
-					"checkpoint", currentTarget)
+				str := fmt.Sprintf("block target difficulty of %064x is too low when compared to the previous checkpoint", currentTarget)
 				return false, false, ruleError(ErrDifficultyTooLow, str)
 			}
 		}

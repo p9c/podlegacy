@@ -1,7 +1,5 @@
 // Copyright (c) 2013-2017 The btcsuite developers
 
-
-
 package blockchain
 
 import (
@@ -148,13 +146,12 @@ func TestCheckConnectBlockTemplate(t *testing.T) {
 	}
 }
 
-// TestCheckBlockSanity tests the CheckBlockSanity function to ensure it works
-// as expected.
+// TestCheckBlockSanity tests the CheckBlockSanity function to ensure it works as expected.
 func TestCheckBlockSanity(t *testing.T) {
 	powLimit := chaincfg.MainNetParams.PowLimit
 	block := btcutil.NewBlock(&Block100000)
 	timeSource := NewMedianTime()
-	err := CheckBlockSanity(block, powLimit, timeSource, false)
+	err := CheckBlockSanity(block, powLimit, timeSource, false, 1, false)
 	if err != nil {
 		t.Errorf("CheckBlockSanity: %v", err)
 	}
@@ -163,7 +160,7 @@ func TestCheckBlockSanity(t *testing.T) {
 	// second fails.
 	timestamp := block.MsgBlock().Header.Timestamp
 	block.MsgBlock().Header.Timestamp = timestamp.Add(time.Nanosecond)
-	err = CheckBlockSanity(block, powLimit, timeSource, false)
+	err = CheckBlockSanity(block, powLimit, timeSource, false, 1, false)
 	if err == nil {
 		t.Errorf("CheckBlockSanity: error is nil when it shouldn't be")
 	}

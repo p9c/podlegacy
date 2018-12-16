@@ -1,4 +1,5 @@
 {
     "search.usePCRE2": true,
-    "editor.fontSize": 16
+    "editor.fontSize": 18,
+    "terminal.integrated.fontSize": 16
 }

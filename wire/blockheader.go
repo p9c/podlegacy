@@ -127,7 +127,7 @@ func (h *BlockHeader) BlockHash() (out chainhash.Hash) {
 }
 
 // BlockHashWithAlgos computes the block identifier hash for the given block header. This function is additional because the sync manager and the parallelcoin protocol only use SHA256D hashes for inventories and calculating the scrypt (or other) hash for these blocks when requested via that route causes an 'unrequested block' error.
-func (h *BlockHeader) BlockHashWithAlgos(hf bool) (out chainhash.Hash) {
+func (h *BlockHeader) BlockHashWithAlgos(hf uint32) (out chainhash.Hash) {
 	// Encode the header and double sha256 everything prior to the number of
 	// transactions.  Ignore the error returns since there is no way the
 	// encode could fail except being out of memory which would cause a

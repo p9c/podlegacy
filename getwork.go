@@ -86,7 +86,14 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 	generator := s.cfg.Generator
 	if state.template == nil {
 		var err error
-		state.template, err = generator.NewBlockTemplate(payToAddr, wire.Algos[cfg.Algo].Version)
+		var vers uint32
+		switch fork.GetCurrent(uint64(s.cfg.Chain.BestSnapshot().Height), s.cfg.ChainParams.Name == "testnet") {
+		case 0:
+			vers = wire.Algos[s.cfg.Algo].Version
+		case 1:
+			vers = wire.P9Algos[s.cfg.Algo].Version
+		}
+		state.template, err = generator.NewBlockTemplate(payToAddr, vers)
 		if err != nil {
 			return nil, err
 		}
@@ -110,7 +117,26 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 			again. */
 		state.prevHash = nil
 
-		template, err := generator.NewBlockTemplate(payToAddr, wire.Algos[cfg.Algo].Version)
+		// var vers uint32
+		hf := fork.GetCurrent(uint64(s.gbtWorkState.template.Height), s.cfg.ChainParams.Name == "testnet")
+		fmt.Println("hf", hf, "algo", s.cfg.Algo)
+
+		// switch hf {
+		// case 0:
+		// 	vers = wire.Algos[wire.AlgoVers[state.algo]].Version
+		// case 1:
+		// 	vers = wire.P9Algos[wire.AlgoVers[state.algo]].Version
+		// }
+		// fmt.Println("vers", vers)
+		var err error
+		var vers uint32
+		switch fork.GetCurrent(uint64(s.cfg.Chain.BestSnapshot().Height), s.cfg.ChainParams.Name == "testnet") {
+		case 0:
+			vers = wire.Algos[s.cfg.Algo].Version
+		case 1:
+			vers = wire.P9Algos[s.cfg.Algo].Version
+		}
+		state.template, err = generator.NewBlockTemplate(payToAddr, vers)
 		if err != nil {
 			errStr := fmt.Sprintf("Failed to create new block "+
 				"template: %v", err)
@@ -120,7 +146,7 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 				Message: errStr,
 			}
 		}
-		msgBlock = template.Block
+		msgBlock = state.template.Block
 
 		// Update work state to ensure another block template isn't
 		// generated until needed.
@@ -327,7 +353,7 @@ func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) 
 	case 1:
 		bits = wire.P9Algos[s.cfg.Algo].Version
 	}
-	err = blockchain.CheckProofOfWork(block, blockchain.CompactToBig(bits))
+	err = blockchain.CheckProofOfWork(block, blockchain.CompactToBig(bits), uint64(s.cfg.Chain.BestSnapshot().Height), s.cfg.ChainParams.Name == "testnet")
 	if err != nil {
 		/*	Anything other than a rule violation is an unexpected error,
 			so return that error as an internal error. */

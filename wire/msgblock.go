@@ -268,7 +268,7 @@ func (msg *MsgBlock) BlockHash() chainhash.Hash {
 }
 
 // BlockHashWithAlgos computes the block identifier hash for this block.
-func (msg *MsgBlock) BlockHashWithAlgos(hf bool) chainhash.Hash {
+func (msg *MsgBlock) BlockHashWithAlgos(hf uint32) chainhash.Hash {
 	return msg.Header.BlockHashWithAlgos(hf)
 }
 

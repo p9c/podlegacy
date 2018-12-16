@@ -14,6 +14,7 @@ import (
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/fork"
 	"github.com/parallelcointeam/pod/mining"
 	"github.com/parallelcointeam/pod/wire"
 )
@@ -208,8 +209,7 @@ func (m *CPUMiner) submitBlock(block *btcutil.Block) bool {
 // This function will return early with false when conditions that trigger a
 // stale block such as a new block showing up or periodically when there are
 // new transactions and enough time has elapsed without finding a solution.
-func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32,
-	ticker *time.Ticker, quit chan struct{}) bool {
+func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32, testnet bool, ticker *time.Ticker, quit chan struct{}) bool {
 
 	// log.Debugf("solveBlock %d %d", msgBlock.Header.Version, m.cfg.Algo)
 
@@ -288,7 +288,7 @@ func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32,
 			// increment the number of hashes completed for each
 			// attempt accordingly.
 			header.Nonce = i
-			hash := header.BlockHashWithAlgos(m.cfg.ChainParams.Name != "mainnet")
+			hash := header.BlockHashWithAlgos(fork.GetCurrent(uint64(blockHeight), testnet))
 			hashesCompleted += incr
 
 			// log.Debugf("algo %d %064x", header.Version, hash)
@@ -357,8 +357,14 @@ out:
 		// Create a new block template using the available transactions
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
-		template, err := m.g.NewBlockTemplate(payToAddr, m.cfg.Algo)
-		// log.Debugf("algo %d", m.cfg.Algo)
+		var vers uint32
+		switch fork.GetCurrent(uint64(m.cfg.BlockTemplateGenerator.BestSnapshot().Height), m.cfg.ChainParams.Name == "testnet") {
+		case 0:
+			vers = wire.Algos[wire.AlgoVers[m.cfg.Algo]].Version
+		case 1:
+			vers = wire.P9Algos[wire.AlgoVers[m.cfg.Algo]].Version
+		}
+		template, err := m.g.NewBlockTemplate(payToAddr, vers)
 		m.submitBlockLock.Unlock()
 		if err != nil {
 			errStr := fmt.Sprintf("(cpuminer.go 1) Failed to create new block "+
@@ -371,7 +377,7 @@ out:
 		// with false when conditions that trigger a stale block, so
 		// a new block template can be generated.  When the return is
 		// true a solution was found, so submit the solved block.
-		if m.solveBlock(template.Block, curHeight+1, ticker, quit) {
+		if m.solveBlock(template.Block, curHeight+1, m.cfg.ChainParams.Name == "testnet", ticker, quit) {
 			block := btcutil.NewBlock(template.Block)
 			m.submitBlock(block)
 		}
@@ -613,7 +619,14 @@ func (m *CPUMiner) GenerateNBlocks(n uint32) ([]*chainhash.Hash, error) {
 		// Create a new block template using the available transactions
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
-		template, err := m.g.NewBlockTemplate(payToAddr, m.cfg.Algo)
+		var vers uint32
+		switch fork.GetCurrent(uint64(m.cfg.BlockTemplateGenerator.BestSnapshot().Height), m.cfg.ChainParams.Name == "testnet") {
+		case 0:
+			vers = wire.Algos[wire.AlgoVers[m.cfg.Algo]].Version
+		case 1:
+			vers = wire.P9Algos[wire.AlgoVers[m.cfg.Algo]].Version
+		}
+		template, err := m.g.NewBlockTemplate(payToAddr, vers)
 		m.submitBlockLock.Unlock()
 		if err != nil {
 			errStr := fmt.Sprintf("(cpuminer.go 2) Failed to create new block "+
@@ -626,7 +639,7 @@ func (m *CPUMiner) GenerateNBlocks(n uint32) ([]*chainhash.Hash, error) {
 		// with false when conditions that trigger a stale block, so
 		// a new block template can be generated.  When the return is
 		// true a solution was found, so submit the solved block.
-		if m.solveBlock(template.Block, curHeight+1, ticker, nil) {
+		if m.solveBlock(template.Block, curHeight+1, m.cfg.ChainParams.Name == "testnet", ticker, nil) {
 			block := btcutil.NewBlock(template.Block)
 			m.submitBlock(block)
 			blockHashes[i] = block.Hash()

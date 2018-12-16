@@ -12,6 +12,7 @@ import (
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/fork"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
 )
@@ -442,20 +443,13 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 //  |  <= policy.BlockMinSize)          |   |
 //   -----------------------------------  --
 func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo uint32) (*BlockTemplate, error) {
-	// log.Debugf("NewBlockTemplate algo %d", algo)
+	fmt.Printf("NewBlockTemplate algo %d\n", algo)
 
 	// Extend the most recently known best block.
 	best := g.chain.BestSnapshot()
 	nextBlockHeight := best.Height + 1
 
-	// Create a standard coinbase transaction paying to the provided
-	// address.  NOTE: The coinbase value will be updated to include the
-	// fees from the selected transactions later after they have actually
-	// been selected.  It is created here to detect any errors early
-	// before potentially doing a lot of work below.  The extra nonce helps
-	// ensure the transaction is not a duplicate transaction (paying the
-	// same value to the same public key address would otherwise be an
-	// identical transaction for block version 1).
+	// Create a standard coinbase transaction paying to the provided address.  NOTE: The coinbase value will be updated to include the fees from the selected transactions later after they have actually been selected.  It is created here to detect any errors early before potentially doing a lot of work below.  The extra nonce helps ensure the transaction is not a duplicate transaction (paying the same value to the same public key address would otherwise be an identical transaction for block version 1).
 	extraNonce := uint64(0)
 	coinbaseScript, err := standardCoinbaseScript(nextBlockHeight, extraNonce)
 	if err != nil {
@@ -468,37 +462,20 @@ func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo u
 	}
 	coinbaseSigOpCost := int64(blockchain.CountSigOps(coinbaseTx)) * blockchain.WitnessScaleFactor
 
-	// Get the current source transactions and create a priority queue to
-	// hold the transactions which are ready for inclusion into a block
-	// along with some priority related and fee metadata.  Reserve the same
-	// number of items that are available for the priority queue.  Also,
-	// choose the initial sort order for the priority queue based on whether
-	// or not there is an area allocated for high-priority transactions.
+	// Get the current source transactions and create a priority queue to hold the transactions which are ready for inclusion into a block along with some priority related and fee metadata.  Reserve the same number of items that are available for the priority queue.  Also, choose the initial sort order for the priority queue based on whether or not there is an area allocated for high-priority transactions.
 	sourceTxns := g.txSource.MiningDescs()
 	sortedByFee := g.policy.BlockPrioritySize == 0
 	priorityQueue := newTxPriorityQueue(len(sourceTxns), sortedByFee)
 
-	// Create a slice to hold the transactions to be included in the
-	// generated block with reserved space.  Also create a utxo view to
-	// house all of the input transactions so multiple lookups can be
-	// avoided.
+	// Create a slice to hold the transactions to be included in the generated block with reserved space.  Also create a utxo view to house all of the input transactions so multiple lookups can be avoided.
 	blockTxns := make([]*btcutil.Tx, 0, len(sourceTxns))
 	blockTxns = append(blockTxns, coinbaseTx)
 	blockUtxos := blockchain.NewUtxoViewpoint()
 
-	// dependers is used to track transactions which depend on another
-	// transaction in the source pool.  This, in conjunction with the
-	// dependsOn map kept with each dependent transaction helps quickly
-	// determine which dependent transactions are now eligible for inclusion
-	// in the block once each transaction has been included.
+	// dependers is used to track transactions which depend on another transaction in the source pool.  This, in conjunction with the dependsOn map kept with each dependent transaction helps quickly determine which dependent transactions are now eligible for inclusion in the block once each transaction has been included.
 	dependers := make(map[chainhash.Hash]map[chainhash.Hash]*txPrioItem)
 
-	// Create slices to hold the fees and number of signature operations
-	// for each of the selected transactions and add an entry for the
-	// coinbase.  This allows the code below to simply append details about
-	// a transaction as it is selected for inclusion in the final block.
-	// However, since the total fees aren't known yet, use a dummy value for
-	// the coinbase fee which will be updated later.
+	// Create slices to hold the fees and number of signature operations for each of the selected transactions and add an entry for the coinbase.  This allows the code below to simply append details about a transaction as it is selected for inclusion in the final block. However, since the total fees aren't known yet, use a dummy value for the coinbase fee which will be updated later.
 	txFees := make([]int64, 0, len(sourceTxns))
 	txSigOpCosts := make([]int64, 0, len(sourceTxns))
 	txFees = append(txFees, -1) // Updated once known
@@ -509,8 +486,7 @@ func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo u
 
 mempoolLoop:
 	for _, txDesc := range sourceTxns {
-		// A block can't have more than one coinbase or contain
-		// non-finalized transactions.
+		// A block can't have more than one coinbase or contain non-finalized transactions.
 		tx := txDesc.Tx
 		if blockchain.IsCoinBase(tx) {
 			log.Tracef("Skipping coinbase tx %s", tx.Hash())
@@ -523,11 +499,7 @@ mempoolLoop:
 			continue
 		}
 
-		// Fetch all of the utxos referenced by the this transaction.
-		// NOTE: This intentionally does not fetch inputs from the
-		// mempool since a transaction which depends on other
-		// transactions in the mempool must come after those
-		// dependencies in the final generated block.
+		// Fetch all of the utxos referenced by the this transaction. NOTE: This intentionally does not fetch inputs from the mempool since a transaction which depends on other transactions in the mempool must come after those dependencies in the final generated block.
 		utxos, err := g.chain.FetchUtxoView(tx)
 		if err != nil {
 			log.Warnf("Unable to fetch utxo view for tx %s: %v",
@@ -535,9 +507,7 @@ mempoolLoop:
 			continue
 		}
 
-		// Setup dependencies for any transactions which reference
-		// other transactions in the mempool so they can be properly
-		// ordered below.
+		// Setup dependencies for any transactions which reference other transactions in the mempool so they can be properly ordered below.
 		prioItem := &txPrioItem{tx: tx}
 		for _, txIn := range tx.MsgTx().TxIn {
 			originHash := &txIn.PreviousOutPoint.Hash
@@ -711,9 +681,7 @@ mempoolLoop:
 			continue
 		}
 
-		// Prioritize by fee per kilobyte once the block is larger than
-		// the priority size or there are no more high-priority
-		// transactions.
+		// Prioritize by fee per kilobyte once the block is larger than the priority size or there are no more high-priority transactions.
 		if !sortedByFee && (blockPlusTxWeight >= g.policy.BlockPrioritySize ||
 			prioItem.priority <= MinHighPriority) {
 
@@ -726,12 +694,7 @@ mempoolLoop:
 			sortedByFee = true
 			priorityQueue.SetLessFunc(txPQByFee)
 
-			// Put the transaction back into the priority queue and
-			// skip it so it is re-priortized by fees if it won't
-			// fit into the high-priority section or the priority
-			// is too low.  Otherwise this transaction will be the
-			// final one in the high-priority section, so just fall
-			// though to the code below so it is added now.
+			// Put the transaction back into the priority queue and skip it so it is re-priortized by fees if it won't fit into the high-priority section or the priority is too low.  Otherwise this transaction will be the final one in the high-priority section, so just fall though to the code below so it is added now.
 			if blockPlusTxWeight > g.policy.BlockPrioritySize ||
 				prioItem.priority < MinHighPriority {
 
@@ -846,12 +809,13 @@ mempoolLoop:
 	// is potentially adjusted to ensure it comes after the median time of
 	// the last several blocks per the chain consensus rules.
 	ts := medianAdjustedTime(best, g.timeSource)
+	fmt.Println("algo", algo)
 	reqDifficulty, err := g.chain.CalcNextRequiredDifficulty(ts, algo)
 	if err != nil {
-		// log.Debugf("reqDifficulty %064x %s", reqDifficulty, err)
+		log.Debugf("reqDifficulty %064x %s", reqDifficulty, err)
 		return nil, err
 	}
-	// log.Debugf("reqDifficulty %064x", reqDifficulty)
+	log.Debugf("reqDifficulty %08x %064x", reqDifficulty, blockchain.CompactToBig(reqDifficulty))
 
 	// Calculate the next expected block version based on the state of the
 	// rule change deployments.
@@ -880,6 +844,7 @@ mempoolLoop:
 	// Finally, perform a full check on the created block against the chain
 	// consensus rules to ensure it properly connects to the current best
 	// chain with no issues.
+	fmt.Println(msgBlock.Header.Bits)
 	block := btcutil.NewBlock(&msgBlock)
 	block.SetHeight(nextBlockHeight)
 	err = g.chain.CheckConnectBlockTemplate(block)
@@ -888,9 +853,17 @@ mempoolLoop:
 		return nil, err
 	}
 
+	var a string
+	switch fork.GetCurrent(uint64(nextBlockHeight), g.chainParams.Name == "testnet") {
+	case 0:
+		a = wire.AlgoVers[block.MsgBlock().Header.Version]
+	case 2:
+		a = wire.AlgoVers[block.MsgBlock().Header.Version]
+	}
+
 	log.Debugf("Created new block template (algo %s, %d transactions, %d in "+
 		"fees, %d signature operations cost, %d weight, target difficulty "+
-		"%064x)", wire.AlgoVers[msgBlock.Header.Version], len(msgBlock.Transactions), totalFees, blockSigOpCost,
+		"%064x)", a, len(msgBlock.Transactions), totalFees, blockSigOpCost,
 		blockWeight, blockchain.CompactToBig(msgBlock.Header.Bits))
 
 	return &BlockTemplate{
