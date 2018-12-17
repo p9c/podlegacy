@@ -576,7 +576,7 @@ func (sm *SyncManager) handleBlockMsg(bmsg *blockMsg) {
 		}
 	}
 
-	log.Debugf("height %d for ProcessBlock hf", heightUpdate)
+	// log.Debugf("height %d for ProcessBlock hf", heightUpdate)
 
 	// Process the block to include validation, best chain selection, orphan
 	// handling, etc.

@@ -146,7 +146,7 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, height int32) (bool, bool, error) {
-	fmt.Println("ProcessBlock")
+	// fmt.Println("ProcessBlock")
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
 
@@ -154,24 +154,24 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 	blockHash := block.Hash()
 	isTestnet := b.chainParams.Name == "testnet"
 	hf := fork.GetCurrent(height, isTestnet)
-	log.Debugf("height %d, isTestnet %s, hf %d", height, fmt.Sprint(isTestnet), hf)
+	// log.Debugf("height %d, isTestnet %s, hf %d", height, fmt.Sprint(isTestnet), hf)
 	blockHashWithAlgo := block.MsgBlock().BlockHashWithAlgos(fork.GetCurrent(height, isTestnet))
 	log.Tracef("Processing block %v", blockHashWithAlgo)
 	var algo uint32
 
 	switch hf {
 	case 0:
-		log.Debugf("hf %d version %d net %s", 0, block.MsgBlock().Header.Version, b.chainParams.Name)
+		// log.Debugf("hf %d version %d net %s", 0, block.MsgBlock().Header.Version, b.chainParams.Name)
 		if block.MsgBlock().Header.Version != 514 {
 			algo = 2
 		} else {
 			algo = 514
 		}
-		log.Debugf("version %d", algo)
+		// log.Debugf("version %d", algo)
 	case 1:
-		log.Debugf("hf %d version %d", 1, block.MsgBlock().Header.Version)
+		// log.Debugf("hf %d version %d", 1, block.MsgBlock().Header.Version)
 		algo = block.MsgBlock().Header.Version
-		log.Debugf("version %d", algo)
+		// log.Debugf("version %d", algo)
 	}
 
 	// The block must not already exist in the main chain or side chains.
