@@ -11,6 +11,7 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
+	"github.com/parallelcointeam/pod/fork"
 	"github.com/parallelcointeam/pod/wire"
 )
 
@@ -352,7 +353,8 @@ func (node *blockNode) GetAlgo() uint32 {
 }
 
 // GetPrevWithAlgo returns the previous block from the current with the same algorithm
-func (node *blockNode) GetPrevWithAlgo(algo uint32) (prev *blockNode) {
+func (node *blockNode) GetPrevWithAlgo(algo uint32, testnet bool) (prev *blockNode) {
+
 	if node == nil {
 		return nil
 	}
@@ -363,7 +365,13 @@ func (node *blockNode) GetPrevWithAlgo(algo uint32) (prev *blockNode) {
 	if prev == nil {
 		return
 	}
+	if fork.GetCurrent(node.height, testnet) == 0 {
+		if algo != 514 {
+			algo = 2
+		}
+	}
 	for algo != prev.version {
+
 		prev = prev.RelativeAncestor(1)
 		if prev == nil {
 			// fmt.Println("passed genesis block")

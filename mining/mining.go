@@ -854,7 +854,7 @@ mempoolLoop:
 	}
 
 	var a string
-	switch fork.GetCurrent(uint64(nextBlockHeight), g.chainParams.Name == "testnet") {
+	switch fork.GetCurrent(nextBlockHeight, g.chainParams.Name == "testnet") {
 	case 0:
 		a = wire.AlgoVers[block.MsgBlock().Header.Version]
 	case 2:

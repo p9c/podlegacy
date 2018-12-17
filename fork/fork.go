@@ -5,7 +5,7 @@ package fork
 type HardForks struct {
 	Number           uint32
 	Name             string
-	ActivationHeight uint64
+	ActivationHeight int32
 }
 
 var (
@@ -25,9 +25,8 @@ var (
 )
 
 // GetCurrent returns the number of the hard fork active at the given height
-func GetCurrent(height uint64, testnet bool) (activeFork uint32) {
+func GetCurrent(height int32, testnet bool) (activeFork uint32) {
 	for i := range List {
-		// If testnet is active,
 		if height > List[i].ActivationHeight || testnet {
 			activeFork = List[i].Number
 		}

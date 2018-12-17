@@ -238,7 +238,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	var newTargetBits, powLimitBits uint32
 	var algoStr string
 	powLimit := CompactToBig(powLimitBits)
-	switch fork.GetCurrent(uint64(lastNode.height+1), b.chainParams.Name == "testnet") {
+	switch fork.GetCurrent(lastNode.height+1, b.chainParams.Name == "testnet") {
 	case 0:
 		// fmt.Println("On pre hardfork version")
 		algoStr = wire.AlgoVers[algo]
@@ -251,11 +251,11 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		}
 		prevNode := lastNode
 		if prevNode.version != algo {
-			prevNode = prevNode.GetPrevWithAlgo(algo)
+			prevNode = prevNode.GetPrevWithAlgo(algo, b.chainParams.Name == "testnet")
 		}
-		firstNode := prevNode.GetPrevWithAlgo(algo) //.RelativeAncestor(1)
+		firstNode := prevNode.GetPrevWithAlgo(algo, b.chainParams.Name == "testnet") //.RelativeAncestor(1)
 		for i := int64(1); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
-			firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo)
+			firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo, b.chainParams.Name == "testnet")
 		}
 		if firstNode == nil {
 			return powLimitBits, nil
@@ -289,7 +289,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		// fmt.Printf("bits %08x full %064x\n", powLimitBits, powLimit)
 		last := lastNode
 		if last.version != algo {
-			last = last.GetPrevWithAlgo(algo)
+			last = last.GetPrevWithAlgo(algo, b.chainParams.Name == "testnet")
 			if last == nil {
 				// This is the first block of the algo
 				return powLimitBits, nil
@@ -299,7 +299,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		lastheight := last.height
 		firstheight := lastheight - int32(b.chainParams.AveragingInterval)
 		// Consensus rule, if an algorithm does not appear for a day its difficulty not adjusted from the previous, as the difficulty adjusts from the previous of the algorithm, but if there was only one in a day it gets a free one, and this is to also keep all 9 algorithms running and add reverberation perturbation in addition to the difficulty bit flip
-		if last.GetPrevWithAlgo(algo).height < firstheight {
+		if last.GetPrevWithAlgo(algo, b.chainParams.Name == "testnet").height < firstheight {
 			return last.bits, nil
 		}
 		bits := last.bits

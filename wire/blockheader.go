@@ -151,7 +151,14 @@ func (h *BlockHeader) BlockHashWithAlgos(hf uint32) (out chainhash.Hash) {
 	// fmt.Printf("algo %d\n", h.Version)
 	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
 	_ = writeBlockHeader(buf, 0, h)
-	switch h.Version {
+	vers := h.Version
+	switch hf {
+	case 0:
+
+	case 1:
+
+	}
+	switch vers {
 	case Algos["blake14lr"].Version:
 		// fmt.Printf("hashing with Blake14lr\n")
 		a := blake256.New()

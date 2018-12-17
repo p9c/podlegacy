@@ -284,7 +284,7 @@ func CheckTransactionSanity(tx *btcutil.Tx) error {
 // checkProofOfWork ensures the block header bits which indicate the target difficulty is in min/max range and that the block hash is less than the target difficulty as claimed.
 // The flags modify the behavior of this function as follows:
 //  - BFNoPoWCheck: The check to ensure the block hash is less than the target difficulty is not performed.
-func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags BehaviorFlags, height uint64, testnet bool) error {
+func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags BehaviorFlags, height int32, testnet bool) error {
 	// fmt.Println("checkProofOfWork")
 	// The target difficulty must be larger than zero.
 	// fmt.Printf("pl %064x\n", powLimit)
@@ -301,7 +301,7 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 
 	// The target difficulty must be less than the maximum allowed.
 	if target.Cmp(powLimit) > 0 {
-		str := fmt.Sprintf("block target difficulty of %064x is higher than max of %064x", target, powLimit)
+		str := fmt.Sprintf("height %d block target difficulty of %064x is higher than max of %064x", height, target, powLimit)
 		return ruleError(ErrUnexpectedDifficulty, str)
 	}
 
@@ -320,7 +320,7 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 }
 
 // CheckProofOfWork ensures the block header bits which indicate the target difficulty is in min/max range and that the block hash is less than the target difficulty as claimed.
-func CheckProofOfWork(block *btcutil.Block, powLimit *big.Int, height uint64, testnet bool) error {
+func CheckProofOfWork(block *btcutil.Block, powLimit *big.Int, height int32, testnet bool) error {
 	// log.Debugf("CheckProofOfWork")
 	return checkProofOfWork(&block.MsgBlock().Header, powLimit, BFNone, height, testnet)
 }
@@ -394,7 +394,7 @@ func CountP2SHSigOps(tx *btcutil.Tx, isCoinBaseTx bool, utxoView *UtxoViewpoint)
 }
 
 // checkBlockHeaderSanity performs some preliminary checks on a block header to ensure it is sane before continuing with processing.  These checks are context free. The flags do not modify the behavior of this function directly, however they are needed to pass along to checkProofOfWork.
-func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags, height uint64, testnet bool) error {
+func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags, height int32, testnet bool) error {
 	// fmt.Printf("checkBlockHeaderSanity %064x\n", powLimit)
 	// Ensure the proof of work bits in the block header is in min/max range and the block hash is less than the target value described by the bits.
 	err := checkProofOfWork(header, powLimit, flags, height, testnet)
@@ -423,12 +423,13 @@ func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSou
 
 // checkBlockSanity performs some preliminary checks on a block to ensure it is sane before continuing with block processing.  These checks are context free.
 // The flags do not modify the behavior of this function directly, however they are needed to pass along to checkBlockHeaderSanity.
-func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags, DoNotCheckPow bool, height uint64, testnet bool) error {
-	// fmt.Printf("checkBlockSanity %064x\n", powLimit)
+func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags, DoNotCheckPow bool, height int32, testnet bool) error {
+	fmt.Printf("checkBlockSanity %064x height %d\n", powLimit, height)
 	msgBlock := block.MsgBlock()
 	header := &msgBlock.Header
 	err := checkBlockHeaderSanity(header, powLimit, timeSource, flags, height, testnet)
 	if err != nil {
+		log.Debugf("ERROR %s", err)
 		return err
 	}
 
@@ -518,7 +519,7 @@ func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource Median
 }
 
 // CheckBlockSanity performs some preliminary checks on a block to ensure it is sane before continuing with block processing.  These checks are context free.
-func CheckBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, DoNotCheckPow bool, height uint64, testnet bool) error {
+func CheckBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, DoNotCheckPow bool, height int32, testnet bool) error {
 	// log.Debugf("CheckBlockSanity")
 	return checkBlockSanity(block, powLimit, timeSource, BFNone, DoNotCheckPow, height, testnet)
 }
@@ -1074,7 +1075,7 @@ func (b *BlockChain) CheckConnectBlockTemplate(block *btcutil.Block) error {
 	var algoStr string
 	algo := block.MsgBlock().Header.Version
 	var powLimit *big.Int
-	switch fork.GetCurrent(uint64(block.Height()), b.chainParams.Name == "testnet") {
+	switch fork.GetCurrent(block.Height(), b.chainParams.Name == "testnet") {
 	case 0:
 		algoStr = wire.AlgoVers[algo]
 		powLimitBits = wire.Algos[algoStr].MinBits
@@ -1099,8 +1100,9 @@ func (b *BlockChain) CheckConnectBlockTemplate(block *btcutil.Block) error {
 	}
 
 	// fmt.Printf("CheckConnectBlockTemplate, %064x %s\n", powLimit, b.chainParams.Name)
-	err := checkBlockSanity(block, powLimit, b.timeSource, flags, true, uint64(block.Height()), b.chainParams.Name == "testnet")
+	err := checkBlockSanity(block, powLimit, b.timeSource, flags, true, block.Height(), b.chainParams.Name == "testnet")
 	if err != nil {
+		log.Debugf("ERROR %s", err.Error())
 		return err
 	}
 

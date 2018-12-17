@@ -87,7 +87,7 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 	if state.template == nil {
 		var err error
 		var vers uint32
-		switch fork.GetCurrent(uint64(s.cfg.Chain.BestSnapshot().Height), s.cfg.ChainParams.Name == "testnet") {
+		switch fork.GetCurrent(s.cfg.Chain.BestSnapshot().Height, s.cfg.ChainParams.Name == "testnet") {
 		case 0:
 			vers = wire.Algos[s.cfg.Algo].Version
 		case 1:
@@ -118,7 +118,7 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		state.prevHash = nil
 
 		// var vers uint32
-		hf := fork.GetCurrent(uint64(s.gbtWorkState.template.Height), s.cfg.ChainParams.Name == "testnet")
+		hf := fork.GetCurrent(s.gbtWorkState.template.Height, s.cfg.ChainParams.Name == "testnet")
 		fmt.Println("hf", hf, "algo", s.cfg.Algo)
 
 		// switch hf {
@@ -130,7 +130,7 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		// fmt.Println("vers", vers)
 		var err error
 		var vers uint32
-		switch fork.GetCurrent(uint64(s.cfg.Chain.BestSnapshot().Height), s.cfg.ChainParams.Name == "testnet") {
+		switch fork.GetCurrent(s.cfg.Chain.BestSnapshot().Height, s.cfg.ChainParams.Name == "testnet") {
 		case 0:
 			vers = wire.Algos[s.cfg.Algo].Version
 		case 1:
@@ -347,13 +347,13 @@ func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) 
 
 	// Ensure the submitted block hash is less than the target difficulty.
 	var bits uint32
-	switch fork.GetCurrent(uint64(wire.Algos[s.cfg.Algo].Version), s.cfg.ChainParams.Name == "testnet") {
+	switch fork.GetCurrent(s.cfg.Chain.BestSnapshot().Height, s.cfg.ChainParams.Name == "testnet") {
 	case 0:
 		bits = wire.Algos[s.cfg.Algo].Version
 	case 1:
 		bits = wire.P9Algos[s.cfg.Algo].Version
 	}
-	err = blockchain.CheckProofOfWork(block, blockchain.CompactToBig(bits), uint64(s.cfg.Chain.BestSnapshot().Height), s.cfg.ChainParams.Name == "testnet")
+	err = blockchain.CheckProofOfWork(block, blockchain.CompactToBig(bits), s.cfg.Chain.BestSnapshot().Height, s.cfg.ChainParams.Name == "testnet")
 	if err != nil {
 		/*	Anything other than a rule violation is an unexpected error,
 			so return that error as an internal error. */
@@ -379,7 +379,7 @@ func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) 
 
 	/*	Process this block using the same rules as blocks coming from other
 		nodes.  This will in turn relay it to the network like normal. */
-	_, isOrphan, err := s.cfg.Chain.ProcessBlock(block, 0)
+	_, isOrphan, err := s.cfg.Chain.ProcessBlock(block, 0, s.cfg.Chain.BestSnapshot().Height)
 	// .ProcessBlock(block)
 	if err != nil || isOrphan {
 		/*	Anything other than a rule violation is an unexpected error,

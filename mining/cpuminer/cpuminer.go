@@ -288,7 +288,7 @@ func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32, testne
 			// increment the number of hashes completed for each
 			// attempt accordingly.
 			header.Nonce = i
-			hash := header.BlockHashWithAlgos(fork.GetCurrent(uint64(blockHeight), testnet))
+			hash := header.BlockHashWithAlgos(fork.GetCurrent(blockHeight, testnet))
 			hashesCompleted += incr
 
 			// log.Debugf("algo %d %064x", header.Version, hash)
@@ -358,7 +358,7 @@ out:
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
 		var vers uint32
-		switch fork.GetCurrent(uint64(m.cfg.BlockTemplateGenerator.BestSnapshot().Height), m.cfg.ChainParams.Name == "testnet") {
+		switch fork.GetCurrent(m.cfg.BlockTemplateGenerator.BestSnapshot().Height, m.cfg.ChainParams.Name == "testnet") {
 		case 0:
 			vers = wire.Algos[wire.AlgoVers[m.cfg.Algo]].Version
 		case 1:
@@ -620,7 +620,7 @@ func (m *CPUMiner) GenerateNBlocks(n uint32) ([]*chainhash.Hash, error) {
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
 		var vers uint32
-		switch fork.GetCurrent(uint64(m.cfg.BlockTemplateGenerator.BestSnapshot().Height), m.cfg.ChainParams.Name == "testnet") {
+		switch fork.GetCurrent(m.cfg.BlockTemplateGenerator.BestSnapshot().Height, m.cfg.ChainParams.Name == "testnet") {
 		case 0:
 			vers = wire.Algos[wire.AlgoVers[m.cfg.Algo]].Version
 		case 1:

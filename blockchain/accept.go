@@ -53,7 +53,7 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 		var i int64
 		pn = prevNode
 		for ; i < b.chainParams.AveragingInterval-1; i++ {
-			pn = pn.GetPrevWithAlgo(a)
+			pn = pn.GetPrevWithAlgo(a, b.chainParams.Name == "testnet")
 			if pn == nil {
 				// fmt.Println("passed genesis looking for previous of algo")
 				break

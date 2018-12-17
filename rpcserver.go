@@ -1136,7 +1136,7 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		VersionHex:    fmt.Sprintf("%08x", blockHeader.Version),
 		PowAlgoID:     algoid,
 		PowAlgo:       algoname,
-		PowHash:       blk.MsgBlock().BlockHashWithAlgos(fork.GetCurrent(uint64(s.cfg.Chain.BestSnapshot().Height+1), s.cfg.ChainParams.Name != "mainnet")).String(),
+		PowHash:       blk.MsgBlock().BlockHashWithAlgos(fork.GetCurrent(s.cfg.Chain.BestSnapshot().Height+1, s.cfg.ChainParams.Name != "mainnet")).String(),
 		MerkleRoot:    blockHeader.MerkleRoot.String(),
 		PreviousHash:  blockHeader.PrevBlock.String(),
 		Nonce:         blockHeader.Nonce,
@@ -2382,7 +2382,7 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 	v := s.cfg.Chain.Index.LookupNode(&best.Hash)
 	foundcount, height := 0, best.Height
 
-	switch fork.GetCurrent(uint64(height), s.cfg.ChainParams.Name == "testnet") {
+	switch fork.GetCurrent(height, s.cfg.ChainParams.Name == "testnet") {
 	case 0:
 		for foundcount < 9 && height > 0 {
 			switch wire.AlgoVers[v.Header().Version] {
@@ -2429,7 +2429,7 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 	case 1:
 		foundcount, height := 0, best.Height
 		for foundcount < 9 &&
-			uint64(height) > fork.List[fork.GetCurrent(uint64(height), s.cfg.ChainParams.Name == "testnet")].ActivationHeight-512 {
+			height > fork.List[fork.GetCurrent(height, s.cfg.ChainParams.Name == "testnet")].ActivationHeight-512 {
 			switch wire.AlgoVers[v.Header().Version] {
 			case "sha256d":
 				if lastbitsSHA256D == 0 {
@@ -2583,7 +2583,7 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 	v := s.cfg.Chain.Index.LookupNode(&best.Hash)
 	foundcount, height := 0, best.Height
 
-	switch fork.GetCurrent(uint64(height), s.cfg.ChainParams.Name == "testnet") {
+	switch fork.GetCurrent(height, s.cfg.ChainParams.Name == "testnet") {
 	case 0:
 		for foundcount < 2 && height > 0 {
 			switch wire.AlgoVers[v.Header().Version] {
@@ -2632,7 +2632,7 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 	case 1:
 		foundcount, height := 0, best.Height
 
-		for foundcount < 9 && uint64(height) > fork.List[fork.GetCurrent(uint64(height), s.cfg.ChainParams.Name == "testnet")].ActivationHeight-512 {
+		for foundcount < 9 && height > fork.List[fork.GetCurrent(height, s.cfg.ChainParams.Name == "testnet")].ActivationHeight-512 {
 			switch wire.AlgoVers[v.Header().Version] {
 			case "sha256d":
 				if lastbitsSHA256D == 0 {
@@ -3884,7 +3884,7 @@ func verifyChain(s *rpcServer, level, depth int32) error {
 			// 	// powLimitBits = s.cfg.ChainParams.PowLimitBits
 			// }
 			err := blockchain.CheckBlockSanity(block,
-				powLimit, s.cfg.TimeSource, true, uint64(block.Height()), s.cfg.ChainParams.Name == "testnet")
+				powLimit, s.cfg.TimeSource, true, block.Height(), s.cfg.ChainParams.Name == "testnet")
 			if err != nil {
 				rpcsLog.Errorf("Verify is unable to validate "+
 					"block at hash %v height %d: %v",
