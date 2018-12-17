@@ -4,7 +4,6 @@ package blockchain
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -241,18 +240,12 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	powLimit := CompactToBig(powLimitBits)
 	switch fork.GetCurrent(uint64(lastNode.height+1), b.chainParams.Name == "testnet") {
 	case 0:
-		fmt.Println("On pre hardfork version")
+		// fmt.Println("On pre hardfork version")
 		algoStr = wire.AlgoVers[algo]
 		powLimitBits = wire.Algos[algoStr].MinBits
-		fmt.Println("algo", algo, algoStr)
-		fmt.Printf("bits %08x full %064x\n", powLimitBits, powLimit)
-		// switch algo {
-		// case 2:
-		// default:
-		// 	powLimit = b.chainParams.PowLimit
-		// 	powLimitBits = b.chainParams.PowLimitBits
-		// }
-		// Genesis block.
+		powLimit = CompactToBig(powLimitBits)
+		// fmt.Println("algo", algo, algoStr)
+		// fmt.Printf("bits %08x full %064x\n", powLimitBits, powLimit)
 		if lastNode == nil {
 			return powLimitBits, nil
 		}
@@ -288,12 +281,12 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			adjustedTimespan,
 			b.chainParams.AveragingTargetTimespan)
 	case 1: // Plan 9 from Crypto Space
-		fmt.Println("On hardfork version 1")
+		// fmt.Println("On hardfork version 1")
 		algoStr = wire.P9AlgoVers[algo]
 		powLimitBits = wire.P9Algos[algoStr].MinBits
 		powLimit = CompactToBig(powLimitBits)
-		fmt.Println("algo", algo, algoStr)
-		fmt.Printf("bits %08x full %064x\n", powLimitBits, powLimit)
+		// fmt.Println("algo", algo, algoStr)
+		// fmt.Printf("bits %08x full %064x\n", powLimitBits, powLimit)
 		last := lastNode
 		if last.version != algo {
 			last = last.GetPrevWithAlgo(algo)

@@ -146,7 +146,7 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bool, bool, error) {
-	fmt.Println("ProcessBlock")
+	// fmt.Println("ProcessBlock")
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
 	fastAdd := flags&BFFastAdd == BFFastAdd
@@ -191,13 +191,13 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	}
 	pb := pn.GetPrevWithAlgo(algo)
 	if pb == nil {
-		fmt.Println("not enough prior blocks on algo")
+		// fmt.Println("not enough prior blocks on algo")
 		pl = &chaincfg.AllOnes
 		DoNotCheckPow = true
-		fmt.Printf("pl %064x\n", pl)
+		// fmt.Printf("pl %064x\n", pl)
 	}
 
-	fmt.Printf("pl %064x\n", pl)
+	// fmt.Printf("pl %064x\n", pl)
 	err = checkBlockSanity(block, pl, b.timeSource, flags, DoNotCheckPow, uint64(block.Height()), b.chainParams.Name == "testnet")
 	if err != nil {
 		return false, false, err

@@ -37,7 +37,7 @@ var (
 	MainPowLimit     = mainPowLimit
 	MainPowLimitBits = BigToCompact(&MainPowLimit)
 	scryptPowLimit   = func() big.Int {
-		mplb, _ := hex.DecodeString("fffff00000000000000000000000000000000000000000000000000000000000")
+		mplb, _ := hex.DecodeString("00000fffff000000000000000000000000000000000000000000000000000000")
 		return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
 	}()
 	ScryptPowLimit     = scryptPowLimit
