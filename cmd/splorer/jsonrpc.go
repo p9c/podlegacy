@@ -39,16 +39,12 @@ func (c *JSONRPC) Call(method string, params interface{}) (interface{}, error) {
 		fmt.Println(err)
 		return nil, err
 	}
-	//	fmt.Println("Blooblockblockblockblockooradb", args)
-
 	req.Body = ioutil.NopCloser(strings.NewReader(string(j)))
 	req.ContentLength = int64(len(string(j)))
-
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
-
 	defer resp.Body.Close()
 	bytes, _ := ioutil.ReadAll(resp.Body)
 

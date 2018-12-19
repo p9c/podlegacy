@@ -344,9 +344,7 @@ out:
 		// Create a new block template using the available transactions
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
-		bh := m.cfg.BlockTemplateGenerator.BestSnapshot().Height
-		vers := fork.GetAlgoVer(m.cfg.Algo, bh)
-		template, err := m.g.NewBlockTemplate(payToAddr, vers)
+		template, err := m.g.NewBlockTemplate(payToAddr, m.cfg.Algo)
 		m.submitBlockLock.Unlock()
 		if err != nil {
 			errStr := fmt.Sprintf("(cpuminer.go 1) Failed to create new block "+
@@ -601,9 +599,7 @@ func (m *CPUMiner) GenerateNBlocks(n uint32) ([]*chainhash.Hash, error) {
 		// Create a new block template using the available transactions
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
-		bh := m.cfg.BlockTemplateGenerator.BestSnapshot().Height
-		vers := fork.GetAlgoVer(m.cfg.Algo, bh)
-		template, err := m.g.NewBlockTemplate(payToAddr, vers)
+		template, err := m.g.NewBlockTemplate(payToAddr, m.cfg.Algo)
 		m.submitBlockLock.Unlock()
 		if err != nil {
 			errStr := fmt.Sprintf("(cpuminer.go 2) Failed to create new block "+

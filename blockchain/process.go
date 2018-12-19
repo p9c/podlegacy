@@ -50,23 +50,14 @@ func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 	err := b.db.View(func(dbTx database.Tx) error {
 		var err error
 		exists, err = dbTx.HasBlock(hash)
-		// fmt.Println("HasBlock", exists, err)
 		if err != nil || !exists {
 			return err
 		}
 
-		// Ignore side chain blocks in the database.  This is necessary
-		// because there is not currently any record of the associated
-		// block index data such as its block height, so it's not yet
-		// possible to efficiently load the block and do anything useful
-		// with it.
-		//
-		// Ultimately the entire block index should be serialized
-		// instead of only the current main chain so it can be consulted
-		// directly.
+		// Ignore side chain blocks in the database.  This is necessary because there is not currently any record of the associated block index data such as its block height, so it's not yet possible to efficiently load the block and do anything useful with it.
+		// Ultimately the entire block index should be serialized instead of only the current main chain so it can be consulted directly.
 		_, err = dbFetchHeightByHash(dbTx, hash)
 		if isNotInMainChainErr(err) {
-			// fmt.Println("is not on main chain")
 			exists = false
 			return nil
 		}
@@ -85,10 +76,7 @@ func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) error {
-	// fmt.Println("processOrphans")
-	// Start with processing at least the passed hash.  Leave a little room
-	// for additional orphan blocks that need to be processed without
-	// needing to grow the array in the common case.
+	// Start with processing at least the passed hash.  Leave a little room for additional orphan blocks that need to be processed without needing to grow the array in the common case.
 	processHashes := make([]*chainhash.Hash, 0, 10)
 	processHashes = append(processHashes, hash)
 	for len(processHashes) > 0 {
@@ -97,14 +85,7 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 		processHashes[0] = nil // Prevent GC leak.
 		processHashes = processHashes[1:]
 
-		// Look up all orphans that are parented by the block we just
-		// accepted.  This will typically only be one, but it could
-		// be multiple if multiple blocks are mined and broadcast
-		// around the same time.  The one with the most proof of work
-		// will eventually win out.  An indexing for loop is
-		// intentionally used over a range here as range does not
-		// reevaluate the slice on each iteration nor does it adjust the
-		// index for the modified slice.
+		// Look up all orphans that are parented by the block we just accepted.  This will typically only be one, but it could be multiple if multiple blocks are mined and broadcast around the same time.  The one with the most proof of work will eventually win out.  An indexing for loop is intentionally used over a range here as range does not reevaluate the slice on each iteration nor does it adjust the index for the modified slice.
 		for i := 0; i < len(b.prevOrphans[*processHash]); i++ {
 			orphan := b.prevOrphans[*processHash][i]
 			if orphan == nil {
@@ -228,9 +209,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 
 	// Handle orphan blocks.
 	prevHash := &blockHeader.PrevBlock
-	// fmt.Println("prevHash", prevHash)
 	prevHashExists, err := b.blockExists(prevHash)
-	// fmt.Println("prevHashExists", prevHashExists)
 	if err != nil {
 		return false, false, err
 	}
@@ -244,7 +223,6 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 	// The block has passed all context independent checks and appears sane
 	// enough to potentially accept it into the block chain.
 	isMainChain, err := b.maybeAcceptBlock(block, flags)
-	// fmt.Println("mainchain?", isMainChain)
 	if err != nil {
 		return false, false, err
 	}
@@ -254,7 +232,6 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 	// there are no more.
 	err = b.processOrphans(blockHash, flags)
 	if err != nil {
-		// fmt.Println("is orphaned")
 		return false, false, err
 	}
 

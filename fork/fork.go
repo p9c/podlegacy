@@ -57,15 +57,15 @@ var (
 
 	// P9Algos is the algorithm specifications after the hard fork
 	P9Algos = map[string]AlgoParams{
-		"blake14lr": AlgoParams{0, 0x1d1089f6, 0},
-		"gost":      AlgoParams{1, 0x1e00b629, 1},
-		"keccak":    AlgoParams{2, 0x1e050502, 2},
-		"lyra2rev2": AlgoParams{3, 0x1d5c89d1, 3},
+		"blake14lr": AlgoParams{0, mainPowLimitBits, 0},
+		"gost":      AlgoParams{1, mainPowLimitBits, 1},
+		"keccak":    AlgoParams{2, mainPowLimitBits, 2},
+		"lyra2rev2": AlgoParams{3, mainPowLimitBits, 3},
 		"scrypt":    AlgoParams{4, mainPowLimitBits, 4},
 		"sha256d":   AlgoParams{5, mainPowLimitBits, 5},
-		"skein":     AlgoParams{6, 0x1d332839, 6},
-		"whirlpool": AlgoParams{7, 0x1d1c0eea, 7},
-		"x11":       AlgoParams{8, 0x1d5c89d1, 8},
+		"skein":     AlgoParams{6, mainPowLimitBits, 6},
+		"whirlpool": AlgoParams{7, mainPowLimitBits, 7},
+		"x11":       AlgoParams{8, mainPowLimitBits, 8},
 	}
 
 	// AlgoVers is the lookup for pre hardfork
@@ -76,22 +76,22 @@ var (
 
 	// P9AlgoVers is the lookup for after 1st hardfork
 	P9AlgoVers = map[int32]string{
-		2:   "sha256d",
-		514: "scrypt",
-		3:   "blake14lr",
-		4:   "gost",
-		5:   "keccak",
-		6:   "lyra2rev2",
-		7:   "skein",
-		8:   "whirlpool",
-		9:   "x11",
+		0: "blake14lr",
+		1: "gost",
+		2: "keccak",
+		3: "lyra2rev2",
+		4: "scrypt",
+		5: "sha256d",
+		6: "skein",
+		7: "whirlpool",
+		8: "x11",
 	}
 )
 
 // GetAlgoVer returns the version number for a given algorithm (by string name) at a given height
 func GetAlgoVer(name string, height int32) (version int32) {
 	if IsTestnet {
-		return P9Algos[name].Version
+		return List[len(List)-1].Algos[name].Version
 	}
 	for i := range List {
 		if height > List[i].ActivationHeight {
@@ -104,7 +104,7 @@ func GetAlgoVer(name string, height int32) (version int32) {
 // GetAlgoName returns the string identifier of an algorithm depending on hard fork activation status
 func GetAlgoName(algoVer int32, height int32) (name string) {
 	if IsTestnet {
-		name = P9AlgoVers[algoVer]
+		return List[len(List)-1].AlgoVers[algoVer]
 	}
 	for i := range List {
 		if height > List[i].ActivationHeight {
@@ -125,7 +125,7 @@ func GetAlgoID(algoname string, height int32) uint32 {
 // GetCurrent returns the hardfork number code
 func GetCurrent(height int32) (curr int) {
 	if IsTestnet {
-		return len(List)
+		return len(List) - 1
 	}
 	for i := range List {
 		if height > List[i].ActivationHeight {

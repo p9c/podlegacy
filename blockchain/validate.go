@@ -285,7 +285,6 @@ func CheckTransactionSanity(tx *btcutil.Tx) error {
 // The flags modify the behavior of this function as follows:
 //  - BFNoPoWCheck: The check to ensure the block hash is less than the target difficulty is not performed.
 func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags BehaviorFlags, height int32) error {
-	fmt.Println("checkProofOfWork", header)
 	// The target difficulty must be larger than zero.
 	if powLimit == nil {
 		return errors.New("PoW limit was not set")
@@ -381,9 +380,7 @@ func CountP2SHSigOps(tx *btcutil.Tx, isCoinBaseTx bool, utxoView *UtxoViewpoint)
 		lastSigOps := totalSigOps
 		totalSigOps += numSigOps
 		if totalSigOps < lastSigOps {
-			str := fmt.Sprintf("the public key script from output "+
-				"%v contains too many signature operations - "+
-				"overflow", txIn.PreviousOutPoint)
+			str := fmt.Sprintf("the public key script from output %v contains too many signature operations - overflow", txIn.PreviousOutPoint)
 			return 0, ruleError(ErrTooManySigOps, str)
 		}
 	}
@@ -393,7 +390,6 @@ func CountP2SHSigOps(tx *btcutil.Tx, isCoinBaseTx bool, utxoView *UtxoViewpoint)
 
 // checkBlockHeaderSanity performs some preliminary checks on a block header to ensure it is sane before continuing with processing.  These checks are context free. The flags do not modify the behavior of this function directly, however they are needed to pass along to checkProofOfWork.
 func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags, height int32, testnet bool) error {
-	fmt.Printf("checkBlockHeaderSanity %064x\n", powLimit)
 	// Ensure the proof of work bits in the block header is in min/max range and the block hash is less than the target value described by the bits.
 	err := checkProofOfWork(header, powLimit, flags, height)
 	if err != nil {
@@ -422,7 +418,6 @@ func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSou
 // checkBlockSanity performs some preliminary checks on a block to ensure it is sane before continuing with block processing.  These checks are context free.
 // The flags do not modify the behavior of this function directly, however they are needed to pass along to checkBlockHeaderSanity.
 func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags, DoNotCheckPow bool, height int32) error {
-	fmt.Printf("checkBlockSanity %064x height %d\n", powLimit, height)
 	msgBlock := block.MsgBlock()
 	header := &msgBlock.Header
 	err := checkBlockHeaderSanity(header, powLimit, timeSource, flags, height, fork.IsTestnet)
@@ -581,7 +576,6 @@ func checkSerializedHeight(coinbaseTx *btcutil.Tx, wantHeight int32) error {
 //  - BFFastAdd: All checks except those involving comparing the header against the checkpoints are not performed.
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode *blockNode, flags BehaviorFlags) error {
-	// log.Debugf("checkBlockHeaderContext")
 	if prevNode == nil {
 		return nil
 	}
@@ -589,7 +583,7 @@ func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode 
 	if !fastAdd {
 		// Ensure the difficulty specified in the block header matches the calculated difficulty based on the previous block and difficulty retarget rules.
 		expectedDifficulty, err := b.calcNextRequiredDifficulty(prevNode,
-			header.Timestamp, header.Version)
+			header.Timestamp, fork.GetAlgoName(header.Version, prevNode.height+1))
 		if err != nil {
 			return err
 		}
@@ -652,7 +646,6 @@ func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode 
 //   The flags are also passed to checkBlockHeaderContext.  See its documentation for how the flags modify its behavior.
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) checkBlockContext(block *btcutil.Block, prevNode *blockNode, flags BehaviorFlags, DoNotCheckPow bool) error {
-	// fmt.Println("checkBlockContext")
 	// Perform all block header related validation checks.
 	header := &block.MsgBlock().Header
 	err := b.checkBlockHeaderContext(header, prevNode, flags)
@@ -1065,7 +1058,6 @@ func (b *BlockChain) checkConnectBlock(node *blockNode, block *btcutil.Block, vi
 // CheckConnectBlockTemplate fully validates that connecting the passed block to the main chain does not violate any consensus rules, aside from the proof of work requirement. The block must connect to the current tip of the main chain.
 // This function is safe for concurrent access.
 func (b *BlockChain) CheckConnectBlockTemplate(block *btcutil.Block) error {
-	fmt.Println("CheckConnectBlockTemplate")
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
 	algo := block.MsgBlock().Header.Version

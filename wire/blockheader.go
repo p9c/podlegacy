@@ -56,35 +56,14 @@ const blockHeaderLen = 80
 
 // BlockHash computes the block identifier hash for the given block header.
 func (h *BlockHeader) BlockHash() (out chainhash.Hash) {
-	// Encode the header and double sha256 everything prior to the number of
-	// transactions.  Ignore the error returns since there is no way the
-	// encode could fail except being out of memory which would cause a
-	// run-time panic.
+	// Encode the header and double sha256 everything prior to the number of transactions.  Ignore the error returns since there is no way the encode could fail except being out of memory which would cause a run-time panic.
 	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
 	_ = writeBlockHeader(buf, 0, h)
-	// switch h.Version {
-	// case 2:
 	out = chainhash.DoubleHashH(buf.Bytes())
-	// case 514:
-	// 	b := buf.Bytes()
-	// 	c := make([]byte, len(b))
-	// 	for i := range b {
-	// 		c[i] = b[len(b)-1-i]
-	// 	}
-	// 	dk, err := scrypt.Key(c, c, 1024, 1, 1, 32)
-	// 	if err != nil {
-	// 		fmt.Println(fmt.Errorf("Unable to generate scrypt key: %s", err))
-	// 		return
-	// 	}
-
-	// 	for i := range dk {
-	// 		out[i] = dk[len(dk)-1-i]
-	// 	}
-	// }
 	return
 }
 
-// Hash computes the hash
+// Hash computes the hash of bytes using the named hash
 func Hash(bytes []byte, name string) (out chainhash.Hash) {
 	switch name {
 	case "blake14lr":

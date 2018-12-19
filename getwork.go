@@ -41,8 +41,6 @@ var (
 
 func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	c := cmd.(*btcjson.GetWorkCmd)
-	// request := c.Request
-
 	if len(cfg.miningAddrs) == 0 {
 		return nil, &btcjson.RPCError{
 			Code: btcjson.ErrRPCInternal.Code,
@@ -50,7 +48,6 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 				"via --miningaddr",
 		}
 	}
-
 	if !(cfg.RegressionTest || cfg.SimNet) &&
 		s.cfg.ConnMgr.ConnectedCount() == 0 {
 
@@ -59,7 +56,6 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 			Message: "Pod is not connected to network",
 		}
 	}
-
 	// No point in generating or accepting work before the chain is synced.
 	latestHeight := s.cfg.Chain.BestSnapshot().Height
 	if latestHeight != 0 && !s.cfg.SyncMgr.IsCurrent() {
@@ -86,8 +82,7 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 	generator := s.cfg.Generator
 	if state.template == nil {
 		var err error
-		vers := fork.GetAlgoVer(s.cfg.Algo, s.cfg.Chain.BestSnapshot().Height)
-		state.template, err = generator.NewBlockTemplate(payToAddr, vers)
+		state.template, err = generator.NewBlockTemplate(payToAddr, s.cfg.Algo)
 		if err != nil {
 			return nil, err
 		}
@@ -105,27 +100,12 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 			// state.blockInfo = make(map[btcwire.ShaHash]*workStateBlockInfo)
 			state.updateBlockTemplate(s, false)
 		}
-
 		/*	Reset the previous best hash the block template was generated
 			against so any errors below cause the next invocation to try
 			again. */
 		state.prevHash = nil
-
-		// var vers uint32
-		hf := fork.GetCurrent(s.gbtWorkState.template.Height)
-		fmt.Println("hf", hf, "algo", s.cfg.Algo)
-
-		// switch hf {
-		// case 0:
-		// 	vers = wire.Algos[wire.AlgoVers[state.algo]].Version
-		// case 1:
-		// 	vers = wire.P9Algos[wire.AlgoVers[state.algo]].Version
-		// }
-		// fmt.Println("vers", vers)
 		var err error
-		bh := s.gbtWorkState.template.Height
-		vers := fork.GetAlgoVer(s.cfg.Algo, bh)
-		state.template, err = generator.NewBlockTemplate(payToAddr, vers)
+		state.template, err = generator.NewBlockTemplate(payToAddr, s.cfg.Algo)
 		if err != nil {
 			errStr := fmt.Sprintf("Failed to create new block "+
 				"template: %v", err)

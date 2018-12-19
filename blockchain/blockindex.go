@@ -374,7 +374,6 @@ func (node *blockNode) GetPrevWithAlgo(algo int32) (prev *blockNode) {
 
 		prev = prev.RelativeAncestor(1)
 		if prev == nil {
-			// fmt.Println("passed genesis block")
 			return
 		}
 	}

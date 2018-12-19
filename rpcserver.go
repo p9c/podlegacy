@@ -1596,7 +1596,7 @@ func (state *gbtWorkState) updateBlockTemplate(s *rpcServer, useCoinbaseValue bo
 		// will ultimately create their own coinbase which pays to the
 		// appropriate address(es).
 
-		blkTemplate, err := generator.NewBlockTemplate(payAddr, fork.GetAlgoVer(state.algo, s.cfg.Chain.BestSnapshot().Height))
+		blkTemplate, err := generator.NewBlockTemplate(payAddr, state.algo)
 		if err != nil {
 			return internalRPCError("(rpcserver.go) Failed to create new block "+
 				"template: "+err.Error(), "")
@@ -1605,17 +1605,11 @@ func (state *gbtWorkState) updateBlockTemplate(s *rpcServer, useCoinbaseValue bo
 		msgBlock = template.Block
 		targetDifficulty = fmt.Sprintf("%064x",
 			blockchain.CompactToBig(msgBlock.Header.Bits))
-
-		fmt.Printf("targetDifficulty %s", targetDifficulty)
-
-		// Get the minimum allowed timestamp for the block based on the
-		// median timestamp of the last several blocks per the chain
-		// consensus rules.
+		// Get the minimum allowed timestamp for the block based on the median timestamp of the last several blocks per the chain consensus rules.
 		best := s.cfg.Chain.BestSnapshot()
 		minTimestamp := mining.MinimumMedianTime(best)
 
-		// Update work state to ensure another block template isn't
-		// generated until needed.
+		// Update work state to ensure another block template isn't generated until needed.
 		state.template = template
 		state.lastGenerated = time.Now()
 		state.lastTxUpdate = lastTxUpdate
@@ -1631,18 +1625,8 @@ func (state *gbtWorkState) updateBlockTemplate(s *rpcServer, useCoinbaseValue bo
 		// template.
 		state.notifyLongPollers(latestHash, lastTxUpdate)
 	} else {
-		// At this point, there is a saved block template and another
-		// request for a template was made, but either the available
-		// transactions haven't change or it hasn't been long enough to
-		// trigger a new block template to be generated.  So, update the
-		// existing block template.
-
-		// When the caller requires a full coinbase as opposed to only
-		// the pertinent details needed to create their own coinbase,
-		// add a payment address to the output of the coinbase of the
-		// template if it doesn't already have one.  Since this requires
-		// mining addresses to be specified via the config, an error is
-		// returned if none have been specified.
+		// At this point, there is a saved block template and another request for a template was made, but either the available transactions haven't change or it hasn't been long enough to trigger a new block template to be generated.  So, update the existing block template.
+		// When the caller requires a full coinbase as opposed to only the pertinent details needed to create their own coinbase, add a payment address to the output of the coinbase of the template if it doesn't already have one.  Since this requires mining addresses to be specified via the config, an error is returned if none have been specified.
 		if !useCoinbaseValue && !template.ValidPayAddress {
 			// Choose a payment address at random.
 			payToAddr := cfg.miningAddrs[rand.Intn(len(cfg.miningAddrs))]
@@ -2273,7 +2257,6 @@ func handleGetCurrentNet(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 // TODO: This command should default to the configured algo for cpu mining and take an optional parameter to query by algo
 func handleGetDifficulty(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	c := cmd.(*btcjson.GetDifficultyCmd)
-	fmt.Println("Getting difficulty...", c.Algo)
 	best := s.cfg.Chain.BestSnapshot()
 	prev, err := s.cfg.Chain.BlockByHash(&best.Hash)
 	if err != nil {
@@ -2287,7 +2270,6 @@ func handleGetDifficulty(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 	bestbits := best.Bits
 	fmt.Printf("%08x\n", bestbits)
 	if c.Algo == "scrypt" && algo != 514 {
-		fmt.Println("We were asked for scrypt but latest is sha256d")
 		algo = 514
 		for {
 			if prev.MsgBlock().Header.Version != 514 {
@@ -2303,7 +2285,6 @@ func handleGetDifficulty(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 		}
 	}
 	if c.Algo == "sha256d" && algo != 2 {
-		fmt.Println("We were asked for sha256d but latest is scrypt")
 		algo = 2
 		for {
 			if prev.MsgBlock().Header.Version == 514 {
@@ -2318,7 +2299,6 @@ func handleGetDifficulty(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 			break
 		}
 	}
-	fmt.Printf("bits %08x algo %d\n", bestbits, algo)
 	return getDifficultyRatio(bestbits, s.cfg.ChainParams, algo), nil
 }
 

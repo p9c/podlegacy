@@ -228,20 +228,15 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 	return lastBits
 }
 
-// calcNextRequiredDifficulty calculates the required difficulty for the block
-// after the passed previous block node based on the difficulty retarget rules.
-// This function differs from the exported CalcNextRequiredDifficulty in that
-// the exported version uses the current best chain as the previous block node
-// while this function accepts any block node.
-func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo int32) (newTargetBits uint32, err error) {
+// calcNextRequiredDifficulty calculates the required difficulty for the block after the passed previous block node based on the difficulty retarget rules. This function differs from the exported  CalcNextRequiredDifficulty in that the exported version uses the current best chain as the previous block node while this function accepts any block node.
+func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algoname string) (newTargetBits uint32, err error) {
 	nH := lastNode.height + 1
-	aN := fork.GetAlgoName(algo, nH)
-	powLimitBits := fork.GetMinBits(aN, nH)
-	powLimit := fork.GetMinDiff(aN, nH)
+	algo := fork.GetAlgoVer(algoname, nH)
+	newTargetBits = fork.GetMinBits(algoname, nH)
 	switch fork.GetCurrent(nH) {
 	case 0:
 		if lastNode == nil {
-			return powLimitBits, nil
+			return newTargetBits, nil
 		}
 		prevNode := lastNode
 		if prevNode.version != algo {
@@ -252,7 +247,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo)
 		}
 		if firstNode == nil {
-			return powLimitBits, nil
+			return newTargetBits, nil
 		}
 		actualTimespan := prevNode.timestamp - firstNode.timestamp
 		adjustedTimespan := actualTimespan
@@ -264,8 +259,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		oldTarget := CompactToBig(prevNode.bits)
 		newTarget := new(big.Int).Mul(oldTarget, big.NewInt(adjustedTimespan))
 		newTarget = newTarget.Div(newTarget, big.NewInt(b.chainParams.AveragingTargetTimespan))
-		if newTarget.Cmp(powLimit) > 0 {
-			newTarget.Set(powLimit)
+		if newTarget.Cmp(CompactToBig(newTargetBits)) > 0 {
+			newTarget.Set(CompactToBig(newTargetBits))
 		}
 		newTargetBits = BigToCompact(newTarget)
 		log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, prevNode.bits, newTargetBits)
@@ -278,20 +273,16 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 	case 1: // Plan 9 from Crypto Space
 		last := lastNode
 		if last.height == 0 {
-			return powLimitBits, nil
+			return newTargetBits, nil
 		}
 		if last.version != algo {
 			last = last.GetPrevWithAlgo(algo)
 			if last == nil {
-				return powLimitBits, nil
+				return newTargetBits, nil
 			}
 		}
 		lastheight := last.height
 		firstheight := lastheight - int32(b.chainParams.AveragingInterval)
-		// Consensus rule, if an algorithm does not appear for a day its difficulty not adjusted from the previous, as the difficulty adjusts from the previous of the algorithm, but if there was only one in a day it gets a free one, and this is to also keep all 9 algorithms running and add reverberation perturbation in addition to the difficulty bit flip
-		if last.GetPrevWithAlgo(algo).height < firstheight {
-			return last.bits, nil
-		}
 		bits := last.bits
 		if firstheight < 1 {
 			firstheight = 1
@@ -321,9 +312,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
 		bigfnewtarget := big.NewFloat(0.0).Mul(bigadjustment, bigoldtarget)
 		newtarget, _ := bigfnewtarget.Int(nil)
-		if newtarget.Cmp(powLimit) > 0 {
-			newTargetBits = powLimitBits
-		} else {
+		if newtarget.Cmp(CompactToBig(newTargetBits)) < 0 {
 			newTargetBits = BigToCompact(newtarget)
 		}
 		newTargetBits ^= 0x00000003
@@ -335,7 +324,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 
 // CalcNextRequiredDifficulty calculates the required difficulty for the block after the end of the current best chain based on the difficulty retarget rules.
 // This function is safe for concurrent access.
-func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time, algo int32) (difficulty uint32, err error) {
+func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time, algo string) (difficulty uint32, err error) {
 	b.chainLock.Lock()
 	difficulty, err = b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, algo)
 	b.chainLock.Unlock()

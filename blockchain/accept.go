@@ -20,9 +20,7 @@ import (
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags) (bool, error) {
-	// fmt.Println("maybeAcceptBlock")
-	// The height of this block is one more than the referenced previous
-	// block.
+	// The height of this block is one more than the referenced previous block.
 	prevHash := &block.MsgBlock().Header.PrevBlock
 	prevNode := b.Index.LookupNode(prevHash)
 	if prevNode == nil {
@@ -73,7 +71,6 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	err = b.db.Update(func(dbTx database.Tx) error {
 		return dbStoreBlock(dbTx, block)
 	})
-	// fmt.Println("adding block", err)
 	if err != nil {
 		return false, err
 	}

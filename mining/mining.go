@@ -442,13 +442,10 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 //  |  transactions (while block size   |   |
 //  |  <= policy.BlockMinSize)          |   |
 //   -----------------------------------  --
-func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo int32) (*BlockTemplate, error) {
-	fmt.Printf("NewBlockTemplate algo %d\n", algo)
-
+func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo string) (*BlockTemplate, error) {
 	// Extend the most recently known best block.
 	best := g.chain.BestSnapshot()
 	nextBlockHeight := best.Height + 1
-	fmt.Println("next block height", nextBlockHeight)
 
 	// Create a standard coinbase transaction paying to the provided address.  NOTE: The coinbase value will be updated to include the fees from the selected transactions later after they have actually been selected.  It is created here to detect any errors early before potentially doing a lot of work below.  The extra nonce helps ensure the transaction is not a duplicate transaction (paying the same value to the same public key address would otherwise be an identical transaction for block version 1).
 	extraNonce := uint64(0)
@@ -810,21 +807,12 @@ mempoolLoop:
 	// is potentially adjusted to ensure it comes after the median time of
 	// the last several blocks per the chain consensus rules.
 	ts := medianAdjustedTime(best, g.timeSource)
-	fmt.Println("algo", algo, "ts", ts)
 	reqDifficulty, err := g.chain.CalcNextRequiredDifficulty(ts, algo)
 	if err != nil {
-		fmt.Printf("reqDifficulty %064x %s\n", reqDifficulty, err)
 		return nil, err
 	}
-	fmt.Printf("reqDifficulty %08x %064x\n", reqDifficulty, blockchain.CompactToBig(reqDifficulty))
 
-	// Calculate the next expected block version based on the state of the
-	// rule change deployments.
-	// nextBlockVersion, err := g.chain.CalcNextBlockVersion()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	nextBlockVersion := algo
+	nextBlockVersion := fork.GetAlgoVer(algo, best.Height)
 
 	// Create a new block ready to be solved.
 	merkles := blockchain.BuildMerkleTreeStore(blockTxns, false)
@@ -845,10 +833,8 @@ mempoolLoop:
 	// Finally, perform a full check on the created block against the chain
 	// consensus rules to ensure it properly connects to the current best
 	// chain with no issues.
-	fmt.Printf("msgBlock.Header.Bits %08x\n", msgBlock.Header.Bits)
 	block := btcutil.NewBlock(&msgBlock)
 	block.SetHeight(nextBlockHeight)
-	fmt.Println("block", block)
 	err = g.chain.CheckConnectBlockTemplate(block)
 	if err != nil {
 		log.Debugf("checkconnectblocktemplate err: %s", err.Error())

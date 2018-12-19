@@ -205,7 +205,6 @@ func loadConfig() (*config, []string, error) {
 		listCommands()
 		os.Exit(0)
 	}
-	// fmt.Println("conf file path", preCfg.ConfigFile)
 	if _, err := os.Stat(preCfg.ConfigFile); os.IsNotExist(err) {
 		// Use config file for RPC server to create default podctl config
 		var serverConfigPath string
@@ -325,7 +324,6 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 	if err != nil {
 		return err
 	}
-	// fmt.Println("config path", destinationPath)
 	// Create the destination file and write the rpcuser and rpcpass to it
 	dest, err := os.OpenFile(destinationPath,
 		os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
