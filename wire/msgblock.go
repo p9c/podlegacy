@@ -268,8 +268,8 @@ func (msg *MsgBlock) BlockHash() chainhash.Hash {
 }
 
 // BlockHashWithAlgos computes the block identifier hash for this block.
-func (msg *MsgBlock) BlockHashWithAlgos(hf uint32) chainhash.Hash {
-	return msg.Header.BlockHashWithAlgos(hf)
+func (msg *MsgBlock) BlockHashWithAlgos(h int32) chainhash.Hash {
+	return msg.Header.BlockHashWithAlgos(h)
 }
 
 // TxHashes returns a slice of hashes of all of transactions in this block.

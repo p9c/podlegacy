@@ -554,6 +554,7 @@ func loadConfig() (*config, []string, error) {
 	if cfg.TestNet3 {
 		numNets++
 		activeNetParams = &testNet3Params
+		wire.IsTestnet = true
 	}
 	if cfg.RegressionTest {
 		numNets++

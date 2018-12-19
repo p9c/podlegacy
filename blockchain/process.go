@@ -208,7 +208,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 		// fmt.Printf("pl %064x\n", pl)
 	}
 
-	// fmt.Printf("pl %064x\n", pl)
+	fmt.Printf("pl %064x\n", pl)
 	err = checkBlockSanity(block, pl, b.timeSource, flags, DoNotCheckPow, height, b.chainParams.Name == "testnet")
 	if err != nil {
 		log.Debugf("ERROR %s", err.Error())

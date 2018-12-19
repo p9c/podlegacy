@@ -448,6 +448,7 @@ func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo u
 	// Extend the most recently known best block.
 	best := g.chain.BestSnapshot()
 	nextBlockHeight := best.Height + 1
+	fmt.Println("next block height", nextBlockHeight)
 
 	// Create a standard coinbase transaction paying to the provided address.  NOTE: The coinbase value will be updated to include the fees from the selected transactions later after they have actually been selected.  It is created here to detect any errors early before potentially doing a lot of work below.  The extra nonce helps ensure the transaction is not a duplicate transaction (paying the same value to the same public key address would otherwise be an identical transaction for block version 1).
 	extraNonce := uint64(0)
@@ -809,13 +810,13 @@ mempoolLoop:
 	// is potentially adjusted to ensure it comes after the median time of
 	// the last several blocks per the chain consensus rules.
 	ts := medianAdjustedTime(best, g.timeSource)
-	fmt.Println("algo", algo)
+	fmt.Println("algo", algo, "ts", ts)
 	reqDifficulty, err := g.chain.CalcNextRequiredDifficulty(ts, algo)
 	if err != nil {
-		log.Debugf("reqDifficulty %064x %s", reqDifficulty, err)
+		fmt.Printf("reqDifficulty %064x %s\n", reqDifficulty, err)
 		return nil, err
 	}
-	log.Debugf("reqDifficulty %08x %064x", reqDifficulty, blockchain.CompactToBig(reqDifficulty))
+	fmt.Printf("reqDifficulty %08x %064x\n", reqDifficulty, blockchain.CompactToBig(reqDifficulty))
 
 	// Calculate the next expected block version based on the state of the
 	// rule change deployments.
@@ -844,12 +845,13 @@ mempoolLoop:
 	// Finally, perform a full check on the created block against the chain
 	// consensus rules to ensure it properly connects to the current best
 	// chain with no issues.
-	fmt.Println(msgBlock.Header.Bits)
+	fmt.Printf("msgBlock.Header.Bits %08x\n", msgBlock.Header.Bits)
 	block := btcutil.NewBlock(&msgBlock)
 	block.SetHeight(nextBlockHeight)
+	fmt.Println("block", block)
 	err = g.chain.CheckConnectBlockTemplate(block)
 	if err != nil {
-		// log.Debugf("checkconnectblocktemplate err: %s", err.Error())
+		log.Debugf("checkconnectblocktemplate err: %s", err.Error())
 		return nil, err
 	}
 
@@ -857,8 +859,8 @@ mempoolLoop:
 	switch fork.GetCurrent(nextBlockHeight, g.chainParams.Name == "testnet") {
 	case 0:
 		a = wire.AlgoVers[block.MsgBlock().Header.Version]
-	case 2:
-		a = wire.AlgoVers[block.MsgBlock().Header.Version]
+	case 1:
+		a = wire.P9AlgoVers[block.MsgBlock().Header.Version]
 	}
 
 	log.Debugf("Created new block template (algo %s, %d transactions, %d in "+

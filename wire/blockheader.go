@@ -5,79 +5,21 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"math/big"
 	"time"
 
-	"github.com/balacode/zr-whirl"
+	"github.com/aead/skein/skein256"
+	whirl "github.com/balacode/zr-whirl"
 	x11 "github.com/bitbandi/go-x11"
 	"github.com/bitgoin/lyra2rev2"
 	"github.com/dchest/blake256"
 	"github.com/ebfe/keccak"
-	"github.com/farces/skein512/skein"
+
+	// "github.com/enceve/crypto/skein/skein256"
+	"github.com/jzelinskie/whirlpool"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/fork"
 	gost "github.com/programmer10110/gostreebog"
 	"golang.org/x/crypto/scrypt"
-)
-
-// AlgoParams are the identifying block version number and their minimum target bits
-type AlgoParams struct {
-	Version uint32
-	MinBits uint32
-	AlgoID  uint32
-}
-
-var (
-
-	// mainPowLimit is the highest proof of work value a Parallelcoin block can
-	// have for the main network.  It is the maximum target / 2^160
-	mainPowLimit = func() big.Int {
-		mplb, _ := hex.DecodeString("00000fffff000000000000000000000000000000000000000000000000000000")
-		return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
-	}()
-	mainPowLimitBits = BigToCompact(&mainPowLimit)
-	scryptPowLimit   = func() big.Int {
-		mplb, _ := hex.DecodeString("00000fffff000000000000000000000000000000000000000000000000000000")
-		return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
-	}()
-	scryptPowLimitBits = BigToCompact(&scryptPowLimit)
-
-	// Algos are the specifications identifying the algorithm used in the block proof
-	Algos = map[string]AlgoParams{
-		"sha256d": AlgoParams{2, mainPowLimitBits, 0},
-		"scrypt":  AlgoParams{514, scryptPowLimitBits, 1},
-	}
-
-	// P9Algos is the algorithm specifications after the hard fork
-	P9Algos = map[string]AlgoParams{
-		"sha256d":   AlgoParams{2, 0x1d1089fe, 0},
-		"scrypt":    AlgoParams{514, 0x1e01df45, 1},
-		"blake14lr": AlgoParams{3, 0x1d1089f6, 2},
-		"gost":      AlgoParams{4, 0x1e00b629, 7},
-		"keccak":    AlgoParams{5, 0x1e050502, 8},
-		"lyra2rev2": AlgoParams{6, 0x1d5c89d1, 4},
-		"skein":     AlgoParams{7, 0x1d332839, 5},
-		"whirlpool": AlgoParams{8, 0x1d1c0eea, 3},
-		"x11":       AlgoParams{9, 0x1d5c89d1, 6},
-	}
-
-	// AlgoVers is the lookup for pre hardfork
-	AlgoVers = map[uint32]string{
-		2:   "sha256d",
-		514: "scrypt",
-	}
-
-	// P9AlgoVers is the lookup for after 1st hardfork
-	P9AlgoVers = map[uint32]string{
-		2:   "sha256d",
-		512: "scrypt",
-		3:   "blake14lr",
-		4:   "gost",
-		5:   "keccak",
-		6:   "lyra2rev2",
-		7:   "skein",
-		8:   "whirlpool",
-		9:   "x11",
-	}
 )
 
 // MaxBlockHeaderPayload is the maximum number of bytes a block header can be.
@@ -89,7 +31,7 @@ const MaxBlockHeaderPayload = 16 + (chainhash.HashSize * 2)
 // block (MsgBlock) and headers (MsgHeaders) messages.
 type BlockHeader struct {
 	// Version of the block.  This is not the same as the protocol version.
-	Version uint32
+	Version int32
 
 	// Hash of the previous block header in the block chain.
 	PrevBlock chainhash.Hash
@@ -142,63 +84,41 @@ func (h *BlockHeader) BlockHash() (out chainhash.Hash) {
 	return
 }
 
-// BlockHashWithAlgos computes the block identifier hash for the given block header. This function is additional because the sync manager and the parallelcoin protocol only use SHA256D hashes for inventories and calculating the scrypt (or other) hash for these blocks when requested via that route causes an 'unrequested block' error.
-func (h *BlockHeader) BlockHashWithAlgos(hf uint32) (out chainhash.Hash) {
-	// Encode the header and double sha256 everything prior to the number of
-	// transactions.  Ignore the error returns since there is no way the
-	// encode could fail except being out of memory which would cause a
-	// run-time panic.
-	// fmt.Printf("algo %d\n", h.Version)
-	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
-	_ = writeBlockHeader(buf, 0, h)
-	vers := h.Version
-	switch hf {
-	case 0:
-
-	case 1:
-
-	}
-	switch vers {
-	case Algos["blake14lr"].Version:
-		// fmt.Printf("hashing with Blake14lr\n")
+// Hash computes the hash
+func Hash(bytes []byte, name string) (out chainhash.Hash) {
+	switch name {
+	case "blake14lr":
 		a := blake256.New()
-		a.Write(buf.Bytes())
+		a.Write(bytes)
 		out.SetBytes(a.Sum(nil))
-	case Algos["whirlpool"].Version:
-		// fmt.Printf("hashing with Blake2b\n")
-		o := whirl.Sum512(buf.Bytes())
+	case "whirlpool":
+		wp := whirlpool.New()
+		io.WriteString(wp, hex.EncodeToString(bytes))
+		o := whirl.Sum512(bytes)
 		out.SetBytes(o[:32])
-	case Algos["lyra2rev2"].Version:
-		// fmt.Printf("hashing with Lyra2REv2\n")
-		o, _ := lyra2rev2.Sum(buf.Bytes())
+	case "lyra2rev2":
+		o, _ := lyra2rev2.Sum(bytes)
 		out.SetBytes(o)
-	case Algos["skein"].Version:
-		// fmt.Printf("hashing with Skein\n")
-		o := buf.Bytes()
-		hasher := skein.NewSkein512()
-		o2 := hasher.Hash(o)
-		o3 := make([]byte, 64)
-		for i := range o2 {
-			o3[i] = byte(o2[i])
-		}
-		out = chainhash.HashH(o3)
-	case Algos["x11"].Version:
-		// fmt.Printf("hashing with X11\n")
+	case "skein":
+		in := bytes
+		var o [32]byte
+		skein256.Sum256(&o, in, nil)
+		out.SetBytes(o[:])
+	case "x11":
 		o := [32]byte{}
 		x := x11.New()
-		x.Hash(buf.Bytes(), o[:])
+		x.Hash(bytes, o[:])
 		out.SetBytes(o[:])
-	case Algos["gost"].Version:
-		o := gost.Hash(buf.Bytes(), "256")
+	case "gost":
+		o := gost.Hash(bytes, "256")
 		out.SetBytes(o)
-	case Algos["keccak"].Version:
-		// fmt.Printf("hashing with keccac\n")
+	case "keccak":
 		k := keccak.New256()
 		k.Reset()
-		k.Write(buf.Bytes())
+		k.Write(bytes)
 		out.SetBytes(k.Sum(nil))
-	case Algos["scrypt"].Version:
-		b := buf.Bytes()
+	case "scrypt":
+		b := bytes
 		c := make([]byte, len(b))
 		copy(c, b[:])
 		dk, err := scrypt.Key(c, c, 1024, 1, 1, 32)
@@ -210,18 +130,23 @@ func (h *BlockHeader) BlockHashWithAlgos(hf uint32) (out chainhash.Hash) {
 			out[i] = dk[len(dk)-1-i]
 		}
 		copy(out[:], dk)
-	case 2: // sha256d
-		out.SetBytes(chainhash.DoubleHashB(buf.Bytes()))
-	default:
-		out.SetBytes(chainhash.DoubleHashB(buf.Bytes()))
+	case "sha256d": // sha256d
+		out.SetBytes(chainhash.DoubleHashB(bytes))
 	}
 	return
 }
 
-// BtcDecode decodes r using the bitcoin protocol encoding into the receiver.
-// This is part of the Message interface implementation.
-// See Deserialize for decoding block headers stored to disk, such as in a
-// database, as opposed to decoding block headers from the wire.
+// BlockHashWithAlgos computes the block identifier hash for the given block header. This function is additional because the sync manager and the parallelcoin protocol only use SHA256D hashes for inventories and calculating the scrypt (or other) hash for these blocks when requested via that route causes an 'unrequested block' error.
+func (h *BlockHeader) BlockHashWithAlgos(height int32) (out chainhash.Hash) {
+	// Encode the header and double sha256 everything prior to the number of transactions.  Ignore the error returns since there is no way the encode could fail except being out of memory which would cause a run-time panic.
+	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
+	_ = writeBlockHeader(buf, 0, h)
+	vers := h.Version
+	Hash(buf.Bytes(), fork.GetAlgoName(vers, height))
+	return
+}
+
+// BtcDecode decodes r using the bitcoin protocol encoding into the receiver. This is part of the Message interface implementation. See Deserialize for decoding block headers stored to disk, such as in a database, as opposed to decoding block headers from the wire.
 func (h *BlockHeader) BtcDecode(r io.Reader, pver uint32, enc MessageEncoding) error {
 	return readBlockHeader(r, pver, h)
 }
@@ -257,7 +182,7 @@ func (h *BlockHeader) Serialize(w io.Writer) error {
 // NewBlockHeader returns a new BlockHeader using the provided version, previous
 // block hash, merkle root hash, difficulty bits, and nonce used to generate the
 // block with defaults for the remaining fields.
-func NewBlockHeader(version uint32, prevHash, merkleRootHash *chainhash.Hash,
+func NewBlockHeader(version int32, prevHash, merkleRootHash *chainhash.Hash,
 	bits uint32, nonce uint32) *BlockHeader {
 
 	// Limit the timestamp to one second precision since the protocol
@@ -287,97 +212,4 @@ func writeBlockHeader(w io.Writer, pver uint32, bh *BlockHeader) error {
 	sec := uint32(bh.Timestamp.Unix())
 	return writeElements(w, bh.Version, &bh.PrevBlock, &bh.MerkleRoot,
 		sec, bh.Bits, bh.Nonce)
-}
-
-// CompactToBig converts a compact representation of a whole number N to an
-// unsigned 32-bit number.  The representation is similar to IEEE754 floating
-// point numbers.
-//
-// Like IEEE754 floating point, there are three basic components: the sign,
-// the exponent, and the mantissa.  They are broken out as follows:
-//
-//	* the most significant 8 bits represent the unsigned base 256 exponent
-// 	* bit 23 (the 24th bit) represents the sign bit
-//	* the least significant 23 bits represent the mantissa
-//
-//	-------------------------------------------------
-//	|   Exponent     |    Sign    |    Mantissa     |
-//	-------------------------------------------------
-//	| 8 bits [31-24] | 1 bit [23] | 23 bits [22-00] |
-//	-------------------------------------------------
-//
-// The formula to calculate N is:
-// 	N = (-1^sign) * mantissa * 256^(exponent-3)
-//
-// This compact form is only used in bitcoin to encode unsigned 256-bit numbers
-// which represent difficulty targets, thus there really is not a need for a
-// sign bit, but it is implemented here to stay consistent with bitcoind.
-func CompactToBig(compact uint32) *big.Int {
-	// Extract the mantissa, sign bit, and exponent.
-	mantissa := compact & 0x007fffff
-	isNegative := compact&0x00800000 != 0
-	exponent := uint(compact >> 24)
-
-	// Since the base for the exponent is 256, the exponent can be treated
-	// as the number of bytes to represent the full 256-bit number.  So,
-	// treat the exponent as the number of bytes and shift the mantissa
-	// right or left accordingly.  This is equivalent to:
-	// N = mantissa * 256^(exponent-3)
-	var bn *big.Int
-	if exponent <= 3 {
-		mantissa >>= 8 * (3 - exponent)
-		bn = big.NewInt(int64(mantissa))
-	} else {
-		bn = big.NewInt(int64(mantissa))
-		bn.Lsh(bn, 8*(exponent-3))
-	}
-
-	// Make it negative if the sign bit is set.
-	if isNegative {
-		bn = bn.Neg(bn)
-	}
-
-	return bn
-}
-
-// BigToCompact converts a whole number N to a compact representation using
-// an unsigned 32-bit number.  The compact representation only provides 23 bits
-// of precision, so values larger than (2^23 - 1) only encode the most
-// significant digits of the number.  See CompactToBig for details.
-func BigToCompact(n *big.Int) uint32 {
-	// No need to do any work if it's zero.
-	if n.Sign() == 0 {
-		return 0
-	}
-
-	// Since the base for the exponent is 256, the exponent can be treated
-	// as the number of bytes.  So, shift the number right or left
-	// accordingly.  This is equivalent to:
-	// mantissa = mantissa / 256^(exponent-3)
-	var mantissa uint32
-	exponent := uint(len(n.Bytes()))
-	if exponent <= 3 {
-		mantissa = uint32(n.Bits()[0])
-		mantissa <<= 8 * (3 - exponent)
-	} else {
-		// Use a copy to avoid modifying the caller's original number.
-		tn := new(big.Int).Set(n)
-		mantissa = uint32(tn.Rsh(tn, 8*(exponent-3)).Bits()[0])
-	}
-
-	// When the mantissa already has the sign bit set, the number is too
-	// large to fit into the available 23-bits, so divide the number by 256
-	// and increment the exponent accordingly.
-	if mantissa&0x00800000 != 0 {
-		mantissa >>= 8
-		exponent++
-	}
-
-	// Pack the exponent, sign bit, and mantissa into an unsigned 32-bit
-	// int and return it.
-	compact := uint32(exponent<<24) | mantissa
-	if n.Sign() < 0 {
-		compact |= 0x00800000
-	}
-	return compact
 }

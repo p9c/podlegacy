@@ -139,29 +139,6 @@ func podMain(serverChan chan<- *server) error {
 
 		return nil
 	}
-	var algo uint32
-	switch cfg.Algo {
-	case "sha256d":
-		algo = 2
-	case "scrypt":
-		algo = 514
-	case "blake14lr": // (decred)
-		algo = 3
-	case "whirlpool": //(sia)
-		algo = 6
-	case "lyra2rev2": //(verge)
-		algo = 10
-	case "skein": //(skein512 + SHA256 as myriad)
-		algo = 18
-	case "x11":
-		algo = 34
-	case "gost":
-		algo = 66
-	case "keccak":
-		algo = 130
-	default:
-		algo = 2
-	}
 	// Create server and start it.
 	server, err := newServer(cfg.Listeners, db, activeNetParams.Params,
 		interrupt, algo)

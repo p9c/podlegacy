@@ -155,10 +155,7 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		state.lastTxUpdate = lastTxUpdate
 		state.prevHash = latestHash
 
-		rpcsLog.Debugf("Generated block template (timestamp %v, extra "+
-			"nonce %d, target %064x, merkle root %s, signature "+
-			"script %x)", msgBlock.Header.Timestamp,
-			// state.extraNonce,
+		rpcsLog.Debugf("Generated block template (timestamp %v, target %064x, merkle root %s, signature script %x)", msgBlock.Header.Timestamp,
 			blockchain.CompactToBig(msgBlock.Header.Bits),
 			msgBlock.Header.MerkleRoot,
 			msgBlock.Transactions[0].TxIn[0].SignatureScript)
@@ -349,9 +346,9 @@ func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) 
 	var bits uint32
 	switch fork.GetCurrent(s.cfg.Chain.BestSnapshot().Height, s.cfg.ChainParams.Name == "testnet") {
 	case 0:
-		bits = wire.Algos[s.cfg.Algo].Version
+		bits = wire.Algos[s.cfg.Algo].MinBits
 	case 1:
-		bits = wire.P9Algos[s.cfg.Algo].Version
+		bits = wire.P9Algos[s.cfg.Algo].MinBits
 	}
 	err = blockchain.CheckProofOfWork(block, blockchain.CompactToBig(bits), s.cfg.Chain.BestSnapshot().Height, s.cfg.ChainParams.Name == "testnet")
 	if err != nil {

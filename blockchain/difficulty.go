@@ -4,6 +4,7 @@ package blockchain
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -235,17 +236,14 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
 func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo uint32) (uint32, error) {
+	algoStr := wire.AlgoVers[algo]
+	p9algoStr := wire.AlgoVers[algo]
 	var newTargetBits, powLimitBits uint32
-	var algoStr string
 	powLimit := CompactToBig(powLimitBits)
 	switch fork.GetCurrent(lastNode.height+1, b.chainParams.Name == "testnet") {
 	case 0:
-		// fmt.Println("On pre hardfork version")
-		algoStr = wire.AlgoVers[algo]
 		powLimitBits = wire.Algos[algoStr].MinBits
 		powLimit = CompactToBig(powLimitBits)
-		// fmt.Println("algo", algo, algoStr)
-		// fmt.Printf("bits %08x full %064x\n", powLimitBits, powLimit)
 		if lastNode == nil {
 			return powLimitBits, nil
 		}
@@ -280,14 +278,15 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			actualTimespan,
 			adjustedTimespan,
 			b.chainParams.AveragingTargetTimespan)
+		return newTargetBits, nil
 	case 1: // Plan 9 from Crypto Space
-		// fmt.Println("On hardfork version 1")
-		algoStr = wire.P9AlgoVers[algo]
-		powLimitBits = wire.P9Algos[algoStr].MinBits
+		powLimitBits = wire.P9Algos[p9algoStr].MinBits
 		powLimit = CompactToBig(powLimitBits)
-		// fmt.Println("algo", algo, algoStr)
-		// fmt.Printf("bits %08x full %064x\n", powLimitBits, powLimit)
 		last := lastNode
+		if last.height == 0 {
+			fmt.Printf("first block %s %08x %08x\n", algoStr, powLimitBits, wire.P9Algos[algoStr].MinBits)
+			return powLimitBits, nil
+		}
 		if last.version != algo {
 			last = last.GetPrevWithAlgo(algo, b.chainParams.Name == "testnet")
 			if last == nil {
@@ -323,13 +322,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		numblocks := lastheight - firstheight
 		interval := float64(lasttime - firsttime)
 		avblocktime := interval / float64(numblocks)
-		// divergence := float64(b.chainParams.TargetTimePerBlock) / float64(avblocktime)
 		divergence := avblocktime / float64(b.chainParams.TargetTimePerBlock)
-
-		// Now we have the divergence in the averaging period, we now use this formula: https://github.com/parallelcointeam/pod/raw/master/docs/parabolic-diff-adjustment-filter-formula.png
-		// This is the expanded version as will be required:
-		// adjustment = 1 + (20 * divergence - 20) * (20 * divergence - 20) / 200 * divergence
-		// adjustment := divergence
 		adjustment := 1 + (divergence-1)*(divergence-1)*(divergence-1)
 		if adjustment < 0.0 {
 			adjustment *= -1
@@ -353,6 +346,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		// log.Warnf("old: %064x", CompactToBig(last.bits))
 		// log.Warnf("new: %064x", CompactToBig(BigToCompact(newtarget)))
 		log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, last.bits, newTargetBits)
+		return newTargetBits, nil
 	}
 	return newTargetBits, nil
 }
