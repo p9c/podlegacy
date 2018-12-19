@@ -4,13 +4,11 @@ package blockchain
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"time"
 
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/fork"
-	"github.com/parallelcointeam/pod/wire"
 )
 
 var (
@@ -235,25 +233,23 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 // This function differs from the exported CalcNextRequiredDifficulty in that
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
-func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo uint32) (uint32, error) {
-	algoStr := wire.AlgoVers[algo]
-	p9algoStr := wire.AlgoVers[algo]
-	var newTargetBits, powLimitBits uint32
-	powLimit := CompactToBig(powLimitBits)
-	switch fork.GetCurrent(lastNode.height+1, b.chainParams.Name == "testnet") {
+func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algo int32) (newTargetBits uint32, err error) {
+	nH := lastNode.height + 1
+	aN := fork.GetAlgoName(algo, nH)
+	powLimitBits := fork.GetMinBits(aN, nH)
+	powLimit := fork.GetMinDiff(aN, nH)
+	switch fork.GetCurrent(nH) {
 	case 0:
-		powLimitBits = wire.Algos[algoStr].MinBits
-		powLimit = CompactToBig(powLimitBits)
 		if lastNode == nil {
 			return powLimitBits, nil
 		}
 		prevNode := lastNode
 		if prevNode.version != algo {
-			prevNode = prevNode.GetPrevWithAlgo(algo, b.chainParams.Name == "testnet")
+			prevNode = prevNode.GetPrevWithAlgo(algo)
 		}
-		firstNode := prevNode.GetPrevWithAlgo(algo, b.chainParams.Name == "testnet") //.RelativeAncestor(1)
+		firstNode := prevNode.GetPrevWithAlgo(algo)
 		for i := int64(1); firstNode != nil && i < b.chainParams.AveragingInterval; i++ {
-			firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo, b.chainParams.Name == "testnet")
+			firstNode = firstNode.RelativeAncestor(1).GetPrevWithAlgo(algo)
 		}
 		if firstNode == nil {
 			return powLimitBits, nil
@@ -280,34 +276,27 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			b.chainParams.AveragingTargetTimespan)
 		return newTargetBits, nil
 	case 1: // Plan 9 from Crypto Space
-		powLimitBits = wire.P9Algos[p9algoStr].MinBits
-		powLimit = CompactToBig(powLimitBits)
 		last := lastNode
 		if last.height == 0 {
-			fmt.Printf("first block %s %08x %08x\n", algoStr, powLimitBits, wire.P9Algos[algoStr].MinBits)
 			return powLimitBits, nil
 		}
 		if last.version != algo {
-			last = last.GetPrevWithAlgo(algo, b.chainParams.Name == "testnet")
+			last = last.GetPrevWithAlgo(algo)
 			if last == nil {
-				// This is the first block of the algo
 				return powLimitBits, nil
-				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
 		}
 		lastheight := last.height
 		firstheight := lastheight - int32(b.chainParams.AveragingInterval)
 		// Consensus rule, if an algorithm does not appear for a day its difficulty not adjusted from the previous, as the difficulty adjusts from the previous of the algorithm, but if there was only one in a day it gets a free one, and this is to also keep all 9 algorithms running and add reverberation perturbation in addition to the difficulty bit flip
-		if last.GetPrevWithAlgo(algo, b.chainParams.Name == "testnet").height < firstheight {
+		if last.GetPrevWithAlgo(algo).height < firstheight {
 			return last.bits, nil
 		}
 		bits := last.bits
 		if firstheight < 1 {
 			firstheight = 1
 			if lastheight == firstheight {
-				// log.Debugf("second block of algo")
 				return bits, nil
-				// return b.chainParams.GenesisBlock.Header.Bits, nil
 			}
 			if firstheight == 0 {
 				return bits, nil
@@ -327,40 +316,28 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if adjustment < 0.0 {
 			adjustment *= -1
 		}
-		log.Debugf("algo %s divergence %.7f adjustment %.7f numblocks %d interval %.0f avblocktime %.7f", wire.AlgoVers[algo], divergence, adjustment, numblocks, interval, avblocktime)
+		log.Debugf("algo %s divergence %.7f adjustment %.7f numblocks %d interval %.0f avblocktime %.7f", fork.AlgoVers[algo], divergence, adjustment, numblocks, interval, avblocktime)
 		bigadjustment := big.NewFloat(adjustment)
 		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
 		bigfnewtarget := big.NewFloat(0.0).Mul(bigadjustment, bigoldtarget)
 		newtarget, _ := bigfnewtarget.Int(nil)
-		// log.Debugf("firsttime %d lasttime %d interval %.0f avblocktime %.8f", firsttime, lasttime, interval, avblocktime)
-		// log.Debugf("target %d divergence %.8f", b.chainParams.TargetTimePerBlock, divergence)
-		// log.Debugf("newtarget %064x accuracy %d", newtarget, accuracy)
 		if newtarget.Cmp(powLimit) > 0 {
 			newTargetBits = powLimitBits
 		} else {
 			newTargetBits = BigToCompact(newtarget)
 		}
-		// basetargetbits := newTargetBits
 		newTargetBits ^= 0x00000003
-		// log.Warnf("height %d av %d blocks: %.8f target: %d, divergence: %.4f adjustment: %.4f dither: %08x -> %08x", lastheight, numblocks, avblocktime, b.chainParams.TargetTimePerBlock, divergence, adjustment, basetargetbits, newTargetBits)
-		// log.Warnf("old: %064x", CompactToBig(last.bits))
-		// log.Warnf("new: %064x", CompactToBig(BigToCompact(newtarget)))
 		log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, last.bits, newTargetBits)
 		return newTargetBits, nil
 	}
 	return newTargetBits, nil
 }
 
-// CalcNextRequiredDifficulty calculates the required difficulty for the block
-// after the end of the current best chain based on the difficulty retarget
-// rules.
-//
+// CalcNextRequiredDifficulty calculates the required difficulty for the block after the end of the current best chain based on the difficulty retarget rules.
 // This function is safe for concurrent access.
-func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time, algo uint32) (uint32, error) {
-	// log.Debugf("CalcNextRequiredDifficulty")
-
+func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time, algo int32) (difficulty uint32, err error) {
 	b.chainLock.Lock()
-	difficulty, err := b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, algo)
+	difficulty, err = b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, algo)
 	b.chainLock.Unlock()
-	return difficulty, err
+	return
 }

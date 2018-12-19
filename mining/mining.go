@@ -352,7 +352,7 @@ type BlkTmplGenerator struct {
 	timeSource  blockchain.MedianTimeSource
 	sigCache    *txscript.SigCache
 	hashCache   *txscript.HashCache
-	algo        uint32
+	algo        string
 }
 
 // NewBlkTmplGenerator returns a new block template generator for the given
@@ -365,7 +365,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 	txSource TxSource, chain *blockchain.BlockChain,
 	timeSource blockchain.MedianTimeSource,
 	sigCache *txscript.SigCache,
-	hashCache *txscript.HashCache, algo uint32) *BlkTmplGenerator {
+	hashCache *txscript.HashCache, algo string) *BlkTmplGenerator {
 	// log.Debug("NewBlkTmplGenerator")
 
 	return &BlkTmplGenerator{
@@ -442,7 +442,7 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 //  |  transactions (while block size   |   |
 //  |  <= policy.BlockMinSize)          |   |
 //   -----------------------------------  --
-func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo uint32) (*BlockTemplate, error) {
+func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo int32) (*BlockTemplate, error) {
 	fmt.Printf("NewBlockTemplate algo %d\n", algo)
 
 	// Extend the most recently known best block.
@@ -855,17 +855,9 @@ mempoolLoop:
 		return nil, err
 	}
 
-	var a string
-	switch fork.GetCurrent(nextBlockHeight, g.chainParams.Name == "testnet") {
-	case 0:
-		a = wire.AlgoVers[block.MsgBlock().Header.Version]
-	case 1:
-		a = wire.P9AlgoVers[block.MsgBlock().Header.Version]
-	}
+	a := fork.GetAlgoVer(fork.GetAlgoName(block.MsgBlock().Header.Version, nextBlockHeight), nextBlockHeight)
 
-	log.Debugf("Created new block template (algo %s, %d transactions, %d in "+
-		"fees, %d signature operations cost, %d weight, target difficulty "+
-		"%064x)", a, len(msgBlock.Transactions), totalFees, blockSigOpCost,
+	log.Debugf("Created new block template (algo %s, %d transactions, %d in fees, %d signature operations cost, %d weight, target difficulty %064x)", a, len(msgBlock.Transactions), totalFees, blockSigOpCost,
 		blockWeight, blockchain.CompactToBig(msgBlock.Header.Bits))
 
 	return &BlockTemplate{

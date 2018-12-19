@@ -245,7 +245,7 @@ type server struct {
 	cfCheckptCaches    map[wire.FilterType][]cfHeaderKV
 	cfCheckptCachesMtx sync.RWMutex
 
-	algo       uint32
+	algo       string
 	numthreads uint32
 }
 
@@ -2547,7 +2547,7 @@ func setupRPCListeners(urls []string) ([]net.Listener, error) {
 // newServer returns a new pod server configured to listen on addr for the
 // bitcoin network type specified by chainParams.  Use start to begin accepting
 // connections from peers.
-func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, interrupt <-chan struct{}, algo uint32) (*server, error) {
+func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Params, interrupt <-chan struct{}, algo string) (*server, error) {
 	services := defaultServices
 	if cfg.NoPeerBloomFilters {
 		services &^= wire.SFNodeBloom

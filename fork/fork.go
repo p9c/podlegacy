@@ -42,11 +42,10 @@ var (
 			AlgoVers:         P9AlgoVers,
 		},
 	}
-	// mainPowLimit is the highest proof of work value a Parallelcoin block can
-	// have for the main network.  It is the maximum target / 2^160
+
 	mainPowLimit = func() big.Int {
 		mplb, _ := hex.DecodeString("00000fffff000000000000000000000000000000000000000000000000000000")
-		return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
+		return *big.NewInt(0).SetBytes(mplb)
 	}()
 	mainPowLimitBits = BigToCompact(&mainPowLimit)
 
@@ -58,15 +57,15 @@ var (
 
 	// P9Algos is the algorithm specifications after the hard fork
 	P9Algos = map[string]AlgoParams{
-		"sha256d":   AlgoParams{1, mainPowLimitBits, 0},
-		"scrypt":    AlgoParams{2, mainPowLimitBits, 1},
-		"blake14lr": AlgoParams{3, 0x1d1089f6, 2},
-		"gost":      AlgoParams{4, 0x1e00b629, 7},
-		"keccak":    AlgoParams{5, 0x1e050502, 8},
-		"lyra2rev2": AlgoParams{6, 0x1d5c89d1, 4},
-		"skein":     AlgoParams{7, 0x1d332839, 5},
-		"whirlpool": AlgoParams{8, 0x1d1c0eea, 3},
-		"x11":       AlgoParams{9, 0x1d5c89d1, 6},
+		"blake14lr": AlgoParams{0, 0x1d1089f6, 0},
+		"gost":      AlgoParams{1, 0x1e00b629, 1},
+		"keccak":    AlgoParams{2, 0x1e050502, 2},
+		"lyra2rev2": AlgoParams{3, 0x1d5c89d1, 3},
+		"scrypt":    AlgoParams{4, mainPowLimitBits, 4},
+		"sha256d":   AlgoParams{5, mainPowLimitBits, 5},
+		"skein":     AlgoParams{6, 0x1d332839, 6},
+		"whirlpool": AlgoParams{7, 0x1d1c0eea, 7},
+		"x11":       AlgoParams{8, 0x1d5c89d1, 8},
 	}
 
 	// AlgoVers is the lookup for pre hardfork
@@ -113,6 +112,38 @@ func GetAlgoName(algoVer int32, height int32) (name string) {
 		}
 	}
 	return
+}
+
+// GetAlgoID returns the 'algo_id' which in pre-hardfork is not the same as the block version number, but is afterwards
+func GetAlgoID(algoname string, height int32) uint32 {
+	if GetCurrent(height) > 1 {
+		return P9Algos[algoname].AlgoID
+	}
+	return Algos[algoname].AlgoID
+}
+
+// GetCurrent returns the hardfork number code
+func GetCurrent(height int32) (curr int) {
+	if IsTestnet {
+		return len(List)
+	}
+	for i := range List {
+		if height > List[i].ActivationHeight {
+			curr = i
+		}
+	}
+	return
+}
+
+// GetMinBits returns the minimum diff bits based on height and testnet
+func GetMinBits(algoname string, height int32) uint32 {
+	curr := GetCurrent(height)
+	return List[curr].Algos[algoname].MinBits
+}
+
+// GetMinDiff returns the minimum difficulty in uint256 form
+func GetMinDiff(algoname string, height int32) *big.Int {
+	return CompactToBig(GetMinBits(algoname, height))
 }
 
 // CompactToBig converts a compact representation of a whole number N to an

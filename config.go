@@ -28,6 +28,7 @@ import (
 	"github.com/parallelcointeam/pod/connmgr"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
+	"github.com/parallelcointeam/pod/fork"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/peer"
 )
@@ -554,17 +555,19 @@ func loadConfig() (*config, []string, error) {
 	if cfg.TestNet3 {
 		numNets++
 		activeNetParams = &testNet3Params
-		wire.IsTestnet = true
+		fork.IsTestnet = true
 	}
 	if cfg.RegressionTest {
 		numNets++
 		activeNetParams = &regressionNetParams
+		fork.IsTestnet = true
 	}
 	if cfg.SimNet {
 		numNets++
 		// Also disable dns seeding on the simulation test network.
 		activeNetParams = &simNetParams
 		cfg.DisableDNSSeed = true
+		fork.IsTestnet = true
 	}
 	if numNets > 1 {
 		str := "%s: The testnet, regtest, segnet, and simnet params " +

@@ -335,15 +335,16 @@ type gbtWorkState struct {
 	template      *mining.BlockTemplate
 	notifyMap     map[chainhash.Hash]map[int64]chan struct{}
 	timeSource    blockchain.MedianTimeSource
-	algo          uint32
+	algo          string
 }
 
 // newGbtWorkState returns a new instance of a gbtWorkState with all internal
 // fields initialized and ready to use.
-func newGbtWorkState(timeSource blockchain.MedianTimeSource, algo uint32) *gbtWorkState {
+func newGbtWorkState(timeSource blockchain.MedianTimeSource, algoname string) *gbtWorkState {
 	return &gbtWorkState{
 		notifyMap:  make(map[chainhash.Hash]map[int64]chan struct{}),
 		timeSource: timeSource,
+		algo:       algoname,
 	}
 }
 
@@ -1042,7 +1043,7 @@ func handleGetBestBlockHash(s *rpcServer, cmd interface{}, closeChan <-chan stru
 
 // getDifficultyRatio returns the proof-of-work difficulty as a multiple of the
 // minimum difficulty using the passed bits field from the header of a block.
-func getDifficultyRatio(bits uint32, params *chaincfg.Params, algo uint32) float64 {
+func getDifficultyRatio(bits uint32, params *chaincfg.Params, algo int32) float64 {
 	// a := uint32(algo)
 	// The minimum difficulty is the max possible proof-of-work limit bits
 	// converted back to a number.  Note this is not the same as the proof of
@@ -1126,9 +1127,9 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 	params := s.cfg.ChainParams
 	blockHeader := &blk.MsgBlock().Header
 
-	algoname := wire.AlgoVers[blockHeader.Version]
-	a := wire.Algos[algoname].Version
-	algoid := wire.Algos[algoname].AlgoID
+	algoname := fork.GetAlgoName(blockHeader.Version, blockHeight)
+	a := fork.GetAlgoVer(algoname, blockHeight)
+	algoid := fork.GetAlgoID(algoname, blockHeight)
 
 	blockReply := btcjson.GetBlockVerboseResult{
 		Hash:          c.Hash,
@@ -1136,7 +1137,7 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		VersionHex:    fmt.Sprintf("%08x", blockHeader.Version),
 		PowAlgoID:     algoid,
 		PowAlgo:       algoname,
-		PowHash:       blk.MsgBlock().BlockHashWithAlgos(fork.GetCurrent(s.cfg.Chain.BestSnapshot().Height+1, s.cfg.ChainParams.Name != "mainnet")).String(),
+		PowHash:       blk.MsgBlock().BlockHashWithAlgos(s.cfg.Chain.BestSnapshot().Height + 1).String(),
 		MerkleRoot:    blockHeader.MerkleRoot.String(),
 		PreviousHash:  blockHeader.PrevBlock.String(),
 		Nonce:         blockHeader.Nonce,
@@ -1380,7 +1381,7 @@ func handleGetBlockHeader(s *rpcServer, cmd interface{}, closeChan <-chan struct
 		}
 		nextHashString = nextHash.String()
 	}
-	var a uint32 = 2
+	var a int32 = 2
 	if blockHeader.Version == 514 {
 		a = 514
 	}
@@ -1595,7 +1596,7 @@ func (state *gbtWorkState) updateBlockTemplate(s *rpcServer, useCoinbaseValue bo
 		// will ultimately create their own coinbase which pays to the
 		// appropriate address(es).
 
-		blkTemplate, err := generator.NewBlockTemplate(payAddr, state.algo)
+		blkTemplate, err := generator.NewBlockTemplate(payAddr, fork.GetAlgoVer(state.algo, s.cfg.Chain.BestSnapshot().Height))
 		if err != nil {
 			return internalRPCError("(rpcserver.go) Failed to create new block "+
 				"template: "+err.Error(), "")
@@ -2382,10 +2383,10 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 	v := s.cfg.Chain.Index.LookupNode(&best.Hash)
 	foundcount, height := 0, best.Height
 
-	switch fork.GetCurrent(height, s.cfg.ChainParams.Name == "testnet") {
+	switch fork.GetCurrent(height) {
 	case 0:
 		for foundcount < 9 && height > 0 {
-			switch wire.AlgoVers[v.Header().Version] {
+			switch fork.GetAlgoName(v.Header().Version, height) {
 			case "sha256d":
 				if lastbitsSHA256D == 0 {
 					foundcount++
@@ -2418,7 +2419,7 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 			TimeOffset:        int64(s.cfg.TimeSource.Offset().Seconds()),
 			Connections:       s.cfg.ConnMgr.ConnectedCount(),
 			Proxy:             cfg.Proxy,
-			PowAlgoID:         wire.Algos[s.cfg.Algo].AlgoID,
+			PowAlgoID:         fork.GetAlgoID(s.cfg.Algo, height),
 			PowAlgo:           s.cfg.Algo,
 			Difficulty:        Difficulty,
 			DifficultySHA256D: dSHA256D,
@@ -2429,8 +2430,8 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 	case 1:
 		foundcount, height := 0, best.Height
 		for foundcount < 9 &&
-			height > fork.List[fork.GetCurrent(height, s.cfg.ChainParams.Name == "testnet")].ActivationHeight-512 {
-			switch wire.AlgoVers[v.Header().Version] {
+			height > fork.List[fork.GetCurrent(height)].ActivationHeight-512 {
+			switch fork.GetAlgoName(v.Header().Version, height) {
 			case "sha256d":
 				if lastbitsSHA256D == 0 {
 					foundcount++
@@ -2520,7 +2521,7 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 			TimeOffset:          int64(s.cfg.TimeSource.Offset().Seconds()),
 			Connections:         s.cfg.ConnMgr.ConnectedCount(),
 			Proxy:               cfg.Proxy,
-			PowAlgoID:           wire.P9Algos[s.cfg.Algo].AlgoID,
+			PowAlgoID:           fork.GetAlgoID(s.cfg.Algo, height),
 			PowAlgo:             s.cfg.Algo,
 			Difficulty:          Difficulty,
 			DifficultySHA256D:   dSHA256D,
@@ -2583,10 +2584,10 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 	v := s.cfg.Chain.Index.LookupNode(&best.Hash)
 	foundcount, height := 0, best.Height
 
-	switch fork.GetCurrent(height, s.cfg.ChainParams.Name == "testnet") {
+	switch fork.GetCurrent(height) {
 	case 0:
 		for foundcount < 2 && height > 0 {
-			switch wire.AlgoVers[v.Header().Version] {
+			switch fork.GetAlgoName(v.Header().Version, height) {
 			case "sha256d":
 				if lastbitsSHA256D == 0 {
 					foundcount++
@@ -2617,7 +2618,7 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 			CurrentBlockSize:   best.BlockSize,
 			CurrentBlockWeight: best.BlockWeight,
 			CurrentBlockTx:     best.NumTxns,
-			PowAlgoID:          wire.Algos[s.cfg.Algo].AlgoID,
+			PowAlgoID:          fork.GetAlgoID(s.cfg.Algo, height),
 			PowAlgo:            s.cfg.Algo,
 			Difficulty:         Difficulty,
 			DifficultySHA256D:  dSHA256D,
@@ -2632,8 +2633,8 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 	case 1:
 		foundcount, height := 0, best.Height
 
-		for foundcount < 9 && height > fork.List[fork.GetCurrent(height, s.cfg.ChainParams.Name == "testnet")].ActivationHeight-512 {
-			switch wire.AlgoVers[v.Header().Version] {
+		for foundcount < 9 && height > fork.List[fork.GetCurrent(height)].ActivationHeight-512 {
+			switch fork.GetAlgoName(v.Header().Version, height) {
 			case "sha256d":
 				if lastbitsSHA256D == 0 {
 					foundcount++
@@ -2720,7 +2721,7 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 			CurrentBlockSize:    best.BlockSize,
 			CurrentBlockWeight:  best.BlockWeight,
 			CurrentBlockTx:      best.NumTxns,
-			PowAlgoID:           wire.Algos[s.cfg.Algo].AlgoID,
+			PowAlgoID:           fork.GetAlgoID(s.cfg.Algo, height),
 			PowAlgo:             s.cfg.Algo,
 			Difficulty:          Difficulty,
 			DifficultySHA256D:   dSHA256D,
@@ -3866,23 +3867,9 @@ func verifyChain(s *rpcServer, level, depth int32) error {
 				"height %d: %v", height, err)
 			return err
 		}
-
-		powLimit := blockchain.CompactToBig(wire.Algos[wire.AlgoVers[block.MsgBlock().Header.Version]].MinBits)
-		// var powLimitBits uint32
-
+		powLimit := fork.GetMinDiff(fork.GetAlgoName(block.MsgBlock().Header.Version, height), height)
 		// Level 1 does basic chain sanity checks.
 		if level > 0 {
-			fmt.Printf("pl %064x\n", powLimit)
-
-			// switch block.MsgBlock().Header.Version {
-			// case 514:
-			// 	powLimit = s.cfg.ChainParams.ScryptPowLimit
-			// 	// powLimitBits = s.cfg.ChainParams.ScryptPowLimitBits
-			// case 2:
-			// default:
-			// 	powLimit = s.cfg.ChainParams.PowLimit
-			// 	// powLimitBits = s.cfg.ChainParams.PowLimitBits
-			// }
 			err := blockchain.CheckBlockSanity(block,
 				powLimit, s.cfg.TimeSource, true, block.Height(), s.cfg.ChainParams.Name == "testnet")
 			if err != nil {
@@ -4674,7 +4661,7 @@ func newRPCServer(config *rpcserverConfig) (*rpcServer, error) {
 	rpc := rpcServer{
 		cfg:                    *config,
 		statusLines:            make(map[int]string),
-		gbtWorkState:           newGbtWorkState(config.TimeSource, wire.Algos[config.Algo].Version),
+		gbtWorkState:           newGbtWorkState(config.TimeSource, config.Algo),
 		helpCacher:             newHelpCacher(),
 		requestProcessShutdown: make(chan struct{}),
 		quit:                   make(chan int),

@@ -41,11 +41,11 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	// Rather than pass the direct previous by height, we look for the previous of the same algorithm and pass that.
 	var DoNotCheckPow bool
 	var pn *blockNode
-	var a uint32 = 2
+	var a int32 = 2
 	if block.MsgBlock().Header.Version == 514 {
 		a = 514
 	}
-	var aa uint32 = 2
+	var aa int32 = 2
 	if prevNode.version == 514 {
 		aa = 514
 	}
@@ -53,35 +53,23 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 		var i int64
 		pn = prevNode
 		for ; i < b.chainParams.AveragingInterval-1; i++ {
-			pn = pn.GetPrevWithAlgo(a, b.chainParams.Name == "testnet")
+			pn = pn.GetPrevWithAlgo(a)
 			if pn == nil {
-				// fmt.Println("passed genesis looking for previous of algo")
 				break
 			}
 		}
-		// fmt.Println("stepped back", i, "blocks to genesis")
 	}
 
 	var err error
 	if pn != nil {
-		// The block must pass all of the validation rules which depend on the
-		// position of the block within the block chain.
-		// fmt.Println("enough blocks for adjustment")
+		// The block must pass all of the validation rules which depend on the  position of the block within the block chain.
 		err = b.checkBlockContext(block, prevNode, flags, DoNotCheckPow)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	// Insert the block into the database if it's not already there.  Even
-	// though it is possible the block will ultimately fail to connect, it
-	// has already passed all proof-of-work and validity tests which means
-	// it would be prohibitively expensive for an attacker to fill up the
-	// disk with a bunch of blocks that fail to connect.  This is necessary
-	// since it allows block download to be decoupled from the much more
-	// expensive connection logic.  It also has some other nice properties
-	// such as making blocks that never become part of the main chain or
-	// blocks that fail to connect available for further analysis.
+	// Insert the block into the database if it's not already there.  Even though it is possible the block will ultimately fail to connect, it has already passed all proof-of-work and validity tests which means it would be prohibitively expensive for an attacker to fill up the disk with a bunch of blocks that fail to connect.  This is necessary since it allows block download to be decoupled from the much more expensive connection logic.  It also has some other nice properties such as making blocks that never become part of the main chain or blocks that fail to connect available for further analysis.
 	err = b.db.Update(func(dbTx database.Tx) error {
 		return dbStoreBlock(dbTx, block)
 	})
@@ -90,9 +78,7 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 		return false, err
 	}
 
-	// Create a new block node for the block and add it to the node index. Even
-	// if the block ultimately gets connected to the main chain, it starts out
-	// on a side chain.
+	// Create a new block node for the block and add it to the node index. Even if the block ultimately gets connected to the main chain, it starts out on a side chain.
 	blockHeader := &block.MsgBlock().Header
 	newNode := newBlockNode(blockHeader, prevNode)
 	newNode.status = statusDataStored

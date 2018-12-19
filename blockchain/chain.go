@@ -59,7 +59,7 @@ type orphanBlock struct {
 type BestState struct {
 	Hash        chainhash.Hash // The hash of the block.
 	Height      int32          // The height of the block.
-	Version     uint32
+	Version     int32
 	Bits        uint32    // The difficulty bits of the block.
 	BlockSize   uint64    // The size of the block.
 	BlockWeight uint64    // The weight of the block.

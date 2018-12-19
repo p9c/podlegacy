@@ -87,7 +87,7 @@ type blockNode struct {
 	// reconstructing headers from memory.  These must be treated as
 	// immutable and are intentionally ordered to avoid padding on 64-bit
 	// platforms.
-	version    uint32
+	version    int32
 	bits       uint32
 	nonce      uint32
 	timestamp  int64
@@ -348,13 +348,12 @@ func (bi *blockIndex) flushToDB() error {
 }
 
 // GetAlgo returns the algorithm of a block node
-func (node *blockNode) GetAlgo() uint32 {
+func (node *blockNode) GetAlgo() int32 {
 	return node.version
 }
 
 // GetPrevWithAlgo returns the previous block from the current with the same algorithm
-func (node *blockNode) GetPrevWithAlgo(algo uint32, testnet bool) (prev *blockNode) {
-
+func (node *blockNode) GetPrevWithAlgo(algo int32) (prev *blockNode) {
 	if node == nil {
 		return nil
 	}
@@ -365,7 +364,8 @@ func (node *blockNode) GetPrevWithAlgo(algo uint32, testnet bool) (prev *blockNo
 	if prev == nil {
 		return
 	}
-	if fork.GetCurrent(node.height, testnet) == 0 {
+	// Until HF1, 514 = scrypt and anything else is sha256d ver 2
+	if fork.GetCurrent(node.height) == 0 {
 		if algo != 514 {
 			algo = 2
 		}

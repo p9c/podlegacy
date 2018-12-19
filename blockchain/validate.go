@@ -284,12 +284,10 @@ func CheckTransactionSanity(tx *btcutil.Tx) error {
 // checkProofOfWork ensures the block header bits which indicate the target difficulty is in min/max range and that the block hash is less than the target difficulty as claimed.
 // The flags modify the behavior of this function as follows:
 //  - BFNoPoWCheck: The check to ensure the block hash is less than the target difficulty is not performed.
-func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags BehaviorFlags, height int32, testnet bool) error {
+func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags BehaviorFlags, height int32) error {
 	fmt.Println("checkProofOfWork", header)
 	// The target difficulty must be larger than zero.
-	fmt.Printf("pl %064x\n", powLimit)
 	if powLimit == nil {
-		log.Errorf("PoW limit was not set")
 		return errors.New("PoW limit was not set")
 	}
 	target := CompactToBig(header.Bits)
@@ -308,7 +306,7 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 	// The block hash must be less than the claimed target unless the flag to avoid proof of work checks is set.
 	if flags&BFNoPoWCheck != BFNoPoWCheck {
 		// The block hash must be less than the claimed target. Unless there is less than 10 previous with the same version (algo)...
-		hash := header.BlockHashWithAlgos(fork.GetCurrent(height, testnet))
+		hash := header.BlockHashWithAlgos(height)
 		hashNum := HashToBig(&hash)
 		if hashNum.Cmp(target) > 0 {
 			str := fmt.Sprintf("block hash of %064x is higher than expected max of %064x", hashNum, target)
@@ -320,9 +318,9 @@ func checkProofOfWork(header *wire.BlockHeader, powLimit *big.Int, flags Behavio
 }
 
 // CheckProofOfWork ensures the block header bits which indicate the target difficulty is in min/max range and that the block hash is less than the target difficulty as claimed.
-func CheckProofOfWork(block *btcutil.Block, powLimit *big.Int, height int32, testnet bool) error {
+func CheckProofOfWork(block *btcutil.Block, powLimit *big.Int, height int32) error {
 	// log.Debugf("CheckProofOfWork")
-	return checkProofOfWork(&block.MsgBlock().Header, powLimit, BFNone, height, testnet)
+	return checkProofOfWork(&block.MsgBlock().Header, powLimit, BFNone, height)
 }
 
 // CountSigOps returns the number of signature operations for all transaction input and output scripts in the provided transaction.  This uses the quicker, but imprecise, signature operation counting mechanism from txscript.
@@ -397,7 +395,7 @@ func CountP2SHSigOps(tx *btcutil.Tx, isCoinBaseTx bool, utxoView *UtxoViewpoint)
 func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags, height int32, testnet bool) error {
 	fmt.Printf("checkBlockHeaderSanity %064x\n", powLimit)
 	// Ensure the proof of work bits in the block header is in min/max range and the block hash is less than the target value described by the bits.
-	err := checkProofOfWork(header, powLimit, flags, height, testnet)
+	err := checkProofOfWork(header, powLimit, flags, height)
 	if err != nil {
 		return err
 	}
@@ -423,11 +421,11 @@ func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSou
 
 // checkBlockSanity performs some preliminary checks on a block to ensure it is sane before continuing with block processing.  These checks are context free.
 // The flags do not modify the behavior of this function directly, however they are needed to pass along to checkBlockHeaderSanity.
-func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags, DoNotCheckPow bool, height int32, testnet bool) error {
+func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags, DoNotCheckPow bool, height int32) error {
 	fmt.Printf("checkBlockSanity %064x height %d\n", powLimit, height)
 	msgBlock := block.MsgBlock()
 	header := &msgBlock.Header
-	err := checkBlockHeaderSanity(header, powLimit, timeSource, flags, height, testnet)
+	err := checkBlockHeaderSanity(header, powLimit, timeSource, flags, height, fork.IsTestnet)
 	if err != nil {
 		log.Debugf("ERROR %s", err)
 		return err
@@ -521,7 +519,7 @@ func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource Median
 // CheckBlockSanity performs some preliminary checks on a block to ensure it is sane before continuing with block processing.  These checks are context free.
 func CheckBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, DoNotCheckPow bool, height int32, testnet bool) error {
 	// log.Debugf("CheckBlockSanity")
-	return checkBlockSanity(block, powLimit, timeSource, BFNone, DoNotCheckPow, height, testnet)
+	return checkBlockSanity(block, powLimit, timeSource, BFNone, DoNotCheckPow, height)
 }
 
 // ExtractCoinbaseHeight attempts to extract the height of the block from the scriptSig of a coinbase transaction.  Coinbase heights are only present in blocks of version 2 or later.  This was added as part of BIP0034.
@@ -1071,40 +1069,19 @@ func (b *BlockChain) CheckConnectBlockTemplate(block *btcutil.Block) error {
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
 	algo := block.MsgBlock().Header.Version
-	fmt.Println("algo", algo)
-	algoStr := wire.AlgoVers[algo]
-	fmt.Println("algoStr", algoStr)
-	p9algoStr := wire.P9AlgoVers[algo]
-	fmt.Println("p9algoStr", p9algoStr)
-	powLimitBits := wire.Algos[algoStr].MinBits
-	p9powLimitBits := wire.P9Algos[p9algoStr].MinBits
-	fmt.Printf("powLimit %064x\n", powLimit)
-	fmt.Printf("p9powLimit %064x\n", p9powLimit)
-	fmt.Printf("block.Height() %d\n", block.Height())
-	fmt.Printf("hf is at %d\n", fork.GetCurrent(block.Height(), b.chainParams.Name == "testnet"))
-	switch fork.GetCurrent(block.Height(), b.chainParams.Name == "testnet") {
-	case 0:
-		powLimit := CompactToBig(powLimitBits)
-		p9powLimit := CompactToBig(p9powLimitBits)
-	case 1:
-		powLimit = p9powLimit
-		powLimitBits = p9powLimitBits
-	}
-
+	height := block.Height()
+	algoname := fork.GetAlgoName(algo, height)
+	powLimit := fork.GetMinDiff(algoname, height)
 	// Skip the proof of work check as this is just a block template.
 	flags := BFNoPoWCheck
-
-	// This only checks whether the block can be connected to the tip of the
-	// current chain.
+	// This only checks whether the block can be connected to the tip of the current chain.
 	tip := b.bestChain.Tip()
 	header := block.MsgBlock().Header
 	if tip.hash != header.PrevBlock {
 		str := fmt.Sprintf("previous block must be the current chain tip %v, instead got %v", tip.hash, header.PrevBlock)
 		return ruleError(ErrPrevBlockNotBest, str)
 	}
-
-	fmt.Printf("CheckConnectBlockTemplate, %064x %s\n", powLimit, b.chainParams.Name)
-	err := checkBlockSanity(block, powLimit, b.timeSource, flags, true, block.Height(), b.chainParams.Name == "testnet")
+	err := checkBlockSanity(block, powLimit, b.timeSource, flags, true, block.Height())
 	if err != nil {
 		log.Debugf("ERROR %s", err.Error())
 		return err

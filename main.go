@@ -140,8 +140,7 @@ func podMain(serverChan chan<- *server) error {
 		return nil
 	}
 	// Create server and start it.
-	server, err := newServer(cfg.Listeners, db, activeNetParams.Params,
-		interrupt, algo)
+	server, err := newServer(cfg.Listeners, db, activeNetParams.Params, interrupt, cfg.Algo)
 	if err != nil {
 		// TODO: this logging could do with some beautifying.
 		podLog.Errorf("Unable to start server on %v: %v",

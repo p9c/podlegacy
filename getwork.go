@@ -86,13 +86,7 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 	generator := s.cfg.Generator
 	if state.template == nil {
 		var err error
-		var vers uint32
-		switch fork.GetCurrent(s.cfg.Chain.BestSnapshot().Height, s.cfg.ChainParams.Name == "testnet") {
-		case 0:
-			vers = wire.Algos[s.cfg.Algo].Version
-		case 1:
-			vers = wire.P9Algos[s.cfg.Algo].Version
-		}
+		vers := fork.GetAlgoVer(s.cfg.Algo, s.cfg.Chain.BestSnapshot().Height)
 		state.template, err = generator.NewBlockTemplate(payToAddr, vers)
 		if err != nil {
 			return nil, err
@@ -118,7 +112,7 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		state.prevHash = nil
 
 		// var vers uint32
-		hf := fork.GetCurrent(s.gbtWorkState.template.Height, s.cfg.ChainParams.Name == "testnet")
+		hf := fork.GetCurrent(s.gbtWorkState.template.Height)
 		fmt.Println("hf", hf, "algo", s.cfg.Algo)
 
 		// switch hf {
@@ -129,13 +123,8 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		// }
 		// fmt.Println("vers", vers)
 		var err error
-		var vers uint32
-		switch fork.GetCurrent(s.cfg.Chain.BestSnapshot().Height, s.cfg.ChainParams.Name == "testnet") {
-		case 0:
-			vers = wire.Algos[s.cfg.Algo].Version
-		case 1:
-			vers = wire.P9Algos[s.cfg.Algo].Version
-		}
+		bh := s.gbtWorkState.template.Height
+		vers := fork.GetAlgoVer(s.cfg.Algo, bh)
 		state.template, err = generator.NewBlockTemplate(payToAddr, vers)
 		if err != nil {
 			errStr := fmt.Sprintf("Failed to create new block "+
@@ -343,14 +332,8 @@ func handleGetWorkSubmission(s *rpcServer, hexData string) (interface{}, error) 
 	msgBlock.Header.MerkleRoot = *merkles[len(merkles)-1]
 
 	// Ensure the submitted block hash is less than the target difficulty.
-	var bits uint32
-	switch fork.GetCurrent(s.cfg.Chain.BestSnapshot().Height, s.cfg.ChainParams.Name == "testnet") {
-	case 0:
-		bits = wire.Algos[s.cfg.Algo].MinBits
-	case 1:
-		bits = wire.P9Algos[s.cfg.Algo].MinBits
-	}
-	err = blockchain.CheckProofOfWork(block, blockchain.CompactToBig(bits), s.cfg.Chain.BestSnapshot().Height, s.cfg.ChainParams.Name == "testnet")
+	pl := fork.GetMinDiff(s.cfg.Algo, s.cfg.Chain.BestSnapshot().Height)
+	err = blockchain.CheckProofOfWork(block, pl, s.cfg.Chain.BestSnapshot().Height)
 	if err != nil {
 		/*	Anything other than a rule violation is an unexpected error,
 			so return that error as an internal error. */

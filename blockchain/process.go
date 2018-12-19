@@ -13,7 +13,6 @@ import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/pod/wire"
 )
 
 // BehaviorFlags is a bitmask defining tweaks to the normal behavior when
@@ -146,34 +145,24 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 //
 // This function is safe for concurrent access.
 func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, height int32) (bool, bool, error) {
-	// fmt.Println("ProcessBlock")
 	b.chainLock.Lock()
 	defer b.chainLock.Unlock()
-
 	fastAdd := flags&BFFastAdd == BFFastAdd
 	blockHash := block.Hash()
-	isTestnet := b.chainParams.Name == "testnet"
-	hf := fork.GetCurrent(height, isTestnet)
-	// log.Debugf("height %d, isTestnet %s, hf %d", height, fmt.Sprint(isTestnet), hf)
-	blockHashWithAlgo := block.MsgBlock().BlockHashWithAlgos(fork.GetCurrent(height, isTestnet))
+	hf := fork.GetCurrent(height)
+	blockHashWithAlgo := block.MsgBlock().BlockHashWithAlgos(height)
 	log.Tracef("Processing block %v", blockHashWithAlgo)
-	var algo uint32
-
+	var algo int32
 	switch hf {
 	case 0:
-		// log.Debugf("hf %d version %d net %s", 0, block.MsgBlock().Header.Version, b.chainParams.Name)
 		if block.MsgBlock().Header.Version != 514 {
 			algo = 2
 		} else {
 			algo = 514
 		}
-		// log.Debugf("version %d", algo)
 	case 1:
-		// log.Debugf("hf %d version %d", 1, block.MsgBlock().Header.Version)
 		algo = block.MsgBlock().Header.Version
-		// log.Debugf("version %d", algo)
 	}
-
 	// The block must not already exist in the main chain or side chains.
 	exists, err := b.blockExists(blockHash)
 	if err != nil {
@@ -193,28 +182,22 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 	// Perform preliminary sanity checks on the block and its transactions.
 	var DoNotCheckPow bool
 	var pl *big.Int
-	pl = CompactToBig(wire.Algos[wire.AlgoVers[algo]].MinBits)
+	pl = fork.GetMinDiff(fork.GetAlgoName(algo, height), height)
 	ph := &block.MsgBlock().Header.PrevBlock
 	pn := b.Index.LookupNode(ph)
 	if pn == nil {
-		// fmt.Println("did not find???")
 		DoNotCheckPow = true
 	}
-	pb := pn.GetPrevWithAlgo(algo, b.chainParams.Name == "testnet")
+	pb := pn.GetPrevWithAlgo(algo)
 	if pb == nil {
-		// fmt.Println("not enough prior blocks on algo")
 		pl = &chaincfg.AllOnes
 		DoNotCheckPow = true
-		// fmt.Printf("pl %064x\n", pl)
 	}
-
-	fmt.Printf("pl %064x\n", pl)
-	err = checkBlockSanity(block, pl, b.timeSource, flags, DoNotCheckPow, height, b.chainParams.Name == "testnet")
+	err = checkBlockSanity(block, pl, b.timeSource, flags, DoNotCheckPow, height)
 	if err != nil {
 		log.Debugf("ERROR %s", err.Error())
 		return false, false, err
 	}
-
 	// Find the previous checkpoint and perform some additional checks based on the checkpoint.  This provides a few nice properties such as preventing old side chain blocks before the last checkpoint, rejecting easy to mine, but otherwise bogus, blocks that could be used to eat memory, and ensuring expected (versus claimed) proof of work requirements since the previous checkpoint are met.
 	blockHeader := &block.MsgBlock().Header
 	checkpointNode, err := b.findPreviousCheckpoint()
@@ -275,6 +258,6 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 		return false, false, err
 	}
 
-	log.Debugf("Accepted block %s %v, height %d", wire.AlgoVers[block.MsgBlock().Header.Version], blockHashWithAlgo, b.bestChain.Height())
+	log.Debugf("Accepted block %s %v, height %d", fork.GetAlgoName(block.MsgBlock().Header.Version, height), blockHashWithAlgo, height)
 	return isMainChain, false, nil
 }

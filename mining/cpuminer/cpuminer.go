@@ -81,8 +81,8 @@ type Config struct {
 	// up orphaned anyways.
 	IsCurrent func() bool
 
-	// Algo is the block version number, signifying the type of PoW used for the block header.
-	Algo uint32
+	// Algo is the name of the type of PoW used for the block header.
+	Algo string
 
 	// NumThreads is the number of threads set in the configuration for the CPUMiner
 	NumThreads uint32
@@ -272,27 +272,15 @@ func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32, testne
 				m.g.UpdateBlockTime(msgBlock)
 
 			default:
-				// Non-blocking select to fall through
 			}
-
 			var incr uint64
-			// if header.Version == 514 {
 			incr = 1
-			// }
-			if header.Version == 2 {
+			if fork.GetAlgoName(header.Version, blockHeight) == "sha256d" {
 				incr = 2
 			}
-
-			// Update the nonce and hash the block header.  Each
-			// hash is actually a double sha256 (two hashes), so
-			// increment the number of hashes completed for each
-			// attempt accordingly.
 			header.Nonce = i
-			hash := header.BlockHashWithAlgos(fork.GetCurrent(blockHeight, testnet))
+			hash := header.BlockHashWithAlgos(int32(fork.GetCurrent(blockHeight)))
 			hashesCompleted += incr
-
-			// log.Debugf("algo %d %064x", header.Version, hash)
-
 			// The block is solved when the new block hash is less
 			// than the target difficulty.  Yay!
 			if blockchain.HashToBig(&hash).Cmp(targetDifficulty) <= 0 {
@@ -315,8 +303,7 @@ func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32, testne
 func (m *CPUMiner) generateBlocks(quit chan struct{}) {
 	log.Tracef("Starting generate blocks worker")
 
-	// Start a ticker which is used to signal checks for stale work and
-	// updates to the speed monitor.
+	// Start a ticker which is used to signal checks for stale work and updates to the speed monitor.
 	ticker := time.NewTicker(time.Second * hashUpdateSecs)
 	defer ticker.Stop()
 out:
@@ -357,13 +344,8 @@ out:
 		// Create a new block template using the available transactions
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
-		var vers uint32
-		switch fork.GetCurrent(m.cfg.BlockTemplateGenerator.BestSnapshot().Height, m.cfg.ChainParams.Name == "testnet") {
-		case 0:
-			vers = wire.Algos[wire.AlgoVers[m.cfg.Algo]].Version
-		case 1:
-			vers = wire.P9Algos[wire.AlgoVers[m.cfg.Algo]].Version
-		}
+		bh := m.cfg.BlockTemplateGenerator.BestSnapshot().Height
+		vers := fork.GetAlgoVer(m.cfg.Algo, bh)
 		template, err := m.g.NewBlockTemplate(payToAddr, vers)
 		m.submitBlockLock.Unlock()
 		if err != nil {
@@ -619,13 +601,8 @@ func (m *CPUMiner) GenerateNBlocks(n uint32) ([]*chainhash.Hash, error) {
 		// Create a new block template using the available transactions
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
-		var vers uint32
-		switch fork.GetCurrent(m.cfg.BlockTemplateGenerator.BestSnapshot().Height, m.cfg.ChainParams.Name == "testnet") {
-		case 0:
-			vers = wire.Algos[wire.AlgoVers[m.cfg.Algo]].Version
-		case 1:
-			vers = wire.P9Algos[wire.AlgoVers[m.cfg.Algo]].Version
-		}
+		bh := m.cfg.BlockTemplateGenerator.BestSnapshot().Height
+		vers := fork.GetAlgoVer(m.cfg.Algo, bh)
 		template, err := m.g.NewBlockTemplate(payToAddr, vers)
 		m.submitBlockLock.Unlock()
 		if err != nil {
