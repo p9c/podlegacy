@@ -1,10 +1,12 @@
 package addrmgr_test
+
 import (
 	"github.com/parallelcointeam/pod/addrmgr"
 	"github.com/parallelcointeam/pod/wire"
 	"net"
 	"testing"
 )
+
 // TestIPTypes ensures the various functions which determine the type of an IP
 // address based on RFCs work as intended.
 func TestIPTypes(t *testing.T) {
@@ -119,8 +121,8 @@ func TestIPTypes(t *testing.T) {
 		}
 	}
 }
-// TestGroupKey tests the GroupKey function to ensure it properly groups various
-// IP addresses.
+
+// TestGroupKey tests the GroupKey function to ensure it properly groups various IP addresses.
 func TestGroupKey(t *testing.T) {
 	tests := []struct {
 		name     string
