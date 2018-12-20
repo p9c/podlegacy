@@ -1,17 +1,12 @@
 package blockchain
+
 import (
 	"fmt"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/database"
 )
-// maybeAcceptBlock potentially accepts a block into the block chain and, if
-// accepted, returns whether or not it is on the main chain.  It performs
-// several validation checks which depend on its position within the block chain
-// before adding it.  The block is expected to have already gone through
-// ProcessBlock before calling this function with it.
-// The flags are also passed to checkBlockContext and connectBestChain.  See
-// their documentation for how the flags modify their behavior.
-// This function MUST be called with the chain state lock held (for writes).
+
+// maybeAcceptBlock potentially accepts a block into the block chain and, if accepted, returns whether or not it is on the main chain.  It performs several validation checks which depend on its position within the block chain before adding it.  The block is expected to have already gone through ProcessBlock before calling this function with it. The flags are also passed to checkBlockContext and connectBestChain.  See their documentation for how the flags modify their behavior. This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags) (bool, error) {
 	// The height of this block is one more than the referenced previous block.
 	prevHash := &block.MsgBlock().Header.PrevBlock
@@ -26,8 +21,7 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	blockHeight := prevNode.height + 1
 	block.SetHeight(blockHeight)
 	// TODO
-	// To deal with multiple mining algorithms, we must check first the block header version.
-	// Rather than pass the direct previous by height, we look for the previous of the same algorithm and pass that.
+	// To deal with multiple mining algorithms, we must check first the block header version. Rather than pass the direct previous by height, we look for the previous of the same algorithm and pass that.
 	var DoNotCheckPow bool
 	var pn *blockNode
 	var a int32 = 2
@@ -72,16 +66,12 @@ func (b *BlockChain) maybeAcceptBlock(block *btcutil.Block, flags BehaviorFlags)
 	if err != nil {
 		return false, err
 	}
-	// Connect the passed block to the chain while respecting proper chain
-	// selection according to the chain with the most proof of work.  This
-	// also handles validation of the transaction scripts.
+	// Connect the passed block to the chain while respecting proper chain selection according to the chain with the most proof of work.  This also handles validation of the transaction scripts.
 	isMainChain, err := b.connectBestChain(newNode, block, flags)
 	if err != nil {
 		return false, err
 	}
-	// Notify the caller that the new block was accepted into the block
-	// chain.  The caller would typically want to react by relaying the
-	// inventory to other peers.
+	// Notify the caller that the new block was accepted into the block chain.  The caller would typically want to react by relaying the inventory to other peers.
 	b.chainLock.Unlock()
 	b.sendNotification(NTBlockAccepted, block)
 	b.chainLock.Lock()
