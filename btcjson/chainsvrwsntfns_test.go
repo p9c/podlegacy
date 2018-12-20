@@ -1,17 +1,15 @@
-
 package btcjson_test
+
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/parallelcointeam/pod/btcjson"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/btcjson"
 )
-// TestChainSvrWsNtfns tests all of the chain server websocket-specific
-// notifications marshal and unmarshal into valid results include handling of
-// optional fields being omitted in the marshalled command, while optional
-// fields with defaults have the default assigned on unmarshalled commands.
+
+// TestChainSvrWsNtfns tests all of the chain server websocket-specific notifications marshal and unmarshal into valid results include handling of optional fields being omitted in the marshalled command, while optional fields with defaults have the default assigned on unmarshalled commands.
 func TestChainSvrWsNtfns(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -220,8 +218,7 @@ func TestChainSvrWsNtfns(t *testing.T) {
 	}
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
-		// Marshal the notification as created by the new static
-		// creation function.  The ID is nil for notifications.
+		// Marshal the notification as created by the new static creation function.  The ID is nil for notifications.
 		marshalled, err := btcjson.MarshalCmd(nil, test.staticNtfn())
 		if err != nil {
 			t.Errorf("MarshalCmd #%d (%s) unexpected error: %v", i,
@@ -234,16 +231,13 @@ func TestChainSvrWsNtfns(t *testing.T) {
 				test.marshalled)
 			continue
 		}
-		// Ensure the notification is created without error via the
-		// generic new notification creation function.
+		// Ensure the notification is created without error via the generic new notification creation function.
 		cmd, err := test.newNtfn()
 		if err != nil {
 			t.Errorf("Test #%d (%s) unexpected NewCmd error: %v ",
 				i, test.name, err)
 		}
-		// Marshal the notification as created by the generic new
-		// notification creation function.    The ID is nil for
-		// notifications.
+		// Marshal the notification as created by the generic new notification creation function. The ID is nil for notifications.
 		marshalled, err = btcjson.MarshalCmd(nil, cmd)
 		if err != nil {
 			t.Errorf("MarshalCmd #%d (%s) unexpected error: %v", i,

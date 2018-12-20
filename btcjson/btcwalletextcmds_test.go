@@ -1,17 +1,15 @@
-
 package btcjson_test
+
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/parallelcointeam/pod/btcjson"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/btcjson"
 )
-// TestBtcWalletExtCmds tests all of the btcwallet extended commands marshal and
-// unmarshal into valid results include handling of optional fields being
-// omitted in the marshalled command, while optional fields with defaults have
-// the default assigned on unmarshalled commands.
+
+// TestBtcWalletExtCmds tests all of the btcwallet extended commands marshal and unmarshal into valid results include handling of optional fields being omitted in the marshalled command, while optional fields with defaults have the default assigned on unmarshalled commands.
 func TestBtcWalletExtCmds(t *testing.T) {
 	t.Parallel()
 	testID := int(1)
@@ -149,15 +147,13 @@ func TestBtcWalletExtCmds(t *testing.T) {
 				test.marshalled)
 			continue
 		}
-		// Ensure the command is created without error via the generic
-		// new command creation function.
+		// Ensure the command is created without error via the generic new command creation function.
 		cmd, err := test.newCmd()
 		if err != nil {
 			t.Errorf("Test #%d (%s) unexpected NewCmd error: %v ",
 				i, test.name, err)
 		}
-		// Marshal the command as created by the generic new command
-		// creation function.
+		// Marshal the command as created by the generic new command creation function.
 		marshalled, err = btcjson.MarshalCmd(testID, cmd)
 		if err != nil {
 			t.Errorf("MarshalCmd #%d (%s) unexpected error: %v", i,

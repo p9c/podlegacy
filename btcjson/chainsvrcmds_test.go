@@ -1,18 +1,16 @@
-
 package btcjson_test
+
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"reflect"
-	"testing"
 	"github.com/parallelcointeam/pod/btcjson"
 	"github.com/parallelcointeam/pod/wire"
+	"reflect"
+	"testing"
 )
-// TestChainSvrCmds tests all of the chain server commands marshal and unmarshal
-// into valid results include handling of optional fields being omitted in the
-// marshalled command, while optional fields with defaults have the default
-// assigned on unmarshalled commands.
+
+// TestChainSvrCmds tests all of the chain server commands marshal and unmarshal into valid results include handling of optional fields being omitted in the marshalled command, while optional fields with defaults have the default assigned on unmarshalled commands.
 func TestChainSvrCmds(t *testing.T) {
 	t.Parallel()
 	testID := int(1)
@@ -149,9 +147,7 @@ func TestChainSvrCmds(t *testing.T) {
 		{
 			name: "getblock required optional1",
 			newCmd: func() (interface{}, error) {
-				// Intentionally use a source param that is
-				// more pointers than the destination to
-				// exercise that path.
+				// Intentionally use a source param that is more pointers than the destination to exercise that path.
 				verbosePtr := btcjson.Bool(true)
 				return btcjson.NewCmd("getblock", "123", &verbosePtr)
 			},
@@ -1139,8 +1135,8 @@ func TestChainSvrCmds(t *testing.T) {
 		}
 	}
 }
-// TestChainSvrCmdErrors ensures any errors that occur in the command during
-// custom mashal and unmarshal are as expected.
+
+// TestChainSvrCmdErrors ensures any errors that occur in the command during custom mashal and unmarshal are as expected.
 func TestChainSvrCmdErrors(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

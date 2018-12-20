@@ -1,11 +1,12 @@
-
 package btcjson_test
+
 import (
+	"github.com/parallelcointeam/pod/btcjson"
 	"reflect"
 	"sort"
 	"testing"
-	"github.com/parallelcointeam/pod/btcjson"
 )
+
 // TestUsageFlagStringer tests the stringized output for the UsageFlag type.
 func TestUsageFlagStringer(t *testing.T) {
 	t.Parallel()
@@ -43,8 +44,8 @@ func TestUsageFlagStringer(t *testing.T) {
 		}
 	}
 }
-// TestRegisterCmdErrors ensures the RegisterCmd function returns the expected
-// error when provided with invalid types.
+
+// TestRegisterCmdErrors ensures the RegisterCmd function returns the expected error when provided with invalid types.
 func TestRegisterCmdErrors(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -212,8 +213,8 @@ func TestRegisterCmdErrors(t *testing.T) {
 		}
 	}
 }
-// TestMustRegisterCmdPanic ensures the MustRegisterCmd function panics when
-// used to register an invalid type.
+
+// TestMustRegisterCmdPanic ensures the MustRegisterCmd function panics when used to register an invalid type.
 func TestMustRegisterCmdPanic(t *testing.T) {
 	t.Parallel()
 	// Setup a defer to catch the expected panic to ensure it actually
@@ -226,8 +227,8 @@ func TestMustRegisterCmdPanic(t *testing.T) {
 	// Intentionally try to register an invalid type to force a panic.
 	btcjson.MustRegisterCmd("panicme", 0, 0)
 }
-// TestRegisteredCmdMethods tests the RegisteredCmdMethods function ensure it
-// works as expected.
+
+// TestRegisteredCmdMethods tests the RegisteredCmdMethods function ensure it works as expected.
 func TestRegisteredCmdMethods(t *testing.T) {
 	t.Parallel()
 	// Ensure the registered methods are returned.

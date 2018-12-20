@@ -1,5 +1,5 @@
-
 package btcjson
+
 // Standard JSON-RPC 2.0 errors.
 var (
 	ErrRPCInvalidRequest = &RPCError{
@@ -23,6 +23,7 @@ var (
 		Message: "Parse error",
 	}
 )
+
 // General application defined JSON errors.
 const (
 	ErrRPCMisc                RPCErrorCode = -1
@@ -35,12 +36,14 @@ const (
 	ErrRPCDeserialization     RPCErrorCode = -22
 	ErrRPCVerify              RPCErrorCode = -25
 )
+
 // Peer-to-peer client errors.
 const (
 	ErrRPCClientNotConnected      RPCErrorCode = -9
 	ErrRPCClientInInitialDownload RPCErrorCode = -10
 	ErrRPCClientNodeNotAdded      RPCErrorCode = -24
 )
+
 // Wallet JSON errors
 const (
 	ErrRPCWallet                    RPCErrorCode = -4
@@ -53,9 +56,8 @@ const (
 	ErrRPCWalletEncryptionFailed    RPCErrorCode = -16
 	ErrRPCWalletAlreadyUnlocked     RPCErrorCode = -17
 )
-// Specific Errors related to commands.  These are the ones a user of the RPC
-// server are most likely to see.  Generally, the codes should match one of the
-// more general errors above.
+
+// Specific Errors related to commands.  These are the ones a user of the RPC server are most likely to see.  Generally, the codes should match one of the more general errors above.
 const (
 	ErrRPCBlockNotFound     RPCErrorCode = -5
 	ErrRPCBlockCount        RPCErrorCode = -5
@@ -69,6 +71,7 @@ const (
 	ErrRPCRawTxString       RPCErrorCode = -32602
 	ErrRPCDecodeHexString   RPCErrorCode = -22
 )
+
 // Errors that are specific to pod.
 const (
 	ErrRPCNoWallet      RPCErrorCode = -1

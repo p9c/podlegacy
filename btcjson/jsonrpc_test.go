@@ -1,11 +1,12 @@
-
 package btcjson_test
+
 import (
 	"encoding/json"
+	"github.com/parallelcointeam/pod/btcjson"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/btcjson"
 )
+
 // TestIsValidIDType ensures the IsValidIDType function behaves as expected.
 func TestIsValidIDType(t *testing.T) {
 	t.Parallel()
@@ -44,6 +45,7 @@ func TestIsValidIDType(t *testing.T) {
 		}
 	}
 }
+
 // TestMarshalResponse ensures the MarshalResponse function works as expected.
 func TestMarshalResponse(t *testing.T) {
 	t.Parallel()
@@ -85,6 +87,7 @@ func TestMarshalResponse(t *testing.T) {
 		}
 	}
 }
+
 // TestMiscErrors tests a few error conditions not covered elsewhere.
 func TestMiscErrors(t *testing.T) {
 	t.Parallel()
@@ -104,8 +107,7 @@ func TestMiscErrors(t *testing.T) {
 			"%v (%[1]T), want %v (%[2]T)", err, wantErr)
 		return
 	}
-	// Force an error in MarshalResponse by giving it a result type that
-	// can't be marshalled.
+	// Force an error in MarshalResponse by giving it a result type that can't be marshalled.
 	_, err = btcjson.MarshalResponse(1, make(chan int), nil)
 	if _, ok := err.(*json.UnsupportedTypeError); !ok {
 		wantErr := &json.UnsupportedTypeError{}
@@ -114,6 +116,7 @@ func TestMiscErrors(t *testing.T) {
 		return
 	}
 }
+
 // TestRPCError tests the error output for the RPCError type.
 func TestRPCError(t *testing.T) {
 	t.Parallel()
