@@ -6,41 +6,41 @@
 
 Next generation full node for Parallelcoin, forked from [btcd](https://github.com/btcsuite/btcd)
 
-## Stochastic Binomial Filter Difficulty Adjustment
+## Hard Fork 1: Plan 9 from Crypto Space
+
+9 algorithms can be used when mining:
+
+- Blake14lr (decred)
+- GOST Stribog \*
+- Lyra2REv2 (sia)
+- Keccac (maxcoin, smartcash)
+- Scrypt (litecoin)
+- SHA256D (bitcoin)
+- Skein (myriadcoin)
+- Whirlpool \*
+- X11 (dash)
+
+### Stochastic Binomial Filter Difficulty Adjustment
 
 After the upcoming hardfork, Parallelcoin will have the following features in its difficulty adjustment regime
 
-- 9 algorithms can be used when mining:
-
-  - Blake14lr (decred)
-  - GOST Stribog \*
-  - Lyra2REv2 (sia)
-  - Keccac (maxcoin, smartcash)
-  - Scrypt (litecoin)
-  - SHA256D (bitcoin)
-  - Skein (myriadcoin)
-  - Whirlpool \*
-  - X11 (dash)
-
-- 293 second blocks (7 seconds less than 5 minutes), 1439 block averaging window (5 seconds less than 24 hours) - Prime numbers are used to reduce resonance caused by aliasing distortion
+- 293 second blocks (7 seconds less than 5 minutes), 1439 block averaging window (about 4.8 days) - Prime numbers are used to reduce resonance due to common factors, and a rhythm that doesn't
 
 - Exponential curve with power of 3 to respond gently the natural drift while moving the difficulty fast in below 10% of target and 10x target, to deal with recovering after a large increase in network hashpower
 
-- Difficulty adjustments are based on previous block of each algorithm, meaning sharp rises from one algorithm do not immediately affect the other algorithms, allowing a smoother recovery from a sudden drop in hashrate
+- Difficulty adjustments are based on a window ending at the previous block of each algorithm, meaning sharp rises from one algorithm do not immediately affect the other algorithms, allowing a smoother recovery from a sudden drop in hashrate, soaking up energetic movements more robustly and resiliently, and reducing vulnerability to time distortion attacks.
 
-- Deterministic noise is added to the difficulty adjustment in a similar way as is done with digital audio and images to improve the effective resolution of the signal
+- Deterministic noise is added to the difficulty adjustment in a similar way as is done with digital audio and images to improve the effective resolution of the signal by reducing unwanted artifacts caused by the sampling process. Miners are random generators, and a block time is like a tuning filter, so the same principles apply.
+
+- Rewards will be computed according to a much smoother, satoshi-precision exponential decay curve that will produce a flat annual 5% supply expansion. Increasing the precision of the denomination is planned for the next release cycle, at 0.00000001 as the minimum denomination, there may be issues as userbase increases.
+
+### Wallet
 
 The pod has no RPC wallet functionality, only core chain functions. It is fully compliant with the original [parallelcoind](https://github.com/marcetin/parallelcoin) but will be switching over to its first Hard Fork at a future appointed block height in the official release. For the wallet server, which works also with the CLI controller `podctl`, it will be possible to send commands to both mod (wallet) and pod full node using the command line.
 
 A Webview/Golang based GUI wallet will come a little later, following the release, and will be able to run on all platforms with with browser or supported built-in web application platforms, Blink and Webkit engines.
 
-## Hard Fork 1: Plan 9 from Crypto Space
-
-At the time of release there will not be any GPU nor ASIC miners for the GOST Stribog (just stribog 256 bit hash, not combined) and whirlpool (only coin with this is long dead but it is a commonly used disk encryption hash function so likely there may be some on the network at the fork).
-
-ASIC miners can be pleased to hear that it runs SHA256D, Scrypt and X11, and though not so many ASICs exist yet, for Lyra2REv2, Skein, Keccac, and Blake14lr, which will have been proven in testing to work with multi-algo miners such as ccminer, sgminer and bfgminer.
-
-Possibly some blocks can be found by CPU miners for a few days. A multi-algo GPU miner that automatically recognises and configures and enables multi-mining based on benchmarks and difficulty adjustment has been scheduled for the next major work after the core suite is completed.
+\* At the time of release there will not be any GPU nor ASIC miners for the GOST Stribog (just stribog 256 bit hash, not combined) and whirlpool (only coin with this is long dead but it is a commonly used disk encryption hash function so possibly someone may make one in time for it).
 
 ## Installation
 
@@ -62,7 +62,7 @@ go get github.com/parallelcointeam/pod/cmd/podctl
 
 ## Installation
 
-#### Windows - MSI Available
+#### Windows not available yet
 
 https://github.com/parallelcointeam/pod/releases
 
