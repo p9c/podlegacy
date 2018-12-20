@@ -1,9 +1,5 @@
 
-
-
-
 package btcec
-
 import (
 	"bytes"
 	"crypto/rand"
@@ -14,14 +10,12 @@ import (
 	"reflect"
 	"testing"
 )
-
 type signatureTest struct {
 	name    string
 	sig     []byte
 	der     bool
 	isValid bool
 }
-
 // decodeHex decodes the passed hex string and returns the resulting bytes.  It
 // panics if an error occurs.  This is only used in the tests as a helper since
 // the only way it can fail is if there is an error in the test source code.
@@ -31,10 +25,8 @@ func decodeHex(hexStr string) []byte {
 		panic("invalid hex string in test source: err " + err.Error() +
 			", hex: " + hexStr)
 	}
-
 	return b
 }
-
 var signatureTests = []signatureTest{
 	// signatures from bitcoin blockchain tx
 	// 0437cd7f8525ceed2324359c2d0ba26006d92d85
@@ -187,7 +179,6 @@ var signatureTests = []signatureTest{
 			0x08, 0x22, 0x21, 0xa8, 0x76, 0x8d, 0x1d, 0x09, 0x01,
 		},
 		der: true,
-
 		// This test is now passing (used to be failing) because there
 		// are signatures in the blockchain that have trailing zero
 		// bytes before the hashtype. So ParseSignature was fixed to
@@ -332,7 +323,6 @@ var signatureTests = []signatureTest{
 		isValid: false,
 	},
 }
-
 func TestSignatures(t *testing.T) {
 	for _, test := range signatureTests {
 		var err error
@@ -356,7 +346,6 @@ func TestSignatures(t *testing.T) {
 		}
 	}
 }
-
 // TestSignatureSerialize ensures that serializing signatures works as expected.
 func TestSignatureSerialize(t *testing.T) {
 	tests := []struct {
@@ -451,7 +440,6 @@ func TestSignatureSerialize(t *testing.T) {
 			[]byte{0x30, 0x06, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00},
 		},
 	}
-
 	for i, test := range tests {
 		result := test.ecsig.Serialize()
 		if !bytes.Equal(result, test.expected) {
@@ -461,19 +449,16 @@ func TestSignatureSerialize(t *testing.T) {
 		}
 	}
 }
-
 func testSignCompact(t *testing.T, tag string, curve *KoblitzCurve,
 	data []byte, isCompressed bool) {
 	tmp, _ := NewPrivateKey(curve)
 	priv := (*PrivateKey)(tmp)
-
 	hashed := []byte("testing")
 	sig, err := SignCompact(curve, priv, hashed, isCompressed)
 	if err != nil {
 		t.Errorf("%s: error signing: %s", tag, err)
 		return
 	}
-
 	pk, wasCompressed, err := RecoverCompact(curve, sig, hashed)
 	if err != nil {
 		t.Errorf("%s: error recovering: %s", tag, err)
@@ -489,7 +474,6 @@ func testSignCompact(t *testing.T, tag string, curve *KoblitzCurve,
 			"(%v vs %v)", tag, isCompressed, wasCompressed)
 		return
 	}
-
 	// If we change the compressed bit we should get the same key back,
 	// but the compressed flag should be reversed.
 	if isCompressed {
@@ -497,7 +481,6 @@ func testSignCompact(t *testing.T, tag string, curve *KoblitzCurve,
 	} else {
 		sig[0] += 4
 	}
-
 	pk, wasCompressed, err = RecoverCompact(curve, sig, hashed)
 	if err != nil {
 		t.Errorf("%s: error recovering (2): %s", tag, err)
@@ -515,7 +498,6 @@ func testSignCompact(t *testing.T, tag string, curve *KoblitzCurve,
 		return
 	}
 }
-
 func TestSignCompact(t *testing.T) {
 	for i := 0; i < 256; i++ {
 		name := fmt.Sprintf("test %d", i)
@@ -529,7 +511,6 @@ func TestSignCompact(t *testing.T) {
 		testSignCompact(t, name, S256(), data, compressed)
 	}
 }
-
 // recoveryTests assert basic tests for public key recovery from signatures.
 // The cases are borrowed from github.com/fjl/btcec-issue.
 var recoveryTests = []struct {
@@ -557,17 +538,13 @@ var recoveryTests = []struct {
 		pub: "04A7640409AA2083FDAD38B2D8DE1263B2251799591D840653FB02DBBA503D7745FCB83D80E08A1E02896BE691EA6AFFB8A35939A646F1FC79052A744B1C82EDC3",
 	},
 }
-
 func TestRecoverCompact(t *testing.T) {
 	for i, test := range recoveryTests {
 		msg := decodeHex(test.msg)
 		sig := decodeHex(test.sig)
-
 		// Magic DER constant.
 		sig[0] += 27
-
 		pub, _, err := RecoverCompact(S256(), sig, msg)
-
 		// Verify that returned error matches as expected.
 		if !reflect.DeepEqual(test.err, err) {
 			t.Errorf("unexpected error returned from pubkey "+
@@ -575,13 +552,11 @@ func TestRecoverCompact(t *testing.T) {
 				i, test.err, err)
 			continue
 		}
-
 		// If check succeeded because a proper error was returned, we
 		// ignore the returned pubkey.
 		if err != nil {
 			continue
 		}
-
 		// Otherwise, ensure the correct public key was recovered.
 		exPub, _ := ParsePubKey(decodeHex(test.pub), S256())
 		if !exPub.IsEqual(pub) {
@@ -590,7 +565,6 @@ func TestRecoverCompact(t *testing.T) {
 		}
 	}
 }
-
 func TestRFC6979(t *testing.T) {
 	// Test vectors matching Trezor and CoreBitcoin implementations.
 	// - https://github.com/trezor/trezor-crypto/blob/9fea8f8ab377dc514e40c6fd1f7c89a74c1d8dc6/tests.c#L432-L453
@@ -640,11 +614,9 @@ func TestRFC6979(t *testing.T) {
 			"3045022100b552edd27580141f3b2a5463048cb7cd3e047b97c9f98076c32dbdf85a68718b0220279fa72dd19bfae05577e06c7c0c1900c371fcd5893f7e1d56a37d30174671f6",
 		},
 	}
-
 	for i, test := range tests {
 		privKey, _ := PrivKeyFromBytes(S256(), decodeHex(test.key))
 		hash := sha256.Sum256([]byte(test.msg))
-
 		// Ensure deterministically generated nonce is the expected value.
 		gotNonce := nonceRFC6979(privKey.D, hash[:]).Bytes()
 		wantNonce := decodeHex(test.nonce)
@@ -654,7 +626,6 @@ func TestRFC6979(t *testing.T) {
 				wantNonce)
 			continue
 		}
-
 		// Ensure deterministically generated signature is the expected value.
 		gotSig, err := privKey.Sign(hash[:])
 		if err != nil {
@@ -672,7 +643,6 @@ func TestRFC6979(t *testing.T) {
 		}
 	}
 }
-
 func TestSignatureIsEqual(t *testing.T) {
 	sig1 := &Signature{
 		R: fromHex("0082235e21a2300022738dabb8e1bbd9d19cfb1e7ab8c30a23b0afbb8d178abcf3"),
@@ -682,12 +652,10 @@ func TestSignatureIsEqual(t *testing.T) {
 		R: fromHex("4e45e16932b8af514961a1d3a1a25fdf3f4f7732e9d624c6c61548ab5fb8cd41"),
 		S: fromHex("181522ec8eca07de4860a4acdd12909d831cc56cbbac4622082221a8768d1d09"),
 	}
-
 	if !sig1.IsEqual(sig1) {
 		t.Fatalf("value of IsEqual is incorrect, %v is "+
 			"equal to %v", sig1, sig1)
 	}
-
 	if sig1.IsEqual(sig2) {
 		t.Fatalf("value of IsEqual is incorrect, %v is not "+
 			"equal to %v", sig1, sig2)

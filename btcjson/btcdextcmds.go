@@ -1,5 +1,4 @@
 
-
 // NOTE: This file is intended to house the RPC commands that are supported by
 // a chain server with pod extensions.
 package btcjson

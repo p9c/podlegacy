@@ -1,14 +1,9 @@
 
-
-
 package base58_test
-
 import (
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcutil/base58"
 )
-
 var checkEncodingStringTests = []struct {
 	version byte
 	in      string
@@ -26,14 +21,12 @@ var checkEncodingStringTests = []struct {
 	{20, "abcdefghijklmnopqrstuvwxyz", "K2RYDcKfupxwXdWhSAxQPCeiULntKm63UXyx5MvEH2"},
 	{20, "00000000000000000000000000000000000000000000000000000000000000", "bi1EWXwJay2udZVxLJozuTb8Meg4W9c6xnmJaRDjg6pri5MBAxb9XwrpQXbtnqEoRV5U2pixnFfwyXC8tRAVC8XxnjK"},
 }
-
 func TestBase58Check(t *testing.T) {
 	for x, test := range checkEncodingStringTests {
 		// test encoding
 		if res := base58.CheckEncode([]byte(test.in), test.version); res != test.out {
 			t.Errorf("CheckEncode test #%d failed: got %s, want: %s", x, res, test.out)
 		}
-
 		// test decoding
 		res, version, err := base58.CheckDecode(test.out)
 		if err != nil {
@@ -44,7 +37,6 @@ func TestBase58Check(t *testing.T) {
 			t.Errorf("CheckDecode test #%d failed: got: %s want: %s", x, res, test.in)
 		}
 	}
-
 	// test the two decoding failure cases
 	// case 1: checksum error
 	_, _, err := base58.CheckDecode("3MNQE1Y")
@@ -61,5 +53,4 @@ func TestBase58Check(t *testing.T) {
 			t.Error("Checkdecode test failed, expected ErrInvalidFormat")
 		}
 	}
-
 }

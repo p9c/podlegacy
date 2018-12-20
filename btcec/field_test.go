@@ -1,15 +1,9 @@
 
-
-
-
-
 package btcec
-
 import (
 	"reflect"
 	"testing"
 )
-
 // TestSetInt ensures that setting a field value to various native integers
 // works as expected.
 func TestSetInt(t *testing.T) {
@@ -25,7 +19,6 @@ func TestSetInt(t *testing.T) {
 		// 2^32 - 1
 		{4294967295, [10]uint32{4294967295, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetInt(test.in)
@@ -36,7 +29,6 @@ func TestSetInt(t *testing.T) {
 		}
 	}
 }
-
 // TestZero ensures that zeroing a field value zero works as expected.
 func TestZero(t *testing.T) {
 	f := new(fieldVal).SetInt(2)
@@ -48,7 +40,6 @@ func TestZero(t *testing.T) {
 		}
 	}
 }
-
 // TestIsZero ensures that checking if a field IsZero works as expected.
 func TestIsZero(t *testing.T) {
 	f := new(fieldVal)
@@ -56,20 +47,17 @@ func TestIsZero(t *testing.T) {
 		t.Errorf("new field value is not zero - got %v (rawints %x)", f,
 			f.n)
 	}
-
 	f.SetInt(1)
 	if f.IsZero() {
 		t.Errorf("field claims it's zero when it's not - got %v "+
 			"(raw rawints %x)", f, f.n)
 	}
-
 	f.Zero()
 	if !f.IsZero() {
 		t.Errorf("field claims it's not zero when it is - got %v "+
 			"(raw rawints %x)", f, f.n)
 	}
 }
-
 // TestStringer ensures the stringer returns the appropriate hex string.
 func TestStringer(t *testing.T) {
 	tests := []struct {
@@ -135,13 +123,11 @@ func TestStringer(t *testing.T) {
 			"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc30",
 			"0000000000000000000000000000000000000000000000000000000000000001",
 		},
-
 		// Invalid hex
 		{"g", "0000000000000000000000000000000000000000000000000000000000000000"},
 		{"1h", "0000000000000000000000000000000000000000000000000000000000000000"},
 		{"i1", "0000000000000000000000000000000000000000000000000000000000000000"},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in)
@@ -153,7 +139,6 @@ func TestStringer(t *testing.T) {
 		}
 	}
 }
-
 // TestNormalize ensures that normalizing the internal field words works as
 // expected.
 func TestNormalize(t *testing.T) {
@@ -308,7 +293,6 @@ func TestNormalize(t *testing.T) {
 			[10]uint32{0x00000001, 0x00000001, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001},
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal)
@@ -321,7 +305,6 @@ func TestNormalize(t *testing.T) {
 		}
 	}
 }
-
 // TestIsOdd ensures that checking if a field value IsOdd works as expected.
 func TestIsOdd(t *testing.T) {
 	tests := []struct {
@@ -338,7 +321,6 @@ func TestIsOdd(t *testing.T) {
 		// secp256k1 prime
 		{"fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f", true},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in)
@@ -350,7 +332,6 @@ func TestIsOdd(t *testing.T) {
 		}
 	}
 }
-
 // TestEquals ensures that checking two field values for equality via Equals
 // works as expected.
 func TestEquals(t *testing.T) {
@@ -371,7 +352,6 @@ func TestEquals(t *testing.T) {
 		// 1 == prime+1 (mod prime)?
 		{"1", "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc30", true},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in1).Normalize()
@@ -384,7 +364,6 @@ func TestEquals(t *testing.T) {
 		}
 	}
 }
-
 // TestNegate ensures that negating field values via Negate works as expected.
 func TestNegate(t *testing.T) {
 	tests := []struct {
@@ -419,7 +398,6 @@ func TestNegate(t *testing.T) {
 			"ac3d59970f81bee5d1b8c1e3c49234b6a213edd850d898c89e2bb500a4bc2a04",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in).Normalize()
@@ -432,7 +410,6 @@ func TestNegate(t *testing.T) {
 		}
 	}
 }
-
 // TestAddInt ensures that adding an integer to field values via AddInt works as
 // expected.
 func TestAddInt(t *testing.T) {
@@ -470,7 +447,6 @@ func TestAddInt(t *testing.T) {
 			"8523e9edf360ca32a95aae4e57fcde5a542b471d08a974d94ea0ee0a4228484b",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in1).Normalize()
@@ -483,7 +459,6 @@ func TestAddInt(t *testing.T) {
 		}
 	}
 }
-
 // TestAdd ensures that adding two field values together via Add works as
 // expected.
 func TestAdd(t *testing.T) {
@@ -521,7 +496,6 @@ func TestAdd(t *testing.T) {
 			"a191d150d4104c76c6e10e492c6dff42fedacfcff8c61954e38a628ec541284e",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in1).Normalize()
@@ -535,7 +509,6 @@ func TestAdd(t *testing.T) {
 		}
 	}
 }
-
 // TestAdd2 ensures that adding two field values together via Add2 works as
 // expected.
 func TestAdd2(t *testing.T) {
@@ -575,7 +548,6 @@ func TestAdd2(t *testing.T) {
 			"523a5216391b4e7685a5aea9c9f52ed32e324a601e53dec6c699eea4999390b9",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in1).Normalize()
@@ -589,7 +561,6 @@ func TestAdd2(t *testing.T) {
 		}
 	}
 }
-
 // TestMulInt ensures that adding an integer to field values via MulInt works as
 // expected.
 func TestMulInt(t *testing.T) {
@@ -640,7 +611,6 @@ func TestMulInt(t *testing.T) {
 			"da294df1f013d1e8ac3ec52805b979698971abb9a077a8bafcb688a4f261820f",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in1).Normalize()
@@ -653,7 +623,6 @@ func TestMulInt(t *testing.T) {
 		}
 	}
 }
-
 // TestMul ensures that multiplying two field valuess via Mul works as expected.
 func TestMul(t *testing.T) {
 	tests := []struct {
@@ -707,7 +676,6 @@ func TestMul(t *testing.T) {
 			"c4f016558ca8e950c21c3f7fc15f640293a979c7b01754ee7f8b3340d4902ebb",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in1).Normalize()
@@ -721,7 +689,6 @@ func TestMul(t *testing.T) {
 		}
 	}
 }
-
 // TestSquare ensures that squaring field values via Square works as expected.
 func TestSquare(t *testing.T) {
 	tests := []struct {
@@ -754,7 +721,6 @@ func TestSquare(t *testing.T) {
 			"bf86bcfc4edb3d81f916853adfda80c07c57745b008b60f560b1912f95bce8ae",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in).Normalize()
@@ -767,7 +733,6 @@ func TestSquare(t *testing.T) {
 		}
 	}
 }
-
 // TestInverse ensures that finding the multiplicative inverse via Inverse works
 // as expected.
 func TestInverse(t *testing.T) {
@@ -807,7 +772,6 @@ func TestInverse(t *testing.T) {
 			"fb848ec64d0be572a63c38fe83df5e7f3d032f60bf8c969ef67d36bf4ada22a9",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		f := new(fieldVal).SetHex(test.in).Normalize()

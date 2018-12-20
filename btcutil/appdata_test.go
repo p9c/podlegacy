@@ -1,8 +1,5 @@
 
-
-
 package btcutil_test
-
 import (
 	"os"
 	"os/user"
@@ -10,10 +7,8 @@ import (
 	"runtime"
 	"testing"
 	"unicode"
-
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 // TestAppDataDir tests the API for AppDataDir to ensure it gives expected
 // results for various operating systems.
 func TestAppDataDir(t *testing.T) {
@@ -21,7 +16,6 @@ func TestAppDataDir(t *testing.T) {
 	appName := "myapp"
 	appNameUpper := string(unicode.ToUpper(rune(appName[0]))) + appName[1:]
 	appNameLower := string(unicode.ToLower(rune(appName[0]))) + appName[1:]
-
 	// When we're on Windows, set the expected local and roaming directories
 	// per the environment vars.  When we aren't on Windows, the function
 	// should return the current directory when forced to provide the
@@ -37,7 +31,6 @@ func TestAppDataDir(t *testing.T) {
 		winLocal = filepath.Join(localAppData, appNameUpper)
 		winRoaming = filepath.Join(roamingAppData, appNameUpper)
 	}
-
 	// Get the home directory to use for testing expected results.
 	var homeDir string
 	usr, err := user.Current()
@@ -46,10 +39,8 @@ func TestAppDataDir(t *testing.T) {
 		return
 	}
 	homeDir = usr.HomeDir
-
 	// Mac app data directory.
 	macAppData := filepath.Join(homeDir, "Library", "Application Support")
-
 	tests := []struct {
 		goos    string
 		appName string
@@ -94,7 +85,6 @@ func TestAppDataDir(t *testing.T) {
 		{"unrecognized", appNameUpper, false, filepath.Join(homeDir, "."+appNameLower)},
 		{"unrecognized", "." + appNameLower, false, filepath.Join(homeDir, "."+appNameLower)},
 		{"unrecognized", "." + appNameUpper, false, filepath.Join(homeDir, "."+appNameLower)},
-
 		// No application name provided, so expect current directory.
 		{"windows", "", false, "."},
 		{"windows", "", true, "."},
@@ -105,7 +95,6 @@ func TestAppDataDir(t *testing.T) {
 		{"netbsd", "", false, "."},
 		{"plan9", "", false, "."},
 		{"unrecognized", "", false, "."},
-
 		// Single dot provided for application name, so expect current
 		// directory.
 		{"windows", ".", false, "."},
@@ -118,7 +107,6 @@ func TestAppDataDir(t *testing.T) {
 		{"plan9", ".", false, "."},
 		{"unrecognized", ".", false, "."},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		ret := btcutil.TstAppDataDir(test.goos, test.appName, test.roaming)

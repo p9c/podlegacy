@@ -1,16 +1,10 @@
 
-
-
-
 package chaincfg
-
 import (
 	"bytes"
 	"testing"
-
 	"github.com/davecgh/go-spew/spew"
 )
-
 // TestGenesisBlock tests the genesis block of the main network for validity by
 // checking the encoded bytes and hashes.
 func TestGenesisBlock(t *testing.T) {
@@ -20,14 +14,12 @@ func TestGenesisBlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TestGenesisBlock: %v", err)
 	}
-
 	// Ensure the encoded block matches the expected bytes.
 	if !bytes.Equal(buf.Bytes(), genesisBlockBytes) {
 		t.Fatalf("TestGenesisBlock: Genesis block does not appear valid - "+
 			"got %v, want %v", spew.Sdump(buf.Bytes()),
 			spew.Sdump(genesisBlockBytes))
 	}
-
 	// Check hash of the block against expected hash.
 	hash := MainNetParams.GenesisBlock.BlockHash()
 	if !MainNetParams.GenesisHash.IsEqual(&hash) {
@@ -36,7 +28,6 @@ func TestGenesisBlock(t *testing.T) {
 			spew.Sdump(MainNetParams.GenesisHash))
 	}
 }
-
 // TestRegTestGenesisBlock tests the genesis block of the regression test
 // network for validity by checking the encoded bytes and hashes.
 func TestRegTestGenesisBlock(t *testing.T) {
@@ -46,7 +37,6 @@ func TestRegTestGenesisBlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TestRegTestGenesisBlock: %v", err)
 	}
-
 	// Ensure the encoded block matches the expected bytes.
 	if !bytes.Equal(buf.Bytes(), regTestGenesisBlockBytes) {
 		t.Fatalf("TestRegTestGenesisBlock: Genesis block does not "+
@@ -54,7 +44,6 @@ func TestRegTestGenesisBlock(t *testing.T) {
 			spew.Sdump(buf.Bytes()),
 			spew.Sdump(regTestGenesisBlockBytes))
 	}
-
 	// Check hash of the block against expected hash.
 	hash := RegressionNetParams.GenesisBlock.BlockHash()
 	if !RegressionNetParams.GenesisHash.IsEqual(&hash) {
@@ -63,7 +52,6 @@ func TestRegTestGenesisBlock(t *testing.T) {
 			spew.Sdump(RegressionNetParams.GenesisHash))
 	}
 }
-
 // TestTestNet3GenesisBlock tests the genesis block of the test network (version
 // 3) for validity by checking the encoded bytes and hashes.
 func TestTestNet3GenesisBlock(t *testing.T) {
@@ -73,7 +61,6 @@ func TestTestNet3GenesisBlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TestTestNet3GenesisBlock: %v", err)
 	}
-
 	// Ensure the encoded block matches the expected bytes.
 	if !bytes.Equal(buf.Bytes(), testNet3GenesisBlockBytes) {
 		t.Fatalf("TestTestNet3GenesisBlock: Genesis block does not "+
@@ -81,7 +68,6 @@ func TestTestNet3GenesisBlock(t *testing.T) {
 			spew.Sdump(buf.Bytes()),
 			spew.Sdump(testNet3GenesisBlockBytes))
 	}
-
 	// Check hash of the block against expected hash.
 	hash := TestNet3Params.GenesisBlock.BlockHash()
 	if !TestNet3Params.GenesisHash.IsEqual(&hash) {
@@ -90,7 +76,6 @@ func TestTestNet3GenesisBlock(t *testing.T) {
 			spew.Sdump(TestNet3Params.GenesisHash))
 	}
 }
-
 // TestSimNetGenesisBlock tests the genesis block of the simulation test network
 // for validity by checking the encoded bytes and hashes.
 func TestSimNetGenesisBlock(t *testing.T) {
@@ -100,7 +85,6 @@ func TestSimNetGenesisBlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TestSimNetGenesisBlock: %v", err)
 	}
-
 	// Ensure the encoded block matches the expected bytes.
 	if !bytes.Equal(buf.Bytes(), simNetGenesisBlockBytes) {
 		t.Fatalf("TestSimNetGenesisBlock: Genesis block does not "+
@@ -108,7 +92,6 @@ func TestSimNetGenesisBlock(t *testing.T) {
 			spew.Sdump(buf.Bytes()),
 			spew.Sdump(simNetGenesisBlockBytes))
 	}
-
 	// Check hash of the block against expected hash.
 	hash := SimNetParams.GenesisBlock.BlockHash()
 	if !SimNetParams.GenesisHash.IsEqual(&hash) {
@@ -117,7 +100,6 @@ func TestSimNetGenesisBlock(t *testing.T) {
 			spew.Sdump(SimNetParams.GenesisHash))
 	}
 }
-
 // genesisBlockBytes are the wire encoded bytes for the genesis block of the
 // main network as of protocol version 60002.
 var genesisBlockBytes = []byte{
@@ -158,7 +140,6 @@ var genesisBlockBytes = []byte{
 	0x8a, 0x4c, 0x70, 0x2b, 0x6b, 0xf1, 0x1d, 0x5f, /* |.Lp+k.._|*/
 	0xac, 0x00, 0x00, 0x00, 0x00, /* |.....|    */
 }
-
 // regTestGenesisBlockBytes are the wire encoded bytes for the genesis block of
 // the regression test network as of protocol version 60002.
 var regTestGenesisBlockBytes = []byte{
@@ -199,7 +180,6 @@ var regTestGenesisBlockBytes = []byte{
 	0x8a, 0x4c, 0x70, 0x2b, 0x6b, 0xf1, 0x1d, 0x5f, /* |.Lp+k.._|*/
 	0xac, 0x00, 0x00, 0x00, 0x00, /* |.....|    */
 }
-
 // testNet3GenesisBlockBytes are the wire encoded bytes for the genesis block of
 // the test network (version 3) as of protocol version 60002.
 var testNet3GenesisBlockBytes = []byte{
@@ -240,7 +220,6 @@ var testNet3GenesisBlockBytes = []byte{
 	0x8a, 0x4c, 0x70, 0x2b, 0x6b, 0xf1, 0x1d, 0x5f, /* |.Lp+k.._|*/
 	0xac, 0x00, 0x00, 0x00, 0x00, /* |.....|    */
 }
-
 // simNetGenesisBlockBytes are the wire encoded bytes for the genesis block of
 // the simulation test network as of protocol version 70002.
 var simNetGenesisBlockBytes = []byte{

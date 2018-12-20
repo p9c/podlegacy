@@ -1,16 +1,10 @@
 
-
-
-
 package database_test
-
 import (
 	"errors"
 	"testing"
-
 	"github.com/parallelcointeam/pod/database"
 )
-
 // TestErrorCodeStringer tests the stringized output for the ErrorCode type.
 func TestErrorCodeStringer(t *testing.T) {
 	tests := []struct {
@@ -38,16 +32,13 @@ func TestErrorCodeStringer(t *testing.T) {
 		{database.ErrBlockExists, "ErrBlockExists"},
 		{database.ErrBlockRegionInvalid, "ErrBlockRegionInvalid"},
 		{database.ErrDriverSpecific, "ErrDriverSpecific"},
-
 		{0xffff, "Unknown ErrorCode (65535)"},
 	}
-
 	// Detect additional error codes that don't have the stringer added.
 	if len(tests)-1 != int(database.TstNumErrorCodes) {
 		t.Errorf("It appears an error code was added without adding " +
 			"an associated stringer test")
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.String()
@@ -58,11 +49,9 @@ func TestErrorCodeStringer(t *testing.T) {
 		}
 	}
 }
-
 // TestError tests the error output for the Error type.
 func TestError(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		in   database.Error
 		want string
@@ -84,7 +73,6 @@ func TestError(t *testing.T) {
 			"some error: driver-specific error",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.Error()

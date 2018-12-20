@@ -1,31 +1,22 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"reflect"
 	"testing"
-
 	"github.com/davecgh/go-spew/spew"
 )
-
 // TestFilterCLearLatest tests the MsgFilterClear API against the latest
 // protocol version.
 func TestFilterClearLatest(t *testing.T) {
 	pver := ProtocolVersion
-
 	msg := NewMsgFilterClear()
-
 	// Ensure the command is expected value.
 	wantCmd := "filterclear"
 	if cmd := msg.Command(); cmd != wantCmd {
 		t.Errorf("NewMsgFilterClear: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-
 	// Ensure max payload is expected value for latest protocol version.
 	wantPayload := uint32(0)
 	maxPayload := msg.MaxPayloadLength(pver)
@@ -35,19 +26,16 @@ func TestFilterClearLatest(t *testing.T) {
 			maxPayload, wantPayload)
 	}
 }
-
 // TestFilterClearCrossProtocol tests the MsgFilterClear API when encoding with
 // the latest protocol version and decoding with BIP0031Version.
 func TestFilterClearCrossProtocol(t *testing.T) {
 	msg := NewMsgFilterClear()
-
 	// Encode with latest protocol version.
 	var buf bytes.Buffer
 	err := msg.BtcEncode(&buf, ProtocolVersion, LatestEncoding)
 	if err != nil {
 		t.Errorf("encode of MsgFilterClear failed %v err <%v>", msg, err)
 	}
-
 	// Decode with old protocol version.
 	var readmsg MsgFilterClear
 	err = readmsg.BtcDecode(&buf, BIP0031Version, LatestEncoding)
@@ -56,13 +44,11 @@ func TestFilterClearCrossProtocol(t *testing.T) {
 			"shouldn't have %v", msg)
 	}
 }
-
 // TestFilterClearWire tests the MsgFilterClear wire encode and decode for
 // various protocol versions.
 func TestFilterClearWire(t *testing.T) {
 	msgFilterClear := NewMsgFilterClear()
 	msgFilterClearEncoded := []byte{}
-
 	tests := []struct {
 		in   *MsgFilterClear // Message to encode
 		out  *MsgFilterClear // Expected decoded message
@@ -78,7 +64,6 @@ func TestFilterClearWire(t *testing.T) {
 			ProtocolVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0037Version + 1.
 		{
 			msgFilterClear,
@@ -87,7 +72,6 @@ func TestFilterClearWire(t *testing.T) {
 			BIP0037Version + 1,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0037Version.
 		{
 			msgFilterClear,
@@ -97,7 +81,6 @@ func TestFilterClearWire(t *testing.T) {
 			BaseEncoding,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode the message to wire format.
@@ -112,7 +95,6 @@ func TestFilterClearWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode the message from wire format.
 		var msg MsgFilterClear
 		rbuf := bytes.NewReader(test.buf)
@@ -128,16 +110,13 @@ func TestFilterClearWire(t *testing.T) {
 		}
 	}
 }
-
 // TestFilterClearWireErrors performs negative tests against wire encode and
 // decode of MsgFilterClear to confirm error paths work correctly.
 func TestFilterClearWireErrors(t *testing.T) {
 	pverNoFilterClear := BIP0037Version - 1
 	wireErr := &MessageError{}
-
 	baseFilterClear := NewMsgFilterClear()
 	baseFilterClearEncoded := []byte{}
-
 	tests := []struct {
 		in       *MsgFilterClear // Value to encode
 		buf      []byte          // Wire encoding
@@ -153,7 +132,6 @@ func TestFilterClearWireErrors(t *testing.T) {
 			pverNoFilterClear, BaseEncoding, 4, wireErr, wireErr,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -164,7 +142,6 @@ func TestFilterClearWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-
 		// For errors which are not of type MessageError, check them for
 		// equality.
 		if _, ok := err.(*MessageError); !ok {
@@ -174,7 +151,6 @@ func TestFilterClearWireErrors(t *testing.T) {
 				continue
 			}
 		}
-
 		// Decode from wire format.
 		var msg MsgFilterClear
 		r := newFixedReader(test.max, test.buf)
@@ -184,7 +160,6 @@ func TestFilterClearWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-
 		// For errors which are not of type MessageError, check them for
 		// equality.
 		if _, ok := err.(*MessageError); !ok {
@@ -194,6 +169,5 @@ func TestFilterClearWireErrors(t *testing.T) {
 				continue
 			}
 		}
-
 	}
 }

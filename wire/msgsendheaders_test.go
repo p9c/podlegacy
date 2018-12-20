@@ -1,23 +1,16 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"reflect"
 	"testing"
-
 	"github.com/davecgh/go-spew/spew"
 )
-
 // TestSendHeaders tests the MsgSendHeaders API against the latest protocol
 // version.
 func TestSendHeaders(t *testing.T) {
 	pver := ProtocolVersion
 	enc := BaseEncoding
-
 	// Ensure the command is expected value.
 	wantCmd := "sendheaders"
 	msg := NewMsgSendHeaders()
@@ -25,7 +18,6 @@ func TestSendHeaders(t *testing.T) {
 		t.Errorf("NewMsgSendHeaders: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-
 	// Ensure max payload is expected value.
 	wantPayload := uint32(0)
 	maxPayload := msg.MaxPayloadLength(pver)
@@ -34,7 +26,6 @@ func TestSendHeaders(t *testing.T) {
 			"protocol version %d - got %v, want %v", pver,
 			maxPayload, wantPayload)
 	}
-
 	// Test encode with latest protocol version.
 	var buf bytes.Buffer
 	err := msg.BtcEncode(&buf, pver, enc)
@@ -42,7 +33,6 @@ func TestSendHeaders(t *testing.T) {
 		t.Errorf("encode of MsgSendHeaders failed %v err <%v>", msg,
 			err)
 	}
-
 	// Older protocol versions should fail encode since message didn't
 	// exist yet.
 	oldPver := SendHeadersVersion - 1
@@ -52,7 +42,6 @@ func TestSendHeaders(t *testing.T) {
 			"version %v err <%v>"
 		t.Errorf(s, msg, err)
 	}
-
 	// Test decode with latest protocol version.
 	readmsg := NewMsgSendHeaders()
 	err = readmsg.BtcDecode(&buf, pver, enc)
@@ -60,7 +49,6 @@ func TestSendHeaders(t *testing.T) {
 		t.Errorf("decode of MsgSendHeaders failed [%v] err <%v>", buf,
 			err)
 	}
-
 	// Older protocol versions should fail decode since message didn't
 	// exist yet.
 	err = readmsg.BtcDecode(&buf, oldPver, enc)
@@ -70,16 +58,13 @@ func TestSendHeaders(t *testing.T) {
 		t.Errorf(s, msg, err)
 	}
 }
-
 // TestSendHeadersBIP0130 tests the MsgSendHeaders API against the protocol
 // prior to version SendHeadersVersion.
 func TestSendHeadersBIP0130(t *testing.T) {
 	// Use the protocol version just prior to SendHeadersVersion changes.
 	pver := SendHeadersVersion - 1
 	enc := BaseEncoding
-
 	msg := NewMsgSendHeaders()
-
 	// Test encode with old protocol version.
 	var buf bytes.Buffer
 	err := msg.BtcEncode(&buf, pver, enc)
@@ -87,7 +72,6 @@ func TestSendHeadersBIP0130(t *testing.T) {
 		t.Errorf("encode of MsgSendHeaders succeeded when it should " +
 			"have failed")
 	}
-
 	// Test decode with old protocol version.
 	readmsg := NewMsgSendHeaders()
 	err = readmsg.BtcDecode(&buf, pver, enc)
@@ -96,13 +80,11 @@ func TestSendHeadersBIP0130(t *testing.T) {
 			"have failed")
 	}
 }
-
 // TestSendHeadersCrossProtocol tests the MsgSendHeaders API when encoding with
 // the latest protocol version and decoding with SendHeadersVersion.
 func TestSendHeadersCrossProtocol(t *testing.T) {
 	enc := BaseEncoding
 	msg := NewMsgSendHeaders()
-
 	// Encode with latest protocol version.
 	var buf bytes.Buffer
 	err := msg.BtcEncode(&buf, ProtocolVersion, enc)
@@ -110,7 +92,6 @@ func TestSendHeadersCrossProtocol(t *testing.T) {
 		t.Errorf("encode of MsgSendHeaders failed %v err <%v>", msg,
 			err)
 	}
-
 	// Decode with old protocol version.
 	readmsg := NewMsgSendHeaders()
 	err = readmsg.BtcDecode(&buf, SendHeadersVersion, enc)
@@ -119,13 +100,11 @@ func TestSendHeadersCrossProtocol(t *testing.T) {
 			err)
 	}
 }
-
 // TestSendHeadersWire tests the MsgSendHeaders wire encode and decode for
 // various protocol versions.
 func TestSendHeadersWire(t *testing.T) {
 	msgSendHeaders := NewMsgSendHeaders()
 	msgSendHeadersEncoded := []byte{}
-
 	tests := []struct {
 		in   *MsgSendHeaders // Message to encode
 		out  *MsgSendHeaders // Expected decoded message
@@ -141,7 +120,6 @@ func TestSendHeadersWire(t *testing.T) {
 			ProtocolVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version SendHeadersVersion+1
 		{
 			msgSendHeaders,
@@ -150,7 +128,6 @@ func TestSendHeadersWire(t *testing.T) {
 			SendHeadersVersion + 1,
 			BaseEncoding,
 		},
-
 		// Protocol version SendHeadersVersion
 		{
 			msgSendHeaders,
@@ -160,7 +137,6 @@ func TestSendHeadersWire(t *testing.T) {
 			BaseEncoding,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode the message to wire format.
@@ -175,7 +151,6 @@ func TestSendHeadersWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode the message from wire format.
 		var msg MsgSendHeaders
 		rbuf := bytes.NewReader(test.buf)

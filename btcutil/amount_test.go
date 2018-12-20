@@ -1,16 +1,10 @@
 
-
-
-
 package btcutil_test
-
 import (
 	"math"
 	"testing"
-
 	. "github.com/parallelcointeam/pod/btcutil"
 )
-
 func TestAmountCreation(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -73,7 +67,6 @@ func TestAmountCreation(t *testing.T) {
 			valid:    true,
 			expected: 55 * SatoshiPerBitcoin,
 		},
-
 		// Negative tests.
 		{
 			name:   "not-a-number",
@@ -91,7 +84,6 @@ func TestAmountCreation(t *testing.T) {
 			valid:  false,
 		},
 	}
-
 	for _, test := range tests {
 		a, err := NewAmount(test.amount)
 		switch {
@@ -102,14 +94,12 @@ func TestAmountCreation(t *testing.T) {
 			t.Errorf("%v: Negative test Amount creation succeeded (value %v) when should fail", test.name, a)
 			continue
 		}
-
 		if a != test.expected {
 			t.Errorf("%v: Created amount %v does not match expected %v", test.name, a, test.expected)
 			continue
 		}
 	}
 }
-
 func TestAmountUnitConversions(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -147,7 +137,6 @@ func TestAmountUnitConversions(t *testing.T) {
 			s:         "444333222.111 mDUO",
 		},
 		{
-
 			name:      "μDUO",
 			amount:    44433322211100,
 			unit:      AmountMicroDUO,
@@ -155,7 +144,6 @@ func TestAmountUnitConversions(t *testing.T) {
 			s:         "444333222111 μDUO",
 		},
 		{
-
 			name:      "satoshi",
 			amount:    44433322211100,
 			unit:      AmountSatoshi,
@@ -163,7 +151,6 @@ func TestAmountUnitConversions(t *testing.T) {
 			s:         "44433322211100 Satoshi",
 		},
 		{
-
 			name:      "non-standard unit",
 			amount:    44433322211100,
 			unit:      AmountUnit(-1),
@@ -171,27 +158,23 @@ func TestAmountUnitConversions(t *testing.T) {
 			s:         "4443332.22111 1e-1 DUO",
 		},
 	}
-
 	for _, test := range tests {
 		f := test.amount.ToUnit(test.unit)
 		if f != test.converted {
 			t.Errorf("%v: converted value %v does not match expected %v", test.name, f, test.converted)
 			continue
 		}
-
 		s := test.amount.Format(test.unit)
 		if s != test.s {
 			t.Errorf("%v: format '%v' does not match expected '%v'", test.name, s, test.s)
 			continue
 		}
-
 		// Verify that Amount.ToDUO works as advertised.
 		f1 := test.amount.ToUnit(AmountDUO)
 		f2 := test.amount.ToDUO()
 		if f1 != f2 {
 			t.Errorf("%v: ToDUO does not match ToUnit(AmountDUO): %v != %v", test.name, f1, f2)
 		}
-
 		// Verify that Amount.String works as advertised.
 		s1 := test.amount.Format(AmountDUO)
 		s2 := test.amount.String()
@@ -200,7 +183,6 @@ func TestAmountUnitConversions(t *testing.T) {
 		}
 	}
 }
-
 func TestAmountMulF64(t *testing.T) {
 	tests := []struct {
 		name string
@@ -299,7 +281,6 @@ func TestAmountMulF64(t *testing.T) {
 			res:  67, // 67 Satoshis
 		},
 	}
-
 	for _, test := range tests {
 		a := test.amt.MulF64(test.mul)
 		if a != test.res {

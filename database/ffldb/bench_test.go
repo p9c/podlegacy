@@ -1,19 +1,13 @@
 
-
-
-
 package ffldb
-
 import (
 	"os"
 	"path/filepath"
 	"testing"
-
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 // BenchmarkBlockHeader benchmarks how long it takes to load the mainnet genesis
 // block header.
 func BenchmarkBlockHeader(b *testing.B) {
@@ -34,7 +28,6 @@ func BenchmarkBlockHeader(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-
 	b.ReportAllocs()
 	b.ResetTimer()
 	err = db.View(func(tx database.Tx) error {
@@ -50,11 +43,9 @@ func BenchmarkBlockHeader(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-
 	// Don't benchmark teardown.
 	b.StopTimer()
 }
-
 // BenchmarkBlockHeader benchmarks how long it takes to load the mainnet genesis
 // block.
 func BenchmarkBlock(b *testing.B) {
@@ -75,7 +66,6 @@ func BenchmarkBlock(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-
 	b.ReportAllocs()
 	b.ResetTimer()
 	err = db.View(func(tx database.Tx) error {
@@ -91,7 +81,6 @@ func BenchmarkBlock(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-
 	// Don't benchmark teardown.
 	b.StopTimer()
 }

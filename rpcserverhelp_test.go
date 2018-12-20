@@ -1,11 +1,6 @@
 
-
-
-
 package main
-
 import "testing"
-
 // TestHelp ensures the help is reasonably accurate by checking that every
 // command specified also has result types defined and the one-line usage and
 // help text can be generated for them.
@@ -17,7 +12,6 @@ func TestHelp(t *testing.T) {
 				"also specifying result types", k)
 			continue
 		}
-
 	}
 	for k := range wsHandlers {
 		if _, ok := rpcResultTypes[k]; !ok {
@@ -25,9 +19,7 @@ func TestHelp(t *testing.T) {
 				"also specifying result types", k)
 			continue
 		}
-
 	}
-
 	// Ensure the usage for every command can be generated without errors.
 	helpCacher := newHelpCacher()
 	if _, err := helpCacher.rpcUsage(true); err != nil {
@@ -36,7 +28,6 @@ func TestHelp(t *testing.T) {
 	if _, err := helpCacher.rpcUsage(true); err != nil {
 		t.Fatalf("Failed to generate one-line usage (cached): %v", err)
 	}
-
 	// Ensure the help for every command can be generated without errors.
 	for k := range rpcHandlers {
 		if _, err := helpCacher.rpcMethodHelp(k); err != nil {

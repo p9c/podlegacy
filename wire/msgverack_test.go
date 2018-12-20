@@ -1,21 +1,14 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"reflect"
 	"testing"
-
 	"github.com/davecgh/go-spew/spew"
 )
-
 // TestVerAck tests the MsgVerAck API.
 func TestVerAck(t *testing.T) {
 	pver := ProtocolVersion
-
 	// Ensure the command is expected value.
 	wantCmd := "verack"
 	msg := NewMsgVerAck()
@@ -23,7 +16,6 @@ func TestVerAck(t *testing.T) {
 		t.Errorf("NewMsgVerAck: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-
 	// Ensure max payload is expected value.
 	wantPayload := uint32(0)
 	maxPayload := msg.MaxPayloadLength(pver)
@@ -33,13 +25,11 @@ func TestVerAck(t *testing.T) {
 			maxPayload, wantPayload)
 	}
 }
-
 // TestVerAckWire tests the MsgVerAck wire encode and decode for various
 // protocol versions.
 func TestVerAckWire(t *testing.T) {
 	msgVerAck := NewMsgVerAck()
 	msgVerAckEncoded := []byte{}
-
 	tests := []struct {
 		in   *MsgVerAck      // Message to encode
 		out  *MsgVerAck      // Expected decoded message
@@ -55,7 +45,6 @@ func TestVerAckWire(t *testing.T) {
 			ProtocolVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0035Version.
 		{
 			msgVerAck,
@@ -64,7 +53,6 @@ func TestVerAckWire(t *testing.T) {
 			BIP0035Version,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0031Version.
 		{
 			msgVerAck,
@@ -73,7 +61,6 @@ func TestVerAckWire(t *testing.T) {
 			BIP0031Version,
 			BaseEncoding,
 		},
-
 		// Protocol version NetAddressTimeVersion.
 		{
 			msgVerAck,
@@ -82,7 +69,6 @@ func TestVerAckWire(t *testing.T) {
 			NetAddressTimeVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version MultipleAddressVersion.
 		{
 			msgVerAck,
@@ -92,7 +78,6 @@ func TestVerAckWire(t *testing.T) {
 			BaseEncoding,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode the message to wire format.
@@ -107,7 +92,6 @@ func TestVerAckWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode the message from wire format.
 		var msg MsgVerAck
 		rbuf := bytes.NewReader(test.buf)

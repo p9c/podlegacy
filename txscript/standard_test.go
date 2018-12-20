@@ -1,20 +1,14 @@
 
-
-
-
 package txscript
-
 import (
 	"bytes"
 	"encoding/hex"
 	"reflect"
 	"testing"
-
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 // mustParseShortForm parses the passed short form script and returns the
 // resulting bytes.  It panics if an error occurs.  This is only used in the
 // tests as a helper since the only way it can fail is if there is an error in
@@ -25,10 +19,8 @@ func mustParseShortForm(script string) []byte {
 		panic("invalid short form script in test source: err " +
 			err.Error() + ", script: " + script)
 	}
-
 	return s
 }
-
 // newAddressPubKey returns a new btcutil.AddressPubKey from the provided
 // serialized public key.  It panics if an error occurs.  This is only used in
 // the tests as a helper since the only way it can fail is if there is an error
@@ -39,10 +31,8 @@ func newAddressPubKey(serializedPubKey []byte) btcutil.Address {
 	if err != nil {
 		panic("invalid public key in test source")
 	}
-
 	return addr
 }
-
 // newAddressPubKeyHash returns a new btcutil.AddressPubKeyHash from the
 // provided hash.  It panics if an error occurs.  This is only used in the tests
 // as a helper since the only way it can fail is if there is an error in the
@@ -52,10 +42,8 @@ func newAddressPubKeyHash(pkHash []byte) btcutil.Address {
 	if err != nil {
 		panic("invalid public key hash in test source")
 	}
-
 	return addr
 }
-
 // newAddressScriptHash returns a new btcutil.AddressScriptHash from the
 // provided hash.  It panics if an error occurs.  This is only used in the tests
 // as a helper since the only way it can fail is if there is an error in the
@@ -66,15 +54,12 @@ func newAddressScriptHash(scriptHash []byte) btcutil.Address {
 	if err != nil {
 		panic("invalid script hash in test source")
 	}
-
 	return addr
 }
-
 // TestExtractPkScriptAddrs ensures that extracting the type, addresses, and
 // number of required signatures from PkScripts works as intended.
 func TestExtractPkScriptAddrs(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name    string
 		script  []byte
@@ -250,11 +235,9 @@ func TestExtractPkScriptAddrs(t *testing.T) {
 			reqSigs: 2,
 			class:   MultiSigTy,
 		},
-
 		// The below are nonstandard script due to things such as
 		// invalid pubkeys, failure to parse, and not being of a
 		// standard form.
-
 		{
 			name: "p2pk with uncompressed pk missing OP_CHECKSIG",
 			script: hexToBytes("410411db93e1dcdb8a016b49840f8c53b" +
@@ -341,28 +324,24 @@ func TestExtractPkScriptAddrs(t *testing.T) {
 			class:   NonStandardTy,
 		},
 	}
-
 	t.Logf("Running %d tests.", len(tests))
 	for i, test := range tests {
 		class, addrs, reqSigs, err := ExtractPkScriptAddrs(
 			test.script, &chaincfg.MainNetParams)
 		if err != nil {
 		}
-
 		if !reflect.DeepEqual(addrs, test.addrs) {
 			t.Errorf("ExtractPkScriptAddrs #%d (%s) unexpected "+
 				"addresses\ngot  %v\nwant %v", i, test.name,
 				addrs, test.addrs)
 			continue
 		}
-
 		if reqSigs != test.reqSigs {
 			t.Errorf("ExtractPkScriptAddrs #%d (%s) unexpected "+
 				"number of required signatures - got %d, "+
 				"want %d", i, test.name, reqSigs, test.reqSigs)
 			continue
 		}
-
 		if class != test.class {
 			t.Errorf("ExtractPkScriptAddrs #%d (%s) unexpected "+
 				"script type - got %s, want %s", i, test.name,
@@ -371,21 +350,17 @@ func TestExtractPkScriptAddrs(t *testing.T) {
 		}
 	}
 }
-
 // TestCalcScriptInfo ensures the CalcScriptInfo provides the expected results
 // for various valid and invalid script pairs.
 func TestCalcScriptInfo(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name      string
 		sigScript string
 		pkScript  string
 		witness   []string
-
 		bip16  bool
 		segwit bool
-
 		scriptInfo    ScriptInfo
 		scriptInfoErr error
 	}{
@@ -528,23 +503,18 @@ func TestCalcScriptInfo(t *testing.T) {
 			},
 		},
 	}
-
 	for _, test := range tests {
 		sigScript := mustParseShortForm(test.sigScript)
 		pkScript := mustParseShortForm(test.pkScript)
-
 		var witness wire.TxWitness
-
 		for _, witElement := range test.witness {
 			wit, err := hex.DecodeString(witElement)
 			if err != nil {
 				t.Fatalf("unable to decode witness "+
 					"element: %v", err)
 			}
-
 			witness = append(witness, wit)
 		}
-
 		si, err := CalcScriptInfo(sigScript, pkScript, witness,
 			test.bip16, test.segwit)
 		if e := tstCheckScriptError(err, test.scriptInfoErr); e != nil {
@@ -554,7 +524,6 @@ func TestCalcScriptInfo(t *testing.T) {
 		if err != nil {
 			continue
 		}
-
 		if *si != test.scriptInfo {
 			t.Errorf("%s: scriptinfo doesn't match expected. "+
 				"got: %q expected %q", test.name, *si,
@@ -563,46 +532,38 @@ func TestCalcScriptInfo(t *testing.T) {
 		}
 	}
 }
-
 // bogusAddress implements the btcutil.Address interface so the tests can ensure
 // unsupported address types are handled properly.
 type bogusAddress struct{}
-
 // EncodeAddress simply returns an empty string.  It exists to satisfy the
 // btcutil.Address interface.
 func (b *bogusAddress) EncodeAddress() string {
 	return ""
 }
-
 // ScriptAddress simply returns an empty byte slice.  It exists to satisfy the
 // btcutil.Address interface.
 func (b *bogusAddress) ScriptAddress() []byte {
 	return nil
 }
-
 // IsForNet lies blatantly to satisfy the btcutil.Address interface.
 func (b *bogusAddress) IsForNet(chainParams *chaincfg.Params) bool {
 	return true // why not?
 }
-
 // String simply returns an empty string.  It exists to satisfy the
 // btcutil.Address interface.
 func (b *bogusAddress) String() string {
 	return ""
 }
-
 // TestPayToAddrScript ensures the PayToAddrScript function generates the
 // correct scripts for the various types of addresses.
 func TestPayToAddrScript(t *testing.T) {
 	t.Parallel()
-
 	// 1MirQ9bwyQcGVJPwKUgapu5ouK2E2Ey4gX
 	p2pkhMain, err := btcutil.NewAddressPubKeyHash(hexToBytes("e34cce70c86"+
 		"373273efcc54ce7d2a491bb4a0e84"), &chaincfg.MainNetParams)
 	if err != nil {
 		t.Fatalf("Unable to create public key hash address: %v", err)
 	}
-
 	// Taken from transaction:
 	// b0539a45de13b3e0403909b8bd1a555b8cbe45fd4e3f3fda76f3a5f52835c29d
 	p2shMain, _ := btcutil.NewAddressScriptHashFromHash(hexToBytes("e8c300"+
@@ -610,7 +571,6 @@ func TestPayToAddrScript(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to create script hash address: %v", err)
 	}
-
 	//  mainnet p2pk 13CG6SJ3yHUXo4Cr2RY4THLLJrNFuG3gUg
 	p2pkCompressedMain, err := btcutil.NewAddressPubKey(hexToBytes("02192d"+
 		"74d0cb94344c9569c2e77901573d8d7903c3ebec3a957724895dca52c6b4"),
@@ -626,7 +586,6 @@ func TestPayToAddrScript(t *testing.T) {
 		t.Fatalf("Unable to create pubkey address (compressed 2): %v",
 			err)
 	}
-
 	p2pkUncompressedMain, err := btcutil.NewAddressPubKey(hexToBytes("0411"+
 		"db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5"+
 		"cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b4"+
@@ -635,11 +594,9 @@ func TestPayToAddrScript(t *testing.T) {
 		t.Fatalf("Unable to create pubkey address (uncompressed): %v",
 			err)
 	}
-
 	// Errors used in the tests below defined here for convenience and to
 	// keep the horizontal test size shorter.
 	errUnsupportedAddress := scriptError(ErrUnsupportedAddress, "")
-
 	tests := []struct {
 		in       btcutil.Address
 		expected string
@@ -682,16 +639,13 @@ func TestPayToAddrScript(t *testing.T) {
 				"CHECKSIG",
 			nil,
 		},
-
 		// Supported address types with nil pointers.
 		{(*btcutil.AddressPubKeyHash)(nil), "", errUnsupportedAddress},
 		{(*btcutil.AddressScriptHash)(nil), "", errUnsupportedAddress},
 		{(*btcutil.AddressPubKey)(nil), "", errUnsupportedAddress},
-
 		// Unsupported address type.
 		{&bogusAddress{}, "", errUnsupportedAddress},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		pkScript, err := PayToAddrScript(test.in)
@@ -700,7 +654,6 @@ func TestPayToAddrScript(t *testing.T) {
 				"got %v, want %v", i, err, test.err)
 			continue
 		}
-
 		expected := mustParseShortForm(test.expected)
 		if !bytes.Equal(pkScript, expected) {
 			t.Errorf("PayToAddrScript #%d got: %x\nwant: %x",
@@ -709,12 +662,10 @@ func TestPayToAddrScript(t *testing.T) {
 		}
 	}
 }
-
 // TestMultiSigScript ensures the MultiSigScript function returns the expected
 // scripts and errors.
 func TestMultiSigScript(t *testing.T) {
 	t.Parallel()
-
 	//  mainnet p2pk 13CG6SJ3yHUXo4Cr2RY4THLLJrNFuG3gUg
 	p2pkCompressedMain, err := btcutil.NewAddressPubKey(hexToBytes("02192d"+
 		"74d0cb94344c9569c2e77901573d8d7903c3ebec3a957724895dca52c6b4"),
@@ -730,7 +681,6 @@ func TestMultiSigScript(t *testing.T) {
 		t.Fatalf("Unable to create pubkey address (compressed 2): %v",
 			err)
 	}
-
 	p2pkUncompressedMain, err := btcutil.NewAddressPubKey(hexToBytes("0411"+
 		"db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5"+
 		"cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b4"+
@@ -739,7 +689,6 @@ func TestMultiSigScript(t *testing.T) {
 		t.Fatalf("Unable to create pubkey address (uncompressed): %v",
 			err)
 	}
-
 	tests := []struct {
 		keys      []*btcutil.AddressPubKey
 		nrequired int
@@ -799,7 +748,6 @@ func TestMultiSigScript(t *testing.T) {
 			scriptError(ErrTooManyRequiredSigs, ""),
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		script, err := MultiSigScript(test.keys, test.nrequired)
@@ -807,7 +755,6 @@ func TestMultiSigScript(t *testing.T) {
 			t.Errorf("MultiSigScript #%d: %v", i, e)
 			continue
 		}
-
 		expected := mustParseShortForm(test.expected)
 		if !bytes.Equal(script, expected) {
 			t.Errorf("MultiSigScript #%d got: %x\nwant: %x",
@@ -816,12 +763,10 @@ func TestMultiSigScript(t *testing.T) {
 		}
 	}
 }
-
 // TestCalcMultiSigStats ensures the CalcMutliSigStats function returns the
 // expected errors.
 func TestCalcMultiSigStats(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name   string
 		script string
@@ -851,7 +796,6 @@ func TestCalcMultiSigStats(t *testing.T) {
 			err: nil,
 		},
 	}
-
 	for i, test := range tests {
 		script := mustParseShortForm(test.script)
 		_, _, err := CalcMultiSigStats(script)
@@ -862,7 +806,6 @@ func TestCalcMultiSigStats(t *testing.T) {
 		}
 	}
 }
-
 // scriptClassTests houses several test scripts used to ensure various class
 // determination is working as expected.  It's defined as a test global versus
 // inside a function scope since this spans both the standard tests and the
@@ -902,7 +845,6 @@ var scriptClassTests = []struct {
 			"9ae88 EQUAL",
 		class: ScriptHashTy,
 	},
-
 	{
 		// Nulldata with no data at all.
 		name:   "nulldata no data",
@@ -975,7 +917,6 @@ var scriptClassTests = []struct {
 		script: "RETURN 4 TRUE",
 		class:  NonStandardTy,
 	},
-
 	// The next few are almost multisig (it is the more complex script type)
 	// but with various changes to make it fail.
 	{
@@ -1030,7 +971,6 @@ var scriptClassTests = []struct {
 			"3 CHECKMULTISIG",
 		class: NonStandardTy,
 	},
-
 	// New standard segwit script templates.
 	{
 		// A pay to witness pub key hash pk script.
@@ -1045,12 +985,10 @@ var scriptClassTests = []struct {
 		class:  WitnessV0ScriptHashTy,
 	},
 }
-
 // TestScriptClass ensures all the scripts in scriptClassTests have the expected
 // class.
 func TestScriptClass(t *testing.T) {
 	t.Parallel()
-
 	for _, test := range scriptClassTests {
 		script := mustParseShortForm(test.script)
 		class := GetScriptClass(script)
@@ -1061,12 +999,10 @@ func TestScriptClass(t *testing.T) {
 		}
 	}
 }
-
 // TestStringifyClass ensures the script class string returns the expected
 // string for each script class.
 func TestStringifyClass(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		class    ScriptClass
@@ -1118,7 +1054,6 @@ func TestStringifyClass(t *testing.T) {
 			stringed: "Invalid",
 		},
 	}
-
 	for _, test := range tests {
 		typeString := test.class.String()
 		if typeString != test.stringed {
@@ -1127,7 +1062,6 @@ func TestStringifyClass(t *testing.T) {
 		}
 	}
 }
-
 // TestNullDataScript tests whether NullDataScript returns a valid script.
 func TestNullDataScript(t *testing.T) {
 	tests := []struct {
@@ -1185,16 +1119,13 @@ func TestNullDataScript(t *testing.T) {
 			class:    NonStandardTy,
 		},
 	}
-
 	for i, test := range tests {
 		script, err := NullDataScript(test.data)
 		if e := tstCheckScriptError(err, test.err); e != nil {
 			t.Errorf("NullDataScript: #%d (%s): %v", i, test.name,
 				e)
 			continue
-
 		}
-
 		// Check that the expected result was returned.
 		if !bytes.Equal(script, test.expected) {
 			t.Errorf("NullDataScript: #%d (%s) wrong result\n"+
@@ -1202,7 +1133,6 @@ func TestNullDataScript(t *testing.T) {
 				test.expected)
 			continue
 		}
-
 		// Check that the script has the correct type.
 		scriptType := GetScriptClass(script)
 		if scriptType != test.class {

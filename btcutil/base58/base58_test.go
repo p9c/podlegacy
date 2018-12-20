@@ -1,17 +1,11 @@
 
-
-
-
 package base58_test
-
 import (
 	"bytes"
 	"encoding/hex"
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcutil/base58"
 )
-
 var stringTests = []struct {
 	in  string
 	out string
@@ -28,7 +22,6 @@ var stringTests = []struct {
 	{"abcdefghijklmnopqrstuvwxyz", "3yxU3u1igY8WkgtjK92fbJQCd4BZiiT1v25f"},
 	{"00000000000000000000000000000000000000000000000000000000000000", "3sN2THZeE9Eh9eYrwkvZqNstbHGvrxSAM7gXUXvyFQP8XvQLUqNCS27icwUeDT7ckHm4FUHM2mTVh1vbLmk7y"},
 }
-
 var invalidStringTests = []struct {
 	in  string
 	out string
@@ -44,7 +37,6 @@ var invalidStringTests = []struct {
 	{"0OIl", ""},
 	{"!@#$%^&*()-_=+~`", ""},
 }
-
 var hexTests = []struct {
 	in  string
 	out string
@@ -61,7 +53,6 @@ var hexTests = []struct {
 	{"10c8511e", "Rt5zm"},
 	{"00000000000000000000", "1111111111"},
 }
-
 func TestBase58(t *testing.T) {
 	// Encode tests
 	for x, test := range stringTests {
@@ -72,7 +63,6 @@ func TestBase58(t *testing.T) {
 			continue
 		}
 	}
-
 	// Decode tests
 	for x, test := range hexTests {
 		b, err := hex.DecodeString(test.in)
@@ -86,7 +76,6 @@ func TestBase58(t *testing.T) {
 			continue
 		}
 	}
-
 	// Decode with invalid input
 	for x, test := range invalidStringTests {
 		if res := base58.Decode(test.in); string(res) != test.out {

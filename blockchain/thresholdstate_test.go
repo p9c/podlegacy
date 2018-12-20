@@ -1,20 +1,13 @@
 
-
-
-
 package blockchain
-
 import (
 	"testing"
-
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 )
-
 // TestThresholdStateStringer tests the stringized output for the
 // ThresholdState type.
 func TestThresholdStateStringer(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		in   ThresholdState
 		want string
@@ -26,13 +19,11 @@ func TestThresholdStateStringer(t *testing.T) {
 		{ThresholdFailed, "ThresholdFailed"},
 		{0xff, "Unknown ThresholdState (255)"},
 	}
-
 	// Detect additional threshold states that don't have the stringer added.
 	if len(tests)-1 != int(numThresholdsStates) {
 		t.Errorf("It appears a threshold statewas added without " +
 			"adding an associated stringer test")
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.String()
@@ -43,12 +34,10 @@ func TestThresholdStateStringer(t *testing.T) {
 		}
 	}
 }
-
 // TestThresholdStateCache ensure the threshold state cache works as intended
 // including adding entries, updating existing entries, and flushing.
 func TestThresholdStateCache(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name       string
 		numEntries int
@@ -60,14 +49,12 @@ func TestThresholdStateCache(t *testing.T) {
 		{name: "5 entries locked in", numEntries: 5, state: ThresholdLockedIn},
 		{name: "3 entries failed", numEntries: 3, state: ThresholdFailed},
 	}
-
 nextTest:
 	for _, test := range tests {
 		cache := &newThresholdCaches(1)[0]
 		for i := 0; i < test.numEntries; i++ {
 			var hash chainhash.Hash
 			hash[0] = uint8(i + 1)
-
 			// Ensure the hash isn't available in the cache already.
 			_, ok := cache.Lookup(&hash)
 			if ok {
@@ -75,7 +62,6 @@ nextTest:
 					test.name, hash)
 				continue nextTest
 			}
-
 			// Ensure hash that was added to the cache reports it's
 			// available and the state is the expected value.
 			cache.Update(&hash, test.state)
@@ -91,7 +77,6 @@ nextTest:
 					test.state)
 				continue nextTest
 			}
-
 			// Ensure adding an existing hash with the same state
 			// doesn't break the existing entry.
 			cache.Update(&hash, test.state)
@@ -108,7 +93,6 @@ nextTest:
 					test.name, state, test.state)
 				continue nextTest
 			}
-
 			// Ensure adding an existing hash with a different state
 			// updates the existing entry.
 			newState := ThresholdFailed

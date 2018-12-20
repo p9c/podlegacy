@@ -1,21 +1,14 @@
 
-
-
-
 package btcjson_test
-
 import (
 	"reflect"
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 // TestHelpReflectInternals ensures the various help functions which deal with
 // reflect types work as expected for various Go types.
 func TestHelpReflectInternals(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name        string
 		reflectType reflect.Type
@@ -229,11 +222,9 @@ func TestHelpReflectInternals(t *testing.T) {
 			isInvalid:   true,
 		},
 	}
-
 	xT := func(key string) string {
 		return key
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Ensure the description key is the expected value.
@@ -243,7 +234,6 @@ func TestHelpReflectInternals(t *testing.T) {
 				"want: %v", i, test.name, key, test.key)
 			continue
 		}
-
 		// Ensure the generated example is as expected.
 		examples, isComplex := btcjson.TstReflectTypeToJSONExample(xT,
 			test.reflectType, test.indentLevel, "fdk")
@@ -267,7 +257,6 @@ func TestHelpReflectInternals(t *testing.T) {
 				continue
 			}
 		}
-
 		// Ensure the generated result type help is as expected.
 		helpText := btcjson.TstResultTypeHelp(xT, test.reflectType, "fdk")
 		if helpText != test.help {
@@ -276,7 +265,6 @@ func TestHelpReflectInternals(t *testing.T) {
 				test.help)
 			continue
 		}
-
 		isValid := btcjson.TstIsValidResultType(test.reflectType.Kind())
 		if isValid != !test.isInvalid {
 			t.Errorf("Test #%d (%s) unexpected result type validity "+
@@ -285,12 +273,10 @@ func TestHelpReflectInternals(t *testing.T) {
 		}
 	}
 }
-
 // TestResultStructHelp ensures the expected help text format is returned for
 // various Go struct types.
 func TestResultStructHelp(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name        string
 		reflectType reflect.Type
@@ -395,11 +381,9 @@ func TestResultStructHelp(t *testing.T) {
 			},
 		},
 	}
-
 	xT := func(key string) string {
 		return key
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		results := btcjson.TstResultStructHelp(xT, test.reflectType, 0)
@@ -419,12 +403,10 @@ func TestResultStructHelp(t *testing.T) {
 		}
 	}
 }
-
 // TestHelpArgInternals ensures the various help functions which deal with
 // arguments work as expected for various argument types.
 func TestHelpArgInternals(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name        string
 		method      string
@@ -548,11 +530,9 @@ func TestHelpArgInternals(t *testing.T) {
 				"},...]\n",
 		},
 	}
-
 	xT := func(key string) string {
 		return key
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		help := btcjson.TstArgHelp(xT, test.reflectType, test.defaults,
@@ -564,12 +544,10 @@ func TestHelpArgInternals(t *testing.T) {
 		}
 	}
 }
-
 // TestMethodHelp ensures the method help function works as expected for various
 // command structs.
 func TestMethodHelp(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name        string
 		method      string
@@ -641,11 +619,9 @@ func TestMethodHelp(t *testing.T) {
 				"help-result:\nhelp-result-nothing\n",
 		},
 	}
-
 	xT := func(key string) string {
 		return key
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		help := btcjson.TestMethodHelp(xT, test.reflectType,
@@ -657,12 +633,10 @@ func TestMethodHelp(t *testing.T) {
 		}
 	}
 }
-
 // TestGenerateHelpErrors ensures the GenerateHelp function returns the expected
 // errors.
 func TestGenerateHelpErrors(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name        string
 		method      string
@@ -693,7 +667,6 @@ func TestGenerateHelpErrors(t *testing.T) {
 			err:         btcjson.Error{ErrorCode: btcjson.ErrMissingDescription},
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		_, err := btcjson.GenerateHelp(test.method, nil,
@@ -712,13 +685,11 @@ func TestGenerateHelpErrors(t *testing.T) {
 		}
 	}
 }
-
 // TestGenerateHelp performs a very basic test to ensure GenerateHelp is working
 // as expected.  The internal are testd much more thoroughly in other tests, so
 // there is no need to add more tests here.
 func TestGenerateHelp(t *testing.T) {
 	t.Parallel()
-
 	descs := map[string]string{
 		"help--synopsis": "test",
 		"help-command":   "test",

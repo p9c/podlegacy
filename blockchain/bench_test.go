@@ -1,12 +1,8 @@
-
 package blockchain
-
 import (
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 // BenchmarkIsCoinBase performs a simple benchmark against the IsCoinBase
 // function.
 func BenchmarkIsCoinBase(b *testing.B) {
@@ -16,7 +12,6 @@ func BenchmarkIsCoinBase(b *testing.B) {
 		IsCoinBase(tx)
 	}
 }
-
 // BenchmarkIsCoinBaseTx performs a simple benchmark against the IsCoinBaseTx
 // function.
 func BenchmarkIsCoinBaseTx(b *testing.B) {

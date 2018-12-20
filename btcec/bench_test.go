@@ -1,7 +1,5 @@
 package btcec
-
 import "testing"
-
 // BenchmarkAddJacobian benchmarks the secp256k1 curve addJacobian function with
 // Z values of 1 so that the associated optimizations are used.
 func BenchmarkAddJacobian(b *testing.B) {
@@ -19,7 +17,6 @@ func BenchmarkAddJacobian(b *testing.B) {
 		curve.addJacobian(x1, y1, z1, x2, y2, z2, x3, y3, z3)
 	}
 }
-
 // BenchmarkAddJacobianNotZOne benchmarks the secp256k1 curve addJacobian
 // function with Z values other than one so the optimizations associated with
 // Z=1 aren't used.
@@ -38,7 +35,6 @@ func BenchmarkAddJacobianNotZOne(b *testing.B) {
 		curve.addJacobian(x1, y1, z1, x2, y2, z2, x3, y3, z3)
 	}
 }
-
 // BenchmarkScalarBaseMult benchmarks the secp256k1 curve ScalarBaseMult
 // function.
 func BenchmarkScalarBaseMult(b *testing.B) {
@@ -48,7 +44,6 @@ func BenchmarkScalarBaseMult(b *testing.B) {
 		curve.ScalarBaseMult(k.Bytes())
 	}
 }
-
 // BenchmarkScalarBaseMultLarge benchmarks the secp256k1 curve ScalarBaseMult
 // function with abnormally large k values.
 func BenchmarkScalarBaseMultLarge(b *testing.B) {
@@ -58,7 +53,6 @@ func BenchmarkScalarBaseMultLarge(b *testing.B) {
 		curve.ScalarBaseMult(k.Bytes())
 	}
 }
-
 // BenchmarkScalarMult benchmarks the secp256k1 curve ScalarMult function.
 func BenchmarkScalarMult(b *testing.B) {
 	x := fromHex("34f9460f0e4f08393d192b3c5133a6ba099aa0ad9fd54ebccfacdfa239ff49c6")
@@ -69,7 +63,6 @@ func BenchmarkScalarMult(b *testing.B) {
 		curve.ScalarMult(x, y, k.Bytes())
 	}
 }
-
 // BenchmarkNAF benchmarks the NAF function.
 func BenchmarkNAF(b *testing.B) {
 	k := fromHex("d74bf844b0862475103d96a611cf2d898447e288d34b360bc885cb8ce7c00575")
@@ -77,7 +70,6 @@ func BenchmarkNAF(b *testing.B) {
 		NAF(k.Bytes())
 	}
 }
-
 // BenchmarkSigVerify benchmarks how long it takes the secp256k1 curve to
 // verify signatures.
 func BenchmarkSigVerify(b *testing.B) {
@@ -89,25 +81,21 @@ func BenchmarkSigVerify(b *testing.B) {
 		X:     fromHex("d2e670a19c6d753d1a6d8b20bd045df8a08fb162cf508956c31268c6d81ffdab"),
 		Y:     fromHex("ab65528eefbb8057aa85d597258a3fbd481a24633bc9b47a9aa045c91371de52"),
 	}
-
 	// Double sha256 of []byte{0x01, 0x02, 0x03, 0x04}
 	msgHash := fromHex("8de472e2399610baaa7f84840547cd409434e31f5d3bd71e4d947f283874f9c0")
 	sig := Signature{
 		R: fromHex("fef45d2892953aa5bbcdb057b5e98b208f1617a7498af7eb765574e29b5d9c2c"),
 		S: fromHex("d47563f52aac6b04b55de236b7c515eb9311757db01e02cff079c3ca6efb063f"),
 	}
-
 	if !sig.Verify(msgHash.Bytes(), &pubKey) {
 		b.Errorf("Signature failed to verify")
 		return
 	}
 	b.StartTimer()
-
 	for i := 0; i < b.N; i++ {
 		sig.Verify(msgHash.Bytes(), &pubKey)
 	}
 }
-
 // BenchmarkFieldNormalize benchmarks how long it takes the internal field
 // to perform normalization (which includes modular reduction).
 func BenchmarkFieldNormalize(b *testing.B) {

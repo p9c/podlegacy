@@ -1,15 +1,9 @@
 
-
-
-
 package blockchain
-
 import (
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 // TestMerkle tests the BuildMerkleTreeStore API.
 func TestMerkle(t *testing.T) {
 	block := btcutil.NewBlock(&Block100000)

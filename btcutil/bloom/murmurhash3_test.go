@@ -1,15 +1,9 @@
 
-
-
-
 package bloom_test
-
 import (
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcutil/bloom"
 )
-
 // TestMurmurHash3 ensure the MurmurHash3 function produces the correct hash
 // when given various seeds and data.
 func TestMurmurHash3(t *testing.T) {
@@ -33,7 +27,6 @@ func TestMurmurHash3(t *testing.T) {
 		{0x00000000, []byte{0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77}, 0x8034d2a0},
 		{0x00000000, []byte{0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88}, 0xb4698def},
 	}
-
 	for i, test := range tests {
 		result := bloom.MurmurHash3(test.seed, test.data)
 		if result != test.out {

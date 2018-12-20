@@ -3,5 +3,4 @@
 # Invoke with the following arguments:
 # 
 # testnet.sh datadir
-
 pod --testnet --nobanning --configfile=$1/config --datadir=$1 $2 

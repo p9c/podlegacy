@@ -1,23 +1,16 @@
 
-
-
-
 package btcjson_test
-
 import (
 	"encoding/json"
 	"math"
 	"reflect"
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 // TestAssignField tests the assignField function handles supported combinations
 // properly.
 func TestAssignField(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		dest     interface{}
@@ -163,7 +156,6 @@ func TestAssignField(t *testing.T) {
 			expected: map[string]float64{"1Address": 1.5},
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		dst := reflect.New(reflect.TypeOf(test.dest)).Elem()
@@ -174,7 +166,6 @@ func TestAssignField(t *testing.T) {
 				test.name, err)
 			continue
 		}
-
 		// Inidirect through to the base types to ensure their values
 		// are the same.
 		for dst.Kind() == reflect.Ptr {
@@ -188,11 +179,9 @@ func TestAssignField(t *testing.T) {
 		}
 	}
 }
-
 // TestAssignFieldErrors tests the assignField function error paths.
 func TestAssignFieldErrors(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name string
 		dest interface{}
@@ -326,7 +315,6 @@ func TestAssignFieldErrors(t *testing.T) {
 			err:  btcjson.Error{ErrorCode: btcjson.ErrInvalidType},
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		dst := reflect.New(reflect.TypeOf(test.dest)).Elem()
@@ -346,11 +334,9 @@ func TestAssignFieldErrors(t *testing.T) {
 		}
 	}
 }
-
 // TestNewCmdErrors ensures the error paths of NewCmd behave as expected.
 func TestNewCmdErrors(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name   string
 		method string
@@ -382,7 +368,6 @@ func TestNewCmdErrors(t *testing.T) {
 			err:    btcjson.Error{ErrorCode: btcjson.ErrInvalidType},
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		_, err := btcjson.NewCmd(test.method, test.args...)
@@ -400,11 +385,9 @@ func TestNewCmdErrors(t *testing.T) {
 		}
 	}
 }
-
 // TestMarshalCmdErrors  tests the error paths of the MarshalCmd function.
 func TestMarshalCmdErrors(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name string
 		id   interface{}
@@ -430,7 +413,6 @@ func TestMarshalCmdErrors(t *testing.T) {
 			err:  btcjson.Error{ErrorCode: btcjson.ErrInvalidType},
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		_, err := btcjson.MarshalCmd(test.id, test.cmd)
@@ -448,11 +430,9 @@ func TestMarshalCmdErrors(t *testing.T) {
 		}
 	}
 }
-
 // TestUnmarshalCmdErrors  tests the error paths of the UnmarshalCmd function.
 func TestUnmarshalCmdErrors(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name    string
 		request btcjson.Request
@@ -499,7 +479,6 @@ func TestUnmarshalCmdErrors(t *testing.T) {
 			err: btcjson.Error{ErrorCode: btcjson.ErrInvalidType},
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		_, err := btcjson.UnmarshalCmd(&test.request)

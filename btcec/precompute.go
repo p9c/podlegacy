@@ -1,5 +1,4 @@
 package btcec
-
 import (
 	"compress/zlib"
 	"encoding/base64"
@@ -7,7 +6,6 @@ import (
 	"io/ioutil"
 	"strings"
 )
-
 //go:generate go run -tags gensecp256k1 genprecomps.go
 // loadS256BytePoints decompresses and deserializes the pre-computed byte points
 // used to accelerate scalar base multiplication for the secp256k1 curve.  This

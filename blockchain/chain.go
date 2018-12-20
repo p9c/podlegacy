@@ -1,17 +1,15 @@
-
-
 package blockchain
 import (
 	"container/list"
 	"fmt"
-	"sync"
-	"time"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
+	"sync"
+	"time"
 )
 const (
 	// maxOrphanBlocks is the maximum number of orphan blocks that can be

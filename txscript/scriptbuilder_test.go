@@ -1,19 +1,13 @@
 
-
-
-
 package txscript
-
 import (
 	"bytes"
 	"testing"
 )
-
 // TestScriptBuilderAddOp tests that pushing opcodes to a script via the
 // ScriptBuilder API works as expected.
 func TestScriptBuilderAddOp(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		opcodes  []byte
@@ -35,7 +29,6 @@ func TestScriptBuilderAddOp(t *testing.T) {
 			expected: []byte{OP_HASH160, OP_EQUAL},
 		},
 	}
-
 	// Run tests and individually add each op via AddOp.
 	builder := NewScriptBuilder()
 	t.Logf("Running %d tests", len(tests))
@@ -57,7 +50,6 @@ func TestScriptBuilderAddOp(t *testing.T) {
 			continue
 		}
 	}
-
 	// Run tests and bulk add ops via AddOps.
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
@@ -75,14 +67,11 @@ func TestScriptBuilderAddOp(t *testing.T) {
 			continue
 		}
 	}
-
 }
-
 // TestScriptBuilderAddInt64 tests that pushing signed integers to a script via
 // the ScriptBuilder API works as expected.
 func TestScriptBuilderAddInt64(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		val      int64
@@ -127,7 +116,6 @@ func TestScriptBuilderAddInt64(t *testing.T) {
 		{name: "push -32767", val: -32767, expected: []byte{OP_DATA_2, 0xff, 0xff}},
 		{name: "push -32768", val: -32768, expected: []byte{OP_DATA_3, 0x00, 0x80, 0x80}},
 	}
-
 	builder := NewScriptBuilder()
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
@@ -146,12 +134,10 @@ func TestScriptBuilderAddInt64(t *testing.T) {
 		}
 	}
 }
-
 // TestScriptBuilderAddData tests that pushing data to a script via the
 // ScriptBuilder API works as expected and conforms to BIP0062.
 func TestScriptBuilderAddData(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		data     []byte
@@ -161,7 +147,6 @@ func TestScriptBuilderAddData(t *testing.T) {
 		// BIP0062: Pushing an empty byte sequence must use OP_0.
 		{name: "push empty byte sequence", data: nil, expected: []byte{OP_0}},
 		{name: "push 1 byte 0x00", data: []byte{0x00}, expected: []byte{OP_0}},
-
 		// BIP0062: Pushing a 1-byte sequence of byte 0x01 through 0x10 must use OP_n.
 		{name: "push 1 byte 0x01", data: []byte{0x01}, expected: []byte{OP_1}},
 		{name: "push 1 byte 0x02", data: []byte{0x02}, expected: []byte{OP_2}},
@@ -179,10 +164,8 @@ func TestScriptBuilderAddData(t *testing.T) {
 		{name: "push 1 byte 0x0e", data: []byte{0x0e}, expected: []byte{OP_14}},
 		{name: "push 1 byte 0x0f", data: []byte{0x0f}, expected: []byte{OP_15}},
 		{name: "push 1 byte 0x10", data: []byte{0x10}, expected: []byte{OP_16}},
-
 		// BIP0062: Pushing the byte 0x81 must use OP_1NEGATE.
 		{name: "push 1 byte 0x81", data: []byte{0x81}, expected: []byte{OP_1NEGATE}},
-
 		// BIP0062: Pushing any other byte sequence up to 75 bytes must
 		// use the normal data push (opcode byte n, with n the number of
 		// bytes, followed n bytes of data being pushed).
@@ -200,7 +183,6 @@ func TestScriptBuilderAddData(t *testing.T) {
 			data:     bytes.Repeat([]byte{0x49}, 75),
 			expected: append([]byte{OP_DATA_75}, bytes.Repeat([]byte{0x49}, 75)...),
 		},
-
 		// BIP0062: Pushing 76 to 255 bytes must use OP_PUSHDATA1.
 		{
 			name:     "push data len 76",
@@ -212,7 +194,6 @@ func TestScriptBuilderAddData(t *testing.T) {
 			data:     bytes.Repeat([]byte{0x49}, 255),
 			expected: append([]byte{OP_PUSHDATA1, 255}, bytes.Repeat([]byte{0x49}, 255)...),
 		},
-
 		// BIP0062: Pushing 256 to 520 bytes must use OP_PUSHDATA2.
 		{
 			name:     "push data len 256",
@@ -224,7 +205,6 @@ func TestScriptBuilderAddData(t *testing.T) {
 			data:     bytes.Repeat([]byte{0x49}, 520),
 			expected: append([]byte{OP_PUSHDATA2, 0x08, 0x02}, bytes.Repeat([]byte{0x49}, 520)...),
 		},
-
 		// BIP0062: OP_PUSHDATA4 can never be used, as pushes over 520
 		// bytes are not allowed, and those below can be done using
 		// other operators.
@@ -243,11 +223,9 @@ func TestScriptBuilderAddData(t *testing.T) {
 			data:     bytes.Repeat([]byte{0x49}, 65536),
 			expected: nil,
 		},
-
 		// Additional tests for the PushFullData function that
 		// intentionally allows data pushes to exceed the limit for
 		// regression testing purposes.
-
 		// 3-byte data push via OP_PUSHDATA_2.
 		{
 			name:     "push data len 32767 (non-canonical)",
@@ -255,7 +233,6 @@ func TestScriptBuilderAddData(t *testing.T) {
 			expected: append([]byte{OP_PUSHDATA2, 255, 127}, bytes.Repeat([]byte{0x49}, 32767)...),
 			useFull:  true,
 		},
-
 		// 5-byte data push via OP_PUSHDATA_4.
 		{
 			name:     "push data len 65536 (non-canonical)",
@@ -264,7 +241,6 @@ func TestScriptBuilderAddData(t *testing.T) {
 			useFull:  true,
 		},
 	}
-
 	builder := NewScriptBuilder()
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
@@ -282,13 +258,11 @@ func TestScriptBuilderAddData(t *testing.T) {
 		}
 	}
 }
-
 // TestExceedMaxScriptSize ensures that all of the functions that can be used
 // to add data to a script don't allow the script to exceed the max allowed
 // size.
 func TestExceedMaxScriptSize(t *testing.T) {
 	t.Parallel()
-
 	// Start off by constructing a max size script.
 	builder := NewScriptBuilder()
 	builder.Reset().AddFullData(make([]byte, MaxScriptSize-3))
@@ -296,7 +270,6 @@ func TestExceedMaxScriptSize(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected error for max size script: %v", err)
 	}
-
 	// Ensure adding data that would exceed the maximum size of the script
 	// does not add the data.
 	script, err := builder.AddData([]byte{0x00}).Script()
@@ -308,7 +281,6 @@ func TestExceedMaxScriptSize(t *testing.T) {
 		t.Fatalf("ScriptBuilder.AddData unexpected modified script - "+
 			"got len %d, want len %d", len(script), len(origScript))
 	}
-
 	// Ensure adding an opcode that would exceed the maximum size of the
 	// script does not add the data.
 	builder.Reset().AddFullData(make([]byte, MaxScriptSize-3))
@@ -321,7 +293,6 @@ func TestExceedMaxScriptSize(t *testing.T) {
 		t.Fatalf("ScriptBuilder.AddOp unexpected modified script - "+
 			"got len %d, want len %d", len(script), len(origScript))
 	}
-
 	// Ensure adding an integer that would exceed the maximum size of the
 	// script does not add the data.
 	builder.Reset().AddFullData(make([]byte, MaxScriptSize-3))
@@ -335,12 +306,10 @@ func TestExceedMaxScriptSize(t *testing.T) {
 			"got len %d, want len %d", len(script), len(origScript))
 	}
 }
-
 // TestErroredScript ensures that all of the functions that can be used to add
 // data to a script don't modify the script once an error has happened.
 func TestErroredScript(t *testing.T) {
 	t.Parallel()
-
 	// Start off by constructing a near max size script that has enough
 	// space left to add each data type without an error and force an
 	// initial error condition.
@@ -359,7 +328,6 @@ func TestErroredScript(t *testing.T) {
 		t.Fatalf("ScriptBuilder.AddData unexpected modified script - "+
 			"got len %d, want len %d", len(script), len(origScript))
 	}
-
 	// Ensure adding data, even using the non-canonical path, to a script
 	// that has errored doesn't succeed.
 	script, err = builder.AddFullData([]byte{0x00}).Script()
@@ -371,7 +339,6 @@ func TestErroredScript(t *testing.T) {
 			"script - got len %d, want len %d", len(script),
 			len(origScript))
 	}
-
 	// Ensure adding data to a script that has errored doesn't succeed.
 	script, err = builder.AddData([]byte{0x00}).Script()
 	if _, ok := err.(ErrScriptNotCanonical); !ok || err == nil {
@@ -382,7 +349,6 @@ func TestErroredScript(t *testing.T) {
 			"script - got len %d, want len %d", len(script),
 			len(origScript))
 	}
-
 	// Ensure adding an opcode to a script that has errored doesn't succeed.
 	script, err = builder.AddOp(OP_0).Script()
 	if _, ok := err.(ErrScriptNotCanonical); !ok || err == nil {
@@ -392,7 +358,6 @@ func TestErroredScript(t *testing.T) {
 		t.Fatalf("ScriptBuilder.AddOp unexpected modified script - "+
 			"got len %d, want len %d", len(script), len(origScript))
 	}
-
 	// Ensure adding an integer to a script that has errored doesn't
 	// succeed.
 	script, err = builder.AddInt64(0).Script()
@@ -403,7 +368,6 @@ func TestErroredScript(t *testing.T) {
 		t.Fatalf("ScriptBuilder.AddInt64 unexpected modified script - "+
 			"got len %d, want len %d", len(script), len(origScript))
 	}
-
 	// Ensure the error has a message set.
 	if err.Error() == "" {
 		t.Fatal("ErrScriptNotCanonical.Error does not have any text")

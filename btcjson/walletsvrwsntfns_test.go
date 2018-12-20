@@ -1,26 +1,19 @@
 
-
-
-
 package btcjson_test
-
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 // TestWalletSvrWsNtfns tests all of the chain server websocket-specific
 // notifications marshal and unmarshal into valid results include handling of
 // optional fields being omitted in the marshalled command, while optional
 // fields with defaults have the default assigned on unmarshalled commands.
 func TestWalletSvrWsNtfns(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name         string
 		newNtfn      func() (interface{}, error)
@@ -117,7 +110,6 @@ func TestWalletSvrWsNtfns(t *testing.T) {
 			},
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Marshal the notification as created by the new static
@@ -128,14 +120,12 @@ func TestWalletSvrWsNtfns(t *testing.T) {
 				test.name, err)
 			continue
 		}
-
 		if !bytes.Equal(marshalled, []byte(test.marshalled)) {
 			t.Errorf("Test #%d (%s) unexpected marshalled data - "+
 				"got %s, want %s", i, test.name, marshalled,
 				test.marshalled)
 			continue
 		}
-
 		// Ensure the notification is created without error via the
 		// generic new notification creation function.
 		cmd, err := test.newNtfn()
@@ -143,7 +133,6 @@ func TestWalletSvrWsNtfns(t *testing.T) {
 			t.Errorf("Test #%d (%s) unexpected NewCmd error: %v ",
 				i, test.name, err)
 		}
-
 		// Marshal the notification as created by the generic new
 		// notification creation function.    The ID is nil for
 		// notifications.
@@ -153,14 +142,12 @@ func TestWalletSvrWsNtfns(t *testing.T) {
 				test.name, err)
 			continue
 		}
-
 		if !bytes.Equal(marshalled, []byte(test.marshalled)) {
 			t.Errorf("Test #%d (%s) unexpected marshalled data - "+
 				"got %s, want %s", i, test.name, marshalled,
 				test.marshalled)
 			continue
 		}
-
 		var request btcjson.Request
 		if err := json.Unmarshal(marshalled, &request); err != nil {
 			t.Errorf("Test #%d (%s) unexpected error while "+
@@ -168,14 +155,12 @@ func TestWalletSvrWsNtfns(t *testing.T) {
 				test.name, err)
 			continue
 		}
-
 		cmd, err = btcjson.UnmarshalCmd(&request)
 		if err != nil {
 			t.Errorf("UnmarshalCmd #%d (%s) unexpected error: %v", i,
 				test.name, err)
 			continue
 		}
-
 		if !reflect.DeepEqual(cmd, test.unmarshalled) {
 			t.Errorf("Test #%d (%s) unexpected unmarshalled command "+
 				"- got %s, want %s", i, test.name,

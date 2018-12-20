@@ -1,22 +1,14 @@
-
-
-
-
 package blockchain
-
 import (
 	"fmt"
+	"github.com/parallelcointeam/pod/wire"
 	"math/rand"
 	"reflect"
 	"testing"
-
-	"github.com/parallelcointeam/pod/wire"
 )
-
 // testNoncePrng provides a deterministic prng for the nonce in generated fake
 // nodes.  The ensures that the node have unique hashes.
 var testNoncePrng = rand.New(rand.NewSource(0))
-
 // chainedNodes returns the specified number of nodes constructed such that each
 // subsequent node points to the previous one to create a chain.  The first node
 // will point to the passed parent which can be nil if desired.
@@ -35,18 +27,15 @@ func chainedNodes(parent *blockNode, numNodes int) []*blockNode {
 	}
 	return nodes
 }
-
 // String returns the block node as a human-readable name.
 func (node blockNode) String() string {
 	return fmt.Sprintf("%s(%d)", node.hash, node.height)
 }
-
 // tstTip is a convenience function to grab the tip of a chain of block nodes
 // created via chainedNodes.
 func tstTip(nodes []*blockNode) *blockNode {
 	return nodes[len(nodes)-1]
 }
-
 // locatorHashes is a convenience function that returns the hashes for all of
 // the passed indexes of the provided nodes.  It is used to construct expected
 // block locators in the tests.
@@ -57,7 +46,6 @@ func locatorHashes(nodes []*blockNode, indexes ...int) BlockLocator {
 	}
 	return hashes
 }
-
 // zipLocators is a convenience function that returns a single block locator
 // given a variable number of them and is used in the tests.
 func zipLocators(locators ...BlockLocator) BlockLocator {
@@ -67,7 +55,6 @@ func zipLocators(locators ...BlockLocator) BlockLocator {
 	}
 	return hashes
 }
-
 // TestChainView ensures all of the exported functionality of chain views works
 // as intended with the exception of some special cases which are handled in
 // other tests.
@@ -80,7 +67,6 @@ func TestChainView(t *testing.T) {
 	branch0Nodes := chainedNodes(nil, 5)
 	branch1Nodes := chainedNodes(branch0Nodes[1], 25)
 	branch2Nodes := chainedNodes(branch1Nodes[0], 3)
-
 	tip := tstTip
 	tests := []struct {
 		name       string
@@ -167,7 +153,6 @@ testLoop:
 				test.sideTip.height)
 			continue
 		}
-
 		// Ensure the active and side chain genesis block is the
 		// expected value.
 		if test.view.Genesis() != test.genesis {
@@ -182,7 +167,6 @@ testLoop:
 				test.genesis)
 			continue
 		}
-
 		// Ensure the active and side chain tips are the expected nodes.
 		if test.view.Tip() != test.tip {
 			t.Errorf("%s: unexpected active view tip -- got %v, "+
@@ -195,7 +179,6 @@ testLoop:
 				test.sideTip)
 			continue
 		}
-
 		// Ensure that regardless of the order the two chains are
 		// compared they both return the expected fork point.
 		forkNode := test.view.FindFork(test.side.Tip())
@@ -212,7 +195,6 @@ testLoop:
 				test.fork)
 			continue
 		}
-
 		// Ensure that the fork point for a node that is already part
 		// of the chain view is the node itself.
 		forkNode = test.view.FindFork(test.view.Tip())
@@ -222,7 +204,6 @@ testLoop:
 				test.view.Tip())
 			continue
 		}
-
 		// Ensure all expected nodes are contained in the active view.
 		for _, node := range test.contains {
 			if !test.view.Contains(node) {
@@ -231,7 +212,6 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure all nodes from side chain view are NOT contained in
 		// the active view.
 		for _, node := range test.noContains {
@@ -241,7 +221,6 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure equality of different views into the same chain works
 		// as intended.
 		if !test.view.Equals(test.equal) {
@@ -252,7 +231,6 @@ testLoop:
 			t.Errorf("%s: unexpected equal views", test.name)
 			continue
 		}
-
 		// Ensure all nodes contained in the view return the expected
 		// next node.
 		for i, node := range test.contains {
@@ -267,7 +245,6 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure nodes that are not contained in the view do not
 		// produce a successor node.
 		for _, node := range test.noContains {
@@ -277,7 +254,6 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure all nodes contained in the view can be retrieved by
 		// height.
 		for _, wantNode := range test.contains {
@@ -289,7 +265,6 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure the block locator for the tip of the active view
 		// consists of the expected hashes.
 		locator := test.view.BlockLocator(test.view.tip())
@@ -300,7 +275,6 @@ testLoop:
 		}
 	}
 }
-
 // TestChainViewForkCorners ensures that finding the fork between two chains
 // works in some corner cases such as when the two chains have completely
 // unrelated histories.
@@ -308,17 +282,14 @@ func TestChainViewForkCorners(t *testing.T) {
 	// Construct two unrelated single branch synthetic block indexes.
 	branchNodes := chainedNodes(nil, 5)
 	unrelatedBranchNodes := chainedNodes(nil, 7)
-
 	// Create chain views for the two unrelated histories.
 	view1 := newChainView(tstTip(branchNodes))
 	view2 := newChainView(tstTip(unrelatedBranchNodes))
-
 	// Ensure attempting to find a fork point with a node that doesn't exist
 	// doesn't produce a node.
 	if fork := view1.FindFork(nil); fork != nil {
 		t.Fatalf("FindFork: unexpected fork -- got %v, want nil", fork)
 	}
-
 	// Ensure attempting to find a fork point in two chain views with
 	// totally unrelated histories doesn't produce a node.
 	for _, node := range branchNodes {
@@ -334,7 +305,6 @@ func TestChainViewForkCorners(t *testing.T) {
 		}
 	}
 }
-
 // TestChainViewSetTip ensures changing the tip works as intended including
 // capacity changes.
 func TestChainViewSetTip(t *testing.T) {
@@ -344,7 +314,6 @@ func TestChainViewSetTip(t *testing.T) {
 	//       \-> 2a -> 3a -> 4a  -> 5a -> 6a -> 7a -> ... -> 26a
 	branch0Nodes := chainedNodes(nil, 5)
 	branch1Nodes := chainedNodes(branch0Nodes[1], 25)
-
 	tip := tstTip
 	tests := []struct {
 		name     string
@@ -387,7 +356,6 @@ func TestChainViewSetTip(t *testing.T) {
 			contains: [][]*blockNode{branch0Nodes, branch1Nodes},
 		},
 	}
-
 testLoop:
 	for _, test := range tests {
 		for i, tip := range test.tips {
@@ -399,7 +367,6 @@ testLoop:
 					tip)
 				continue testLoop
 			}
-
 			// Ensure all expected nodes are contained in the view.
 			for _, node := range test.contains[i] {
 				if !test.view.Contains(node) {
@@ -408,11 +375,9 @@ testLoop:
 					continue testLoop
 				}
 			}
-
 		}
 	}
 }
-
 // TestChainViewNil ensures that creating and accessing a nil chain view behaves
 // as expected.
 func TestChainViewNil(t *testing.T) {
@@ -421,59 +386,49 @@ func TestChainViewNil(t *testing.T) {
 	if !view.Equals(newChainView(nil)) {
 		t.Fatal("uninitialized nil views unequal")
 	}
-
 	// Ensure the genesis of an uninitialized view does not produce a node.
 	if genesis := view.Genesis(); genesis != nil {
 		t.Fatalf("Genesis: unexpected genesis -- got %v, want nil",
 			genesis)
 	}
-
 	// Ensure the tip of an uninitialized view does not produce a node.
 	if tip := view.Tip(); tip != nil {
 		t.Fatalf("Tip: unexpected tip -- got %v, want nil", tip)
 	}
-
 	// Ensure the height of an uninitialized view is the expected value.
 	if height := view.Height(); height != -1 {
 		t.Fatalf("Height: unexpected height -- got %d, want -1", height)
 	}
-
 	// Ensure attempting to get a node for a height that does not exist does
 	// not produce a node.
 	if node := view.NodeByHeight(10); node != nil {
 		t.Fatalf("NodeByHeight: unexpected node -- got %v, want nil", node)
 	}
-
 	// Ensure an uninitialized view does not report it contains nodes.
 	fakeNode := chainedNodes(nil, 1)[0]
 	if view.Contains(fakeNode) {
 		t.Fatalf("Contains: view claims it contains node %v", fakeNode)
 	}
-
 	// Ensure the next node for a node that does not exist does not produce
 	// a node.
 	if next := view.Next(nil); next != nil {
 		t.Fatalf("Next: unexpected next node -- got %v, want nil", next)
 	}
-
 	// Ensure the next node for a node that exists does not produce a node.
 	if next := view.Next(fakeNode); next != nil {
 		t.Fatalf("Next: unexpected next node -- got %v, want nil", next)
 	}
-
 	// Ensure attempting to find a fork point with a node that doesn't exist
 	// doesn't produce a node.
 	if fork := view.FindFork(nil); fork != nil {
 		t.Fatalf("FindFork: unexpected fork -- got %v, want nil", fork)
 	}
-
 	// Ensure attempting to get a block locator for the tip doesn't produce
 	// one since the tip is nil.
 	if locator := view.BlockLocator(nil); locator != nil {
 		t.Fatalf("BlockLocator: unexpected locator -- got %v, want nil",
 			locator)
 	}
-
 	// Ensure attempting to get a block locator for a node that exists still
 	// works as intended.
 	branchNodes := chainedNodes(nil, 50)

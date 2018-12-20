@@ -1,9 +1,5 @@
 
-
-
-
 package txscript
-
 import (
 	"bytes"
 	"errors"
@@ -11,7 +7,6 @@ import (
 	"reflect"
 	"testing"
 )
-
 // tstCheckScriptError ensures the type of the two passed errors are of the
 // same type (either both nil or both of type Error) and their error codes
 // match when not nil.
@@ -25,13 +20,11 @@ func tstCheckScriptError(gotErr, wantErr error) error {
 	if gotErr == nil {
 		return nil
 	}
-
 	// Ensure the want error type is a script error.
 	werr, ok := wantErr.(Error)
 	if !ok {
 		return fmt.Errorf("unexpected test error type %T", wantErr)
 	}
-
 	// Ensure the error codes match.  It's safe to use a raw type assert
 	// here since the code above already proved they are the same type and
 	// the want error is a script error.
@@ -40,14 +33,11 @@ func tstCheckScriptError(gotErr, wantErr error) error {
 		return fmt.Errorf("mismatched error code - got %v (%v), want %v",
 			gotErrorCode, gotErr, werr.ErrorCode)
 	}
-
 	return nil
 }
-
 // TestStack tests that all of the stack operations work as expected.
 func TestStack(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name      string
 		before    [][]byte
@@ -148,7 +138,6 @@ func TestStack(t *testing.T) {
 				if err != nil {
 					return err
 				}
-
 				if val {
 					return errors.New("unexpected value")
 				}
@@ -165,7 +154,6 @@ func TestStack(t *testing.T) {
 				if err != nil {
 					return err
 				}
-
 				if !val {
 					return errors.New("unexpected value")
 				}
@@ -429,7 +417,6 @@ func TestStack(t *testing.T) {
 			nil,
 			func(s *stack) error {
 				s.PushBool(true)
-
 				return nil
 			},
 			nil,
@@ -440,7 +427,6 @@ func TestStack(t *testing.T) {
 			nil,
 			func(s *stack) error {
 				s.PushBool(false)
-
 				return nil
 			},
 			nil,
@@ -458,7 +444,6 @@ func TestStack(t *testing.T) {
 				if !val {
 					return errors.New("unexpected value")
 				}
-
 				return nil
 			},
 			nil,
@@ -476,7 +461,6 @@ func TestStack(t *testing.T) {
 				if val {
 					return errors.New("unexpected value")
 				}
-
 				return nil
 			},
 			nil,
@@ -494,7 +478,6 @@ func TestStack(t *testing.T) {
 				if !val {
 					return errors.New("unexpected value")
 				}
-
 				return nil
 			},
 			nil,
@@ -512,7 +495,6 @@ func TestStack(t *testing.T) {
 				if val {
 					return errors.New("unexpected value")
 				}
-
 				return nil
 			},
 			nil,
@@ -902,7 +884,6 @@ func TestStack(t *testing.T) {
 			nil,
 		},
 	}
-
 	for _, test := range tests {
 		// Setup the initial stack state and perform the test operation.
 		s := stack{}
@@ -910,7 +891,6 @@ func TestStack(t *testing.T) {
 			s.PushByteArray(test.before[i])
 		}
 		err := test.operation(&s)
-
 		// Ensure the error code is of the expected type and the error
 		// code matches the value specified in the test instance.
 		if e := tstCheckScriptError(err, test.err); e != nil {
@@ -920,7 +900,6 @@ func TestStack(t *testing.T) {
 		if err != nil {
 			continue
 		}
-
 		// Ensure the resulting stack is the expected length.
 		if int32(len(test.after)) != s.Depth() {
 			t.Errorf("%s: stack depth doesn't match expected: %v "+
@@ -928,7 +907,6 @@ func TestStack(t *testing.T) {
 				s.Depth())
 			continue
 		}
-
 		// Ensure all items of the resulting stack are the expected
 		// values.
 		for i := range test.after {
@@ -938,7 +916,6 @@ func TestStack(t *testing.T) {
 					test.name, i, err)
 				break
 			}
-
 			if !bytes.Equal(val, test.after[i]) {
 				t.Errorf("%s: %dth stack entry doesn't match "+
 					"expected: %v vs %v", test.name, i, val,

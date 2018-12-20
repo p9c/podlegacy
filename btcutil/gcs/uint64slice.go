@@ -1,5 +1,4 @@
 
-
 package gcs
 // uint64slice is a package-local utility class that allows us to use Go's sort
 // package to sort a []uint64 by implementing sort.Interface.

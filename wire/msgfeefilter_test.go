@@ -1,37 +1,28 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"io"
 	"math/rand"
 	"reflect"
 	"testing"
-
 	"github.com/davecgh/go-spew/spew"
 )
-
 // TestFeeFilterLatest tests the MsgFeeFilter API against the latest protocol version.
 func TestFeeFilterLatest(t *testing.T) {
 	pver := ProtocolVersion
-
 	minfee := rand.Int63()
 	msg := NewMsgFeeFilter(minfee)
 	if msg.MinFee != minfee {
 		t.Errorf("NewMsgFeeFilter: wrong minfee - got %v, want %v",
 			msg.MinFee, minfee)
 	}
-
 	// Ensure the command is expected value.
 	wantCmd := "feefilter"
 	if cmd := msg.Command(); cmd != wantCmd {
 		t.Errorf("NewMsgFeeFilter: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-
 	// Ensure max payload is expected value for latest protocol version.
 	wantPayload := uint32(8)
 	maxPayload := msg.MaxPayloadLength(pver)
@@ -40,27 +31,23 @@ func TestFeeFilterLatest(t *testing.T) {
 			"protocol version %d - got %v, want %v", pver,
 			maxPayload, wantPayload)
 	}
-
 	// Test encode with latest protocol version.
 	var buf bytes.Buffer
 	err := msg.BtcEncode(&buf, pver, BaseEncoding)
 	if err != nil {
 		t.Errorf("encode of MsgFeeFilter failed %v err <%v>", msg, err)
 	}
-
 	// Test decode with latest protocol version.
 	readmsg := NewMsgFeeFilter(0)
 	err = readmsg.BtcDecode(&buf, pver, BaseEncoding)
 	if err != nil {
 		t.Errorf("decode of MsgFeeFilter failed [%v] err <%v>", buf, err)
 	}
-
 	// Ensure minfee is the same.
 	if msg.MinFee != readmsg.MinFee {
 		t.Errorf("Should get same minfee for protocol version %d", pver)
 	}
 }
-
 // TestFeeFilterWire tests the MsgFeeFilter wire encode and decode for various protocol
 // versions.
 func TestFeeFilterWire(t *testing.T) {
@@ -77,7 +64,6 @@ func TestFeeFilterWire(t *testing.T) {
 			[]byte{0xf3, 0xe0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00},
 			ProtocolVersion,
 		},
-
 		// Protocol version FeeFilterVersion
 		{
 			MsgFeeFilter{MinFee: 456456}, // 0x6f708
@@ -86,7 +72,6 @@ func TestFeeFilterWire(t *testing.T) {
 			FeeFilterVersion,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode the message to wire format.
@@ -101,7 +86,6 @@ func TestFeeFilterWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode the message from wire format.
 		var msg MsgFeeFilter
 		rbuf := bytes.NewReader(test.buf)
@@ -117,19 +101,16 @@ func TestFeeFilterWire(t *testing.T) {
 		}
 	}
 }
-
 // TestFeeFilterWireErrors performs negative tests against wire encode and decode
 // of MsgFeeFilter to confirm error paths work correctly.
 func TestFeeFilterWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	pverNoFeeFilter := FeeFilterVersion - 1
 	wireErr := &MessageError{}
-
 	baseFeeFilter := NewMsgFeeFilter(123123) // 0x1e0f3
 	baseFeeFilterEncoded := []byte{
 		0xf3, 0xe0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
 	}
-
 	tests := []struct {
 		in       *MsgFeeFilter // Value to encode
 		buf      []byte        // Wire encoding
@@ -144,7 +125,6 @@ func TestFeeFilterWireErrors(t *testing.T) {
 		// Force error due to unsupported protocol version.
 		{baseFeeFilter, baseFeeFilterEncoded, pverNoFeeFilter, 4, wireErr, wireErr},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -155,7 +135,6 @@ func TestFeeFilterWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-
 		// For errors which are not of type MessageError, check them for
 		// equality.
 		if _, ok := err.(*MessageError); !ok {
@@ -165,7 +144,6 @@ func TestFeeFilterWireErrors(t *testing.T) {
 				continue
 			}
 		}
-
 		// Decode from wire format.
 		var msg MsgFeeFilter
 		r := newFixedReader(test.max, test.buf)
@@ -175,7 +153,6 @@ func TestFeeFilterWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-
 		// For errors which are not of type MessageError, check them for
 		// equality.
 		if _, ok := err.(*MessageError); !ok {
@@ -185,6 +162,5 @@ func TestFeeFilterWireErrors(t *testing.T) {
 				continue
 			}
 		}
-
 	}
 }

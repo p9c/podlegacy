@@ -28,4 +28,3 @@ github.com/conformal/btcutil/coinset/coins.go	 SimpleCoin.PkScript			 100.00% (1
 github.com/conformal/btcutil/coinset/coins.go	 CoinSet.Num				 100.00% (1/1)
 github.com/conformal/btcutil/coinset/coins.go	 satisfiesTargetValue			 100.00% (1/1)
 github.com/conformal/btcutil/coinset		 ----------------------------------	 100.00% (100/100)
-

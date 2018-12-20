@@ -1,5 +1,4 @@
 package addrmgr_test
-
 import (
 	"errors"
 	"fmt"
@@ -10,21 +9,17 @@ import (
 	"testing"
 	"time"
 )
-
 // naTest is used to describe a test to be performed against the NetAddressKey
 // method.
 type naTest struct {
 	in   wire.NetAddress
 	want string
 }
-
 // naTests houses all of the tests to be performed against the NetAddressKey
 // method.
 var naTests = make([]naTest, 0)
-
 // Put some IP in here for convenience. Points to google.
 var someIP = "173.194.115.66"
-
 // addNaTests
 func addNaTests() {
 	// IPv4

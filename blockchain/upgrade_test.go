@@ -1,14 +1,9 @@
 
-
-
-
 package blockchain
-
 import (
 	"reflect"
 	"testing"
 )
-
 // TestDeserializeUtxoEntryV0 ensures deserializing unspent trasaction output
 // entries from the legacy version 0 format works as expected.
 func TestDeserializeUtxoEntryV0(t *testing.T) {
@@ -94,7 +89,6 @@ func TestDeserializeUtxoEntryV0(t *testing.T) {
 			serialized: hexToBytes("0193d06c100000108ba5b9e763011dd46a006572d820e448e12d2bbb38640bc718e6"),
 		},
 	}
-
 	for i, test := range tests {
 		// Deserialize to map of utxos keyed by the output index.
 		entries, err := deserializeUtxoEntryV0(test.serialized)
@@ -103,7 +97,6 @@ func TestDeserializeUtxoEntryV0(t *testing.T) {
 				"error: %v", i, test.name, err)
 			continue
 		}
-
 		// Ensure the deserialized entry has the same properties as the
 		// ones in the test entry.
 		if !reflect.DeepEqual(entries, test.entries) {

@@ -1,23 +1,15 @@
 
-
-
-
-
 package btcjson_test
-
 import (
 	"encoding/json"
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 // TestPodExtCustomResults ensures any results that have custom marshalling
 // work as inteded.
 // and unmarshal code of results are as expected.
 func TestPodExtCustomResults(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		result   interface{}
@@ -36,7 +28,6 @@ func TestPodExtCustomResults(t *testing.T) {
 			expected: `{"versionstring":"1.0.0","major":1,"minor":0,"patch":0,"prerelease":"pr","buildmetadata":"bm"}`,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		marshalled, err := json.Marshal(test.result)

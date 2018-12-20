@@ -1,5 +1,4 @@
 
-
 package chainhash
 import "crypto/sha256"
 // HashB calculates hash(b) and returns the resulting bytes.

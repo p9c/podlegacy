@@ -1,20 +1,13 @@
-
-
-
-
 package blockchain
-
 import (
-	"reflect"
-	"testing"
-	"time"
-
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
+	"reflect"
+	"testing"
+	"time"
 )
-
 // TestHaveBlock tests the HaveBlock API to ensure proper functionality.
 func TestHaveBlock(t *testing.T) {
 	// Load up blocks such that there is a side chain.
@@ -24,7 +17,6 @@ func TestHaveBlock(t *testing.T) {
 		"blk_0_to_4.dat.bz2",
 		"blk_3A.dat.bz2",
 	}
-
 	var blocks []*btcutil.Block
 	for _, file := range testFiles {
 		blockTmp, err := loadBlocks(file)
@@ -34,7 +26,6 @@ func TestHaveBlock(t *testing.T) {
 		}
 		blocks = append(blocks, blockTmp...)
 	}
-
 	// Create a new database and chain instance to run tests against.
 	chain, teardownFunc, err := chainSetup("haveblock",
 		&chaincfg.MainNetParams)
@@ -43,11 +34,8 @@ func TestHaveBlock(t *testing.T) {
 		return
 	}
 	defer teardownFunc()
-
-	// Since we're not dealing with the real block chain, set the coinbase
-	// maturity to 1.
+	// Since we're not dealing with the real block chain, set the coinbase maturity to 1.
 	chain.TstSetCoinbaseMaturity(1)
-
 	for i := 1; i < len(blocks); i++ {
 		_, isOrphan, err := chain.ProcessBlock(blocks[i], BFNone)
 		if err != nil {
@@ -60,7 +48,6 @@ func TestHaveBlock(t *testing.T) {
 			return
 		}
 	}
-
 	// Insert an orphan block.
 	_, isOrphan, err := chain.ProcessBlock(btcutil.NewBlock(&Block100000),
 		BFNone)
@@ -73,31 +60,25 @@ func TestHaveBlock(t *testing.T) {
 			"it should be\n")
 		return
 	}
-
 	tests := []struct {
 		hash string
 		want bool
 	}{
 		// Genesis block should be present (in the main chain).
 		{hash: chaincfg.MainNetParams.GenesisHash.String(), want: true},
-
 		// Block 3a should be present (on a side chain).
 		{hash: "00000000474284d20067a4d33f6a02284e6ef70764a3a26d6a5b9df52ef663dd", want: true},
-
 		// Block 100000 should be present (as an orphan).
 		{hash: "000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506", want: true},
-
 		// Random hashes should not be available.
 		{hash: "123", want: false},
 	}
-
 	for i, test := range tests {
 		hash, err := chainhash.NewHashFromStr(test.hash)
 		if err != nil {
 			t.Errorf("NewHashFromStr: %v", err)
 			continue
 		}
-
 		result, err := chain.HaveBlock(hash)
 		if err != nil {
 			t.Errorf("HaveBlock #%d unexpected error: %v", i, err)
@@ -110,20 +91,17 @@ func TestHaveBlock(t *testing.T) {
 		}
 	}
 }
-
 // TestCalcSequenceLock tests the LockTimeToSequence function, and the
 // CalcSequenceLock method of a Chain instance. The tests exercise several
 // combinations of inputs to the CalcSequenceLock function in order to ensure
 // the returned SequenceLocks are correct for each test instance.
 func TestCalcSequenceLock(t *testing.T) {
 	netParams := &chaincfg.SimNetParams
-
 	// We need to activate CSV in order to test the processing logic, so
 	// manually craft the block version that's used to signal the soft-fork
 	// activation.
 	csvBit := netParams.Deployments[chaincfg.DeploymentCSV].BitNumber
 	blockVersion := uint32(0x20000000 | (uint32(1) << csvBit))
-
 	// Generate enough synthetic blocks to activate CSV.
 	chain := newFakeChain(netParams)
 	node := chain.bestChain.Tip()
@@ -135,7 +113,6 @@ func TestCalcSequenceLock(t *testing.T) {
 		chain.Index.AddNode(node)
 		chain.bestChain.SetTip(node)
 	}
-
 	// Create a utxo view with a fake utxo for the inputs used in the
 	// transactions created below.  This utxo is added such that it has an
 	// age of 4 blocks.
@@ -148,7 +125,6 @@ func TestCalcSequenceLock(t *testing.T) {
 	utxoView := NewUtxoViewpoint()
 	utxoView.AddTxOuts(targetTx, int32(numBlocksToActivate)-4)
 	utxoView.SetBestHash(&node.hash)
-
 	// Create a utxo that spends the fake utxo created above for use in the
 	// transactions created in the tests.  It has an age of 4 blocks.  Note
 	// that the sequence lock heights are always calculated from the same
@@ -159,19 +135,16 @@ func TestCalcSequenceLock(t *testing.T) {
 		Index: 0,
 	}
 	prevUtxoHeight := int32(numBlocksToActivate) - 4
-
 	// Obtain the median time past from the PoV of the input created above.
 	// The MTP for the input is the MTP from the PoV of the block *prior*
 	// to the one that included it.
 	medianTime := node.RelativeAncestor(5).CalcPastMedianTime().Unix()
-
 	// The median time calculated from the PoV of the best block in the
 	// test chain.  For unconfirmed inputs, this value will be used since
 	// the MTP will be calculated from the PoV of the yet-to-be-mined
 	// block.
 	nextMedianTime := node.CalcPastMedianTime().Unix()
 	nextBlockHeight := int32(numBlocksToActivate) + 1
-
 	// Add an additional transaction which will serve as our unconfirmed
 	// output.
 	unConfTx := &wire.MsgTx{
@@ -184,11 +157,9 @@ func TestCalcSequenceLock(t *testing.T) {
 		Hash:  unConfTx.TxHash(),
 		Index: 0,
 	}
-
 	// Adding a utxo with a height of 0x7fffffff indicates that the output
 	// is currently unmined.
 	utxoView.AddTxOuts(btcutil.NewTx(unConfTx), 0x7fffffff)
-
 	tests := []struct {
 		tx      *wire.MsgTx
 		view    *UtxoViewpoint
@@ -419,7 +390,6 @@ func TestCalcSequenceLock(t *testing.T) {
 			},
 		},
 	}
-
 	t.Logf("Running %v SequenceLock tests", len(tests))
 	for i, test := range tests {
 		utilTx := btcutil.NewTx(test.tx)
@@ -427,7 +397,6 @@ func TestCalcSequenceLock(t *testing.T) {
 		if err != nil {
 			t.Fatalf("test #%d, unable to calc sequence lock: %v", i, err)
 		}
-
 		if seqLock.Seconds != test.want.Seconds {
 			t.Fatalf("test #%d got %v seconds want %v seconds",
 				i, seqLock.Seconds, test.want.Seconds)
@@ -438,7 +407,6 @@ func TestCalcSequenceLock(t *testing.T) {
 		}
 	}
 }
-
 // nodeHashes is a convenience function that returns the hashes for all of the
 // passed indexes of the provided nodes.  It is used to construct expected hash
 // slices in the tests.
@@ -449,7 +417,6 @@ func nodeHashes(nodes []*blockNode, indexes ...int) []chainhash.Hash {
 	}
 	return hashes
 }
-
 // nodeHeaders is a convenience function that returns the headers for all of
 // the passed indexes of the provided nodes.  It is used to construct expected
 // located headers in the tests.
@@ -460,7 +427,6 @@ func nodeHeaders(nodes []*blockNode, indexes ...int) []wire.BlockHeader {
 	}
 	return headers
 }
-
 // TestLocateInventory ensures that locating inventory via the LocateHeaders and
 // LocateBlocks functions behaves as expected.
 func TestLocateInventory(t *testing.T) {
@@ -479,17 +445,14 @@ func TestLocateInventory(t *testing.T) {
 		chain.Index.AddNode(node)
 	}
 	chain.bestChain.SetTip(tip(branch0Nodes))
-
 	// Create chain views for different branches of the overall chain to
 	// simulate a local and remote node on different parts of the chain.
 	localView := newChainView(tip(branch0Nodes))
 	remoteView := newChainView(tip(branch1Nodes))
-
 	// Create a chain view for a completely unrelated block chain to
 	// simulate a remote node on a totally different chain.
 	unrelatedBranchNodes := chainedNodes(nil, 5)
 	unrelatedView := newChainView(tip(unrelatedBranchNodes))
-
 	tests := []struct {
 		name       string
 		locator    BlockLocator       // locator for requested inventory
@@ -785,7 +748,6 @@ func TestLocateInventory(t *testing.T) {
 				test.name, headers, test.headers)
 			continue
 		}
-
 		// Ensure the expected block hashes are located.
 		maxAllowed := uint32(wire.MaxBlocksPerMsg)
 		if test.maxAllowed != 0 {
@@ -800,7 +762,6 @@ func TestLocateInventory(t *testing.T) {
 		}
 	}
 }
-
 // TestHeightToHashRange ensures that fetching a range of block hashes by start
 // height and end hash works as expected.
 func TestHeightToHashRange(t *testing.T) {
@@ -823,7 +784,6 @@ func TestHeightToHashRange(t *testing.T) {
 		chain.Index.AddNode(node)
 	}
 	chain.bestChain.SetTip(tip(branch0Nodes))
-
 	tests := []struct {
 		name        string
 		startHeight int32            // locator for requested inventory
@@ -885,14 +845,12 @@ func TestHeightToHashRange(t *testing.T) {
 			}
 			continue
 		}
-
 		if !reflect.DeepEqual(hashes, test.hashes) {
 			t.Errorf("%s: unxpected hashes -- got %v, want %v",
 				test.name, hashes, test.hashes)
 		}
 	}
 }
-
 // TestIntervalBlockHashes ensures that fetching block hashes at specified
 // intervals by end hash works as expected.
 func TestIntervalBlockHashes(t *testing.T) {
@@ -915,7 +873,6 @@ func TestIntervalBlockHashes(t *testing.T) {
 		chain.Index.AddNode(node)
 	}
 	chain.bestChain.SetTip(tip(branch0Nodes))
-
 	tests := []struct {
 		name        string
 		endHash     chainhash.Hash
@@ -957,7 +914,6 @@ func TestIntervalBlockHashes(t *testing.T) {
 			}
 			continue
 		}
-
 		if !reflect.DeepEqual(hashes, test.hashes) {
 			t.Errorf("%s: unxpected hashes -- got %v, want %v",
 				test.name, hashes, test.hashes)

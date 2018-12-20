@@ -1,20 +1,13 @@
 
-
-
-
-
 package peer_test
-
 import (
 	"fmt"
 	"net"
 	"time"
-
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/wire"
 )
-
 // mockRemotePeer creates a basic inbound peer listening on the simnet port for
 // use with Example_peerConnection.  It does not return until the listner is
 // active.
@@ -26,7 +19,6 @@ func mockRemotePeer() error {
 		ChainParams:      &chaincfg.SimNetParams,
 		TrickleInterval:  time.Second * 10,
 	}
-
 	// Accept connections on the simnet port.
 	listener, err := net.Listen("tcp", "127.0.0.1:18555")
 	if err != nil {
@@ -38,15 +30,12 @@ func mockRemotePeer() error {
 			fmt.Printf("Accept: error %v\n", err)
 			return
 		}
-
 		// Create and start the inbound peer.
 		p := peer.NewInboundPeer(peerCfg)
 		p.AssociateConnection(conn)
 	}()
-
 	return nil
 }
-
 // This example demonstrates the basic process for initializing and creating an
 // outbound peer.  Peers negotiate by exchanging version and verack messages.
 // For demonstration, a simple handler for version message is attached to the
@@ -60,7 +49,6 @@ func Example_newOutboundPeer() {
 		fmt.Printf("mockRemotePeer: unexpected error %v\n", err)
 		return
 	}
-
 	// Create an outbound peer that is configured to act as a simnet node
 	// that offers no services and has listeners for the version and verack
 	// messages.  The verack listener is used here to signal the code below
@@ -87,7 +75,6 @@ func Example_newOutboundPeer() {
 		fmt.Printf("NewOutboundPeer: error %v\n", err)
 		return
 	}
-
 	// Establish the connection to the peer address and mark it connected.
 	conn, err := net.Dial("tcp", p.Addr())
 	if err != nil {
@@ -95,18 +82,15 @@ func Example_newOutboundPeer() {
 		return
 	}
 	p.AssociateConnection(conn)
-
 	// Wait for the verack message or timeout in case of failure.
 	select {
 	case <-verack:
 	case <-time.After(time.Second * 1):
 		fmt.Printf("Example_peerConnection: verack timeout")
 	}
-
 	// Disconnect the peer.
 	p.Disconnect()
 	p.WaitForDisconnect()
-
 	// Output:
 	// outbound: received version
 }

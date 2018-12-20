@@ -1,18 +1,12 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"testing"
 )
-
 func TestMemPool(t *testing.T) {
 	pver := ProtocolVersion
 	enc := BaseEncoding
-
 	// Ensure the command is expected value.
 	wantCmd := "mempool"
 	msg := NewMsgMemPool()
@@ -20,7 +14,6 @@ func TestMemPool(t *testing.T) {
 		t.Errorf("NewMsgMemPool: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-
 	// Ensure max payload is expected value.
 	wantPayload := uint32(0)
 	maxPayload := msg.MaxPayloadLength(pver)
@@ -29,14 +22,12 @@ func TestMemPool(t *testing.T) {
 			"protocol version %d - got %v, want %v", pver,
 			maxPayload, wantPayload)
 	}
-
 	// Test encode with latest protocol version.
 	var buf bytes.Buffer
 	err := msg.BtcEncode(&buf, pver, enc)
 	if err != nil {
 		t.Errorf("encode of MsgMemPool failed %v err <%v>", msg, err)
 	}
-
 	// Older protocol versions should fail encode since message didn't
 	// exist yet.
 	oldPver := BIP0035Version - 1
@@ -45,14 +36,12 @@ func TestMemPool(t *testing.T) {
 		s := "encode of MsgMemPool passed for old protocol version %v err <%v>"
 		t.Errorf(s, msg, err)
 	}
-
 	// Test decode with latest protocol version.
 	readmsg := NewMsgMemPool()
 	err = readmsg.BtcDecode(&buf, pver, enc)
 	if err != nil {
 		t.Errorf("decode of MsgMemPool failed [%v] err <%v>", buf, err)
 	}
-
 	// Older protocol versions should fail decode since message didn't
 	// exist yet.
 	err = readmsg.BtcDecode(&buf, oldPver, enc)

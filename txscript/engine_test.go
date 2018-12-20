@@ -1,28 +1,20 @@
 
-
-
-
 package txscript
-
 import (
 	"testing"
-
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
 )
-
 // TestBadPC sets the pc to a deliberately bad result then confirms that Step()
 // and Disasm fail correctly.
 func TestBadPC(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		script, off int
 	}{
 		{script: 2, off: 0},
 		{script: 0, off: 2},
 	}
-
 	// tx with almost empty scripts.
 	tx := &wire.MsgTx{
 		Version: 1,
@@ -52,23 +44,19 @@ func TestBadPC(t *testing.T) {
 		LockTime: 0,
 	}
 	pkScript := mustParseShortForm("NOP")
-
 	for _, test := range tests {
 		vm, err := NewEngine(pkScript, tx, 0, 0, nil, nil, -1)
 		if err != nil {
 			t.Errorf("Failed to create script: %v", err)
 		}
-
 		// set to after all scripts
 		vm.scriptIdx = test.script
 		vm.scriptOff = test.off
-
 		_, err = vm.Step()
 		if err == nil {
 			t.Errorf("Step with invalid pc (%v) succeeds!", test)
 			continue
 		}
-
 		_, err = vm.DisasmPC()
 		if err == nil {
 			t.Errorf("DisasmPC with invalid pc (%v) succeeds!",
@@ -76,12 +64,10 @@ func TestBadPC(t *testing.T) {
 		}
 	}
 }
-
 // TestCheckErrorCondition tests the execute early test in CheckErrorCondition()
 // since most code paths are tested elsewhere.
 func TestCheckErrorCondition(t *testing.T) {
 	t.Parallel()
-
 	// tx with almost empty scripts.
 	tx := &wire.MsgTx{
 		Version: 1,
@@ -110,12 +96,10 @@ func TestCheckErrorCondition(t *testing.T) {
 	}
 	pkScript := mustParseShortForm("NOP NOP NOP NOP NOP NOP NOP NOP NOP" +
 		" NOP TRUE")
-
 	vm, err := NewEngine(pkScript, tx, 0, 0, nil, nil, 0)
 	if err != nil {
 		t.Errorf("failed to create script: %v", err)
 	}
-
 	for i := 0; i < len(pkScript)-1; i++ {
 		done, err := vm.Step()
 		if err != nil {
@@ -124,7 +108,6 @@ func TestCheckErrorCondition(t *testing.T) {
 		if done {
 			t.Fatalf("finshed early on %dth time", i)
 		}
-
 		err = vm.CheckErrorCondition(false)
 		if !IsErrorCode(err, ErrScriptUnfinished) {
 			t.Fatalf("got unexepected error %v on %dth iteration",
@@ -138,22 +121,18 @@ func TestCheckErrorCondition(t *testing.T) {
 	if !done {
 		t.Fatalf("final step isn't done!")
 	}
-
 	err = vm.CheckErrorCondition(false)
 	if err != nil {
 		t.Errorf("unexpected error %v on final check", err)
 	}
 }
-
 // TestInvalidFlagCombinations ensures the script engine returns the expected
 // error when disallowed flag combinations are specified.
 func TestInvalidFlagCombinations(t *testing.T) {
 	t.Parallel()
-
 	tests := []ScriptFlags{
 		ScriptVerifyCleanStack,
 	}
-
 	// tx with almost empty scripts.
 	tx := &wire.MsgTx{
 		Version: 1,
@@ -185,7 +164,6 @@ func TestInvalidFlagCombinations(t *testing.T) {
 		LockTime: 0,
 	}
 	pkScript := []byte{OP_NOP}
-
 	for i, test := range tests {
 		_, err := NewEngine(pkScript, tx, 0, test, nil, nil, -1)
 		if !IsErrorCode(err, ErrInvalidFlags) {
@@ -194,12 +172,10 @@ func TestInvalidFlagCombinations(t *testing.T) {
 		}
 	}
 }
-
 // TestCheckPubKeyEncoding ensures the internal checkPubKeyEncoding function
 // works as expected.
 func TestCheckPubKeyEncoding(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name    string
 		key     []byte
@@ -239,7 +215,6 @@ func TestCheckPubKeyEncoding(t *testing.T) {
 			isValid: false,
 		},
 	}
-
 	vm := Engine{flags: ScriptVerifyStrictEncoding}
 	for _, test := range tests {
 		err := vm.checkPubKeyEncoding(test.key)
@@ -252,14 +227,11 @@ func TestCheckPubKeyEncoding(t *testing.T) {
 				"when it should have failed", test.name)
 		}
 	}
-
 }
-
 // TestCheckSignatureEncoding ensures the internal checkSignatureEncoding
 // function works as expected.
 func TestCheckSignatureEncoding(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name    string
 		sig     []byte
@@ -411,7 +383,6 @@ func TestCheckSignatureEncoding(t *testing.T) {
 			isValid: false,
 		},
 	}
-
 	vm := Engine{flags: ScriptVerifyStrictEncoding}
 	for _, test := range tests {
 		err := vm.checkSignatureEncoding(test.sig)

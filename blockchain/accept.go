@@ -1,11 +1,9 @@
 package blockchain
-
 import (
 	"fmt"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/database"
 )
-
 // maybeAcceptBlock potentially accepts a block into the block chain and, if
 // accepted, returns whether or not it is on the main chain.  It performs
 // several validation checks which depend on its position within the block chain

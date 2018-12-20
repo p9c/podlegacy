@@ -1,21 +1,15 @@
 
-
-
-
 package treap
-
 import (
 	"bytes"
 	"encoding/binary"
 	"testing"
 )
-
 // TestMutableIterator ensures that the general behavior of mutable treap
 // iterators is as expected including tests for first, last, ordered and reverse
 // ordered iteration, limiting the range, seeking, and initially unpositioned.
 func TestMutableIterator(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		numKeys       int
 		step          int
@@ -36,7 +30,6 @@ func TestMutableIterator(t *testing.T) {
 			seekKey:       serializeUint32(12),
 			expectedSeek:  serializeUint32(12),
 		},
-
 		// Limited to range [24, end].  Values are the set
 		// (0, 2, 4, ..., 48).  Seek value that doesn't exist and is
 		// greater than largest existing key.
@@ -49,7 +42,6 @@ func TestMutableIterator(t *testing.T) {
 			seekKey:       serializeUint32(49),
 			expectedSeek:  nil,
 		},
-
 		// Limited to range [start, 25).  Values are the set
 		// (0, 3, 6, ..., 48).  Seek value that doesn't exist but is
 		// before an existing value within the range.
@@ -62,7 +54,6 @@ func TestMutableIterator(t *testing.T) {
 			seekKey:       serializeUint32(17),
 			expectedSeek:  serializeUint32(18),
 		},
-
 		// Limited to range [10, 21).  Values are the set
 		// (0, 4, ..., 48).  Seek value that exists, but is before the
 		// minimum allowed range.
@@ -76,7 +67,6 @@ func TestMutableIterator(t *testing.T) {
 			seekKey:       serializeUint32(4),
 			expectedSeek:  nil,
 		},
-
 		// Limited by prefix {0,0,0}, range [{0,0,0}, {0,0,1}).
 		// Since it's a bytewise compare,  {0,0,0,...} < {0,0,1}.
 		// Seek existing value within the allowed range.
@@ -91,7 +81,6 @@ func TestMutableIterator(t *testing.T) {
 			expectedSeek:  serializeUint32(100),
 		},
 	}
-
 testLoop:
 	for i, test := range tests {
 		// Insert a bunch of keys.
@@ -100,10 +89,8 @@ testLoop:
 			key := serializeUint32(uint32(i))
 			testTreap.Put(key, key)
 		}
-
 		// Create new iterator limited by the test params.
 		iter := testTreap.Iterator(test.startKey, test.limitKey)
-
 		// Ensure the first item is accurate.
 		hasFirst := iter.First()
 		if !hasFirst && test.expectedFirst != nil {
@@ -122,12 +109,10 @@ testLoop:
 				"want %x", i, gotVal, test.expectedFirst)
 			continue
 		}
-
 		// Ensure the iterator gives the expected items in order.
 		curNum := binary.BigEndian.Uint32(test.expectedFirst)
 		for iter.Next() {
 			curNum += uint32(test.step)
-
 			// Ensure key is as expected.
 			gotKey := iter.Key()
 			expectedKey := serializeUint32(curNum)
@@ -137,7 +122,6 @@ testLoop:
 					expectedKey)
 				continue testLoop
 			}
-
 			// Ensure value is as expected.
 			gotVal := iter.Value()
 			if !bytes.Equal(gotVal, expectedKey) {
@@ -147,13 +131,11 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure iterator is exhausted.
 		if iter.Valid() {
 			t.Errorf("Valid #%d: iterator should be exhausted", i)
 			continue
 		}
-
 		// Ensure the last item is accurate.
 		hasLast := iter.Last()
 		if !hasLast && test.expectedLast != nil {
@@ -172,13 +154,11 @@ testLoop:
 				"want %x", i, gotVal, test.expectedLast)
 			continue
 		}
-
 		// Ensure the iterator gives the expected items in reverse
 		// order.
 		curNum = binary.BigEndian.Uint32(test.expectedLast)
 		for iter.Prev() {
 			curNum -= uint32(test.step)
-
 			// Ensure key is as expected.
 			gotKey := iter.Key()
 			expectedKey := serializeUint32(curNum)
@@ -188,7 +168,6 @@ testLoop:
 					expectedKey)
 				continue testLoop
 			}
-
 			// Ensure value is as expected.
 			gotVal := iter.Value()
 			if !bytes.Equal(gotVal, expectedKey) {
@@ -198,13 +177,11 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure iterator is exhausted.
 		if iter.Valid() {
 			t.Errorf("Valid #%d: iterator should be exhausted", i)
 			continue
 		}
-
 		// Seek to the provided key.
 		seekValid := iter.Seek(test.seekKey)
 		if !seekValid && test.expectedSeek != nil {
@@ -223,7 +200,6 @@ testLoop:
 				"want %x", i, gotVal, test.expectedSeek)
 			continue
 		}
-
 		// Recreate the iterator and ensure calling Next on it before it
 		// has been positioned gives the first element.
 		iter = testTreap.Iterator(test.startKey, test.limitKey)
@@ -244,7 +220,6 @@ testLoop:
 				"want %x", i, gotVal, test.expectedFirst)
 			continue
 		}
-
 		// Recreate the iterator and ensure calling Prev on it before it
 		// has been positioned gives the first element.
 		iter = testTreap.Iterator(test.startKey, test.limitKey)
@@ -267,21 +242,17 @@ testLoop:
 		}
 	}
 }
-
 // TestMutableEmptyIterator ensures that the various functions behave as
 // expected when a mutable treap is empty.
 func TestMutableEmptyIterator(t *testing.T) {
 	t.Parallel()
-
 	// Create iterator against empty treap.
 	testTreap := NewMutable()
 	iter := testTreap.Iterator(nil, nil)
-
 	// Ensure Valid on empty iterator reports it as exhausted.
 	if iter.Valid() {
 		t.Fatal("Valid: iterator should be exhausted")
 	}
-
 	// Ensure First and Last on empty iterator report it as exhausted.
 	if iter.First() {
 		t.Fatal("First: iterator should be exhausted")
@@ -289,7 +260,6 @@ func TestMutableEmptyIterator(t *testing.T) {
 	if iter.Last() {
 		t.Fatal("Last: iterator should be exhausted")
 	}
-
 	// Ensure Next and Prev on empty iterator report it as exhausted.
 	if iter.Next() {
 		t.Fatal("Next: iterator should be exhausted")
@@ -297,7 +267,6 @@ func TestMutableEmptyIterator(t *testing.T) {
 	if iter.Prev() {
 		t.Fatal("Prev: iterator should be exhausted")
 	}
-
 	// Ensure Key and Value on empty iterator are nil.
 	if gotKey := iter.Key(); gotKey != nil {
 		t.Fatalf("Key: should be nil - got %q", gotKey)
@@ -305,7 +274,6 @@ func TestMutableEmptyIterator(t *testing.T) {
 	if gotVal := iter.Value(); gotVal != nil {
 		t.Fatalf("Value: should be nil - got %q", gotVal)
 	}
-
 	// Ensure Next and Prev report exhausted after forcing a reseek on an
 	// empty iterator.
 	iter.ForceReseek()
@@ -317,12 +285,10 @@ func TestMutableEmptyIterator(t *testing.T) {
 		t.Fatal("Prev: iterator should be exhausted")
 	}
 }
-
 // TestIteratorUpdates ensures that issuing a call to ForceReseek on an iterator
 // that had the underlying mutable treap updated works as expected.
 func TestIteratorUpdates(t *testing.T) {
 	t.Parallel()
-
 	// Create a new treap with various values inserted in no particular
 	// order.  The resulting keys are the set (2, 4, 7, 11, 18, 25).
 	testTreap := NewMutable()
@@ -332,16 +298,13 @@ func TestIteratorUpdates(t *testing.T) {
 	testTreap.Put(serializeUint32(11), nil)
 	testTreap.Put(serializeUint32(25), nil)
 	testTreap.Put(serializeUint32(4), nil)
-
 	// Create an iterator against the treap with a range that excludes the
 	// lowest and highest entries.  The limited set is then (4, 7, 11, 18)
 	iter := testTreap.Iterator(serializeUint32(3), serializeUint32(25))
-
 	// Delete a key from the middle of the range and notify the iterator to
 	// force a reseek.
 	testTreap.Delete(serializeUint32(11))
 	iter.ForceReseek()
-
 	// Ensure that calling Next on the iterator after the forced reseek
 	// gives the expected key.  The limited set of keys at this point is
 	// (4, 7, 18) and the iterator has not yet been positioned.
@@ -354,12 +317,10 @@ func TestIteratorUpdates(t *testing.T) {
 		t.Fatalf("ForceReseek.Key: unexpected key - got %x, want %x",
 			gotKey, wantKey)
 	}
-
 	// Delete the key the iterator is currently position at and notify the
 	// iterator to force a reseek.
 	testTreap.Delete(serializeUint32(4))
 	iter.ForceReseek()
-
 	// Ensure that calling Next on the iterator after the forced reseek
 	// gives the expected key.  The limited set of keys at this point is
 	// (7, 18) and the iterator is positioned at a deleted entry before 7.
@@ -372,12 +333,10 @@ func TestIteratorUpdates(t *testing.T) {
 		t.Fatalf("ForceReseek.Key: unexpected key - got %x, want %x",
 			gotKey, wantKey)
 	}
-
 	// Add a key before the current key the iterator is position at and
 	// notify the iterator to force a reseek.
 	testTreap.Put(serializeUint32(4), nil)
 	iter.ForceReseek()
-
 	// Ensure that calling Prev on the iterator after the forced reseek
 	// gives the expected key.  The limited set of keys at this point is
 	// (4, 7, 18) and the iterator is positioned at 7.
@@ -390,12 +349,10 @@ func TestIteratorUpdates(t *testing.T) {
 		t.Fatalf("ForceReseek.Key: unexpected key - got %x, want %x",
 			gotKey, wantKey)
 	}
-
 	// Delete the next key the iterator would ordinarily move to then notify
 	// the iterator to force a reseek.
 	testTreap.Delete(serializeUint32(7))
 	iter.ForceReseek()
-
 	// Ensure that calling Next on the iterator after the forced reseek
 	// gives the expected key.  The limited set of keys at this point is
 	// (4, 18) and the iterator is positioned at 4.
@@ -409,13 +366,11 @@ func TestIteratorUpdates(t *testing.T) {
 			gotKey, wantKey)
 	}
 }
-
 // TestImmutableIterator ensures that the general behavior of immutable treap
 // iterators is as expected including tests for first, last, ordered and reverse
 // ordered iteration, limiting the range, seeking, and initially unpositioned.
 func TestImmutableIterator(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		numKeys       int
 		step          int
@@ -436,7 +391,6 @@ func TestImmutableIterator(t *testing.T) {
 			seekKey:       serializeUint32(12),
 			expectedSeek:  serializeUint32(12),
 		},
-
 		// Limited to range [24, end].  Values are the set
 		// (0, 2, 4, ..., 48).  Seek value that doesn't exist and is
 		// greater than largest existing key.
@@ -449,7 +403,6 @@ func TestImmutableIterator(t *testing.T) {
 			seekKey:       serializeUint32(49),
 			expectedSeek:  nil,
 		},
-
 		// Limited to range [start, 25).  Values are the set
 		// (0, 3, 6, ..., 48).  Seek value that doesn't exist but is
 		// before an existing value within the range.
@@ -462,7 +415,6 @@ func TestImmutableIterator(t *testing.T) {
 			seekKey:       serializeUint32(17),
 			expectedSeek:  serializeUint32(18),
 		},
-
 		// Limited to range [10, 21).  Values are the set
 		// (0, 4, ..., 48).  Seek value that exists, but is before the
 		// minimum allowed range.
@@ -476,7 +428,6 @@ func TestImmutableIterator(t *testing.T) {
 			seekKey:       serializeUint32(4),
 			expectedSeek:  nil,
 		},
-
 		// Limited by prefix {0,0,0}, range [{0,0,0}, {0,0,1}).
 		// Since it's a bytewise compare,  {0,0,0,...} < {0,0,1}.
 		// Seek existing value within the allowed range.
@@ -491,7 +442,6 @@ func TestImmutableIterator(t *testing.T) {
 			expectedSeek:  serializeUint32(100),
 		},
 	}
-
 testLoop:
 	for i, test := range tests {
 		// Insert a bunch of keys.
@@ -500,10 +450,8 @@ testLoop:
 			key := serializeUint32(uint32(i))
 			testTreap = testTreap.Put(key, key)
 		}
-
 		// Create new iterator limited by the test params.
 		iter := testTreap.Iterator(test.startKey, test.limitKey)
-
 		// Ensure the first item is accurate.
 		hasFirst := iter.First()
 		if !hasFirst && test.expectedFirst != nil {
@@ -522,12 +470,10 @@ testLoop:
 				"want %x", i, gotVal, test.expectedFirst)
 			continue
 		}
-
 		// Ensure the iterator gives the expected items in order.
 		curNum := binary.BigEndian.Uint32(test.expectedFirst)
 		for iter.Next() {
 			curNum += uint32(test.step)
-
 			// Ensure key is as expected.
 			gotKey := iter.Key()
 			expectedKey := serializeUint32(curNum)
@@ -537,7 +483,6 @@ testLoop:
 					expectedKey)
 				continue testLoop
 			}
-
 			// Ensure value is as expected.
 			gotVal := iter.Value()
 			if !bytes.Equal(gotVal, expectedKey) {
@@ -547,13 +492,11 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure iterator is exhausted.
 		if iter.Valid() {
 			t.Errorf("Valid #%d: iterator should be exhausted", i)
 			continue
 		}
-
 		// Ensure the last item is accurate.
 		hasLast := iter.Last()
 		if !hasLast && test.expectedLast != nil {
@@ -572,13 +515,11 @@ testLoop:
 				"want %x", i, gotVal, test.expectedLast)
 			continue
 		}
-
 		// Ensure the iterator gives the expected items in reverse
 		// order.
 		curNum = binary.BigEndian.Uint32(test.expectedLast)
 		for iter.Prev() {
 			curNum -= uint32(test.step)
-
 			// Ensure key is as expected.
 			gotKey := iter.Key()
 			expectedKey := serializeUint32(curNum)
@@ -588,7 +529,6 @@ testLoop:
 					expectedKey)
 				continue testLoop
 			}
-
 			// Ensure value is as expected.
 			gotVal := iter.Value()
 			if !bytes.Equal(gotVal, expectedKey) {
@@ -598,13 +538,11 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure iterator is exhausted.
 		if iter.Valid() {
 			t.Errorf("Valid #%d: iterator should be exhausted", i)
 			continue
 		}
-
 		// Seek to the provided key.
 		seekValid := iter.Seek(test.seekKey)
 		if !seekValid && test.expectedSeek != nil {
@@ -623,7 +561,6 @@ testLoop:
 				"want %x", i, gotVal, test.expectedSeek)
 			continue
 		}
-
 		// Recreate the iterator and ensure calling Next on it before it
 		// has been positioned gives the first element.
 		iter = testTreap.Iterator(test.startKey, test.limitKey)
@@ -644,7 +581,6 @@ testLoop:
 				"want %x", i, gotVal, test.expectedFirst)
 			continue
 		}
-
 		// Recreate the iterator and ensure calling Prev on it before it
 		// has been positioned gives the first element.
 		iter = testTreap.Iterator(test.startKey, test.limitKey)
@@ -667,21 +603,17 @@ testLoop:
 		}
 	}
 }
-
 // TestImmutableEmptyIterator ensures that the various functions behave as
 // expected when an immutable treap is empty.
 func TestImmutableEmptyIterator(t *testing.T) {
 	t.Parallel()
-
 	// Create iterator against empty treap.
 	testTreap := NewImmutable()
 	iter := testTreap.Iterator(nil, nil)
-
 	// Ensure Valid on empty iterator reports it as exhausted.
 	if iter.Valid() {
 		t.Fatal("Valid: iterator should be exhausted")
 	}
-
 	// Ensure First and Last on empty iterator report it as exhausted.
 	if iter.First() {
 		t.Fatal("First: iterator should be exhausted")
@@ -689,7 +621,6 @@ func TestImmutableEmptyIterator(t *testing.T) {
 	if iter.Last() {
 		t.Fatal("Last: iterator should be exhausted")
 	}
-
 	// Ensure Next and Prev on empty iterator report it as exhausted.
 	if iter.Next() {
 		t.Fatal("Next: iterator should be exhausted")
@@ -697,7 +628,6 @@ func TestImmutableEmptyIterator(t *testing.T) {
 	if iter.Prev() {
 		t.Fatal("Prev: iterator should be exhausted")
 	}
-
 	// Ensure Key and Value on empty iterator are nil.
 	if gotKey := iter.Key(); gotKey != nil {
 		t.Fatalf("Key: should be nil - got %q", gotKey)
@@ -705,7 +635,6 @@ func TestImmutableEmptyIterator(t *testing.T) {
 	if gotVal := iter.Value(); gotVal != nil {
 		t.Fatalf("Value: should be nil - got %q", gotVal)
 	}
-
 	// Ensure calling ForceReseek on an immutable treap iterator does not
 	// cause any issues since it only applies to mutable treap iterators.
 	iter.ForceReseek()

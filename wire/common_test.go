@@ -1,9 +1,5 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"fmt"
@@ -11,11 +7,9 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/davecgh/go-spew/spew"
 )
-
 // mainNetGenesisHash is the hash of the first block in the block chain for the
 // main network (genesis block).
 var mainNetGenesisHash = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet happy.
@@ -24,7 +18,6 @@ var mainNetGenesisHash = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet
 	0x93, 0x1e, 0x83, 0x65, 0xe1, 0x5a, 0x08, 0x9c,
 	0x68, 0xd6, 0x19, 0x00, 0x00, 0x00, 0x00, 0x00,
 })
-
 // mainNetGenesisMerkleRoot is the hash of the first transaction in the genesis
 // block for the main network.
 var mainNetGenesisMerkleRoot = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet happy.
@@ -33,14 +26,12 @@ var mainNetGenesisMerkleRoot = chainhash.Hash([chainhash.HashSize]byte{ // Make 
 	0x7f, 0xc8, 0x1b, 0xc3, 0x88, 0x8a, 0x51, 0x32,
 	0x3a, 0x9f, 0xb8, 0xaa, 0x4b, 0x1e, 0x5e, 0x4a,
 })
-
 // fakeRandReader implements the io.Reader interface and is used to force
 // errors in the RandomUint64 function.
 type fakeRandReader struct {
 	n   int
 	err error
 }
-
 // Read returns the fake reader error and the lesser of the fake reader value
 // and the length of p.
 func (r *fakeRandReader) Read(p []byte) (int, error) {
@@ -50,13 +41,11 @@ func (r *fakeRandReader) Read(p []byte) (int, error) {
 	}
 	return n, r.err
 }
-
 // TestElementWire tests wire encode and decode for various element types.  This
 // is mainly to test the "fast" paths in readElement and writeElement which use
 // type assertions to avoid reflection when possible.
 func TestElementWire(t *testing.T) {
 	type writeElementReflect int32
-
 	tests := []struct {
 		in  interface{} // Value to encode
 		buf []byte      // Wire encoding
@@ -135,7 +124,6 @@ func TestElementWire(t *testing.T) {
 			[]byte{0x01, 0x00, 0x00, 0x00},
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Write to wire format.
@@ -150,7 +138,6 @@ func TestElementWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Read from wire format.
 		rbuf := bytes.NewReader(test.buf)
 		val := test.in
@@ -173,7 +160,6 @@ func TestElementWire(t *testing.T) {
 		}
 	}
 }
-
 // TestElementWireErrors performs negative tests against wire encode and decode
 // of various element types to confirm error paths work correctly.
 func TestElementWireErrors(t *testing.T) {
@@ -215,7 +201,6 @@ func TestElementWireErrors(t *testing.T) {
 		{InvType(InvTypeTx), 0, io.ErrShortWrite, io.EOF},
 		{BitcoinNet(MainNet), 0, io.ErrShortWrite, io.EOF},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -226,7 +211,6 @@ func TestElementWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-
 		// Decode from wire format.
 		r := newFixedReader(test.max, nil)
 		val := test.in
@@ -241,11 +225,9 @@ func TestElementWireErrors(t *testing.T) {
 		}
 	}
 }
-
 // TestVarIntWire tests wire encode and decode for variable length integers.
 func TestVarIntWire(t *testing.T) {
 	pver := ProtocolVersion
-
 	tests := []struct {
 		in   uint64 // Value to encode
 		out  uint64 // Expected decoded value
@@ -278,7 +260,6 @@ func TestVarIntWire(t *testing.T) {
 			pver,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -293,7 +274,6 @@ func TestVarIntWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode from wire format.
 		rbuf := bytes.NewReader(test.buf)
 		val, err := ReadVarInt(rbuf, test.pver)
@@ -308,12 +288,10 @@ func TestVarIntWire(t *testing.T) {
 		}
 	}
 }
-
 // TestVarIntWireErrors performs negative tests against wire encode and decode
 // of variable length integers to confirm error paths work correctly.
 func TestVarIntWireErrors(t *testing.T) {
 	pver := ProtocolVersion
-
 	tests := []struct {
 		in       uint64 // Value to encode
 		buf      []byte // Wire encoding
@@ -331,7 +309,6 @@ func TestVarIntWireErrors(t *testing.T) {
 		// Force errors on 8-byte read/write.
 		{0x100000000, []byte{0xff}, pver, 2, io.ErrShortWrite, io.ErrUnexpectedEOF},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -342,7 +319,6 @@ func TestVarIntWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-
 		// Decode from wire format.
 		r := newFixedReader(test.max, test.buf)
 		_, err = ReadVarInt(r, test.pver)
@@ -353,12 +329,10 @@ func TestVarIntWireErrors(t *testing.T) {
 		}
 	}
 }
-
 // TestVarIntNonCanonical ensures variable length integers that are not encoded
 // canonically return the expected error.
 func TestVarIntNonCanonical(t *testing.T) {
 	pver := ProtocolVersion
-
 	tests := []struct {
 		name string // Test name for easier identification
 		in   []byte // Value to decode
@@ -391,7 +365,6 @@ func TestVarIntNonCanonical(t *testing.T) {
 			pver,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Decode from wire format.
@@ -409,7 +382,6 @@ func TestVarIntNonCanonical(t *testing.T) {
 		}
 	}
 }
-
 // TestVarIntWire tests the serialize size for variable length integers.
 func TestVarIntSerializeSize(t *testing.T) {
 	tests := []struct {
@@ -433,7 +405,6 @@ func TestVarIntSerializeSize(t *testing.T) {
 		// Max 8-byte
 		{0xffffffffffffffff, 9},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		serializedSize := VarIntSerializeSize(test.val)
@@ -444,14 +415,11 @@ func TestVarIntSerializeSize(t *testing.T) {
 		}
 	}
 }
-
 // TestVarStringWire tests wire encode and decode for variable length strings.
 func TestVarStringWire(t *testing.T) {
 	pver := ProtocolVersion
-
 	// str256 is a string that takes a 2-byte varint to encode.
 	str256 := strings.Repeat("test", 64)
-
 	tests := []struct {
 		in   string // String to encode
 		out  string // String to decoded value
@@ -466,7 +434,6 @@ func TestVarStringWire(t *testing.T) {
 		// 2-byte varint + string
 		{str256, str256, append([]byte{0xfd, 0x00, 0x01}, []byte(str256)...), pver},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -481,7 +448,6 @@ func TestVarStringWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode from wire format.
 		rbuf := bytes.NewReader(test.buf)
 		val, err := ReadVarString(rbuf, test.pver)
@@ -496,15 +462,12 @@ func TestVarStringWire(t *testing.T) {
 		}
 	}
 }
-
 // TestVarStringWireErrors performs negative tests against wire encode and
 // decode of variable length strings to confirm error paths work correctly.
 func TestVarStringWireErrors(t *testing.T) {
 	pver := ProtocolVersion
-
 	// str256 is a string that takes a 2-byte varint to encode.
 	str256 := strings.Repeat("test", 64)
-
 	tests := []struct {
 		in       string // Value to encode
 		buf      []byte // Wire encoding
@@ -521,7 +484,6 @@ func TestVarStringWireErrors(t *testing.T) {
 		// Force errors on 2-byte varint + string.
 		{str256, []byte{0xfd}, pver, 2, io.ErrShortWrite, io.ErrUnexpectedEOF},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -532,7 +494,6 @@ func TestVarStringWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-
 		// Decode from wire format.
 		r := newFixedReader(test.max, test.buf)
 		_, err = ReadVarString(r, test.pver)
@@ -543,14 +504,12 @@ func TestVarStringWireErrors(t *testing.T) {
 		}
 	}
 }
-
 // TestVarStringOverflowErrors performs tests to ensure deserializing variable
 // length strings intentionally crafted to use large values for the string
 // length are handled properly.  This could otherwise potentially be used as an
 // attack vector.
 func TestVarStringOverflowErrors(t *testing.T) {
 	pver := ProtocolVersion
-
 	tests := []struct {
 		buf  []byte // Wire encoding
 		pver uint32 // Protocol version for wire encoding
@@ -561,7 +520,6 @@ func TestVarStringOverflowErrors(t *testing.T) {
 		{[]byte{0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
 			pver, &MessageError{}},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Decode from wire format.
@@ -573,16 +531,12 @@ func TestVarStringOverflowErrors(t *testing.T) {
 			continue
 		}
 	}
-
 }
-
 // TestVarBytesWire tests wire encode and decode for variable length byte array.
 func TestVarBytesWire(t *testing.T) {
 	pver := ProtocolVersion
-
 	// bytes256 is a byte array that takes a 2-byte varint to encode.
 	bytes256 := bytes.Repeat([]byte{0x01}, 256)
-
 	tests := []struct {
 		in   []byte // Byte Array to write
 		buf  []byte // Wire encoding
@@ -596,7 +550,6 @@ func TestVarBytesWire(t *testing.T) {
 		// 2-byte varint + byte array
 		{bytes256, append([]byte{0xfd, 0x00, 0x01}, bytes256...), pver},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -611,7 +564,6 @@ func TestVarBytesWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode from wire format.
 		rbuf := bytes.NewReader(test.buf)
 		val, err := ReadVarBytes(rbuf, test.pver, MaxMessagePayload,
@@ -627,15 +579,12 @@ func TestVarBytesWire(t *testing.T) {
 		}
 	}
 }
-
 // TestVarBytesWireErrors performs negative tests against wire encode and
 // decode of variable length byte arrays to confirm error paths work correctly.
 func TestVarBytesWireErrors(t *testing.T) {
 	pver := ProtocolVersion
-
 	// bytes256 is a byte array that takes a 2-byte varint to encode.
 	bytes256 := bytes.Repeat([]byte{0x01}, 256)
-
 	tests := []struct {
 		in       []byte // Byte Array to write
 		buf      []byte // Wire encoding
@@ -652,7 +601,6 @@ func TestVarBytesWireErrors(t *testing.T) {
 		// Force errors on 2-byte varint + byte array.
 		{bytes256, []byte{0xfd}, pver, 2, io.ErrShortWrite, io.ErrUnexpectedEOF},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -663,7 +611,6 @@ func TestVarBytesWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-
 		// Decode from wire format.
 		r := newFixedReader(test.max, test.buf)
 		_, err = ReadVarBytes(r, test.pver, MaxMessagePayload,
@@ -675,14 +622,12 @@ func TestVarBytesWireErrors(t *testing.T) {
 		}
 	}
 }
-
 // TestVarBytesOverflowErrors performs tests to ensure deserializing variable
 // length byte arrays intentionally crafted to use large values for the array
 // length are handled properly.  This could otherwise potentially be used as an
 // attack vector.
 func TestVarBytesOverflowErrors(t *testing.T) {
 	pver := ProtocolVersion
-
 	tests := []struct {
 		buf  []byte // Wire encoding
 		pver uint32 // Protocol version for wire encoding
@@ -693,7 +638,6 @@ func TestVarBytesOverflowErrors(t *testing.T) {
 		{[]byte{0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
 			pver, &MessageError{}},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Decode from wire format.
@@ -706,9 +650,7 @@ func TestVarBytesOverflowErrors(t *testing.T) {
 			continue
 		}
 	}
-
 }
-
 // TestRandomUint64 exercises the randomness of the random number generator on
 // the system by ensuring the probability of the generated numbers.  If the RNG
 // is evenly distributed as a proper cryptographic RNG should be, there really
@@ -722,7 +664,6 @@ func TestRandomUint64(t *testing.T) {
 	badRNG := "The random number generator on this system is clearly " +
 		"terrible since we got %d values less than %d in %d runs " +
 		"when only %d was expected"
-
 	numHits := 0
 	for i := 0; i < tries; i++ {
 		nonce, err := RandomUint64()
@@ -742,7 +683,6 @@ func TestRandomUint64(t *testing.T) {
 		}
 	}
 }
-
 // TestRandomUint64Errors uses a fake reader to force error paths to be executed
 // and checks the results accordingly.
 func TestRandomUint64Errors(t *testing.T) {

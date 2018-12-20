@@ -1,15 +1,10 @@
 
-
-
-
 package blockchain
-
 import (
 	"reflect"
 	"sort"
 	"testing"
 )
-
 // TestTimeSorter tests the timeSorter implementation.
 func TestTimeSorter(t *testing.T) {
 	tests := []struct {
@@ -33,7 +28,6 @@ func TestTimeSorter(t *testing.T) {
 			},
 		},
 	}
-
 	for i, test := range tests {
 		result := make([]int64, len(test.in))
 		copy(result, test.in)

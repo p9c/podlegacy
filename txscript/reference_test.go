@@ -1,9 +1,5 @@
 
-
-
-
 package txscript
-
 import (
 	"bytes"
 	"encoding/hex"
@@ -14,12 +10,10 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 // scriptTestName returns a descriptive test name for the given reference script
 // test data.
 func scriptTestName(test []interface{}) (string, error) {
@@ -28,14 +22,12 @@ func scriptTestName(test []interface{}) (string, error) {
 	if _, ok := test[0].([]interface{}); ok {
 		witnessOffset++
 	}
-
 	// In addition to the optional leading witness data, the test must
 	// consist of at least a signature script, public key script, flags,
 	// and expected error.  Finally, it may optionally contain a comment.
 	if len(test) < witnessOffset+4 || len(test) > witnessOffset+5 {
 		return "", fmt.Errorf("invalid test length %d", len(test))
 	}
-
 	// Use the comment for the test name if one is specified, otherwise,
 	// construct the name based on the signature script, public key script,
 	// and flags.
@@ -48,7 +40,6 @@ func scriptTestName(test []interface{}) (string, error) {
 	}
 	return name, nil
 }
-
 // parse hex string into a []byte.
 func parseHex(tok string) ([]byte, error) {
 	if !strings.HasPrefix(tok, "0x") {
@@ -56,7 +47,6 @@ func parseHex(tok string) ([]byte, error) {
 	}
 	return hex.DecodeString(tok[2:])
 }
-
 // parseWitnessStack parses a json array of witness items encoded as hex into a
 // slice of witness elements.
 func parseWitnessStack(elements []interface{}) ([][]byte, error) {
@@ -66,17 +56,13 @@ func parseWitnessStack(elements []interface{}) ([][]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		witness[i] = witElement
 	}
-
 	return witness, nil
 }
-
 // shortFormOps holds a map of opcode names to values for use in short form
 // parsing.  It is declared here so it only needs to be created once.
 var shortFormOps map[string]byte
-
 // parseShortForm parses a string as as used in the Bitcoin Core reference tests
 // into the script it came from.
 //
@@ -97,7 +83,6 @@ func parseShortForm(script string) ([]byte, error) {
 				continue
 			}
 			ops[opcodeName] = opcodeValue
-
 			// The opcodes named OP_# can't have the OP_ prefix
 			// stripped or they would conflict with the plain
 			// numbers.  Also, since OP_FALSE and OP_TRUE are
@@ -107,19 +92,16 @@ func parseShortForm(script string) ([]byte, error) {
 			if (opcodeName == "OP_FALSE" || opcodeName == "OP_TRUE") ||
 				(opcodeValue != OP_0 && (opcodeValue < OP_1 ||
 					opcodeValue > OP_16)) {
-
 				ops[strings.TrimPrefix(opcodeName, "OP_")] = opcodeValue
 			}
 		}
 		shortFormOps = ops
 	}
-
 	// Split only does one separator so convert all \n and tab into  space.
 	script = strings.Replace(script, "\n", " ", -1)
 	script = strings.Replace(script, "\t", " ", -1)
 	tokens := strings.Split(script, " ")
 	builder := NewScriptBuilder()
-
 	for _, tok := range tokens {
 		if len(tok) == 0 {
 			continue
@@ -143,16 +125,13 @@ func parseShortForm(script string) ([]byte, error) {
 		} else {
 			return nil, fmt.Errorf("bad token %q", tok)
 		}
-
 	}
 	return builder.Script()
 }
-
 // parseScriptFlags parses the provided flags string from the format used in the
 // reference tests into ScriptFlags suitable for use in the script engine.
 func parseScriptFlags(flagStr string) (ScriptFlags, error) {
 	var flags ScriptFlags
-
 	sFlags := strings.Split(flagStr, ",")
 	for _, flag := range sFlags {
 		switch flag {
@@ -198,7 +177,6 @@ func parseScriptFlags(flagStr string) (ScriptFlags, error) {
 	}
 	return flags, nil
 }
-
 // parseExpectedResult parses the provided expected result string into allowed
 // script error codes.  An error is returned if the expected result string is
 // not supported.
@@ -286,36 +264,28 @@ func parseExpectedResult(expected string) ([]ErrorCode, error) {
 	case "WITNESS_PUBKEYTYPE":
 		return []ErrorCode{ErrWitnessPubKeyType}, nil
 	}
-
 	return nil, fmt.Errorf("unrecognized expected result in test data: %v",
 		expected)
 }
-
 // createSpendTx generates a basic spending transaction given the passed
 // signature, witness and public key scripts.
 func createSpendingTx(witness [][]byte, sigScript, pkScript []byte,
 	outputValue int64) *wire.MsgTx {
-
 	coinbaseTx := wire.NewMsgTx(wire.TxVersion)
-
 	outPoint := wire.NewOutPoint(&chainhash.Hash{}, ^uint32(0))
 	txIn := wire.NewTxIn(outPoint, []byte{OP_0, OP_0}, nil)
 	txOut := wire.NewTxOut(outputValue, pkScript)
 	coinbaseTx.AddTxIn(txIn)
 	coinbaseTx.AddTxOut(txOut)
-
 	spendingTx := wire.NewMsgTx(wire.TxVersion)
 	coinbaseTxSha := coinbaseTx.TxHash()
 	outPoint = wire.NewOutPoint(&coinbaseTxSha, 0)
 	txIn = wire.NewTxIn(outPoint, sigScript, witness)
 	txOut = wire.NewTxOut(outputValue, nil)
-
 	spendingTx.AddTxIn(txIn)
 	spendingTx.AddTxOut(txOut)
-
 	return spendingTx
 }
-
 // scriptWithInputVal wraps a target pkScript with the value of the output in
 // which it is contained. The inputVal is necessary in order to properly
 // validate inputs which spend nested, or native witness programs.
@@ -323,7 +293,6 @@ type scriptWithInputVal struct {
 	inputVal int64
 	pkScript []byte
 }
-
 // testScripts ensures all of the passed script tests execute with the expected
 // results with or without using a signature cache, as specified by the
 // parameter.
@@ -333,16 +302,13 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 	if useSigCache {
 		sigCache = NewSigCache(10)
 	}
-
 	for i, test := range tests {
 		// "Format is: [[wit..., amount]?, scriptSig, scriptPubKey,
 		//    flags, expected_scripterror, ... comments]"
-
 		// Skip single line comments.
 		if len(test) == 1 {
 			continue
 		}
-
 		// Construct a name for the test based on the comment and test
 		// data.
 		name, err := scriptTestName(test)
@@ -350,18 +316,15 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 			t.Errorf("TestScripts: invalid test #%d: %v", i, err)
 			continue
 		}
-
 		var (
 			witness  wire.TxWitness
 			inputAmt btcutil.Amount
 		)
-
 		// When the first field of the test data is a slice it contains
 		// witness data and everything else is offset by 1 as a result.
 		witnessOffset := 0
 		if witnessData, ok := test[0].([]interface{}); ok {
 			witnessOffset++
-
 			// If this is a witness test, then the final element
 			// within the slice is the input amount, so we ignore
 			// all but the last element in order to parse the
@@ -372,16 +335,13 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 				t.Errorf("%s: can't parse witness; %v", name, err)
 				continue
 			}
-
 			inputAmt, err = btcutil.NewAmount(witnessData[len(witnessData)-1].(float64))
 			if err != nil {
 				t.Errorf("%s: can't parse input amt: %v",
 					name, err)
 				continue
 			}
-
 		}
-
 		// Extract and parse the signature script from the test fields.
 		scriptSigStr, ok := test[witnessOffset].(string)
 		if !ok {
@@ -394,7 +354,6 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 				err)
 			continue
 		}
-
 		// Extract and parse the public key script from the test fields.
 		scriptPubKeyStr, ok := test[witnessOffset+1].(string)
 		if !ok {
@@ -407,7 +366,6 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 				err)
 			continue
 		}
-
 		// Extract and parse the script flags from the test fields.
 		flagsStr, ok := test[witnessOffset+2].(string)
 		if !ok {
@@ -419,7 +377,6 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 			t.Errorf("%s: %v", name, err)
 			continue
 		}
-
 		// Extract and parse the expected result from the test fields.
 		//
 		// Convert the expected result string into the allowed script
@@ -437,7 +394,6 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 			t.Errorf("%s: %v", name, err)
 			continue
 		}
-
 		// Generate a transaction pair such that one spends from the
 		// other and the provided signature and public key scripts are
 		// used, then create a new engine to execute the scripts.
@@ -448,7 +404,6 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 		if err == nil {
 			err = vm.Execute()
 		}
-
 		// Ensure there were no errors when the expected result is OK.
 		if resultStr == "OK" {
 			if err != nil {
@@ -456,7 +411,6 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 			}
 			continue
 		}
-
 		// At this point an error was expected so ensure the result of
 		// the execution matches it.
 		success := false
@@ -478,7 +432,6 @@ func testScripts(t *testing.T, tests [][]interface{}, useSigCache bool) {
 		}
 	}
 }
-
 // TestScripts ensures all of the tests in script_tests.json execute with the
 // expected results as defined in the test data.
 func TestScripts(t *testing.T) {
@@ -486,18 +439,15 @@ func TestScripts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TestScripts: %v\n", err)
 	}
-
 	var tests [][]interface{}
 	err = json.Unmarshal(file, &tests)
 	if err != nil {
 		t.Fatalf("TestScripts couldn't Unmarshal: %v", err)
 	}
-
 	// Run all script tests with and without the signature cache.
 	testScripts(t, tests, true)
 	testScripts(t, tests, false)
 }
-
 // testVecF64ToUint32 properly handles conversion of float64s read from the JSON
 // test data to unsigned 32-bit integers.  This is necessary because some of the
 // test data uses -1 as a shortcut to mean max uint32 and direct conversion of a
@@ -509,7 +459,6 @@ func TestScripts(t *testing.T) {
 func testVecF64ToUint32(f float64) uint32 {
 	return uint32(int32(f))
 }
-
 // TestTxInvalidTests ensures all of the tests in tx_invalid.json fail as
 // expected.
 func TestTxInvalidTests(t *testing.T) {
@@ -517,13 +466,11 @@ func TestTxInvalidTests(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TestTxInvalidTests: %v\n", err)
 	}
-
 	var tests [][]interface{}
 	err = json.Unmarshal(file, &tests)
 	if err != nil {
 		t.Fatalf("TestTxInvalidTests couldn't Unmarshal: %v\n", err)
 	}
-
 	// form is either:
 	//   ["this is a comment "]
 	// or:
@@ -535,11 +482,9 @@ testloop:
 		if !ok {
 			continue
 		}
-
 		if len(test) != 3 {
 			t.Errorf("bad test (bad length) %d: %v", i, test)
 			continue
-
 		}
 		serializedhex, ok := test[1].(string)
 		if !ok {
@@ -552,26 +497,22 @@ testloop:
 				test)
 			continue
 		}
-
 		tx, err := btcutil.NewTxFromBytes(serializedTx)
 		if err != nil {
 			t.Errorf("bad test (arg 2 not msgtx %v) %d: %v", err,
 				i, test)
 			continue
 		}
-
 		verifyFlags, ok := test[2].(string)
 		if !ok {
 			t.Errorf("bad test (arg 3 not string) %d: %v", i, test)
 			continue
 		}
-
 		flags, err := parseScriptFlags(verifyFlags)
 		if err != nil {
 			t.Errorf("bad test %d: %v", i, err)
 			continue
 		}
-
 		prevOuts := make(map[wire.OutPoint]scriptWithInputVal)
 		for j, iinput := range inputs {
 			input, ok := iinput.([]interface{})
@@ -580,27 +521,23 @@ testloop:
 					"%d: %v", j, i, test)
 				continue testloop
 			}
-
 			if len(input) < 3 || len(input) > 4 {
 				t.Errorf("bad test (%dth input wrong length)"+
 					"%d: %v", j, i, test)
 				continue testloop
 			}
-
 			previoustx, ok := input[0].(string)
 			if !ok {
 				t.Errorf("bad test (%dth input hash not string)"+
 					"%d: %v", j, i, test)
 				continue testloop
 			}
-
 			prevhash, err := chainhash.NewHashFromStr(previoustx)
 			if err != nil {
 				t.Errorf("bad test (%dth input hash not hash %v)"+
 					"%d: %v", j, err, i, test)
 				continue testloop
 			}
-
 			idxf, ok := input[1].(float64)
 			if !ok {
 				t.Errorf("bad test (%dth input idx not number)"+
@@ -608,21 +545,18 @@ testloop:
 				continue testloop
 			}
 			idx := testVecF64ToUint32(idxf)
-
 			oscript, ok := input[2].(string)
 			if !ok {
 				t.Errorf("bad test (%dth input script not "+
 					"string) %d: %v", j, i, test)
 				continue testloop
 			}
-
 			script, err := parseShortForm(oscript)
 			if err != nil {
 				t.Errorf("bad test (%dth input script doesn't "+
 					"parse %v) %d: %v", j, err, i, test)
 				continue testloop
 			}
-
 			var inputValue float64
 			if len(input) == 4 {
 				inputValue, ok = input[3].(float64)
@@ -632,14 +566,12 @@ testloop:
 					continue
 				}
 			}
-
 			v := scriptWithInputVal{
 				inputVal: int64(inputValue),
 				pkScript: script,
 			}
 			prevOuts[*wire.NewOutPoint(prevhash, idx)] = v
 		}
-
 		for k, txin := range tx.MsgTx().TxIn {
 			prevOut, ok := prevOuts[txin.PreviousOutPoint]
 			if !ok {
@@ -655,31 +587,26 @@ testloop:
 			if err != nil {
 				continue testloop
 			}
-
 			err = vm.Execute()
 			if err != nil {
 				continue testloop
 			}
-
 		}
 		t.Errorf("test (%d:%v) succeeded when should fail",
 			i, test)
 	}
 }
-
 // TestTxValidTests ensures all of the tests in tx_valid.json pass as expected.
 func TestTxValidTests(t *testing.T) {
 	file, err := ioutil.ReadFile("data/tx_valid.json")
 	if err != nil {
 		t.Fatalf("TestTxValidTests: %v\n", err)
 	}
-
 	var tests [][]interface{}
 	err = json.Unmarshal(file, &tests)
 	if err != nil {
 		t.Fatalf("TestTxValidTests couldn't Unmarshal: %v\n", err)
 	}
-
 	// form is either:
 	//   ["this is a comment "]
 	// or:
@@ -691,7 +618,6 @@ testloop:
 		if !ok {
 			continue
 		}
-
 		if len(test) != 3 {
 			t.Errorf("bad test (bad length) %d: %v", i, test)
 			continue
@@ -707,26 +633,22 @@ testloop:
 				test)
 			continue
 		}
-
 		tx, err := btcutil.NewTxFromBytes(serializedTx)
 		if err != nil {
 			t.Errorf("bad test (arg 2 not msgtx %v) %d: %v", err,
 				i, test)
 			continue
 		}
-
 		verifyFlags, ok := test[2].(string)
 		if !ok {
 			t.Errorf("bad test (arg 3 not string) %d: %v", i, test)
 			continue
 		}
-
 		flags, err := parseScriptFlags(verifyFlags)
 		if err != nil {
 			t.Errorf("bad test %d: %v", i, err)
 			continue
 		}
-
 		prevOuts := make(map[wire.OutPoint]scriptWithInputVal)
 		for j, iinput := range inputs {
 			input, ok := iinput.([]interface{})
@@ -735,27 +657,23 @@ testloop:
 					"%d: %v", j, i, test)
 				continue
 			}
-
 			if len(input) < 3 || len(input) > 4 {
 				t.Errorf("bad test (%dth input wrong length)"+
 					"%d: %v", j, i, test)
 				continue
 			}
-
 			previoustx, ok := input[0].(string)
 			if !ok {
 				t.Errorf("bad test (%dth input hash not string)"+
 					"%d: %v", j, i, test)
 				continue
 			}
-
 			prevhash, err := chainhash.NewHashFromStr(previoustx)
 			if err != nil {
 				t.Errorf("bad test (%dth input hash not hash %v)"+
 					"%d: %v", j, err, i, test)
 				continue
 			}
-
 			idxf, ok := input[1].(float64)
 			if !ok {
 				t.Errorf("bad test (%dth input idx not number)"+
@@ -763,21 +681,18 @@ testloop:
 				continue
 			}
 			idx := testVecF64ToUint32(idxf)
-
 			oscript, ok := input[2].(string)
 			if !ok {
 				t.Errorf("bad test (%dth input script not "+
 					"string) %d: %v", j, i, test)
 				continue
 			}
-
 			script, err := parseShortForm(oscript)
 			if err != nil {
 				t.Errorf("bad test (%dth input script doesn't "+
 					"parse %v) %d: %v", j, err, i, test)
 				continue
 			}
-
 			var inputValue float64
 			if len(input) == 4 {
 				inputValue, ok = input[3].(float64)
@@ -787,14 +702,12 @@ testloop:
 					continue
 				}
 			}
-
 			v := scriptWithInputVal{
 				inputVal: int64(inputValue),
 				pkScript: script,
 			}
 			prevOuts[*wire.NewOutPoint(prevhash, idx)] = v
 		}
-
 		for k, txin := range tx.MsgTx().TxIn {
 			prevOut, ok := prevOuts[txin.PreviousOutPoint]
 			if !ok {
@@ -809,7 +722,6 @@ testloop:
 					"script: %v", i, test, k, err)
 				continue
 			}
-
 			err = vm.Execute()
 			if err != nil {
 				t.Errorf("test (%d:%v:%d) failed to execute: "+
@@ -819,7 +731,6 @@ testloop:
 		}
 	}
 }
-
 // TestCalcSignatureHash runs the Bitcoin Core signature hash calculation tests
 // in sighash.json.
 // https://github.com/bitcoin/bitcoin/blob/master/src/test/data/sighash.json
@@ -828,14 +739,12 @@ func TestCalcSignatureHash(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TestCalcSignatureHash: %v\n", err)
 	}
-
 	var tests [][]interface{}
 	err = json.Unmarshal(file, &tests)
 	if err != nil {
 		t.Fatalf("TestCalcSignatureHash couldn't Unmarshal: %v\n",
 			err)
 	}
-
 	for i, test := range tests {
 		if i == 0 {
 			// Skip first line -- contains comments only.
@@ -853,7 +762,6 @@ func TestCalcSignatureHash(t *testing.T) {
 				"Failed to parse transaction: %v", i, err)
 			continue
 		}
-
 		subScript, _ := hex.DecodeString(test[1].(string))
 		parsedScript, err := parseScript(subScript)
 		if err != nil {
@@ -861,11 +769,9 @@ func TestCalcSignatureHash(t *testing.T) {
 				"Failed to parse sub-script: %v", i, err)
 			continue
 		}
-
 		hashType := SigHashType(testVecF64ToUint32(test[3].(float64)))
 		hash := calcSignatureHash(parsedScript, hashType, &tx,
 			int(test[2].(float64)))
-
 		expectedHash, _ := chainhash.NewHashFromStr(test[4].(string))
 		if !bytes.Equal(hash, expectedHash[:]) {
 			t.Errorf("TestCalcSignatureHash failed test #%d: "+

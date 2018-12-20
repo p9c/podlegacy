@@ -1,19 +1,12 @@
 
-
-
-
 package btcjson_test
-
 import (
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 // TestErrorCodeStringer tests the stringized output for the ErrorCode type.
 func TestErrorCodeStringer(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		in   btcjson.ErrorCode
 		want string
@@ -32,13 +25,11 @@ func TestErrorCodeStringer(t *testing.T) {
 		{btcjson.ErrMissingDescription, "ErrMissingDescription"},
 		{0xffff, "Unknown ErrorCode (65535)"},
 	}
-
 	// Detect additional error codes that don't have the stringer added.
 	if len(tests)-1 != int(btcjson.TstNumErrorCodes) {
 		t.Errorf("It appears an error code was added without adding an " +
 			"associated stringer test")
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.String()
@@ -49,11 +40,9 @@ func TestErrorCodeStringer(t *testing.T) {
 		}
 	}
 }
-
 // TestError tests the error output for the Error type.
 func TestError(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		in   btcjson.Error
 		want string
@@ -67,7 +56,6 @@ func TestError(t *testing.T) {
 			"human-readable error",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.Error()

@@ -1,23 +1,16 @@
 
-
-
-
 package indexers
-
 import (
 	"bytes"
 	"fmt"
 	"testing"
-
 	"github.com/parallelcointeam/pod/wire"
 )
-
 // addrIndexBucket provides a mock address index database bucket by implementing
 // the internalBucket interface.
 type addrIndexBucket struct {
 	levels map[[levelKeySize]byte][]byte
 }
-
 // Clone returns a deep copy of the mock address index bucket.
 func (b *addrIndexBucket) Clone() *addrIndexBucket {
 	levels := make(map[[levelKeySize]byte][]byte)
@@ -28,7 +21,6 @@ func (b *addrIndexBucket) Clone() *addrIndexBucket {
 	}
 	return &addrIndexBucket{levels: levels}
 }
-
 // Get returns the value associated with the key from the mock address index
 // bucket.
 //
@@ -38,7 +30,6 @@ func (b *addrIndexBucket) Get(key []byte) []byte {
 	copy(levelKey[:], key)
 	return b.levels[levelKey]
 }
-
 // Put stores the provided key/value pair to the mock address index bucket.
 //
 // This is part of the internalBucket interface.
@@ -48,7 +39,6 @@ func (b *addrIndexBucket) Put(key []byte, value []byte) error {
 	b.levels[levelKey] = value
 	return nil
 }
-
 // Delete removes the provided key from the mock address index bucket.
 //
 // This is part of the internalBucket interface.
@@ -58,7 +48,6 @@ func (b *addrIndexBucket) Delete(key []byte) error {
 	delete(b.levels, levelKey)
 	return nil
 }
-
 // printLevels returns a string with a visual representation of the provided
 // address key taking into account the max size of each level.  It is useful
 // when creating and debugging test cases.
@@ -73,7 +62,6 @@ func (b *addrIndexBucket) printLevels(addrKey [addrKeySize]byte) string {
 			highestLevel = level
 		}
 	}
-
 	var levelBuf bytes.Buffer
 	_, _ = levelBuf.WriteString("\n")
 	maxEntries := level0MaxEntries
@@ -91,10 +79,8 @@ func (b *addrIndexBucket) printLevels(addrKey [addrKeySize]byte) string {
 		_, _ = levelBuf.WriteString("\n")
 		maxEntries *= 2
 	}
-
 	return levelBuf.String()
 }
-
 // sanityCheck ensures that all data stored in the bucket for the given address
 // adheres to the level-based rules described by the address index
 // documentation.
@@ -110,7 +96,6 @@ func (b *addrIndexBucket) sanityCheck(addrKey [addrKeySize]byte, expectedTotal i
 			highestLevel = level
 		}
 	}
-
 	// Ensure the expected total number of entries are present and that
 	// all levels adhere to the rules described in the address index
 	// documentation.
@@ -126,7 +111,6 @@ func (b *addrIndexBucket) sanityCheck(addrKey [addrKeySize]byte, expectedTotal i
 		if level == 0 {
 			if (highestLevel != 0 && numEntries == 0) ||
 				numEntries > maxEntries {
-
 				return fmt.Errorf("level %d has %d entries",
 					level, numEntries)
 			}
@@ -140,7 +124,6 @@ func (b *addrIndexBucket) sanityCheck(addrKey [addrKeySize]byte, expectedTotal i
 		return fmt.Errorf("expected %d entries - got %d", expectedTotal,
 			totalEntries)
 	}
-
 	// Ensure all of the numbers are in order starting from the highest
 	// level moving to the lowest level.
 	expectedNum := uint32(0)
@@ -159,16 +142,13 @@ func (b *addrIndexBucket) sanityCheck(addrKey [addrKeySize]byte, expectedTotal i
 			expectedNum++
 		}
 	}
-
 	return nil
 }
-
 // TestAddrIndexLevels ensures that adding and deleting entries to the address
 // index creates multiple levels as described by the address index
 // documentation.
 func TestAddrIndexLevels(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name        string
 		key         [addrKeySize]byte
@@ -212,7 +192,6 @@ func TestAddrIndexLevels(t *testing.T) {
 			numInsert: level0MaxEntries*12 + 1,
 		},
 	}
-
 nextTest:
 	for testNum, test := range tests {
 		// Insert entries in order.
@@ -233,7 +212,6 @@ nextTest:
 		if test.printLevels {
 			t.Log(populatedBucket.printLevels(test.key))
 		}
-
 		// Delete entries from the populated bucket until all entries
 		// have been deleted.  The bucket is reset to the fully
 		// populated bucket on each iteration so every combination is
@@ -243,7 +221,6 @@ nextTest:
 		for numDelete := 0; numDelete <= test.numInsert+1; numDelete++ {
 			// Clone populated bucket to run each delete against.
 			bucket := populatedBucket.Clone()
-
 			// Remove the number of entries for this iteration.
 			err := dbRemoveAddrIndexEntries(bucket, test.key,
 				numDelete)
@@ -258,7 +235,6 @@ nextTest:
 			if test.printLevels {
 				t.Log(bucket.printLevels(test.key))
 			}
-
 			// Sanity check the levels to ensure the adhere to all
 			// rules.
 			numExpected := test.numInsert

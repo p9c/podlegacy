@@ -1,5 +1,4 @@
 
-
 // NOTE: This file is intended to house the RPC websocket notifications that are
 // supported by a chain server.
 package btcjson

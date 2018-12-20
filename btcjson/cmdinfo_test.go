@@ -1,21 +1,14 @@
 
-
-
-
 package btcjson_test
-
 import (
 	"reflect"
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 // TestCmdMethod tests the CmdMethod function to ensure it retunrs the expected
 // methods and errors.
 func TestCmdMethod(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name   string
 		cmd    interface{}
@@ -38,7 +31,6 @@ func TestCmdMethod(t *testing.T) {
 			method: "getblockcount",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		method, err := btcjson.CmdMethod(test.cmd)
@@ -56,10 +48,8 @@ func TestCmdMethod(t *testing.T) {
 					test.err.(btcjson.Error).ErrorCode)
 				continue
 			}
-
 			continue
 		}
-
 		// Ensure method matches the expected value.
 		if method != test.method {
 			t.Errorf("Test #%d (%s) mismatched method - got %v, "+
@@ -68,12 +58,10 @@ func TestCmdMethod(t *testing.T) {
 		}
 	}
 }
-
 // TestMethodUsageFlags tests the MethodUsage function ensure it returns the
 // expected flags and errors.
 func TestMethodUsageFlags(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name   string
 		method string
@@ -96,7 +84,6 @@ func TestMethodUsageFlags(t *testing.T) {
 			flags:  btcjson.UFWalletOnly,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		flags, err := btcjson.MethodUsageFlags(test.method)
@@ -114,10 +101,8 @@ func TestMethodUsageFlags(t *testing.T) {
 					test.err.(btcjson.Error).ErrorCode)
 				continue
 			}
-
 			continue
 		}
-
 		// Ensure flags match the expected value.
 		if flags != test.flags {
 			t.Errorf("Test #%d (%s) mismatched flags - got %v, "+
@@ -126,12 +111,10 @@ func TestMethodUsageFlags(t *testing.T) {
 		}
 	}
 }
-
 // TestMethodUsageText tests the MethodUsageText function ensure it returns the
 // expected text.
 func TestMethodUsageText(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		method   string
@@ -154,7 +137,6 @@ func TestMethodUsageText(t *testing.T) {
 			expected: `getblock "hash" (verbose=true verbosetx=false)`,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		usage, err := btcjson.MethodUsageText(test.method)
@@ -172,17 +154,14 @@ func TestMethodUsageText(t *testing.T) {
 					test.err.(btcjson.Error).ErrorCode)
 				continue
 			}
-
 			continue
 		}
-
 		// Ensure usage matches the expected value.
 		if usage != test.expected {
 			t.Errorf("Test #%d (%s) mismatched usage - got %v, "+
 				"want %v", i, test.name, usage, test.expected)
 			continue
 		}
-
 		// Get the usage again to exercise caching.
 		usage, err = btcjson.MethodUsageText(test.method)
 		if err != nil {
@@ -190,7 +169,6 @@ func TestMethodUsageText(t *testing.T) {
 				test.name, err)
 			continue
 		}
-
 		// Ensure usage still matches the expected value.
 		if usage != test.expected {
 			t.Errorf("Test #%d (%s) mismatched usage - got %v, "+
@@ -199,12 +177,10 @@ func TestMethodUsageText(t *testing.T) {
 		}
 	}
 }
-
 // TestFieldUsage tests the internal fieldUsage function ensure it returns the
 // expected text.
 func TestFieldUsage(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		field    reflect.StructField
@@ -416,7 +392,6 @@ func TestFieldUsage(t *testing.T) {
 			expected: `{"capabilities":["capability",...]}`,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Ensure usage matches the expected value.

@@ -1,23 +1,16 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"io"
 	"reflect"
 	"testing"
-
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/davecgh/go-spew/spew"
 )
-
 // TestInv tests the MsgInv API.
 func TestInv(t *testing.T) {
 	pver := ProtocolVersion
-
 	// Ensure the command is expected value.
 	wantCmd := "inv"
 	msg := NewMsgInv()
@@ -25,7 +18,6 @@ func TestInv(t *testing.T) {
 		t.Errorf("NewMsgInv: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-
 	// Ensure max payload is expected value for latest protocol version.
 	// Num inventory vectors (varInt) + max allowed inventory vectors.
 	wantPayload := uint32(1800009)
@@ -35,7 +27,6 @@ func TestInv(t *testing.T) {
 			"protocol version %d - got %v, want %v", pver,
 			maxPayload, wantPayload)
 	}
-
 	// Ensure inventory vectors are added properly.
 	hash := chainhash.Hash{}
 	iv := NewInvVect(InvTypeBlock, &hash)
@@ -47,7 +38,6 @@ func TestInv(t *testing.T) {
 		t.Errorf("AddInvVect: wrong invvect added - got %v, want %v",
 			spew.Sprint(msg.InvList[0]), spew.Sprint(iv))
 	}
-
 	// Ensure adding more than the max allowed inventory vectors per
 	// message returns an error.
 	for i := 0; i < MaxInvPerMsg; i++ {
@@ -57,7 +47,6 @@ func TestInv(t *testing.T) {
 		t.Errorf("AddInvVect: expected error on too many inventory " +
 			"vectors not received")
 	}
-
 	// Ensure creating the message with a size hint larger than the max
 	// works as expected.
 	msg = NewMsgInvSizeHint(MaxInvPerMsg + 1)
@@ -67,7 +56,6 @@ func TestInv(t *testing.T) {
 			"got %v, want %v", cap(msg.InvList), wantCap)
 	}
 }
-
 // TestInvWire tests the MsgInv wire encode and decode for various numbers
 // of inventory vectors and protocol versions.
 func TestInvWire(t *testing.T) {
@@ -77,23 +65,19 @@ func TestInvWire(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewHashFromStr: %v", err)
 	}
-
 	// Transaction 1 of Block 203707 hash.
 	hashStr = "d28a3dc7392bf00a9855ee93dd9a81eff82a2c4fe57fbd42cfe71b487accfaf0"
 	txHash, err := chainhash.NewHashFromStr(hashStr)
 	if err != nil {
 		t.Errorf("NewHashFromStr: %v", err)
 	}
-
 	iv := NewInvVect(InvTypeBlock, blockHash)
 	iv2 := NewInvVect(InvTypeTx, txHash)
-
 	// Empty inv message.
 	NoInv := NewMsgInv()
 	NoInvEncoded := []byte{
 		0x00, // Varint for number of inventory vectors
 	}
-
 	// Inv message with multiple inventory vectors.
 	MultiInv := NewMsgInv()
 	MultiInv.AddInvVect(iv)
@@ -111,7 +95,6 @@ func TestInvWire(t *testing.T) {
 		0xef, 0x81, 0x9a, 0xdd, 0x93, 0xee, 0x55, 0x98,
 		0x0a, 0xf0, 0x2b, 0x39, 0xc7, 0x3d, 0x8a, 0xd2, // Tx 1 of block 203707 hash
 	}
-
 	tests := []struct {
 		in   *MsgInv         // Message to encode
 		out  *MsgInv         // Expected decoded message
@@ -127,7 +110,6 @@ func TestInvWire(t *testing.T) {
 			ProtocolVersion,
 			BaseEncoding,
 		},
-
 		// Latest protocol version with multiple inv vectors.
 		{
 			MultiInv,
@@ -136,7 +118,6 @@ func TestInvWire(t *testing.T) {
 			ProtocolVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0035Version no inv vectors.
 		{
 			NoInv,
@@ -145,7 +126,6 @@ func TestInvWire(t *testing.T) {
 			BIP0035Version,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0035Version with multiple inv vectors.
 		{
 			MultiInv,
@@ -154,7 +134,6 @@ func TestInvWire(t *testing.T) {
 			BIP0035Version,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0031Version no inv vectors.
 		{
 			NoInv,
@@ -163,7 +142,6 @@ func TestInvWire(t *testing.T) {
 			BIP0031Version,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0031Version with multiple inv vectors.
 		{
 			MultiInv,
@@ -172,7 +150,6 @@ func TestInvWire(t *testing.T) {
 			BIP0031Version,
 			BaseEncoding,
 		},
-
 		// Protocol version NetAddressTimeVersion no inv vectors.
 		{
 			NoInv,
@@ -181,7 +158,6 @@ func TestInvWire(t *testing.T) {
 			NetAddressTimeVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version NetAddressTimeVersion with multiple inv vectors.
 		{
 			MultiInv,
@@ -190,7 +166,6 @@ func TestInvWire(t *testing.T) {
 			NetAddressTimeVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version MultipleAddressVersion no inv vectors.
 		{
 			NoInv,
@@ -199,7 +174,6 @@ func TestInvWire(t *testing.T) {
 			MultipleAddressVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version MultipleAddressVersion with multiple inv vectors.
 		{
 			MultiInv,
@@ -209,7 +183,6 @@ func TestInvWire(t *testing.T) {
 			BaseEncoding,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode the message to wire format.
@@ -224,7 +197,6 @@ func TestInvWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode the message from wire format.
 		var msg MsgInv
 		rbuf := bytes.NewReader(test.buf)
@@ -240,22 +212,18 @@ func TestInvWire(t *testing.T) {
 		}
 	}
 }
-
 // TestInvWireErrors performs negative tests against wire encode and decode
 // of MsgInv to confirm error paths work correctly.
 func TestInvWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	wireErr := &MessageError{}
-
 	// Block 203707 hash.
 	hashStr := "3264bc2ac36a60840790ba1d475d01367e7c723da941069e9dc"
 	blockHash, err := chainhash.NewHashFromStr(hashStr)
 	if err != nil {
 		t.Errorf("NewHashFromStr: %v", err)
 	}
-
 	iv := NewInvVect(InvTypeBlock, blockHash)
-
 	// Base inv message used to induce errors.
 	baseInv := NewMsgInv()
 	baseInv.AddInvVect(iv)
@@ -267,7 +235,6 @@ func TestInvWireErrors(t *testing.T) {
 		0x79, 0x40, 0x08, 0xa6, 0x36, 0xac, 0xc2, 0x4b,
 		0x26, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Block 203707 hash
 	}
-
 	// Inv message that forces an error by having more than the max allowed
 	// inv vectors.
 	maxInv := NewMsgInv()
@@ -278,7 +245,6 @@ func TestInvWireErrors(t *testing.T) {
 	maxInvEncoded := []byte{
 		0xfd, 0x51, 0xc3, // Varint for number of inv vectors (50001)
 	}
-
 	tests := []struct {
 		in       *MsgInv         // Value to encode
 		buf      []byte          // Wire encoding
@@ -296,7 +262,6 @@ func TestInvWireErrors(t *testing.T) {
 		// Force error with greater than max inventory vectors.
 		{maxInv, maxInvEncoded, pver, BaseEncoding, 3, wireErr, wireErr},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -307,7 +272,6 @@ func TestInvWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-
 		// For errors which are not of type MessageError, check them for
 		// equality.
 		if _, ok := err.(*MessageError); !ok {
@@ -317,7 +281,6 @@ func TestInvWireErrors(t *testing.T) {
 				continue
 			}
 		}
-
 		// Decode from wire format.
 		var msg MsgInv
 		r := newFixedReader(test.max, test.buf)
@@ -327,7 +290,6 @@ func TestInvWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-
 		// For errors which are not of type MessageError, check them for
 		// equality.
 		if _, ok := err.(*MessageError); !ok {
@@ -337,6 +299,5 @@ func TestInvWireErrors(t *testing.T) {
 				continue
 			}
 		}
-
 	}
 }

@@ -1,5 +1,4 @@
 
-
 package peer
 import (
 	"bytes"

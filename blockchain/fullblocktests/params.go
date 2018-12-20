@@ -1,19 +1,13 @@
 
-
-
-
 package fullblocktests
-
 import (
 	"encoding/hex"
 	"math/big"
 	"time"
-
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
 )
-
 // newHashFromStr converts the passed big-endian hex string into a
 // wire.Hash.  It only differs from the one available in chainhash in that
 // it panics on an error since it will only (and must only) be called with
@@ -25,7 +19,6 @@ func newHashFromStr(hexStr string) *chainhash.Hash {
 	}
 	return hash
 }
-
 // fromHex converts the passed hex string into a byte slice and will panic if
 // there is an error.  This is only provided for the hard-coded constants so
 // errors in the source code can be detected. It will only (and must only) be
@@ -37,16 +30,13 @@ func fromHex(s string) []byte {
 	}
 	return r
 }
-
 var (
 	// bigOne is 1 represented as a big.Int.  It is defined here to avoid
 	// the overhead of creating it multiple times.
 	bigOne = big.NewInt(1)
-
 	// regressionPowLimit is the highest proof of work value a Bitcoin block
 	// can have for the regression test network.  It is the value 2^255 - 1.
 	regressionPowLimit = new(big.Int).Sub(new(big.Int).Lsh(bigOne, 255), bigOne)
-
 	// regTestGenesisBlock defines the genesis block of the block chain which serves
 	// as the public transaction ledger for the regression test network.
 	regTestGenesisBlock = wire.MsgBlock{
@@ -84,7 +74,6 @@ var (
 		}},
 	}
 )
-
 // regressionNetParams defines the network parameters for the regression test
 // network.
 //
@@ -96,7 +85,6 @@ var regressionNetParams = &chaincfg.Params{
 	Name:        "regtest",
 	Net:         wire.TestNet,
 	DefaultPort: "18444",
-
 	// Chain parameters
 	GenesisBlock:             &regTestGenesisBlock,
 	GenesisHash:              newHashFromStr("5bec7567af40504e0994db3b573c186fffcc4edefe096ff2e58d00523bd7e8a6"),
@@ -113,22 +101,17 @@ var regressionNetParams = &chaincfg.Params{
 	ReduceMinDifficulty:      true,
 	MinDiffReductionTime:     time.Minute * 20, // TargetTimePerBlock * 2
 	GenerateSupported:        true,
-
 	// Checkpoints ordered from oldest to newest.
 	Checkpoints: nil,
-
 	// Mempool parameters
 	RelayNonStdTxs: true,
-
 	// Address encoding magics
 	PubKeyHashAddrID: 0x6f, // starts with m or n
 	ScriptHashAddrID: 0xc4, // starts with 2
 	PrivateKeyID:     0xef, // starts with 9 (uncompressed) or c (compressed)
-
 	// BIP32 hierarchical deterministic extended key magics
 	HDPrivateKeyID: [4]byte{0x04, 0x35, 0x83, 0x94}, // starts with tprv
 	HDPublicKeyID:  [4]byte{0x04, 0x35, 0x87, 0xcf}, // starts with tpub
-
 	// BIP44 coin type used in the hierarchical deterministic path for
 	// address generation.
 	HDCoinType: 1,

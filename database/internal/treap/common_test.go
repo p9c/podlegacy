@@ -1,9 +1,5 @@
 
-
-
-
 package treap
-
 import (
 	"encoding/binary"
 	"encoding/hex"
@@ -11,7 +7,6 @@ import (
 	"reflect"
 	"testing"
 )
-
 // fromHex converts the passed hex string into a byte slice and will panic if
 // there is an error.  This is only provided for the hard-coded constants so
 // errors in the source code can be detected. It will only (and must only) be
@@ -23,18 +18,15 @@ func fromHex(s string) []byte {
 	}
 	return r
 }
-
 // serializeUint32 returns the big-endian encoding of the passed uint32.
 func serializeUint32(ui uint32) []byte {
 	var ret [4]byte
 	binary.BigEndian.PutUint32(ret[:], ui)
 	return ret[:]
 }
-
 // TestParentStack ensures the treapParentStack functionality works as intended.
 func TestParentStack(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		numNodes int
 	}{
@@ -42,7 +34,6 @@ func TestParentStack(t *testing.T) {
 		{numNodes: staticDepth},
 		{numNodes: staticDepth + 1}, // Test dynamic code paths
 	}
-
 testLoop:
 	for i, test := range tests {
 		nodes := make([]*treapNode, 0, test.numNodes)
@@ -52,13 +43,11 @@ testLoop:
 			node := newTreapNode(key[:], key[:], 0)
 			nodes = append(nodes, node)
 		}
-
 		// Push all of the nodes onto the parent stack while testing
 		// various stack properties.
 		stack := &parentStack{}
 		for j, node := range nodes {
 			stack.Push(node)
-
 			// Ensure the stack length is the expected value.
 			if stack.Len() != j+1 {
 				t.Errorf("Len #%d (%d): unexpected stack "+
@@ -66,7 +55,6 @@ testLoop:
 					stack.Len(), j+1)
 				continue testLoop
 			}
-
 			// Ensure the node at each index is the expected one.
 			for k := 0; k <= j; k++ {
 				atNode := stack.At(j - k)
@@ -78,7 +66,6 @@ testLoop:
 				}
 			}
 		}
-
 		// Ensure each popped node is the expected one.
 		for j := 0; j < len(nodes); j++ {
 			node := stack.Pop()
@@ -89,14 +76,12 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure the stack is now empty.
 		if stack.Len() != 0 {
 			t.Errorf("Len #%d: stack is not empty - got %d", i,
 				stack.Len())
 			continue testLoop
 		}
-
 		// Ensure attempting to retrieve a node at an index beyond the
 		// stack's length returns nil.
 		if node := stack.At(2); node != nil {
@@ -104,7 +89,6 @@ testLoop:
 				node)
 			continue testLoop
 		}
-
 		// Ensure attempting to pop a node from an empty stack returns
 		// nil.
 		if node := stack.Pop(); node != nil {
@@ -114,7 +98,6 @@ testLoop:
 		}
 	}
 }
-
 func init() {
 	// Force the same pseudo random numbers for each test run.
 	rand.Seed(0)

@@ -1,11 +1,9 @@
 package txscript
-
 import (
 	"bytes"
 	"encoding/hex"
 	"testing"
 )
-
 // hexToBytes converts the passed hex string into bytes and will panic if there
 // is an error.  This is only provided for the hard-coded constants so errors in
 // the source code can be detected. It will only (and must only) be called with
@@ -17,12 +15,10 @@ func hexToBytes(s string) []byte {
 	}
 	return b
 }
-
 // TestScriptNumBytes ensures that converting from integral script numbers to
 // byte representations works as expected.
 func TestScriptNumBytes(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		num        scriptNum
 		serialized []byte
@@ -52,7 +48,6 @@ func TestScriptNumBytes(t *testing.T) {
 		{-8388608, hexToBytes("00008080")},
 		{2147483647, hexToBytes("ffffff7f")},
 		{-2147483647, hexToBytes("ffffffff")},
-
 		// Values that are out of range for data that is interpreted as
 		// numbers, but are allowed as the result of numeric operations.
 		{2147483648, hexToBytes("0000008000")},
@@ -70,7 +65,6 @@ func TestScriptNumBytes(t *testing.T) {
 		{9223372036854775807, hexToBytes("ffffffffffffff7f")},
 		{-9223372036854775807, hexToBytes("ffffffffffffffff")},
 	}
-
 	for _, test := range tests {
 		gotBytes := test.num.Bytes()
 		if !bytes.Equal(gotBytes, test.serialized) {
@@ -81,17 +75,14 @@ func TestScriptNumBytes(t *testing.T) {
 		}
 	}
 }
-
 // TestMakeScriptNum ensures that converting from byte representations to
 // integral script numbers works as expected.
 func TestMakeScriptNum(t *testing.T) {
 	t.Parallel()
-
 	// Errors used in the tests below defined here for convenience and to
 	// keep the horizontal test size shorter.
 	errNumTooBig := scriptError(ErrNumberTooBig, "")
 	errMinimalData := scriptError(ErrMinimalData, "")
-
 	tests := []struct {
 		serialized      []byte
 		num             scriptNum
@@ -101,7 +92,6 @@ func TestMakeScriptNum(t *testing.T) {
 	}{
 		// Minimal encoding must reject negative 0.
 		{hexToBytes("80"), 0, defaultScriptNumLen, true, errMinimalData},
-
 		// Minimally encoded valid values with minimal encoding flag.
 		// Should not error and return expected integral number.
 		{nil, 0, defaultScriptNumLen, true, nil},
@@ -137,7 +127,6 @@ func TestMakeScriptNum(t *testing.T) {
 		{hexToBytes("ffffffffffffffffff"), 1, 9, true, nil},
 		{hexToBytes("ffffffffffffffffff7f"), -1, 10, true, nil},
 		{hexToBytes("ffffffffffffffffffff"), 1, 10, true, nil},
-
 		// Minimally encoded values that are out of range for data that
 		// is interpreted as script numbers with the minimal encoding
 		// flag set.  Should error and return 0.
@@ -155,7 +144,6 @@ func TestMakeScriptNum(t *testing.T) {
 		{hexToBytes("ffffffffffffff80"), 0, defaultScriptNumLen, true, errNumTooBig},
 		{hexToBytes("ffffffffffffff7f"), 0, defaultScriptNumLen, true, errNumTooBig},
 		{hexToBytes("ffffffffffffffff"), 0, defaultScriptNumLen, true, errNumTooBig},
-
 		// Non-minimally encoded, but otherwise valid values with
 		// minimal encoding flag.  Should error and return 0.
 		{hexToBytes("00"), 0, defaultScriptNumLen, true, errMinimalData},       // 0
@@ -170,7 +158,6 @@ func TestMakeScriptNum(t *testing.T) {
 		{hexToBytes("00000800"), 0, defaultScriptNumLen, true, errMinimalData}, // 524288
 		{hexToBytes("00007000"), 0, defaultScriptNumLen, true, errMinimalData}, // 7340032
 		{hexToBytes("0009000100"), 0, 5, true, errMinimalData},                 // 16779520
-
 		// Non-minimally encoded, but otherwise valid values without
 		// minimal encoding flag.  Should not error and return expected
 		// integral number.
@@ -187,7 +174,6 @@ func TestMakeScriptNum(t *testing.T) {
 		{hexToBytes("00007000"), 7340032, defaultScriptNumLen, false, nil},
 		{hexToBytes("0009000100"), 16779520, 5, false, nil},
 	}
-
 	for _, test := range tests {
 		// Ensure the error code is of the expected type and the error
 		// code matches the value specified in the test instance.
@@ -197,7 +183,6 @@ func TestMakeScriptNum(t *testing.T) {
 			t.Errorf("makeScriptNum(%#x): %v", test.serialized, e)
 			continue
 		}
-
 		if gotNum != test.num {
 			t.Errorf("makeScriptNum(%#x): did not get expected "+
 				"number - got %d, want %d", test.serialized,
@@ -206,12 +191,10 @@ func TestMakeScriptNum(t *testing.T) {
 		}
 	}
 }
-
 // TestScriptNumInt32 ensures that the Int32 function on script number behaves
 // as expected.
 func TestScriptNumInt32(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		in   scriptNum
 		want int32
@@ -244,7 +227,6 @@ func TestScriptNumInt32(t *testing.T) {
 		{2147483647, 2147483647},
 		{-2147483647, -2147483647},
 		{-2147483648, -2147483648},
-
 		// Values outside of the valid int32 range are limited to int32.
 		{2147483648, 2147483647},
 		{-2147483649, -2147483648},
@@ -257,7 +239,6 @@ func TestScriptNumInt32(t *testing.T) {
 		{9223372036854775807, 2147483647},
 		{-9223372036854775808, -2147483648},
 	}
-
 	for _, test := range tests {
 		got := test.in.Int32()
 		if got != test.want {

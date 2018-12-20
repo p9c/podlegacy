@@ -1,16 +1,11 @@
 
-
-
-
 package rpctest
-
 import (
 	"errors"
 	"math"
 	"math/big"
 	"runtime"
 	"time"
-
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
@@ -18,7 +13,6 @@ import (
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
 )
-
 // solveBlock attempts to find a nonce which makes the passed block header hash
 // to a value less than the target difficulty. When a successful solution is
 // found true is returned and the nonce field of the passed header is updated
@@ -29,7 +23,6 @@ func solveBlock(header *wire.BlockHeader, targetDifficulty *big.Int) bool {
 		found bool
 		nonce uint32
 	}
-
 	// solver accepts a block header and a nonce range to test. It is
 	// intended to be run as a goroutine.
 	quit := make(chan bool)
@@ -60,7 +53,6 @@ func solveBlock(header *wire.BlockHeader, targetDifficulty *big.Int) bool {
 			return
 		}
 	}
-
 	startNonce := uint32(0)
 	stopNonce := uint32(math.MaxUint32)
 	numCores := uint32(runtime.NumCPU())
@@ -81,10 +73,8 @@ func solveBlock(header *wire.BlockHeader, targetDifficulty *big.Int) bool {
 			return true
 		}
 	}
-
 	return false
 }
-
 // standardCoinbaseScript returns a standard script suitable for use as the
 // signature script of the coinbase transaction of a new block. In particular,
 // it starts with the block height that is required by version 2 blocks.
@@ -92,19 +82,16 @@ func standardCoinbaseScript(nextBlockHeight int32, extraNonce uint64) ([]byte, e
 	return txscript.NewScriptBuilder().AddInt64(int64(nextBlockHeight)).
 		AddInt64(int64(extraNonce)).Script()
 }
-
 // createCoinbaseTx returns a coinbase transaction paying an appropriate
 // subsidy based on the passed block height to the provided address.
 func createCoinbaseTx(coinbaseScript []byte, nextBlockHeight int32,
 	addr btcutil.Address, mineTo []wire.TxOut,
 	net *chaincfg.Params) (*btcutil.Tx, error) {
-
 	// Create the script to pay to the provided payment address.
 	pkScript, err := txscript.PayToAddrScript(addr)
 	if err != nil {
 		return nil, err
 	}
-
 	tx := wire.NewMsgTx(wire.TxVersion)
 	tx.AddTxIn(&wire.TxIn{
 		// Coinbase transactions have no inputs, so previous outpoint is
@@ -126,7 +113,6 @@ func createCoinbaseTx(coinbaseScript []byte, nextBlockHeight int32,
 	}
 	return btcutil.NewTx(tx), nil
 }
-
 // CreateBlock creates a new block building from the previous block with a
 // specified blockversion and timestamp. If the timestamp passed is zero (not
 // initialized), then the timestamp of the previous block will be used plus 1
@@ -135,13 +121,11 @@ func createCoinbaseTx(coinbaseScript []byte, nextBlockHeight int32,
 func CreateBlock(prevBlock *btcutil.Block, inclusionTxs []*btcutil.Tx,
 	blockVersion uint32, blockTime time.Time, miningAddr btcutil.Address,
 	mineTo []wire.TxOut, net *chaincfg.Params) (*btcutil.Block, error) {
-
 	var (
 		prevHash      *chainhash.Hash
 		blockHeight   int32
 		prevBlockTime time.Time
 	)
-
 	// If the previous block isn't specified, then we'll construct a block
 	// that builds off of the genesis block for the chain.
 	if prevBlock == nil {
@@ -153,7 +137,6 @@ func CreateBlock(prevBlock *btcutil.Block, inclusionTxs []*btcutil.Tx,
 		blockHeight = prevBlock.Height() + 1
 		prevBlockTime = prevBlock.MsgBlock().Header.Timestamp
 	}
-
 	// If a target block time was specified, then use that as the header's
 	// timestamp. Otherwise, add one second to the previous block unless
 	// it's the genesis block in which case use the current time.
@@ -164,7 +147,6 @@ func CreateBlock(prevBlock *btcutil.Block, inclusionTxs []*btcutil.Tx,
 	default:
 		ts = prevBlockTime.Add(time.Second)
 	}
-
 	extraNonce := uint64(0)
 	coinbaseScript, err := standardCoinbaseScript(blockHeight, extraNonce)
 	if err != nil {
@@ -175,7 +157,6 @@ func CreateBlock(prevBlock *btcutil.Block, inclusionTxs []*btcutil.Tx,
 	if err != nil {
 		return nil, err
 	}
-
 	// Create a new block ready to be solved.
 	blockTxns := []*btcutil.Tx{coinbaseTx}
 	if inclusionTxs != nil {
@@ -195,12 +176,10 @@ func CreateBlock(prevBlock *btcutil.Block, inclusionTxs []*btcutil.Tx,
 			return nil, err
 		}
 	}
-
 	found := solveBlock(&block.Header, net.PowLimit)
 	if !found {
 		return nil, errors.New("Unable to solve block")
 	}
-
 	utilBlock := btcutil.NewBlock(&block)
 	utilBlock.SetHeight(blockHeight)
 	return utilBlock, nil

@@ -1,21 +1,14 @@
 
-
-
-
 package btcjson_test
-
 import (
 	"reflect"
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 // TestHelpers tests the various helper functions which create pointers to
 // primitive types.
 func TestHelpers(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		f        func() interface{}
@@ -102,7 +95,6 @@ func TestHelpers(t *testing.T) {
 			}(),
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.f()

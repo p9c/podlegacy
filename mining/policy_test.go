@@ -1,19 +1,13 @@
 
-
-
-
 package mining
-
 import (
 	"encoding/hex"
 	"testing"
-
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 // newHashFromStr converts the passed big-endian hex string into a
 // chainhash.Hash.  It only differs from the one available in chainhash in that
 // it panics on an error since it will only (and must only) be called with
@@ -25,7 +19,6 @@ func newHashFromStr(hexStr string) *chainhash.Hash {
 	}
 	return hash
 }
-
 // hexToBytes converts the passed hex string into bytes and will panic if there
 // is an error.  This is only provided for the hard-coded constants so errors in
 // the source code can be detected. It will only (and must only) be called with
@@ -37,7 +30,6 @@ func hexToBytes(s string) []byte {
 	}
 	return b
 }
-
 // newUtxoViewpoint returns a new utxo view populated with outputs of the
 // provided source transactions as if there were available at the respective
 // block height specified in the heights slice.  The length of the source txns
@@ -46,14 +38,12 @@ func newUtxoViewpoint(sourceTxns []*wire.MsgTx, sourceTxHeights []int32) *blockc
 	if len(sourceTxns) != len(sourceTxHeights) {
 		panic("each transaction must have its block height specified")
 	}
-
 	view := blockchain.NewUtxoViewpoint()
 	for i, tx := range sourceTxns {
 		view.AddTxOuts(btcutil.NewTx(tx), sourceTxHeights[i])
 	}
 	return view
 }
-
 // TestCalcPriority ensures the priority calculations work as intended.
 func TestCalcPriority(t *testing.T) {
 	// commonSourceTx1 is a valid transaction used in the tests below as an
@@ -80,7 +70,6 @@ func TestCalcPriority(t *testing.T) {
 		}},
 		LockTime: 0,
 	}
-
 	// commonRedeemTx1 is a valid transaction used in the tests below as the
 	// transaction to calculate the priority for.
 	//
@@ -115,7 +104,6 @@ func TestCalcPriority(t *testing.T) {
 		}},
 		LockTime: 0,
 	}
-
 	tests := []struct {
 		name       string                    // test description
 		tx         *wire.MsgTx               // tx to calc priority for
@@ -156,7 +144,6 @@ func TestCalcPriority(t *testing.T) {
 			want:       3083333333333.3335,
 		},
 	}
-
 	for i, test := range tests {
 		got := CalcPriority(test.tx, test.utxoView, test.nextHeight)
 		if got != test.want {

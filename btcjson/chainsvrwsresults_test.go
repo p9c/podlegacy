@@ -1,22 +1,14 @@
 
-
-
-
-
 package btcjson_test
-
 import (
 	"encoding/json"
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 // TestChainSvrWsResults ensures any results that have custom marshalling
 // work as inteded.
 func TestChainSvrWsResults(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		result   interface{}
@@ -31,7 +23,6 @@ func TestChainSvrWsResults(t *testing.T) {
 			expected: `{"hash":"blockhash","transactions":["serializedtx"]}`,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		marshalled, err := json.Marshal(test.result)

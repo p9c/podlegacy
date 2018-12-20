@@ -1,9 +1,5 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"io"
@@ -12,14 +8,11 @@ import (
 	"strings"
 	"testing"
 	"time"
-
 	"github.com/davecgh/go-spew/spew"
 )
-
 // TestVersion tests the MsgVersion API.
 func TestVersion(t *testing.T) {
 	pver := ProtocolVersion
-
 	// Create version message data.
 	lastBlock := int32(234234)
 	tcpAddrMe := &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 11047}
@@ -30,7 +23,6 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		t.Errorf("RandomUint64: error generating nonce: %v", err)
 	}
-
 	// Ensure we get the correct data back out.
 	msg := NewMsgVersion(me, you, nonce, lastBlock)
 	if msg.ProtocolVersion != int32(pver) {
@@ -61,47 +53,39 @@ func TestVersion(t *testing.T) {
 		t.Errorf("NewMsgVersion: disable relay tx is not false by "+
 			"default - got %v, want %v", msg.DisableRelayTx, false)
 	}
-
 	msg.AddUserAgent("myclient", "1.2.3", "optional", "comments")
 	customUserAgent := DefaultUserAgent + "myclient:1.2.3(optional; comments)/"
 	if msg.UserAgent != customUserAgent {
 		t.Errorf("AddUserAgent: wrong user agent - got %s, want %s",
 			msg.UserAgent, customUserAgent)
 	}
-
 	msg.AddUserAgent("mygui", "3.4.5")
 	customUserAgent += "mygui:3.4.5/"
 	if msg.UserAgent != customUserAgent {
 		t.Errorf("AddUserAgent: wrong user agent - got %s, want %s",
 			msg.UserAgent, customUserAgent)
 	}
-
 	// accounting for ":", "/"
 	err = msg.AddUserAgent(strings.Repeat("t",
 		MaxUserAgentLen-len(customUserAgent)-2+1), "")
 	if _, ok := err.(*MessageError); !ok {
 		t.Errorf("AddUserAgent: expected error not received "+
 			"- got %v, want %T", err, MessageError{})
-
 	}
-
 	// Version message should not have any services set by default.
 	if msg.Services != 0 {
 		t.Errorf("NewMsgVersion: wrong default services - got %v, want %v",
 			msg.Services, 0)
-
 	}
 	if msg.HasService(SFNodeNetwork) {
 		t.Errorf("HasService: SFNodeNetwork service is set")
 	}
-
 	// Ensure the command is expected value.
 	wantCmd := "version"
 	if cmd := msg.Command(); cmd != wantCmd {
 		t.Errorf("NewMsgVersion: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-
 	// Ensure max payload is expected value.
 	// Protocol version 4 bytes + services 8 bytes + timestamp 8 bytes +
 	// remote and local net addresses + nonce 8 bytes + length of user agent
@@ -114,7 +98,6 @@ func TestVersion(t *testing.T) {
 			"protocol version %d - got %v, want %v", pver,
 			maxPayload, wantPayload)
 	}
-
 	// Ensure adding the full service node flag works.
 	msg.AddService(SFNodeNetwork)
 	if msg.Services != SFNodeNetwork {
@@ -125,7 +108,6 @@ func TestVersion(t *testing.T) {
 		t.Errorf("HasService: SFNodeNetwork service not set")
 	}
 }
-
 // TestVersionWire tests the MsgVersion wire encode and decode for various
 // protocol versions.
 func TestVersionWire(t *testing.T) {
@@ -137,7 +119,6 @@ func TestVersionWire(t *testing.T) {
 	verRelayTxFalseEncoded := make([]byte, len(baseVersionBIP0037Encoded))
 	copy(verRelayTxFalseEncoded, baseVersionBIP0037Encoded)
 	verRelayTxFalseEncoded[len(verRelayTxFalseEncoded)-1] = 0
-
 	tests := []struct {
 		in   *MsgVersion     // Message to encode
 		out  *MsgVersion     // Expected decoded message
@@ -153,7 +134,6 @@ func TestVersionWire(t *testing.T) {
 			ProtocolVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0037Version with relay transactions field
 		// true.
 		{
@@ -163,7 +143,6 @@ func TestVersionWire(t *testing.T) {
 			BIP0037Version,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0037Version with relay transactions field
 		// false.
 		{
@@ -173,7 +152,6 @@ func TestVersionWire(t *testing.T) {
 			BIP0037Version,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0035Version.
 		{
 			baseVersion,
@@ -182,7 +160,6 @@ func TestVersionWire(t *testing.T) {
 			BIP0035Version,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0031Version.
 		{
 			baseVersion,
@@ -191,7 +168,6 @@ func TestVersionWire(t *testing.T) {
 			BIP0031Version,
 			BaseEncoding,
 		},
-
 		// Protocol version NetAddressTimeVersion.
 		{
 			baseVersion,
@@ -200,7 +176,6 @@ func TestVersionWire(t *testing.T) {
 			NetAddressTimeVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version MultipleAddressVersion.
 		{
 			baseVersion,
@@ -210,7 +185,6 @@ func TestVersionWire(t *testing.T) {
 			BaseEncoding,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode the message to wire format.
@@ -225,7 +199,6 @@ func TestVersionWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode the message from wire format.
 		var msg MsgVersion
 		rbuf := bytes.NewBuffer(test.buf)
@@ -241,7 +214,6 @@ func TestVersionWire(t *testing.T) {
 		}
 	}
 }
-
 // TestVersionWireErrors performs negative tests against wire encode and
 // decode of MsgGetHeaders to confirm error paths work correctly.
 func TestVersionWireErrors(t *testing.T) {
@@ -251,7 +223,6 @@ func TestVersionWireErrors(t *testing.T) {
 	pver := uint32(60002)
 	enc := BaseEncoding
 	wireErr := &MessageError{}
-
 	// Ensure calling MsgVersion.BtcDecode with a non *bytes.Buffer returns
 	// error.
 	fr := newFixedReader(0, []byte{})
@@ -259,20 +230,17 @@ func TestVersionWireErrors(t *testing.T) {
 		t.Errorf("Did not received error when calling " +
 			"MsgVersion.BtcDecode with non *bytes.Buffer")
 	}
-
 	// Copy the base version and change the user agent to exceed max limits.
 	bvc := *baseVersion
 	exceedUAVer := &bvc
 	newUA := "/" + strings.Repeat("t", MaxUserAgentLen-8+1) + ":0.0.1/"
 	exceedUAVer.UserAgent = newUA
-
 	// Encode the new UA length as a varint.
 	var newUAVarIntBuf bytes.Buffer
 	err := WriteVarInt(&newUAVarIntBuf, pver, uint64(len(newUA)))
 	if err != nil {
 		t.Errorf("WriteVarInt: error %v", err)
 	}
-
 	// Make a new buffer big enough to hold the base version plus the new
 	// bytes for the bigger varint to hold the new size of the user agent
 	// and the new user agent string.  Then stich it all together.
@@ -283,7 +251,6 @@ func TestVersionWireErrors(t *testing.T) {
 	copy(exceedUAVerEncoded[80:], newUAVarIntBuf.Bytes())
 	copy(exceedUAVerEncoded[83:], []byte(newUA))
 	copy(exceedUAVerEncoded[83+len(newUA):], baseVersionEncoded[97:100])
-
 	tests := []struct {
 		in       *MsgVersion     // Value to encode
 		buf      []byte          // Wire encoding
@@ -320,7 +287,6 @@ func TestVersionWireErrors(t *testing.T) {
 		// Force error due to user agent too big
 		{exceedUAVer, exceedUAVerEncoded, pver, BaseEncoding, newLen, wireErr, wireErr},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -331,7 +297,6 @@ func TestVersionWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-
 		// For errors which are not of type MessageError, check them for
 		// equality.
 		if _, ok := err.(*MessageError); !ok {
@@ -341,7 +306,6 @@ func TestVersionWireErrors(t *testing.T) {
 				continue
 			}
 		}
-
 		// Decode from wire format.
 		var msg MsgVersion
 		buf := bytes.NewBuffer(test.buf[0:test.max])
@@ -351,7 +315,6 @@ func TestVersionWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-
 		// For errors which are not of type MessageError, check them for
 		// equality.
 		if _, ok := err.(*MessageError); !ok {
@@ -363,7 +326,6 @@ func TestVersionWireErrors(t *testing.T) {
 		}
 	}
 }
-
 // TestVersionOptionalFields performs tests to ensure that an encoded version
 // messages that omit optional fields are handled correctly.
 func TestVersionOptionalFields(t *testing.T) {
@@ -382,7 +344,6 @@ func TestVersionOptionalFields(t *testing.T) {
 	}
 	onlyRequiredVersionEncoded := make([]byte, len(baseVersionEncoded)-55)
 	copy(onlyRequiredVersionEncoded, baseVersionEncoded)
-
 	// addrMeVersion is a version message that contains all fields through
 	// the AddrMe field.
 	addrMeVersion := onlyRequiredVersion
@@ -394,28 +355,24 @@ func TestVersionOptionalFields(t *testing.T) {
 	}
 	addrMeVersionEncoded := make([]byte, len(baseVersionEncoded)-29)
 	copy(addrMeVersionEncoded, baseVersionEncoded)
-
 	// nonceVersion is a version message that contains all fields through
 	// the Nonce field.
 	nonceVersion := addrMeVersion
 	nonceVersion.Nonce = 123123 // 0x1e0f3
 	nonceVersionEncoded := make([]byte, len(baseVersionEncoded)-21)
 	copy(nonceVersionEncoded, baseVersionEncoded)
-
 	// uaVersion is a version message that contains all fields through
 	// the UserAgent field.
 	uaVersion := nonceVersion
 	uaVersion.UserAgent = "/podtest:0.0.1/"
 	uaVersionEncoded := make([]byte, len(baseVersionEncoded)-4)
 	copy(uaVersionEncoded, baseVersionEncoded)
-
 	// lastBlockVersion is a version message that contains all fields
 	// through the LastBlock field.
 	lastBlockVersion := uaVersion
 	lastBlockVersion.LastBlock = 234234 // 0x392fa
 	lastBlockVersionEncoded := make([]byte, len(baseVersionEncoded))
 	copy(lastBlockVersionEncoded, baseVersionEncoded)
-
 	tests := []struct {
 		msg  *MsgVersion     // Expected message
 		buf  []byte          // Wire encoding
@@ -453,7 +410,6 @@ func TestVersionOptionalFields(t *testing.T) {
 			BaseEncoding,
 		},
 	}
-
 	for i, test := range tests {
 		// Decode the message from wire format.
 		var msg MsgVersion
@@ -470,7 +426,6 @@ func TestVersionOptionalFields(t *testing.T) {
 		}
 	}
 }
-
 // baseVersion is used in the various tests as a baseline MsgVersion.
 var baseVersion = &MsgVersion{
 	ProtocolVersion: 60002,
@@ -492,7 +447,6 @@ var baseVersion = &MsgVersion{
 	UserAgent: "/podtest:0.0.1/",
 	LastBlock: 234234, // 0x392fa
 }
-
 // baseVersionEncoded is the wire encoded bytes for baseVersion using protocol
 // version 60002 and is used in the various tests.
 var baseVersionEncoded = []byte{
@@ -515,7 +469,6 @@ var baseVersionEncoded = []byte{
 	0x74, 0x3a, 0x30, 0x2e, 0x30, 0x2e, 0x31, 0x2f, // User agent
 	0xfa, 0x92, 0x03, 0x00, // Last block
 }
-
 // baseVersionBIP0037 is used in the various tests as a baseline MsgVersion for
 // BIP0037.
 var baseVersionBIP0037 = &MsgVersion{
@@ -538,7 +491,6 @@ var baseVersionBIP0037 = &MsgVersion{
 	UserAgent: "/podtest:0.0.1/",
 	LastBlock: 234234, // 0x392fa
 }
-
 // baseVersionBIP0037Encoded is the wire encoded bytes for baseVersionBIP0037
 // using protocol version BIP0037Version and is used in the various tests.
 var baseVersionBIP0037Encoded = []byte{

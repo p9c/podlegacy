@@ -1,5 +1,4 @@
 
-
 package txscript
 import (
 	"bytes"

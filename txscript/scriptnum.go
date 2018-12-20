@@ -1,9 +1,7 @@
 package txscript
-
 import (
 	"fmt"
 )
-
 const (
 	maxInt32 = 1<<31 - 1
 	minInt32 = -1 << 31
@@ -11,7 +9,6 @@ const (
 	// data being interpreted as an integer may be.
 	defaultScriptNumLen = 4
 )
-
 // scriptNum represents a numeric value used in the scripting engine with
 // special handling to deal with the subtle semantics required by consensus.
 // All numbers are stored on the data and alternate stacks encoded as little
@@ -35,7 +32,6 @@ const (
 // Since all numeric opcodes involve pulling data from the stack and
 // interpreting it as an integer, it provides the required behavior.
 type scriptNum int64
-
 // checkMinimalDataEncoding returns whether or not the passed byte array adheres
 // to the minimal encoding requirements.
 func checkMinimalDataEncoding(v []byte) error {
@@ -62,7 +58,6 @@ func checkMinimalDataEncoding(v []byte) error {
 	}
 	return nil
 }
-
 // Bytes returns the number serialized as a little endian with a sign bit.
 // Example encodings:
 //       127 -> [0x7f]
@@ -113,7 +108,6 @@ func (n scriptNum) Bytes() []byte {
 	}
 	return result
 }
-
 // Int32 returns the script number clamped to a valid int32.  That is to say
 // when the script number is higher than the max allowed int32, the max int32
 // value is returned and vice versa for the minimum value.  Note that this
@@ -135,7 +129,6 @@ func (n scriptNum) Int32() int32 {
 	}
 	return int32(n)
 }
-
 // makeScriptNum interprets the passed serialized bytes as an encoded integer
 // and returns the result as a script number.
 // Since the consensus rules dictate that serialized bytes interpreted as ints

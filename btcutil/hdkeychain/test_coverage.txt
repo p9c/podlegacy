@@ -17,4 +17,3 @@ github.com/conformal/btcutil/hdkeychain/extendedkey.go	 ExtendedKey.Child		 91.6
 github.com/conformal/btcutil/hdkeychain/extendedkey.go	 NewMaster			 91.67% (11/12)
 github.com/conformal/btcutil/hdkeychain/extendedkey.go	 GenerateSeed			 85.71% (6/7)
 github.com/conformal/btcutil/hdkeychain			 -----------------------------	 95.59% (130/136)
-

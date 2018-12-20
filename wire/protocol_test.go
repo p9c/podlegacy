@@ -1,11 +1,6 @@
 
-
-
-
 package wire
-
 import "testing"
-
 // TestServiceFlagStringer tests the stringized output for service flag types.
 func TestServiceFlagStringer(t *testing.T) {
 	tests := []struct {
@@ -23,7 +18,6 @@ func TestServiceFlagStringer(t *testing.T) {
 		{SFNode2X, "SFNode2X"},
 		{0xffffffff, "SFNodeNetwork|SFNodeGetUTXO|SFNodeBloom|SFNodeWitness|SFNodeXthin|SFNodeBit5|SFNodeCF|SFNode2X|0xffffff00"},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.String()
@@ -34,7 +28,6 @@ func TestServiceFlagStringer(t *testing.T) {
 		}
 	}
 }
-
 // TestBitcoinNetStringer tests the stringized output for bitcoin net types.
 func TestBitcoinNetStringer(t *testing.T) {
 	tests := []struct {
@@ -47,7 +40,6 @@ func TestBitcoinNetStringer(t *testing.T) {
 		{SimNet, "SimNet"},
 		{0xffffffff, "Unknown BitcoinNet (4294967295)"},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.String()

@@ -1,20 +1,14 @@
 
-
-
-
 package txsort_test
-
 import (
 	"bytes"
 	"encoding/hex"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
-
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil/txsort"
 )
-
 // TestSort ensures the transaction sorting works according to the BIP.
 func TestSort(t *testing.T) {
 	tests := []struct {
@@ -60,7 +54,6 @@ func TestSort(t *testing.T) {
 			sortedHash:   "9a6c24746de024f77cac9b2138694f11101d1c66289261224ca52a25155a7c94",
 		},
 	}
-
 	for _, test := range tests {
 		// Load and deserialize the test transaction.
 		filePath := filepath.Join("testdata", test.hexFile)
@@ -83,7 +76,6 @@ func TestSort(t *testing.T) {
 				test.name, err)
 			continue
 		}
-
 		// Ensure the sort order of the original transaction matches the
 		// expected value.
 		if got := txsort.IsSorted(&tx); got != test.isSorted {
@@ -92,7 +84,6 @@ func TestSort(t *testing.T) {
 				test.isSorted)
 			continue
 		}
-
 		// Sort the transaction and ensure the resulting hash is the
 		// expected value.
 		sortedTx := txsort.Sort(&tx)
@@ -102,7 +93,6 @@ func TestSort(t *testing.T) {
 				test.sortedHash)
 			continue
 		}
-
 		// Ensure the original transaction is not modified.
 		if got := tx.TxHash().String(); got != test.unsortedHash {
 			t.Errorf("Sort (%s): unsorted hash does not match "+
@@ -110,7 +100,6 @@ func TestSort(t *testing.T) {
 				test.unsortedHash)
 			continue
 		}
-
 		// Now sort the transaction using the mutable version and ensure
 		// the resulting hash is the expected value.
 		txsort.InPlaceSort(&tx)

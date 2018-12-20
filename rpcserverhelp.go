@@ -1,6 +1,5 @@
 
 package main
-
 import (
 	"errors"
 	"github.com/parallelcointeam/pod/btcjson"
@@ -8,7 +7,6 @@ import (
 	"strings"
 	"sync"
 )
-
 // helpDescsEnUS defines the English descriptions used for the help strings.
 var helpDescsEnUS = map[string]string{
 	// DebugLevelCmd help.
@@ -573,7 +571,6 @@ var helpDescsEnUS = map[string]string{
 	"versionresult-prerelease":    "Prerelease info about the current build",
 	"versionresult-buildmetadata": "Metadata about the current build",
 }
-
 // rpcResultTypes specifies the result types that each RPC command can return.
 // This information is used to generate the help.  Each result type must be a
 // pointer to the type (or nil to indicate no return value).
@@ -638,7 +635,6 @@ var rpcResultTypes = map[string][]interface{}{
 	"rescan":                    nil,
 	"rescanblocks":              {(*[]btcjson.RescannedBlock)(nil)},
 }
-
 // helpCacher provides a concurrent safe type that provides help and usage for
 // the RPC server commands and caches the results for future calls.
 type helpCacher struct {
@@ -646,7 +642,6 @@ type helpCacher struct {
 	usage      string
 	methodHelp map[string]string
 }
-
 // rpcMethodHelp returns an RPC help string for the provided method.
 // This function is safe for concurrent access.
 func (c *helpCacher) rpcMethodHelp(method string) (string, error) {
@@ -670,7 +665,6 @@ func (c *helpCacher) rpcMethodHelp(method string) (string, error) {
 	c.methodHelp[method] = help
 	return help, nil
 }
-
 // rpcUsage returns one-line usage for all support RPC commands.
 // This function is safe for concurrent access.
 func (c *helpCacher) rpcUsage(includeWebsockets bool) (string, error) {
@@ -703,7 +697,6 @@ func (c *helpCacher) rpcUsage(includeWebsockets bool) (string, error) {
 	c.usage = strings.Join(usageTexts, "\n")
 	return c.usage, nil
 }
-
 // newHelpCacher returns a new instance of a help cacher which provides help and
 // usage for the RPC server commands and caches the results for future calls.
 func newHelpCacher() *helpCacher {

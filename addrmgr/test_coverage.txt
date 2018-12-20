@@ -59,4 +59,3 @@ github.com/conformal/pod/addrmgr/knownaddress.go	 knownAddress.NetAddress		 0.00
 github.com/conformal/pod/addrmgr/addrmanager.go	 AddrManager.find			 0.00% (0/1)
 github.com/conformal/pod/addrmgr/log.go		 UseLogger				 0.00% (0/1)
 github.com/conformal/pod/addrmgr			 ---------------------------------	 21.04% (113/537)
-

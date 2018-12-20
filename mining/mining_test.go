@@ -1,17 +1,11 @@
 
-
-
-
 package mining
-
 import (
 	"container/heap"
 	"math/rand"
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 // TestTxFeePrioHeap ensures the priority queue for transaction fees and
 // priorities works as expected.
 func TestTxFeePrioHeap(t *testing.T) {
@@ -31,7 +25,6 @@ func TestTxFeePrioHeap(t *testing.T) {
 		{feePerKB: 10000, priority: 0}, // Higher fee, smaller prio
 		{feePerKB: 0, priority: 10000}, // Higher prio, lower fee
 	}
-
 	// Add random data in addition to the edge conditions already manually
 	// specified.
 	randSeed := rand.Int63()
@@ -47,7 +40,6 @@ func TestTxFeePrioHeap(t *testing.T) {
 			priority: prng.Float64() * 100,
 		})
 	}
-
 	// Test sorting by fee per KB then priority.
 	var highest *txPrioItem
 	priorityQueue := newTxPriorityQueue(len(testItems), true)
@@ -58,17 +50,14 @@ func TestTxFeePrioHeap(t *testing.T) {
 		}
 		if prioItem.feePerKB >= highest.feePerKB &&
 			prioItem.priority > highest.priority {
-
 			highest = prioItem
 		}
 		heap.Push(priorityQueue, prioItem)
 	}
-
 	for i := 0; i < len(testItems); i++ {
 		prioItem := heap.Pop(priorityQueue).(*txPrioItem)
 		if prioItem.feePerKB >= highest.feePerKB &&
 			prioItem.priority > highest.priority {
-
 			t.Fatalf("fee sort: item (fee per KB: %v, "+
 				"priority: %v) higher than than prev "+
 				"(fee per KB: %v, priority %v)",
@@ -77,7 +66,6 @@ func TestTxFeePrioHeap(t *testing.T) {
 		}
 		highest = prioItem
 	}
-
 	// Test sorting by priority then fee per KB.
 	highest = nil
 	priorityQueue = newTxPriorityQueue(len(testItems), false)
@@ -88,17 +76,14 @@ func TestTxFeePrioHeap(t *testing.T) {
 		}
 		if prioItem.priority >= highest.priority &&
 			prioItem.feePerKB > highest.feePerKB {
-
 			highest = prioItem
 		}
 		heap.Push(priorityQueue, prioItem)
 	}
-
 	for i := 0; i < len(testItems); i++ {
 		prioItem := heap.Pop(priorityQueue).(*txPrioItem)
 		if prioItem.priority >= highest.priority &&
 			prioItem.feePerKB > highest.feePerKB {
-
 			t.Fatalf("priority sort: item (fee per KB: %v, "+
 				"priority: %v) higher than than prev "+
 				"(fee per KB: %v, priority %v)",

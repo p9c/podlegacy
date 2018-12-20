@@ -1,5 +1,4 @@
 
-
 package builder
 import (
 	"crypto/rand"

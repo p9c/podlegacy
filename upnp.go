@@ -1,14 +1,11 @@
 package main
-
 // Upnp code taken from Taipei Torrent license is below:
-
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
 //    * Redistributions of source code must retain the above copyright
 // notice, this list of conditions and the following disclaimer.
 //    * Redistributions in binary form must reproduce the above
-
 // in the documentation and/or other materials provided with the
 // distribution.
 //    * Neither the name of Google Inc. nor the names of its
@@ -37,7 +34,6 @@ import (
 	"strings"
 	"time"
 )
-
 // NAT is an interface representing a NAT traversal options for example UPNP or
 // NAT-PMP. It provides methods to query and manipulate this traversal to allow
 // access to services.
@@ -55,7 +51,6 @@ type upnpNAT struct {
 	serviceURL string
 	ourIP      string
 }
-
 // Discover searches the local network for a UPnP router returning a NAT
 // for the network if so, nil if not.
 func Discover() (nat NAT, err error) {
@@ -127,7 +122,6 @@ func Discover() (nat NAT, err error) {
 	err = errors.New("UPnP port discovery failed")
 	return
 }
-
 // service represents the Service type in an UPnP xml description.
 // Only the parts we care about are present and thus the xml may have more
 // fields than present in the structure.
@@ -135,7 +129,6 @@ type service struct {
 	ServiceType string `xml:"serviceType"`
 	ControlURL  string `xml:"controlURL"`
 }
-
 // deviceList represents the deviceList type in an UPnP xml description.
 // Only the parts we care about are present and thus the xml may have more
 // fields than present in the structure.
@@ -143,7 +136,6 @@ type deviceList struct {
 	XMLName xml.Name `xml:"deviceList"`
 	Device  []device `xml:"device"`
 }
-
 // serviceList represents the serviceList type in an UPnP xml description.
 // Only the parts we care about are present and thus the xml may have more
 // fields than present in the structure.
@@ -151,7 +143,6 @@ type serviceList struct {
 	XMLName xml.Name  `xml:"serviceList"`
 	Service []service `xml:"service"`
 }
-
 // device represents the device type in an UPnP xml description.
 // Only the parts we care about are present and thus the xml may have more
 // fields than present in the structure.
@@ -161,7 +152,6 @@ type device struct {
 	DeviceList  deviceList  `xml:"deviceList"`
 	ServiceList serviceList `xml:"serviceList"`
 }
-
 // specVersion represents the specVersion in a UPnP xml description.
 // Only the parts we care about are present and thus the xml may have more
 // fields than present in the structure.
@@ -170,7 +160,6 @@ type specVersion struct {
 	Major   int      `xml:"major"`
 	Minor   int      `xml:"minor"`
 }
-
 // root represents the Root document for a UPnP xml description.
 // Only the parts we care about are present and thus the xml may have more
 // fields than present in the structure.
@@ -179,7 +168,6 @@ type root struct {
 	SpecVersion specVersion
 	Device      device
 }
-
 // getChildDevice searches the children of device for a device with the given
 // type.
 func getChildDevice(d *device, deviceType string) *device {
@@ -190,7 +178,6 @@ func getChildDevice(d *device, deviceType string) *device {
 	}
 	return nil
 }
-
 // getChildDevice searches the service list of device for a service with the
 // given type.
 func getChildService(d *device, serviceType string) *service {
@@ -201,7 +188,6 @@ func getChildService(d *device, serviceType string) *service {
 	}
 	return nil
 }
-
 // getOurIP returns a best guess at what the local IP is.
 func getOurIP() (ip string, err error) {
 	hostname, err := os.Hostname()
@@ -210,7 +196,6 @@ func getOurIP() (ip string, err error) {
 	}
 	return net.LookupCNAME(hostname)
 }
-
 // getServiceURL parses the xml description at the given root url to find the
 // url for the WANIPConnection service to be used for port forwarding.
 func getServiceURL(rootURL string) (url string, err error) {
@@ -251,7 +236,6 @@ func getServiceURL(rootURL string) (url string, err error) {
 	url = combineURL(rootURL, d.ControlURL)
 	return
 }
-
 // combineURL appends subURL onto rootURL.
 func combineURL(rootURL, subURL string) string {
 	protocolEnd := "://"
@@ -260,21 +244,18 @@ func combineURL(rootURL, subURL string) string {
 	rootIndex := strings.Index(a, "/")
 	return rootURL[0:protoEndIndex+len(protocolEnd)+rootIndex] + subURL
 }
-
 // soapBody represents the <s:Body> element in a SOAP reply.
 // fields we don't care about are elided.
 type soapBody struct {
 	XMLName xml.Name `xml:"Body"`
 	Data    []byte   `xml:",innerxml"`
 }
-
 // soapEnvelope represents the <s:Envelope> element in a SOAP reply.
 // fields we don't care about are elided.
 type soapEnvelope struct {
 	XMLName xml.Name `xml:"Envelope"`
 	Body    soapBody `xml:"Body"`
 }
-
 // soapRequests performs a soap request with the given parameters and returns
 // the xml replied stripped of the soap headers. in the case that the request is
 // unsuccessful the an error is returned.
@@ -313,14 +294,12 @@ func soapRequest(url, function, message string) (replyXML []byte, err error) {
 	}
 	return reply.Body.Data, nil
 }
-
 // getExternalIPAddressResponse represents the XML response to a
 // GetExternalIPAddress SOAP request.
 type getExternalIPAddressResponse struct {
 	XMLName           xml.Name `xml:"GetExternalIPAddressResponse"`
 	ExternalIPAddress string   `xml:"NewExternalIPAddress"`
 }
-
 // GetExternalAddress implements the NAT interface by fetching the external IP
 // from the UPnP router.
 func (n *upnpNAT) GetExternalAddress() (addr net.IP, err error) {
@@ -340,7 +319,6 @@ func (n *upnpNAT) GetExternalAddress() (addr net.IP, err error) {
 	}
 	return addr, nil
 }
-
 // AddPortMapping implements the NAT interface by setting up a port forwarding
 // from the UPnP router to the local machine with the given ports and protocol.
 func (n *upnpNAT) AddPortMapping(protocol string, externalPort, internalPort int, description string, timeout int) (mappedExternalPort int, err error) {
@@ -366,7 +344,6 @@ func (n *upnpNAT) AddPortMapping(protocol string, externalPort, internalPort int
 	_ = response
 	return
 }
-
 // DeletePortMapping implements the NAT interface by removing up a port forwarding
 // from the UPnP router to the local machine with the given ports and.
 func (n *upnpNAT) DeletePortMapping(protocol string, externalPort, internalPort int) (err error) {

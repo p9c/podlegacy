@@ -1,21 +1,14 @@
 
-
-
-
 package btcjson_test
-
 import (
 	"encoding/json"
 	"reflect"
 	"testing"
-
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 // TestIsValidIDType ensures the IsValidIDType function behaves as expected.
 func TestIsValidIDType(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name    string
 		id      interface{}
@@ -41,7 +34,6 @@ func TestIsValidIDType(t *testing.T) {
 		{"complex128", complex128(1), false},
 		{"func", func() {}, false},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		if btcjson.IsValidIDType(test.id) != test.isValid {
@@ -52,11 +44,9 @@ func TestIsValidIDType(t *testing.T) {
 		}
 	}
 }
-
 // TestMarshalResponse ensures the MarshalResponse function works as expected.
 func TestMarshalResponse(t *testing.T) {
 	t.Parallel()
-
 	testID := 1
 	tests := []struct {
 		name     string
@@ -79,7 +69,6 @@ func TestMarshalResponse(t *testing.T) {
 			expected: []byte(`{"result":null,"error":{"code":-5,"message":"123 not found"},"id":1}`),
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		_, _ = i, test
@@ -89,7 +78,6 @@ func TestMarshalResponse(t *testing.T) {
 				test.name, err)
 			continue
 		}
-
 		if !reflect.DeepEqual(marshalled, test.expected) {
 			t.Errorf("Test #%d (%s) mismatched result - got %s, "+
 				"want %s", i, test.name, marshalled,
@@ -97,11 +85,9 @@ func TestMarshalResponse(t *testing.T) {
 		}
 	}
 }
-
 // TestMiscErrors tests a few error conditions not covered elsewhere.
 func TestMiscErrors(t *testing.T) {
 	t.Parallel()
-
 	// Force an error in NewRequest by giving it a parameter type that is
 	// not supported.
 	_, err := btcjson.NewRequest(nil, "test", []interface{}{make(chan int)})
@@ -109,7 +95,6 @@ func TestMiscErrors(t *testing.T) {
 		t.Error("NewRequest: did not receive error")
 		return
 	}
-
 	// Force an error in MarshalResponse by giving it an id type that is not
 	// supported.
 	wantErr := btcjson.Error{ErrorCode: btcjson.ErrInvalidType}
@@ -119,7 +104,6 @@ func TestMiscErrors(t *testing.T) {
 			"%v (%[1]T), want %v (%[2]T)", err, wantErr)
 		return
 	}
-
 	// Force an error in MarshalResponse by giving it a result type that
 	// can't be marshalled.
 	_, err = btcjson.MarshalResponse(1, make(chan int), nil)
@@ -130,11 +114,9 @@ func TestMiscErrors(t *testing.T) {
 		return
 	}
 }
-
 // TestRPCError tests the error output for the RPCError type.
 func TestRPCError(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		in   *btcjson.RPCError
 		want string
@@ -148,7 +130,6 @@ func TestRPCError(t *testing.T) {
 			"-32601: Method not found",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.Error()

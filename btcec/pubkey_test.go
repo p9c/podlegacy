@@ -1,23 +1,16 @@
 
-
-
-
 package btcec
-
 import (
 	"bytes"
 	"testing"
-
 	"github.com/davecgh/go-spew/spew"
 )
-
 type pubKeyTest struct {
 	name    string
 	key     []byte
 	format  byte
 	isValid bool
 }
-
 var pubKeyTests = []pubKeyTest{
 	// pubkey from bitcoin blockchain tx
 	// 0437cd7f8525ceed2324359c2d0ba26006d92d85
@@ -213,7 +206,6 @@ var pubKeyTests = []pubKeyTest{
 		isValid: true,
 	},
 }
-
 func TestPubKeys(t *testing.T) {
 	for _, test := range pubKeyTests {
 		pk, err := ParsePubKey(test.key, S256())
@@ -246,7 +238,6 @@ func TestPubKeys(t *testing.T) {
 		}
 	}
 }
-
 func TestPublicKeyIsEqual(t *testing.T) {
 	pubKey1, err := ParsePubKey(
 		[]byte{0x03, 0x26, 0x89, 0xc7, 0xc2, 0xda, 0xb1, 0x33,
@@ -259,7 +250,6 @@ func TestPublicKeyIsEqual(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to parse raw bytes for pubKey1: %v", err)
 	}
-
 	pubKey2, err := ParsePubKey(
 		[]byte{0x02, 0xce, 0x0b, 0x14, 0xfb, 0x84, 0x2b, 0x1b,
 			0xa5, 0x49, 0xfd, 0xd6, 0x75, 0xc9, 0x80, 0x75, 0xf1,
@@ -271,18 +261,15 @@ func TestPublicKeyIsEqual(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to parse raw bytes for pubKey2: %v", err)
 	}
-
 	if !pubKey1.IsEqual(pubKey1) {
 		t.Fatalf("value of IsEqual is incorrect, %v is "+
 			"equal to %v", pubKey1, pubKey1)
 	}
-
 	if pubKey1.IsEqual(pubKey2) {
 		t.Fatalf("value of IsEqual is incorrect, %v is not "+
 			"equal to %v", pubKey1, pubKey2)
 	}
 }
-
 func TestIsCompressed(t *testing.T) {
 	for _, test := range pubKeyTests {
 		isCompressed := IsCompressedPubKey(test.key)

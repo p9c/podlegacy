@@ -1,14 +1,9 @@
 
-
-
-
 package peer
-
 import (
 	"fmt"
 	"testing"
 )
-
 // TestMruNonceMap ensures the mruNonceMap behaves as expected including
 // limiting, eviction of least-recently used entries, specific entry removal,
 // and existence tests.
@@ -19,7 +14,6 @@ func TestMruNonceMap(t *testing.T) {
 	for i := 0; i < numNonces; i++ {
 		nonces = append(nonces, uint64(i))
 	}
-
 	tests := []struct {
 		name  string
 		limit int
@@ -31,7 +25,6 @@ func TestMruNonceMap(t *testing.T) {
 		{name: "limit one less than available", limit: numNonces - 1},
 		{name: "limit all available", limit: numNonces},
 	}
-
 testLoop:
 	for i, test := range tests {
 		// Create a new mru nonce map limited by the specified test
@@ -41,7 +34,6 @@ testLoop:
 		for j := 0; j < numNonces; j++ {
 			mruNonceMap.Add(nonces[j])
 		}
-
 		// Ensure the limited number of most recent entries in the list
 		// exist.
 		for j := numNonces - test.limit; j < numNonces; j++ {
@@ -51,7 +43,6 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Ensure the entries before the limited number of most recent
 		// entries in the list do not exist.
 		for j := 0; j < numNonces-test.limit; j++ {
@@ -61,7 +52,6 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Readd the entry that should currently be the least-recently
 		// used entry so it becomes the most-recently used entry, then
 		// force an eviction by adding an entry that doesn't exist and
@@ -72,9 +62,7 @@ testLoop:
 		if test.limit > 1 {
 			origLruIndex := numNonces - test.limit
 			mruNonceMap.Add(nonces[origLruIndex])
-
 			mruNonceMap.Add(uint64(numNonces) + 1)
-
 			// Ensure the original lru entry still exists since it
 			// was updated and should've have become the mru entry.
 			if !mruNonceMap.Exists(nonces[origLruIndex]) {
@@ -82,7 +70,6 @@ testLoop:
 					i, test.name, nonces[origLruIndex])
 				continue testLoop
 			}
-
 			// Ensure the entry that should've become the new lru
 			// entry was evicted.
 			newLruIndex := origLruIndex + 1
@@ -92,7 +79,6 @@ testLoop:
 				continue testLoop
 			}
 		}
-
 		// Delete all of the entries in the list, including those that
 		// don't exist in the map, and ensure they no longer exist.
 		for j := 0; j < numNonces; j++ {
@@ -105,19 +91,16 @@ testLoop:
 		}
 	}
 }
-
 // TestMruNonceMapStringer tests the stringized output for the mruNonceMap type.
 func TestMruNonceMapStringer(t *testing.T) {
 	// Create a couple of fake nonces to use in testing the mru nonce
 	// stringer code.
 	nonce1 := uint64(10)
 	nonce2 := uint64(20)
-
 	// Create new mru nonce map and add the nonces.
 	mruNonceMap := newMruNonceMap(uint(2))
 	mruNonceMap.Add(nonce1)
 	mruNonceMap.Add(nonce2)
-
 	// Ensure the stringer gives the expected result.  Since map iteration
 	// is not ordered, either entry could be first, so account for both
 	// cases.
@@ -129,7 +112,6 @@ func TestMruNonceMapStringer(t *testing.T) {
 			"or %q", gotStr, wantStr1, wantStr2)
 	}
 }
-
 // BenchmarkMruNonceList performs basic benchmarks on the most recently used
 // nonce handling.
 func BenchmarkMruNonceList(b *testing.B) {
@@ -142,7 +124,6 @@ func BenchmarkMruNonceList(b *testing.B) {
 		nonces = append(nonces, uint64(i))
 	}
 	b.StartTimer()
-
 	// Benchmark the add plus evicition code.
 	limit := 20000
 	mruNonceMap := newMruNonceMap(uint(limit))

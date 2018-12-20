@@ -1,17 +1,11 @@
 
-
-
-
 package database_test
-
 import (
 	"fmt"
 	"testing"
-
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
 )
-
 var (
 	// ignoreDbTypes are types which should be ignored when running tests
 	// that iterate all supported DB types.  This allows some tests to add
@@ -19,7 +13,6 @@ var (
 	// to easily iterate all supported drivers.
 	ignoreDbTypes = map[string]bool{"createopenfail": true}
 )
-
 // checkDbError ensures the passed error is a database.Error with an error code
 // that matches the passed  error code.
 func checkDbError(t *testing.T, testName string, gotErr error, wantErrCode database.ErrorCode) bool {
@@ -35,10 +28,8 @@ func checkDbError(t *testing.T, testName string, gotErr error, wantErrCode datab
 			wantErrCode)
 		return false
 	}
-
 	return true
 }
-
 // TestAddDuplicateDriver ensures that adding a duplicate driver does not
 // overwrite an existing one.
 func TestAddDuplicateDriver(t *testing.T) {
@@ -48,7 +39,6 @@ func TestAddDuplicateDriver(t *testing.T) {
 		return
 	}
 	dbType := supportedDrivers[0]
-
 	// bogusCreateDB is a function which acts as a bogus create and open
 	// driver function and intentionally returns a failure that can be
 	// detected if the interface allows a duplicate driver to overwrite an
@@ -57,7 +47,6 @@ func TestAddDuplicateDriver(t *testing.T) {
 		return nil, fmt.Errorf("duplicate driver allowed for database "+
 			"type [%v]", dbType)
 	}
-
 	// Create a driver that tries to replace an existing one.  Set its
 	// create and open functions to a function that causes a test failure if
 	// they are invoked.
@@ -72,7 +61,6 @@ func TestAddDuplicateDriver(t *testing.T) {
 		return
 	}
 }
-
 // TestCreateOpenFail ensures that errors which occur while opening or closing
 // a database are handled properly.
 func TestCreateOpenFail(t *testing.T) {
@@ -85,7 +73,6 @@ func TestCreateOpenFail(t *testing.T) {
 	bogusCreateDB := func(args ...interface{}) (database.DB, error) {
 		return nil, openError
 	}
-
 	// Create and add driver that intentionally fails when created or opened
 	// to ensure errors on database open and create are handled properly.
 	driver := database.Driver{
@@ -94,7 +81,6 @@ func TestCreateOpenFail(t *testing.T) {
 		Open:   bogusCreateDB,
 	}
 	database.RegisterDriver(driver)
-
 	// Ensure creating a database with the new type fails with the expected
 	// error.
 	_, err := database.Create(dbType)
@@ -103,7 +89,6 @@ func TestCreateOpenFail(t *testing.T) {
 			openError)
 		return
 	}
-
 	// Ensure opening a database with the new type fails with the expected
 	// error.
 	_, err = database.Open(dbType)
@@ -113,7 +98,6 @@ func TestCreateOpenFail(t *testing.T) {
 		return
 	}
 }
-
 // TestCreateOpenUnsupported ensures that attempting to create or open an
 // unsupported database type is handled properly.
 func TestCreateOpenUnsupported(t *testing.T) {
@@ -125,7 +109,6 @@ func TestCreateOpenUnsupported(t *testing.T) {
 	if !checkDbError(t, testName, err, database.ErrDbUnknownType) {
 		return
 	}
-
 	// Ensure opening a database with the an unsupported type fails with the
 	// expected error.
 	testName = "open with unsupported database type"

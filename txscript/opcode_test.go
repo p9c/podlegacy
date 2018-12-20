@@ -1,9 +1,5 @@
 
-
-
-
 package txscript
-
 import (
 	"bytes"
 	"fmt"
@@ -11,13 +7,11 @@ import (
 	"strings"
 	"testing"
 )
-
 // TestOpcodeDisabled tests the opcodeDisabled function manually because all
 // disabled opcodes result in a script execution failure when executed normally,
 // so the function is not called under normal circumstances.
 func TestOpcodeDisabled(t *testing.T) {
 	t.Parallel()
-
 	tests := []byte{OP_CAT, OP_SUBSTR, OP_LEFT, OP_RIGHT, OP_INVERT,
 		OP_AND, OP_OR, OP_2MUL, OP_2DIV, OP_MUL, OP_DIV, OP_MOD,
 		OP_LSHIFT, OP_RSHIFT,
@@ -32,14 +26,11 @@ func TestOpcodeDisabled(t *testing.T) {
 		}
 	}
 }
-
 // TestOpcodeDisasm tests the print function for all opcodes in both the oneline
 // and full modes to ensure it provides the expected disassembly.
 func TestOpcodeDisasm(t *testing.T) {
 	t.Parallel()
-
 	// First, test the oneline disassembly.
-
 	// The expected strings for the data push opcodes are replaced in the
 	// test loops below since they involve repeating bytes.  Also, the
 	// OP_NOP# and OP_UNKNOWN# are replaced below too, since it's easier
@@ -86,28 +77,23 @@ func TestOpcodeDisasm(t *testing.T) {
 		case opcodeVal >= 0x01 && opcodeVal < 0x4c:
 			data = bytes.Repeat(oneBytes, opcodeVal)
 			expectedStr = strings.Repeat(oneStr, opcodeVal)
-
 		// OP_PUSHDATA1.
 		case opcodeVal == 0x4c:
 			data = bytes.Repeat(oneBytes, 1)
 			expectedStr = strings.Repeat(oneStr, 1)
-
 		// OP_PUSHDATA2.
 		case opcodeVal == 0x4d:
 			data = bytes.Repeat(oneBytes, 2)
 			expectedStr = strings.Repeat(oneStr, 2)
-
 		// OP_PUSHDATA4.
 		case opcodeVal == 0x4e:
 			data = bytes.Repeat(oneBytes, 3)
 			expectedStr = strings.Repeat(oneStr, 3)
-
 		// OP_1 through OP_16 display the numbers themselves.
 		case opcodeVal >= 0x51 && opcodeVal <= 0x60:
 			val := byte(opcodeVal - (0x51 - 1))
 			data = []byte{val}
 			expectedStr = strconv.Itoa(int(val))
-
 		// OP_NOP1 through OP_NOP10.
 		case opcodeVal >= 0xb0 && opcodeVal <= 0xb9:
 			switch opcodeVal {
@@ -121,12 +107,10 @@ func TestOpcodeDisasm(t *testing.T) {
 				val := byte(opcodeVal - (0xb0 - 1))
 				expectedStr = "OP_NOP" + strconv.Itoa(int(val))
 			}
-
 		// OP_UNKNOWN#.
 		case opcodeVal >= 0xba && opcodeVal <= 0xf9 || opcodeVal == 0xfc:
 			expectedStr = "OP_UNKNOWN" + strconv.Itoa(int(opcodeVal))
 		}
-
 		pop := parsedOpcode{opcode: &opcodeArray[opcodeVal], data: data}
 		gotStr := pop.print(true)
 		if gotStr != expectedStr {
@@ -136,7 +120,6 @@ func TestOpcodeDisasm(t *testing.T) {
 			continue
 		}
 	}
-
 	// Now, replace the relevant fields and test the full disassembly.
 	expectedStrings[0x00] = "OP_0"
 	expectedStrings[0x4f] = "OP_1NEGATE"
@@ -149,31 +132,26 @@ func TestOpcodeDisasm(t *testing.T) {
 			data = bytes.Repeat(oneBytes, opcodeVal)
 			expectedStr = fmt.Sprintf("OP_DATA_%d 0x%s", opcodeVal,
 				strings.Repeat(oneStr, opcodeVal))
-
 		// OP_PUSHDATA1.
 		case opcodeVal == 0x4c:
 			data = bytes.Repeat(oneBytes, 1)
 			expectedStr = fmt.Sprintf("OP_PUSHDATA1 0x%02x 0x%s",
 				len(data), strings.Repeat(oneStr, 1))
-
 		// OP_PUSHDATA2.
 		case opcodeVal == 0x4d:
 			data = bytes.Repeat(oneBytes, 2)
 			expectedStr = fmt.Sprintf("OP_PUSHDATA2 0x%04x 0x%s",
 				len(data), strings.Repeat(oneStr, 2))
-
 		// OP_PUSHDATA4.
 		case opcodeVal == 0x4e:
 			data = bytes.Repeat(oneBytes, 3)
 			expectedStr = fmt.Sprintf("OP_PUSHDATA4 0x%08x 0x%s",
 				len(data), strings.Repeat(oneStr, 3))
-
 		// OP_1 through OP_16.
 		case opcodeVal >= 0x51 && opcodeVal <= 0x60:
 			val := byte(opcodeVal - (0x51 - 1))
 			data = []byte{val}
 			expectedStr = "OP_" + strconv.Itoa(int(val))
-
 		// OP_NOP1 through OP_NOP10.
 		case opcodeVal >= 0xb0 && opcodeVal <= 0xb9:
 			switch opcodeVal {
@@ -187,12 +165,10 @@ func TestOpcodeDisasm(t *testing.T) {
 				val := byte(opcodeVal - (0xb0 - 1))
 				expectedStr = "OP_NOP" + strconv.Itoa(int(val))
 			}
-
 		// OP_UNKNOWN#.
 		case opcodeVal >= 0xba && opcodeVal <= 0xf9 || opcodeVal == 0xfc:
 			expectedStr = "OP_UNKNOWN" + strconv.Itoa(int(opcodeVal))
 		}
-
 		pop := parsedOpcode{opcode: &opcodeArray[opcodeVal], data: data}
 		gotStr := pop.print(false)
 		if gotStr != expectedStr {

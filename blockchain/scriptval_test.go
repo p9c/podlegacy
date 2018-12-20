@@ -1,22 +1,15 @@
 
-
-
-
 package blockchain
-
 import (
 	"fmt"
 	"runtime"
 	"testing"
-
 	"github.com/parallelcointeam/pod/txscript"
 )
-
 // TestCheckBlockScripts ensures that validating the all of the scripts in a
 // known-good block doesn't return an error.
 func TestCheckBlockScripts(t *testing.T) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-
 	testBlockNum := 277647
 	blockDataFile := fmt.Sprintf("%d.dat.bz2", testBlockNum)
 	blocks, err := loadBlocks(blockDataFile)
@@ -32,14 +25,12 @@ func TestCheckBlockScripts(t *testing.T) {
 		t.Errorf("The test block file may not be empty")
 		return
 	}
-
 	storeDataFile := fmt.Sprintf("%d.utxostore.bz2", testBlockNum)
 	view, err := loadUtxoView(storeDataFile)
 	if err != nil {
 		t.Errorf("Error loading txstore: %v\n", err)
 		return
 	}
-
 	scriptFlags := txscript.ScriptBip16
 	err = checkBlockScripts(blocks[0], view, scriptFlags, nil, nil)
 	if err != nil {

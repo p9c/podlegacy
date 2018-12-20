@@ -1,21 +1,14 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"reflect"
 	"testing"
-
 	"github.com/davecgh/go-spew/spew"
 )
-
 // TestGetAddr tests the MsgGetAddr API.
 func TestGetAddr(t *testing.T) {
 	pver := ProtocolVersion
-
 	// Ensure the command is expected value.
 	wantCmd := "getaddr"
 	msg := NewMsgGetAddr()
@@ -23,7 +16,6 @@ func TestGetAddr(t *testing.T) {
 		t.Errorf("NewMsgGetAddr: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-
 	// Ensure max payload is expected value for latest protocol version.
 	// Num addresses (varInt) + max allowed addresses.
 	wantPayload := uint32(0)
@@ -34,13 +26,11 @@ func TestGetAddr(t *testing.T) {
 			maxPayload, wantPayload)
 	}
 }
-
 // TestGetAddrWire tests the MsgGetAddr wire encode and decode for various
 // protocol versions.
 func TestGetAddrWire(t *testing.T) {
 	msgGetAddr := NewMsgGetAddr()
 	msgGetAddrEncoded := []byte{}
-
 	tests := []struct {
 		in   *MsgGetAddr     // Message to encode
 		out  *MsgGetAddr     // Expected decoded message
@@ -56,7 +46,6 @@ func TestGetAddrWire(t *testing.T) {
 			ProtocolVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0035Version.
 		{
 			msgGetAddr,
@@ -65,7 +54,6 @@ func TestGetAddrWire(t *testing.T) {
 			BIP0035Version,
 			BaseEncoding,
 		},
-
 		// Protocol version BIP0031Version.
 		{
 			msgGetAddr,
@@ -74,7 +62,6 @@ func TestGetAddrWire(t *testing.T) {
 			BIP0031Version,
 			BaseEncoding,
 		},
-
 		// Protocol version NetAddressTimeVersion.
 		{
 			msgGetAddr,
@@ -83,7 +70,6 @@ func TestGetAddrWire(t *testing.T) {
 			NetAddressTimeVersion,
 			BaseEncoding,
 		},
-
 		// Protocol version MultipleAddressVersion.
 		{
 			msgGetAddr,
@@ -93,7 +79,6 @@ func TestGetAddrWire(t *testing.T) {
 			BaseEncoding,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode the message to wire format.
@@ -108,7 +93,6 @@ func TestGetAddrWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode the message from wire format.
 		var msg MsgGetAddr
 		rbuf := bytes.NewReader(test.buf)

@@ -1,5 +1,4 @@
 
-
 package chainhash
 import (
 	"encoding/hex"

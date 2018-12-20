@@ -1,13 +1,8 @@
 
-
-
-
 package blockchain
-
 import (
 	"testing"
 )
-
 // TestErrorCodeStringer tests the stringized output for the ErrorCode type.
 func TestErrorCodeStringer(t *testing.T) {
 	tests := []struct {
@@ -60,7 +55,6 @@ func TestErrorCodeStringer(t *testing.T) {
 		{ErrPrevBlockNotBest, "ErrPrevBlockNotBest"},
 		{0xffff, "Unknown ErrorCode (65535)"},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.String()
@@ -71,7 +65,6 @@ func TestErrorCodeStringer(t *testing.T) {
 		}
 	}
 }
-
 // TestRuleError tests the error output for the RuleError type.
 func TestRuleError(t *testing.T) {
 	tests := []struct {
@@ -87,7 +80,6 @@ func TestRuleError(t *testing.T) {
 			"human-readable error",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.Error()
@@ -98,11 +90,9 @@ func TestRuleError(t *testing.T) {
 		}
 	}
 }
-
 // TestDeploymentError tests the stringized output for the DeploymentError type.
 func TestDeploymentError(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		in   DeploymentError
 		want string
@@ -120,7 +110,6 @@ func TestDeploymentError(t *testing.T) {
 			"deployment ID 123 does not exist",
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		result := test.in.Error()
@@ -130,5 +119,4 @@ func TestDeploymentError(t *testing.T) {
 			continue
 		}
 	}
-
 }

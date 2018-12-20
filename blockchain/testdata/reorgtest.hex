@@ -1,5 +1,4 @@
 File path:  reorgTest/blk_0_to_4.dat
-
 Block 0:
    f9beb4d9
    1d010000
@@ -84,7 +83,6 @@ Block 3:
    3933acc7 6beb832f d64cab07 8ddf3ce7 32923031 d1a8ffff ffff0100 ca9a3b00 
    00000019 76a914c5 22664fb0 e55cdc5c 0cea73b4 aad97ec8 34323288 ac000000 
    00 
-
 Block 4:
    f9beb4d9
    73010000
@@ -105,7 +103,6 @@ Block 4:
    804736ff 83db47aa 248512e2 6df9b8ba 022100b0 c59e5ee7 bfcbfcd1 a4d83da9 
    55fb260e fda7f42a 25522625 a3d6f2d9 1174a701 ffffffff 0100f205 2a010000 
    001976a9 14c52266 4fb0e55c dc5c0cea 73b4aad9 7ec83432 3288ac00 000000 
-
 File path:  reorgTest/blk_3A.dat
 Block 3A:
    f9beb4d9
@@ -139,7 +136,6 @@ Block 3A:
    3933acc7 6beb832f d64cab07 8ddf3ce7 32923031 d1a8ffff ffff0100 ca9a3b00 
    00000019 76a914ee 26c56fc1 d942be8d 7a24b2a1 001dd894 69398088 ac000000 
    00 
-
 File path:  reorgTest/blk_4A.dat
 Block 4A:
    f9beb4d9
@@ -155,7 +151,6 @@ Block 4A:
    fdb0fe55 48271967 f1a67130 b7105cd6 a828e039 09a67962 e0ea1f61 deb649f6 
    bc3f4cef 38c4f355 04e51ec1 12de5c38 4df7ba0b 8d578a4c 702b6bf1 1d5fac00 
    000000 
-
 File path:  reorgTest/blk_5A.dat
 Block 5A:
    f9beb4d9
@@ -177,4 +172,3 @@ Block 5A:
    804736ff 83db47aa 248512e2 6df9b8ba 022100b0 c59e5ee7 bfcbfcd1 a4d83da9 
    55fb260e fda7f42a 25522625 a3d6f2d9 1174a701 ffffffff 0100f205 2a010000 
    001976a9 14c52266 4fb0e55c dc5c0cea 73b4aad9 7ec83432 3288ac00 000000 
-

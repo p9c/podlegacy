@@ -1,5 +1,4 @@
 
-
 package btcec
 // References:
 //   [HAC]: Handbook of Applied Cryptography Menezes, van Oorschot, Vanstone.

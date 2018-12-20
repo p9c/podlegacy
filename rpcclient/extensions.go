@@ -1,5 +1,4 @@
 
-
 package rpcclient
 import (
 	"bytes"

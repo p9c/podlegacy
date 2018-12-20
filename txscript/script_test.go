@@ -1,17 +1,11 @@
 
-
-
-
 package txscript
-
 import (
 	"bytes"
 	"reflect"
 	"testing"
-
 	"github.com/parallelcointeam/pod/wire"
 )
-
 // TestParseOpcode tests for opcode parsing with bad data templates.
 func TestParseOpcode(t *testing.T) {
 	// Deep copy the array and make one of the opcodes invalid by setting it
@@ -19,7 +13,6 @@ func TestParseOpcode(t *testing.T) {
 	fakeArray := opcodeArray
 	fakeArray[OP_PUSHDATA4] = opcode{value: OP_PUSHDATA4,
 		name: "OP_PUSHDATA4", length: -8, opfunc: opcodePushData}
-
 	// This script would be fine if -8 was a valid length.
 	_, err := parseScriptTemplate([]byte{OP_PUSHDATA4, 0x1, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00}, &fakeArray)
@@ -27,7 +20,6 @@ func TestParseOpcode(t *testing.T) {
 		t.Errorf("no error with dodgy opcode array!")
 	}
 }
-
 // TestUnparsingInvalidOpcodes tests for errors when unparsing invalid parsed
 // opcodes.
 func TestUnparsingInvalidOpcodes(t *testing.T) {
@@ -3669,7 +3661,6 @@ func TestUnparsingInvalidOpcodes(t *testing.T) {
 			expectedErr: scriptError(ErrInternal, ""),
 		},
 	}
-
 	for _, test := range tests {
 		_, err := test.pop.bytes()
 		if e := tstCheckScriptError(err, test.expectedErr); e != nil {
@@ -3678,12 +3669,10 @@ func TestUnparsingInvalidOpcodes(t *testing.T) {
 		}
 	}
 }
-
 // TestPushedData ensured the PushedData function extracts the expected data out
 // of various scripts.
 func TestPushedData(t *testing.T) {
 	t.Parallel()
-
 	var tests = []struct {
 		script string
 		out    [][]byte
@@ -3721,7 +3710,6 @@ func TestPushedData(t *testing.T) {
 			false,
 		},
 	}
-
 	for i, test := range tests {
 		script := mustParseShortForm(test.script)
 		data, err := PushedData(script)
@@ -3739,11 +3727,9 @@ func TestPushedData(t *testing.T) {
 		}
 	}
 }
-
 // TestHasCanonicalPush ensures the canonicalPush function works as expected.
 func TestHasCanonicalPush(t *testing.T) {
 	t.Parallel()
-
 	for i := 0; i < 65535; i++ {
 		script, err := NewScriptBuilder().AddInt64(int64(i)).Script()
 		if err != nil {
@@ -3794,12 +3780,10 @@ func TestHasCanonicalPush(t *testing.T) {
 		}
 	}
 }
-
 // TestGetPreciseSigOps ensures the more precise signature operation counting
 // mechanism which includes signatures in P2SH scripts works as expected.
 func TestGetPreciseSigOps(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name      string
 		scriptSig []byte
@@ -3830,7 +3814,6 @@ func TestGetPreciseSigOps(t *testing.T) {
 			scriptSig: mustParseShortForm("DATA_2 PUSHDATA1 0x02"),
 		},
 	}
-
 	// The signature in the p2sh script is nonsensical for the tests since
 	// this script will never be executed.  What matters is that it matches
 	// the right pattern.
@@ -3841,22 +3824,18 @@ func TestGetPreciseSigOps(t *testing.T) {
 		if count != test.nSigOps {
 			t.Errorf("%s: expected count of %d, got %d", test.name,
 				test.nSigOps, count)
-
 		}
 	}
 }
-
 // TestGetWitnessSigOpCount tests that the sig op counting for p2wkh, p2wsh,
 // nested p2sh, and invalid variants are counted properly.
 func TestGetWitnessSigOpCount(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
-
 		sigScript []byte
 		pkScript  []byte
 		witness   wire.TxWitness
-
 		numSigOps int
 	}{
 		// A regualr p2wkh witness program. The output being spent
@@ -3922,23 +3901,19 @@ func TestGetWitnessSigOpCount(t *testing.T) {
 			},
 		},
 	}
-
 	for _, test := range tests {
 		count := GetWitnessSigOpCount(test.sigScript, test.pkScript,
 			test.witness)
 		if count != test.numSigOps {
 			t.Errorf("%s: expected count of %d, got %d", test.name,
 				test.numSigOps, count)
-
 		}
 	}
 }
-
 // TestRemoveOpcodes ensures that removing opcodes from scripts behaves as
 // expected.
 func TestRemoveOpcodes(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name   string
 		before string
@@ -3987,7 +3962,6 @@ func TestRemoveOpcodes(t *testing.T) {
 			err:    scriptError(ErrMalformedPush, ""),
 		},
 	}
-
 	// tstRemoveOpcode is a convenience function to parse the provided
 	// raw script, remove the passed opcode, then unparse the result back
 	// into a raw script.
@@ -3999,7 +3973,6 @@ func TestRemoveOpcodes(t *testing.T) {
 		pops = removeOpcode(pops, opcode)
 		return unparseScript(pops)
 	}
-
 	for _, test := range tests {
 		before := mustParseShortForm(test.before)
 		after := mustParseShortForm(test.after)
@@ -4008,19 +3981,16 @@ func TestRemoveOpcodes(t *testing.T) {
 			t.Errorf("%s: %v", test.name, e)
 			continue
 		}
-
 		if !bytes.Equal(after, result) {
 			t.Errorf("%s: value does not equal expected: exp: %q"+
 				" got: %q", test.name, after, result)
 		}
 	}
 }
-
 // TestRemoveOpcodeByData ensures that removing data carrying opcodes based on
 // the data they contain works as expected.
 func TestRemoveOpcodeByData(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name   string
 		before []byte
@@ -4138,7 +4108,6 @@ func TestRemoveOpcodeByData(t *testing.T) {
 			err:    scriptError(ErrMalformedPush, ""),
 		},
 	}
-
 	// tstRemoveOpcodeByData is a convenience function to parse the provided
 	// raw script, remove the passed data, then unparse the result back
 	// into a raw script.
@@ -4150,26 +4119,22 @@ func TestRemoveOpcodeByData(t *testing.T) {
 		pops = removeOpcodeByData(pops, data)
 		return unparseScript(pops)
 	}
-
 	for _, test := range tests {
 		result, err := tstRemoveOpcodeByData(test.before, test.remove)
 		if e := tstCheckScriptError(err, test.err); e != nil {
 			t.Errorf("%s: %v", test.name, e)
 			continue
 		}
-
 		if !bytes.Equal(test.after, result) {
 			t.Errorf("%s: value does not equal expected: exp: %q"+
 				" got: %q", test.name, test.after, result)
 		}
 	}
 }
-
 // TestIsPayToScriptHash ensures the IsPayToScriptHash function returns the
 // expected results for all the scripts in scriptClassTests.
 func TestIsPayToScriptHash(t *testing.T) {
 	t.Parallel()
-
 	for _, test := range scriptClassTests {
 		script := mustParseShortForm(test.script)
 		shouldBe := (test.class == ScriptHashTy)
@@ -4180,12 +4145,10 @@ func TestIsPayToScriptHash(t *testing.T) {
 		}
 	}
 }
-
 // TestIsPayToWitnessScriptHash ensures the IsPayToWitnessScriptHash function
 // returns the expected results for all the scripts in scriptClassTests.
 func TestIsPayToWitnessScriptHash(t *testing.T) {
 	t.Parallel()
-
 	for _, test := range scriptClassTests {
 		script := mustParseShortForm(test.script)
 		shouldBe := (test.class == WitnessV0ScriptHashTy)
@@ -4196,12 +4159,10 @@ func TestIsPayToWitnessScriptHash(t *testing.T) {
 		}
 	}
 }
-
 // TestIsPayToWitnessPubKeyHash ensures the IsPayToWitnessPubKeyHash function
 // returns the expected results for all the scripts in scriptClassTests.
 func TestIsPayToWitnessPubKeyHash(t *testing.T) {
 	t.Parallel()
-
 	for _, test := range scriptClassTests {
 		script := mustParseShortForm(test.script)
 		shouldBe := (test.class == WitnessV0PubKeyHashTy)
@@ -4212,12 +4173,10 @@ func TestIsPayToWitnessPubKeyHash(t *testing.T) {
 		}
 	}
 }
-
 // TestHasCanonicalPushes ensures the canonicalPush function properly determines
 // what is considered a canonical push for the purposes of removeOpcodeByData.
 func TestHasCanonicalPushes(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		script   string
@@ -4235,7 +4194,6 @@ func TestHasCanonicalPushes(t *testing.T) {
 			expected: false,
 		},
 	}
-
 	for i, test := range tests {
 		script := mustParseShortForm(test.script)
 		pops, err := parseScript(script)
@@ -4255,12 +4213,10 @@ func TestHasCanonicalPushes(t *testing.T) {
 		}
 	}
 }
-
 // TestIsPushOnlyScript ensures the IsPushOnlyScript function returns the
 // expected results.
 func TestIsPushOnlyScript(t *testing.T) {
 	t.Parallel()
-
 	test := struct {
 		name     string
 		script   []byte
@@ -4271,18 +4227,15 @@ func TestIsPushOnlyScript(t *testing.T) {
 			"b7105cd6a828e03909a67962e0ea1f61d"),
 		expected: false,
 	}
-
 	if IsPushOnlyScript(test.script) != test.expected {
 		t.Errorf("IsPushOnlyScript (%s) wrong result\ngot: %v\nwant: "+
 			"%v", test.name, true, test.expected)
 	}
 }
-
 // TestIsUnspendable ensures the IsUnspendable function returns the expected
 // results.
 func TestIsUnspendable(t *testing.T) {
 	t.Parallel()
-
 	tests := []struct {
 		name     string
 		pkScript []byte
@@ -4302,7 +4255,6 @@ func TestIsUnspendable(t *testing.T) {
 			expected: false,
 		},
 	}
-
 	for i, test := range tests {
 		res := IsUnspendable(test.pkScript)
 		if res != test.expected {

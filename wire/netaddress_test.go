@@ -1,9 +1,5 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"io"
@@ -11,18 +7,14 @@ import (
 	"reflect"
 	"testing"
 	"time"
-
 	"github.com/davecgh/go-spew/spew"
 )
-
 // TestNetAddress tests the NetAddress API.
 func TestNetAddress(t *testing.T) {
 	ip := net.ParseIP("127.0.0.1")
 	port := 11047
-
 	// Test NewNetAddress.
 	na := NewNetAddress(&net.TCPAddr{IP: ip, Port: port}, 0)
-
 	// Ensure we get the same ip, port, and services back out.
 	if !na.IP.Equal(ip) {
 		t.Errorf("NetNetAddress: wrong ip - got %v, want %v", na.IP, ip)
@@ -38,7 +30,6 @@ func TestNetAddress(t *testing.T) {
 	if na.HasService(SFNodeNetwork) {
 		t.Errorf("HasService: SFNodeNetwork service is set")
 	}
-
 	// Ensure adding the full service node flag works.
 	na.AddService(SFNodeNetwork)
 	if na.Services != SFNodeNetwork {
@@ -48,7 +39,6 @@ func TestNetAddress(t *testing.T) {
 	if !na.HasService(SFNodeNetwork) {
 		t.Errorf("HasService: SFNodeNetwork service not set")
 	}
-
 	// Ensure max payload is expected value for latest protocol version.
 	pver := ProtocolVersion
 	wantPayload := uint32(30)
@@ -58,7 +48,6 @@ func TestNetAddress(t *testing.T) {
 			"protocol version %d - got %v, want %v", pver,
 			maxPayload, wantPayload)
 	}
-
 	// Protocol version before NetAddressTimeVersion when timestamp was
 	// added.  Ensure max payload is expected value for it.
 	pver = NetAddressTimeVersion - 1
@@ -70,7 +59,6 @@ func TestNetAddress(t *testing.T) {
 			maxPayload, wantPayload)
 	}
 }
-
 // TestNetAddressWire tests the NetAddress wire encode and decode for various
 // protocol versions and timestamp flag combinations.
 func TestNetAddressWire(t *testing.T) {
@@ -81,11 +69,9 @@ func TestNetAddressWire(t *testing.T) {
 		IP:        net.ParseIP("127.0.0.1"),
 		Port:      11047,
 	}
-
 	// baseNetAddrNoTS is baseNetAddr with a zero value for the timestamp.
 	baseNetAddrNoTS := baseNetAddr
 	baseNetAddrNoTS.Timestamp = time.Time{}
-
 	// baseNetAddrEncoded is the wire encoded bytes of baseNetAddr.
 	baseNetAddrEncoded := []byte{
 		0x29, 0xab, 0x5f, 0x49, // Timestamp
@@ -94,7 +80,6 @@ func TestNetAddressWire(t *testing.T) {
 		0x00, 0x00, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x01, // IP 127.0.0.1
 		0x2b, 0x87, // Port 11047 in big-endian
 	}
-
 	// baseNetAddrNoTSEncoded is the wire encoded bytes of baseNetAddrNoTS.
 	baseNetAddrNoTSEncoded := []byte{
 		// No timestamp
@@ -103,7 +88,6 @@ func TestNetAddressWire(t *testing.T) {
 		0x00, 0x00, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x01, // IP 127.0.0.1
 		0x2b, 0x27, // Port 11047 in big-endian
 	}
-
 	tests := []struct {
 		in   NetAddress // NetAddress to encode
 		out  NetAddress // Expected decoded NetAddress
@@ -119,7 +103,6 @@ func TestNetAddressWire(t *testing.T) {
 			baseNetAddrNoTSEncoded,
 			ProtocolVersion,
 		},
-
 		// Latest protocol version with ts flag.
 		{
 			baseNetAddr,
@@ -128,7 +111,6 @@ func TestNetAddressWire(t *testing.T) {
 			baseNetAddrEncoded,
 			ProtocolVersion,
 		},
-
 		// Protocol version NetAddressTimeVersion without ts flag.
 		{
 			baseNetAddr,
@@ -137,7 +119,6 @@ func TestNetAddressWire(t *testing.T) {
 			baseNetAddrNoTSEncoded,
 			NetAddressTimeVersion,
 		},
-
 		// Protocol version NetAddressTimeVersion with ts flag.
 		{
 			baseNetAddr,
@@ -146,7 +127,6 @@ func TestNetAddressWire(t *testing.T) {
 			baseNetAddrEncoded,
 			NetAddressTimeVersion,
 		},
-
 		// Protocol version NetAddressTimeVersion-1 without ts flag.
 		{
 			baseNetAddr,
@@ -155,7 +135,6 @@ func TestNetAddressWire(t *testing.T) {
 			baseNetAddrNoTSEncoded,
 			NetAddressTimeVersion - 1,
 		},
-
 		// Protocol version NetAddressTimeVersion-1 with timestamp.
 		// Even though the timestamp flag is set, this shouldn't have a
 		// timestamp since it is a protocol version before it was
@@ -168,7 +147,6 @@ func TestNetAddressWire(t *testing.T) {
 			NetAddressTimeVersion - 1,
 		},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -183,7 +161,6 @@ func TestNetAddressWire(t *testing.T) {
 				spew.Sdump(buf.Bytes()), spew.Sdump(test.buf))
 			continue
 		}
-
 		// Decode the message from wire format.
 		var na NetAddress
 		rbuf := bytes.NewReader(test.buf)
@@ -199,13 +176,11 @@ func TestNetAddressWire(t *testing.T) {
 		}
 	}
 }
-
 // TestNetAddressWireErrors performs negative tests against wire encode and
 // decode NetAddress to confirm error paths work correctly.
 func TestNetAddressWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	pverNAT := NetAddressTimeVersion - 1
-
 	// baseNetAddr is used in the various tests as a baseline NetAddress.
 	baseNetAddr := NetAddress{
 		Timestamp: time.Unix(0x495fab29, 0), // 2009-01-03 12:15:05 -0600 CST
@@ -213,7 +188,6 @@ func TestNetAddressWireErrors(t *testing.T) {
 		IP:        net.ParseIP("127.0.0.1"),
 		Port:      11047,
 	}
-
 	tests := []struct {
 		in       *NetAddress // Value to encode
 		buf      []byte      // Wire encoding
@@ -233,7 +207,6 @@ func TestNetAddressWireErrors(t *testing.T) {
 		{&baseNetAddr, []byte{}, pver, true, 12, io.ErrShortWrite, io.EOF},
 		// Force errors on port.
 		{&baseNetAddr, []byte{}, pver, true, 28, io.ErrShortWrite, io.EOF},
-
 		// Latest protocol version with no timestamp and intentional
 		// read/write errors.
 		// Force errors on services.
@@ -242,7 +215,6 @@ func TestNetAddressWireErrors(t *testing.T) {
 		{&baseNetAddr, []byte{}, pver, false, 8, io.ErrShortWrite, io.EOF},
 		// Force errors on port.
 		{&baseNetAddr, []byte{}, pver, false, 24, io.ErrShortWrite, io.EOF},
-
 		// Protocol version before NetAddressTimeVersion with timestamp
 		// flag set (should not have timestamp due to old protocol
 		// version) and  intentional read/write errors.
@@ -253,7 +225,6 @@ func TestNetAddressWireErrors(t *testing.T) {
 		// Force errors on port.
 		{&baseNetAddr, []byte{}, pverNAT, true, 24, io.ErrShortWrite, io.EOF},
 	}
-
 	t.Logf("Running %d tests", len(tests))
 	for i, test := range tests {
 		// Encode to wire format.
@@ -264,7 +235,6 @@ func TestNetAddressWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-
 		// Decode from wire format.
 		var na NetAddress
 		r := newFixedReader(test.max, test.buf)

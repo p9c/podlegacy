@@ -1,5 +1,4 @@
 
-
 package gcs
 import (
 	"bytes"

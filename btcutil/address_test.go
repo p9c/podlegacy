@@ -1,9 +1,5 @@
 
-
-
-
 package btcutil_test
-
 import (
 	"bytes"
 	"encoding/hex"
@@ -11,12 +7,10 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/btcutil"
 	"golang.org/x/crypto/ripemd160"
 )
-
 func TestAddresses(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -82,7 +76,6 @@ func TestAddresses(t *testing.T) {
 			},
 			net: &chaincfg.TestNet3Params,
 		},
-
 		// Negative P2PKH tests.
 		{
 			name:  "p2pkh wrong hash length",
@@ -103,7 +96,6 @@ func TestAddresses(t *testing.T) {
 			valid: false,
 			net:   &chaincfg.MainNetParams,
 		},
-
 		// Positive P2SH tests.
 		{
 			// Taken from transactions:
@@ -185,7 +177,6 @@ func TestAddresses(t *testing.T) {
 			},
 			net: &chaincfg.TestNet3Params,
 		},
-
 		// Negative P2SH tests.
 		{
 			name:  "p2sh wrong hash length",
@@ -200,7 +191,6 @@ func TestAddresses(t *testing.T) {
 			},
 			net: &chaincfg.MainNetParams,
 		},
-
 		// Positive P2PK tests.
 		{
 			name:    "mainnet p2pk compressed (0x02)",
@@ -647,7 +637,6 @@ func TestAddresses(t *testing.T) {
 			net:   &chaincfg.TestNet3Params,
 		},
 	}
-
 	for _, test := range tests {
 		// Decode addr and compare error against valid.
 		decoded, err := btcutil.DecodeAddress(test.addr, test.net)
@@ -655,27 +644,23 @@ func TestAddresses(t *testing.T) {
 			t.Errorf("%v: decoding test failed: %v", test.name, err)
 			return
 		}
-
 		if err == nil {
 			// Ensure the stringer returns the same address as the
 			// original.
 			if decodedStringer, ok := decoded.(fmt.Stringer); ok {
 				addr := test.addr
-
 				// For Segwit addresses the string representation
 				// will always be lower case, so in that case we
 				// convert the original to lower case first.
 				if strings.Contains(test.name, "segwit") {
 					addr = strings.ToLower(addr)
 				}
-
 				if addr != decodedStringer.String() {
 					t.Errorf("%v: String on decoded value does not match expected value: %v != %v",
 						test.name, test.addr, decodedStringer.String())
 					return
 				}
 			}
-
 			// Encode again and compare against the original.
 			encoded := decoded.EncodeAddress()
 			if test.encoded != encoded {
@@ -683,16 +668,13 @@ func TestAddresses(t *testing.T) {
 					test.name, test.encoded, encoded)
 				return
 			}
-
 			// Perform type-specific calculations.
 			var saddr []byte
 			switch d := decoded.(type) {
 			case *btcutil.AddressPubKeyHash:
 				saddr = btcutil.TstAddressSAddr(encoded)
-
 			case *btcutil.AddressScriptHash:
 				saddr = btcutil.TstAddressSAddr(encoded)
-
 			case *btcutil.AddressPubKey:
 				// Ignore the error here since the script
 				// address is checked below.
@@ -702,7 +684,6 @@ func TestAddresses(t *testing.T) {
 			case *btcutil.AddressWitnessScriptHash:
 				saddr = btcutil.TstAddressSegwitSAddr(encoded)
 			}
-
 			// Check script address, as well as the Hash160 method for P2PKH and
 			// P2SH addresses.
 			if !bytes.Equal(saddr, decoded.ScriptAddress()) {
@@ -717,55 +698,47 @@ func TestAddresses(t *testing.T) {
 						test.name, saddr, h)
 					return
 				}
-
 			case *btcutil.AddressScriptHash:
 				if h := a.Hash160()[:]; !bytes.Equal(saddr, h) {
 					t.Errorf("%v: hashes do not match:\n%x != \n%x",
 						test.name, saddr, h)
 					return
 				}
-
 			case *btcutil.AddressWitnessPubKeyHash:
 				if hrp := a.Hrp(); test.net.Bech32HRPSegwit != hrp {
 					t.Errorf("%v: hrps do not match:\n%x != \n%x",
 						test.name, test.net.Bech32HRPSegwit, hrp)
 					return
 				}
-
 				expVer := test.result.(*btcutil.AddressWitnessPubKeyHash).WitnessVersion()
 				if v := a.WitnessVersion(); v != expVer {
 					t.Errorf("%v: witness versions do not match:\n%x != \n%x",
 						test.name, expVer, v)
 					return
 				}
-
 				if p := a.WitnessProgram(); !bytes.Equal(saddr, p) {
 					t.Errorf("%v: witness programs do not match:\n%x != \n%x",
 						test.name, saddr, p)
 					return
 				}
-
 			case *btcutil.AddressWitnessScriptHash:
 				if hrp := a.Hrp(); test.net.Bech32HRPSegwit != hrp {
 					t.Errorf("%v: hrps do not match:\n%x != \n%x",
 						test.name, test.net.Bech32HRPSegwit, hrp)
 					return
 				}
-
 				expVer := test.result.(*btcutil.AddressWitnessScriptHash).WitnessVersion()
 				if v := a.WitnessVersion(); v != expVer {
 					t.Errorf("%v: witness versions do not match:\n%x != \n%x",
 						test.name, expVer, v)
 					return
 				}
-
 				if p := a.WitnessProgram(); !bytes.Equal(saddr, p) {
 					t.Errorf("%v: witness programs do not match:\n%x != \n%x",
 						test.name, saddr, p)
 					return
 				}
 			}
-
 			// Ensure the address is for the expected network.
 			if !decoded.IsForNet(test.net) {
 				t.Errorf("%v: calculated network does not match expected",
@@ -773,7 +746,6 @@ func TestAddresses(t *testing.T) {
 				return
 			}
 		}
-
 		if !test.valid {
 			// If address is invalid, but a creation function exists,
 			// verify that it returns a nil addr and non-nil error.
@@ -787,7 +759,6 @@ func TestAddresses(t *testing.T) {
 			}
 			continue
 		}
-
 		// Valid test, compare address created with f against expected result.
 		addr, err := test.f()
 		if err != nil {
@@ -795,7 +766,6 @@ func TestAddresses(t *testing.T) {
 				test.name, err)
 			return
 		}
-
 		if !reflect.DeepEqual(addr, test.result) {
 			t.Errorf("%v: created address does not match expected result",
 				test.name)

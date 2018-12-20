@@ -1,21 +1,15 @@
 
-
-
-
 package wire
-
 import (
 	"bytes"
 	"io"
 )
-
 // fixedWriter implements the io.Writer interface and intentially allows
 // testing of error paths by forcing short writes.
 type fixedWriter struct {
 	b   []byte
 	pos int
 }
-
 // Write writes the contents of p to w.  When the contents of p would cause
 // the writer to exceed the maximum allowed size of the fixed writer,
 // io.ErrShortWrite is returned and the writer is left unchanged.
@@ -30,12 +24,10 @@ func (w *fixedWriter) Write(p []byte) (n int, err error) {
 	w.pos += copy(w.b[w.pos:], p)
 	return
 }
-
 // Bytes returns the bytes already written to the fixed writer.
 func (w *fixedWriter) Bytes() []byte {
 	return w.b
 }
-
 // newFixedWriter returns a new io.Writer that will error once more bytes than
 // the specified max have been written.
 func newFixedWriter(max int) io.Writer {
@@ -43,7 +35,6 @@ func newFixedWriter(max int) io.Writer {
 	fw := fixedWriter{b, 0}
 	return &fw
 }
-
 // fixedReader implements the io.Reader interface and intentially allows
 // testing of error paths by forcing short reads.
 type fixedReader struct {
@@ -51,7 +42,6 @@ type fixedReader struct {
 	pos   int
 	iobuf *bytes.Buffer
 }
-
 // Read reads the next len(p) bytes from the fixed reader.  When the number of
 // bytes read would exceed the maximum number of allowed bytes to be read from
 // the fixed writer, an error is returned.
@@ -62,7 +52,6 @@ func (fr *fixedReader) Read(p []byte) (n int, err error) {
 	fr.pos += n
 	return
 }
-
 // newFixedReader returns a new io.Reader that will error once more bytes than
 // the specified max have been read.
 func newFixedReader(max int, buf []byte) io.Reader {
@@ -70,7 +59,6 @@ func newFixedReader(max int, buf []byte) io.Reader {
 	if buf != nil {
 		copy(b[:], buf)
 	}
-
 	iobuf := bytes.NewBuffer(b)
 	fr := fixedReader{b, 0, iobuf}
 	return &fr

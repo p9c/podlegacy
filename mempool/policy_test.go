@@ -1,14 +1,9 @@
 
-
-
-
 package mempool
-
 import (
 	"bytes"
 	"testing"
 	"time"
-
 	"github.com/parallelcointeam/pod/btcec"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
@@ -16,7 +11,6 @@ import (
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 // TestCalcMinRequiredTxRelayFee tests the calcMinRequiredTxRelayFee API.
 func TestCalcMinRequiredTxRelayFee(t *testing.T) {
 	tests := []struct {
@@ -82,7 +76,6 @@ func TestCalcMinRequiredTxRelayFee(t *testing.T) {
 			1994,
 		},
 	}
-
 	for _, test := range tests {
 		got := calcMinRequiredTxRelayFee(test.size, test.relayFee)
 		if got != test.want {
@@ -93,7 +86,6 @@ func TestCalcMinRequiredTxRelayFee(t *testing.T) {
 		}
 	}
 }
-
 // TestCheckPkScriptStandard tests the checkPkScriptStandard API.
 func TestCheckPkScriptStandard(t *testing.T) {
 	var pubKeys [][]byte
@@ -106,7 +98,6 @@ func TestCheckPkScriptStandard(t *testing.T) {
 		}
 		pubKeys = append(pubKeys, pk.PubKey().SerializeCompressed())
 	}
-
 	tests := []struct {
 		name       string // test description.
 		script     *txscript.ScriptBuilder
@@ -184,7 +175,6 @@ func TestCheckPkScriptStandard(t *testing.T) {
 			false,
 		},
 	}
-
 	for _, test := range tests {
 		script, err := test.script.Script()
 		if err != nil {
@@ -196,14 +186,12 @@ func TestCheckPkScriptStandard(t *testing.T) {
 		got := checkPkScriptStandard(script, scriptClass)
 		if (test.isStandard && got != nil) ||
 			(!test.isStandard && got == nil) {
-
 			t.Fatalf("TestCheckPkScriptStandard test '%s' failed",
 				test.name)
 			return
 		}
 	}
 }
-
 // TestDust tests the isDust API.
 func TestDust(t *testing.T) {
 	pkScript := []byte{0x76, 0xa9, 0x21, 0x03, 0x2f, 0x7e, 0x43,
@@ -211,7 +199,6 @@ func TestDust(t *testing.T) {
 		0x75, 0xdc, 0x76, 0xd9, 0x00, 0x3b, 0xf0, 0x92, 0x2c,
 		0xf3, 0xaa, 0x45, 0x28, 0x46, 0x4b, 0xab, 0x78, 0x0d,
 		0xba, 0x5e, 0x88, 0xac}
-
 	tests := []struct {
 		name     string // test description
 		txOut    wire.TxOut
@@ -276,7 +263,6 @@ func TestDust(t *testing.T) {
 		}
 	}
 }
-
 // TestCheckTransactionStandard tests the checkTransactionStandard API.
 func TestCheckTransactionStandard(t *testing.T) {
 	// Create some dummy, but otherwise standard, data for transactions.
@@ -305,7 +291,6 @@ func TestCheckTransactionStandard(t *testing.T) {
 		Value:    100000000, // 1 DUO
 		PkScript: dummyPkScript,
 	}
-
 	tests := []struct {
 		name       string
 		tx         wire.MsgTx
@@ -465,7 +450,6 @@ func TestCheckTransactionStandard(t *testing.T) {
 			isStandard: true,
 		},
 	}
-
 	pastMedianTime := time.Now()
 	for _, test := range tests {
 		// Ensure standardness is as expected.
@@ -486,7 +470,6 @@ func TestCheckTransactionStandard(t *testing.T) {
 				"when it should not be: %v", test.name, err)
 			continue
 		}
-
 		// Ensure error type is a TxRuleError inside of a RuleError.
 		rerr, ok := err.(RuleError)
 		if !ok {
@@ -500,7 +483,6 @@ func TestCheckTransactionStandard(t *testing.T) {
 				"error type - got %T", test.name, rerr.Err)
 			continue
 		}
-
 		// Ensure the reject code is the expected one.
 		if txrerr.RejectCode != test.code {
 			t.Errorf("checkTransactionStandard (%s): unexpected "+

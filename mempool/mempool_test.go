@@ -1,9 +1,5 @@
 
-
-
-
 package mempool
-
 import (
 	"encoding/hex"
 	"reflect"
@@ -11,7 +7,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/btcec"
 	"github.com/parallelcointeam/pod/chaincfg"
@@ -20,7 +15,6 @@ import (
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 // fakeChain is used by the pool harness to provide generated test utxos and
 // a current faked chain height to the pool callbacks.  This, in turn, allows
 // transactions to appear as though they are spending completely valid utxos.
@@ -30,7 +24,6 @@ type fakeChain struct {
 	currentHeight  int32
 	medianTimePast time.Time
 }
-
 // FetchUtxoView loads utxo details about the inputs referenced by the passed
 // transaction from the point of view of the fake chain.  It also attempts to
 // fetch the utxos for the outputs of the transaction itself so the returned
@@ -40,10 +33,8 @@ type fakeChain struct {
 func (s *fakeChain) FetchUtxoView(tx *btcutil.Tx) (*blockchain.UtxoViewpoint, error) {
 	s.RLock()
 	defer s.RUnlock()
-
 	// All entries are cloned to ensure modifications to the returned view
 	// do not affect the fake chain's view.
-
 	// Add an entry for the tx itself to the new view.
 	viewpoint := blockchain.NewUtxoViewpoint()
 	prevOut := wire.OutPoint{Hash: *tx.Hash()}
@@ -52,16 +43,13 @@ func (s *fakeChain) FetchUtxoView(tx *btcutil.Tx) (*blockchain.UtxoViewpoint, er
 		entry := s.utxos.LookupEntry(prevOut)
 		viewpoint.Entries()[prevOut] = entry.Clone()
 	}
-
 	// Add entries for all of the inputs to the tx to the new view.
 	for _, txIn := range tx.MsgTx().TxIn {
 		entry := s.utxos.LookupEntry(txIn.PreviousOutPoint)
 		viewpoint.Entries()[txIn.PreviousOutPoint] = entry.Clone()
 	}
-
 	return viewpoint, nil
 }
-
 // BestHeight returns the current height associated with the fake chain
 // instance.
 func (s *fakeChain) BestHeight() int32 {
@@ -70,14 +58,12 @@ func (s *fakeChain) BestHeight() int32 {
 	s.RUnlock()
 	return height
 }
-
 // SetHeight sets the current height associated with the fake chain instance.
 func (s *fakeChain) SetHeight(height int32) {
 	s.Lock()
 	s.currentHeight = height
 	s.Unlock()
 }
-
 // MedianTimePast returns the current median time past associated with the fake
 // chain instance.
 func (s *fakeChain) MedianTimePast() time.Time {
@@ -86,7 +72,6 @@ func (s *fakeChain) MedianTimePast() time.Time {
 	s.RUnlock()
 	return mtp
 }
-
 // SetMedianTimePast sets the current median time past associated with the fake
 // chain instance.
 func (s *fakeChain) SetMedianTimePast(mtp time.Time) {
@@ -94,25 +79,21 @@ func (s *fakeChain) SetMedianTimePast(mtp time.Time) {
 	s.medianTimePast = mtp
 	s.Unlock()
 }
-
 // CalcSequenceLock returns the current sequence lock for the passed
 // transaction associated with the fake chain instance.
 func (s *fakeChain) CalcSequenceLock(tx *btcutil.Tx,
 	view *blockchain.UtxoViewpoint) (*blockchain.SequenceLock, error) {
-
 	return &blockchain.SequenceLock{
 		Seconds:     -1,
 		BlockHeight: -1,
 	}, nil
 }
-
 // spendableOutput is a convenience type that houses a particular utxo and the
 // amount associated with it.
 type spendableOutput struct {
 	outPoint wire.OutPoint
 	amount   btcutil.Amount
 }
-
 // txOutToSpendableOut returns a spendable output given a transaction and index
 // of the output to use.  This is useful as a convenience when creating test
 // transactions.
@@ -122,7 +103,6 @@ func txOutToSpendableOut(tx *btcutil.Tx, outputNum uint32) spendableOutput {
 		amount:   btcutil.Amount(tx.MsgTx().TxOut[outputNum].Value),
 	}
 }
-
 // poolHarness provides a harness that includes functionality for creating and
 // signing transactions as well as a fake chain that provides utxos for use in
 // generating valid transactions.
@@ -136,11 +116,9 @@ type poolHarness struct {
 	payAddr     btcutil.Address
 	payScript   []byte
 	chainParams *chaincfg.Params
-
 	chain  *fakeChain
 	txPool *TxPool
 }
-
 // CreateCoinbaseTx returns a coinbase transaction with the requested number of
 // outputs paying an appropriate subsidy based on the passed block height to the
 // address associated with the harness.  It automatically uses a standard
@@ -154,7 +132,6 @@ func (p *poolHarness) CreateCoinbaseTx(blockHeight int32, numOutputs uint32) (*b
 	if err != nil {
 		return nil, err
 	}
-
 	tx := wire.NewMsgTx(wire.TxVersion)
 	tx.AddTxIn(&wire.TxIn{
 		// Coinbase transactions have no inputs, so previous outpoint is
@@ -179,10 +156,8 @@ func (p *poolHarness) CreateCoinbaseTx(blockHeight int32, numOutputs uint32) (*b
 			Value:    amount,
 		})
 	}
-
 	return btcutil.NewTx(tx), nil
 }
-
 // CreateSignedTx creates a new signed transaction that consumes the provided
 // inputs and generates the provided number of outputs by evenly splitting the
 // total input amount.  All outputs will be to the payment script associated
@@ -196,7 +171,6 @@ func (p *poolHarness) CreateSignedTx(inputs []spendableOutput, numOutputs uint32
 	}
 	amountPerOutput := int64(totalInput) / int64(numOutputs)
 	remainder := int64(totalInput) - amountPerOutput*int64(numOutputs)
-
 	tx := wire.NewMsgTx(wire.TxVersion)
 	for _, input := range inputs {
 		tx.AddTxIn(&wire.TxIn{
@@ -217,7 +191,6 @@ func (p *poolHarness) CreateSignedTx(inputs []spendableOutput, numOutputs uint32
 			Value:    amount,
 		})
 	}
-
 	// Sign the new transaction.
 	for i := range tx.TxIn {
 		sigScript, err := txscript.SignatureScript(tx, i, p.payScript,
@@ -227,10 +200,8 @@ func (p *poolHarness) CreateSignedTx(inputs []spendableOutput, numOutputs uint32
 		}
 		tx.TxIn[i].SignatureScript = sigScript
 	}
-
 	return btcutil.NewTx(tx), nil
 }
-
 // CreateTxChain creates a chain of zero-fee transactions (each subsequent
 // transaction spends the entire amount from the previous one) with the first
 // one spending the provided outpoint.  Each transaction spends the entire
@@ -253,7 +224,6 @@ func (p *poolHarness) CreateTxChain(firstOutput spendableOutput, numTxns uint32)
 			PkScript: p.payScript,
 			Value:    int64(spendableAmount),
 		})
-
 		// Sign the new transaction.
 		sigScript, err := txscript.SignatureScript(tx, 0, p.payScript,
 			txscript.SigHashAll, p.signKey, true)
@@ -261,16 +231,12 @@ func (p *poolHarness) CreateTxChain(firstOutput spendableOutput, numTxns uint32)
 			return nil, err
 		}
 		tx.TxIn[0].SignatureScript = sigScript
-
 		txChain = append(txChain, btcutil.NewTx(tx))
-
 		// Next transaction uses outputs from this one.
 		prevOutPoint = wire.OutPoint{Hash: tx.TxHash(), Index: 0}
 	}
-
 	return txChain, nil
 }
-
 // newPoolHarness returns a new instance of a pool harness initialized with a
 // fake chain and a TxPool bound to it that is configured with a policy suitable
 // for testing.  Also, the fake chain is populated with the returned spendable
@@ -284,7 +250,6 @@ func newPoolHarness(chainParams *chaincfg.Params) (*poolHarness, []spendableOutp
 		return nil, nil, err
 	}
 	signKey, signPub := btcec.PrivKeyFromBytes(btcec.S256(), keyBytes)
-
 	// Generate associated pay-to-script-hash address and resulting payment
 	// script.
 	pubKeyBytes := signPub.SerializeCompressed()
@@ -297,7 +262,6 @@ func newPoolHarness(chainParams *chaincfg.Params) (*poolHarness, []spendableOutp
 	if err != nil {
 		return nil, nil, err
 	}
-
 	// Create a new fake chain and harness bound to it.
 	chain := &fakeChain{utxos: blockchain.NewUtxoViewpoint()}
 	harness := poolHarness{
@@ -305,7 +269,6 @@ func newPoolHarness(chainParams *chaincfg.Params) (*poolHarness, []spendableOutp
 		payAddr:     payAddr,
 		payScript:   pkScript,
 		chainParams: chainParams,
-
 		chain: chain,
 		txPool: New(&Config{
 			Policy: Policy{
@@ -326,7 +289,6 @@ func newPoolHarness(chainParams *chaincfg.Params) (*poolHarness, []spendableOutp
 			AddrIndex:        nil,
 		}),
 	}
-
 	// Create a single coinbase transaction and add it to the harness
 	// chain's utxo set and set the harness chain height such that the
 	// coinbase will mature in the next block.  This ensures the txpool
@@ -345,17 +307,14 @@ func newPoolHarness(chainParams *chaincfg.Params) (*poolHarness, []spendableOutp
 	}
 	harness.chain.SetHeight(int32(chainParams.CoinbaseMaturity) + curHeight)
 	harness.chain.SetMedianTimePast(time.Now())
-
 	return &harness, outputs, nil
 }
-
 // testContext houses a test-related state that is useful to pass to helper
 // functions as a single argument.
 type testContext struct {
 	t       *testing.T
 	harness *poolHarness
 }
-
 // testPoolMembership tests the transaction pool associated with the provided
 // test context to determine if the passed transaction matches the provided
 // orphan pool and transaction pool status.  It also further determines if it
@@ -369,14 +328,12 @@ func testPoolMembership(tc *testContext, tx *btcutil.Tx, inOrphanPool, inTxPool 
 		tc.t.Fatalf("%s:%d -- IsOrphanInPool: want %v, got %v", file,
 			line, inOrphanPool, gotOrphanPool)
 	}
-
 	gotTxPool := tc.harness.txPool.IsTransactionInPool(txHash)
 	if inTxPool != gotTxPool {
 		_, file, line, _ := runtime.Caller(1)
 		tc.t.Fatalf("%s:%d -- IsTransactionInPool: want %v, got %v",
 			file, line, inTxPool, gotTxPool)
 	}
-
 	gotHaveTx := tc.harness.txPool.HaveTransaction(txHash)
 	wantHaveTx := inOrphanPool || inTxPool
 	if wantHaveTx != gotHaveTx {
@@ -385,7 +342,6 @@ func testPoolMembership(tc *testContext, tx *btcutil.Tx, inOrphanPool, inTxPool 
 			line, wantHaveTx, gotHaveTx)
 	}
 }
-
 // TestSimpleOrphanChain ensures that a simple chain of orphans is handled
 // properly.  In particular, it generates a chain of single input, single output
 // transactions and inserts them while skipping the first linking transaction so
@@ -393,13 +349,11 @@ func testPoolMembership(tc *testContext, tx *btcutil.Tx, inOrphanPool, inTxPool 
 // the entire orphan chain is moved to the transaction pool.
 func TestSimpleOrphanChain(t *testing.T) {
 	t.Parallel()
-
 	harness, spendableOuts, err := newPoolHarness(&chaincfg.MainNetParams)
 	if err != nil {
 		t.Fatalf("unable to create test pool: %v", err)
 	}
 	tc := &testContext{t, harness}
-
 	// Create a chain of transactions rooted with the first spendable output
 	// provided by the harness.
 	maxOrphans := uint32(harness.txPool.cfg.Policy.MaxOrphanTxs)
@@ -407,7 +361,6 @@ func TestSimpleOrphanChain(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unable to create transaction chain: %v", err)
 	}
-
 	// Ensure the orphans are accepted (only up to the maximum allowed so
 	// none are evicted).
 	for _, tx := range chainedTxns[1 : maxOrphans+1] {
@@ -417,19 +370,16 @@ func TestSimpleOrphanChain(t *testing.T) {
 			t.Fatalf("ProcessTransaction: failed to accept valid "+
 				"orphan %v", err)
 		}
-
 		// Ensure no transactions were reported as accepted.
 		if len(acceptedTxns) != 0 {
 			t.Fatalf("ProcessTransaction: reported %d accepted "+
 				"transactions from what should be an orphan",
 				len(acceptedTxns))
 		}
-
 		// Ensure the transaction is in the orphan pool, is not in the
 		// transaction pool, and is reported as available.
 		testPoolMembership(tc, tx, true, false)
 	}
-
 	// Add the transaction which completes the orphan chain and ensure they
 	// all get accepted.  Notice the accept orphans flag is also false here
 	// to ensure it has no bearing on whether or not already existing
@@ -451,18 +401,15 @@ func TestSimpleOrphanChain(t *testing.T) {
 		testPoolMembership(tc, txD.Tx, false, true)
 	}
 }
-
 // TestOrphanReject ensures that orphans are properly rejected when the allow
 // orphans flag is not set on ProcessTransaction.
 func TestOrphanReject(t *testing.T) {
 	t.Parallel()
-
 	harness, outputs, err := newPoolHarness(&chaincfg.MainNetParams)
 	if err != nil {
 		t.Fatalf("unable to create test pool: %v", err)
 	}
 	tc := &testContext{t, harness}
-
 	// Create a chain of transactions rooted with the first spendable output
 	// provided by the harness.
 	maxOrphans := uint32(harness.txPool.cfg.Policy.MaxOrphanTxs)
@@ -470,7 +417,6 @@ func TestOrphanReject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unable to create transaction chain: %v", err)
 	}
-
 	// Ensure orphans are rejected when the allow orphans flag is not set.
 	for _, tx := range chainedTxns[1:] {
 		acceptedTxns, err := harness.txPool.ProcessTransaction(tx, false,
@@ -493,31 +439,26 @@ func TestOrphanReject(t *testing.T) {
 			t.Fatalf("ProcessTransaction: unexpected reject code "+
 				"-- got %v, want %v", code, wire.RejectDuplicate)
 		}
-
 		// Ensure no transactions were reported as accepted.
 		if len(acceptedTxns) != 0 {
 			t.Fatal("ProcessTransaction: reported %d accepted "+
 				"transactions from failed orphan attempt",
 				len(acceptedTxns))
 		}
-
 		// Ensure the transaction is not in the orphan pool, not in the
 		// transaction pool, and not reported as available
 		testPoolMembership(tc, tx, false, false)
 	}
 }
-
 // TestOrphanEviction ensures that exceeding the maximum number of orphans
 // evicts entries to make room for the new ones.
 func TestOrphanEviction(t *testing.T) {
 	t.Parallel()
-
 	harness, outputs, err := newPoolHarness(&chaincfg.MainNetParams)
 	if err != nil {
 		t.Fatalf("unable to create test pool: %v", err)
 	}
 	tc := &testContext{t, harness}
-
 	// Create a chain of transactions rooted with the first spendable output
 	// provided by the harness that is long enough to be able to force
 	// several orphan evictions.
@@ -526,7 +467,6 @@ func TestOrphanEviction(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unable to create transaction chain: %v", err)
 	}
-
 	// Add enough orphans to exceed the max allowed while ensuring they are
 	// all accepted.  This will cause an eviction.
 	for _, tx := range chainedTxns[1:] {
@@ -536,19 +476,16 @@ func TestOrphanEviction(t *testing.T) {
 			t.Fatalf("ProcessTransaction: failed to accept valid "+
 				"orphan %v", err)
 		}
-
 		// Ensure no transactions were reported as accepted.
 		if len(acceptedTxns) != 0 {
 			t.Fatalf("ProcessTransaction: reported %d accepted "+
 				"transactions from what should be an orphan",
 				len(acceptedTxns))
 		}
-
 		// Ensure the transaction is in the orphan pool, is not in the
 		// transaction pool, and is reported as available.
 		testPoolMembership(tc, tx, true, false)
 	}
-
 	// Figure out which transactions were evicted and make sure the number
 	// evicted matches the expected number.
 	var evictedTxns []*btcutil.Tx
@@ -562,20 +499,17 @@ func TestOrphanEviction(t *testing.T) {
 		t.Fatalf("unexpected number of evictions -- got %d, want %d",
 			len(evictedTxns), expectedEvictions)
 	}
-
 	// Ensure none of the evicted transactions ended up in the transaction
 	// pool.
 	for _, tx := range evictedTxns {
 		testPoolMembership(tc, tx, false, false)
 	}
 }
-
 // TestBasicOrphanRemoval ensure that orphan removal works as expected when an
 // orphan that doesn't exist is removed  both when there is another orphan that
 // redeems it and when there is not.
 func TestBasicOrphanRemoval(t *testing.T) {
 	t.Parallel()
-
 	const maxOrphans = 4
 	harness, spendableOuts, err := newPoolHarness(&chaincfg.MainNetParams)
 	if err != nil {
@@ -583,14 +517,12 @@ func TestBasicOrphanRemoval(t *testing.T) {
 	}
 	harness.txPool.cfg.Policy.MaxOrphanTxs = maxOrphans
 	tc := &testContext{t, harness}
-
 	// Create a chain of transactions rooted with the first spendable output
 	// provided by the harness.
 	chainedTxns, err := harness.CreateTxChain(spendableOuts[0], maxOrphans+1)
 	if err != nil {
 		t.Fatalf("unable to create transaction chain: %v", err)
 	}
-
 	// Ensure the orphans are accepted (only up to the maximum allowed so
 	// none are evicted).
 	for _, tx := range chainedTxns[1 : maxOrphans+1] {
@@ -600,19 +532,16 @@ func TestBasicOrphanRemoval(t *testing.T) {
 			t.Fatalf("ProcessTransaction: failed to accept valid "+
 				"orphan %v", err)
 		}
-
 		// Ensure no transactions were reported as accepted.
 		if len(acceptedTxns) != 0 {
 			t.Fatalf("ProcessTransaction: reported %d accepted "+
 				"transactions from what should be an orphan",
 				len(acceptedTxns))
 		}
-
 		// Ensure the transaction is in the orphan pool, not in the
 		// transaction pool, and reported as available.
 		testPoolMembership(tc, tx, true, false)
 	}
-
 	// Attempt to remove an orphan that has no redeemers and is not present,
 	// and ensure the state of all other orphans are unaffected.
 	nonChainedOrphanTx, err := harness.CreateSignedTx([]spendableOutput{{
@@ -622,13 +551,11 @@ func TestBasicOrphanRemoval(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unable to create signed tx: %v", err)
 	}
-
 	harness.txPool.RemoveOrphan(nonChainedOrphanTx)
 	testPoolMembership(tc, nonChainedOrphanTx, false, false)
 	for _, tx := range chainedTxns[1 : maxOrphans+1] {
 		testPoolMembership(tc, tx, true, false)
 	}
-
 	// Attempt to remove an orphan that has a existing redeemer but itself
 	// is not present and ensure the state of all other orphans (including
 	// the one that redeems it) are unaffected.
@@ -637,7 +564,6 @@ func TestBasicOrphanRemoval(t *testing.T) {
 	for _, tx := range chainedTxns[1 : maxOrphans+1] {
 		testPoolMembership(tc, tx, true, false)
 	}
-
 	// Remove each orphan one-by-one and ensure they are removed as
 	// expected.
 	for _, tx := range chainedTxns[1 : maxOrphans+1] {
@@ -645,12 +571,10 @@ func TestBasicOrphanRemoval(t *testing.T) {
 		testPoolMembership(tc, tx, false, false)
 	}
 }
-
 // TestOrphanChainRemoval ensure that orphan chains (orphans that spend outputs
 // from other orphans) are removed as expected.
 func TestOrphanChainRemoval(t *testing.T) {
 	t.Parallel()
-
 	const maxOrphans = 10
 	harness, spendableOuts, err := newPoolHarness(&chaincfg.MainNetParams)
 	if err != nil {
@@ -658,14 +582,12 @@ func TestOrphanChainRemoval(t *testing.T) {
 	}
 	harness.txPool.cfg.Policy.MaxOrphanTxs = maxOrphans
 	tc := &testContext{t, harness}
-
 	// Create a chain of transactions rooted with the first spendable output
 	// provided by the harness.
 	chainedTxns, err := harness.CreateTxChain(spendableOuts[0], maxOrphans+1)
 	if err != nil {
 		t.Fatalf("unable to create transaction chain: %v", err)
 	}
-
 	// Ensure the orphans are accepted (only up to the maximum allowed so
 	// none are evicted).
 	for _, tx := range chainedTxns[1 : maxOrphans+1] {
@@ -675,19 +597,16 @@ func TestOrphanChainRemoval(t *testing.T) {
 			t.Fatalf("ProcessTransaction: failed to accept valid "+
 				"orphan %v", err)
 		}
-
 		// Ensure no transactions were reported as accepted.
 		if len(acceptedTxns) != 0 {
 			t.Fatalf("ProcessTransaction: reported %d accepted "+
 				"transactions from what should be an orphan",
 				len(acceptedTxns))
 		}
-
 		// Ensure the transaction is in the orphan pool, not in the
 		// transaction pool, and reported as available.
 		testPoolMembership(tc, tx, true, false)
 	}
-
 	// Remove the first orphan that starts the orphan chain without the
 	// remove redeemer flag set and ensure that only the first orphan was
 	// removed.
@@ -698,7 +617,6 @@ func TestOrphanChainRemoval(t *testing.T) {
 	for _, tx := range chainedTxns[2 : maxOrphans+1] {
 		testPoolMembership(tc, tx, true, false)
 	}
-
 	// Remove the first remaining orphan that starts the orphan chain with
 	// the remove redeemer flag set and ensure they are all removed.
 	harness.txPool.mtx.Lock()
@@ -708,12 +626,10 @@ func TestOrphanChainRemoval(t *testing.T) {
 		testPoolMembership(tc, tx, false, false)
 	}
 }
-
 // TestMultiInputOrphanDoubleSpend ensures that orphans that spend from an
 // output that is spend by another transaction entering the pool are removed.
 func TestMultiInputOrphanDoubleSpend(t *testing.T) {
 	t.Parallel()
-
 	const maxOrphans = 4
 	harness, outputs, err := newPoolHarness(&chaincfg.MainNetParams)
 	if err != nil {
@@ -721,14 +637,12 @@ func TestMultiInputOrphanDoubleSpend(t *testing.T) {
 	}
 	harness.txPool.cfg.Policy.MaxOrphanTxs = maxOrphans
 	tc := &testContext{t, harness}
-
 	// Create a chain of transactions rooted with the first spendable output
 	// provided by the harness.
 	chainedTxns, err := harness.CreateTxChain(outputs[0], maxOrphans+1)
 	if err != nil {
 		t.Fatalf("unable to create transaction chain: %v", err)
 	}
-
 	// Start by adding the orphan transactions from the generated chain
 	// except the final one.
 	for _, tx := range chainedTxns[1:maxOrphans] {
@@ -744,7 +658,6 @@ func TestMultiInputOrphanDoubleSpend(t *testing.T) {
 		}
 		testPoolMembership(tc, tx, true, false)
 	}
-
 	// Ensure a transaction that contains a double spend of the same output
 	// as the second orphan that was just added as well as a valid spend
 	// from that last orphan in the chain generated above (and is not in the
@@ -769,7 +682,6 @@ func TestMultiInputOrphanDoubleSpend(t *testing.T) {
 			"from what should be an orphan", len(acceptedTxns))
 	}
 	testPoolMembership(tc, doubleSpendTx, true, false)
-
 	// Add the transaction which completes the orphan chain and ensure the
 	// chain gets accepted.  Notice the accept orphans flag is also false
 	// here to ensure it has no bearing on whether or not already existing
@@ -792,22 +704,18 @@ func TestMultiInputOrphanDoubleSpend(t *testing.T) {
 		// in the transaction pool, and is reported as available.
 		testPoolMembership(tc, txD.Tx, false, true)
 	}
-
 	// Ensure the double spending orphan is no longer in the orphan pool and
 	// was not moved to the transaction pool.
 	testPoolMembership(tc, doubleSpendTx, false, false)
 }
-
 // TestCheckSpend tests that CheckSpend returns the expected spends found in
 // the mempool.
 func TestCheckSpend(t *testing.T) {
 	t.Parallel()
-
 	harness, outputs, err := newPoolHarness(&chaincfg.MainNetParams)
 	if err != nil {
 		t.Fatalf("unable to create test pool: %v", err)
 	}
-
 	// The mempool is empty, so none of the spendable outputs should have a
 	// spend there.
 	for _, op := range outputs {
@@ -816,7 +724,6 @@ func TestCheckSpend(t *testing.T) {
 			t.Fatalf("Unexpeced spend found in pool: %v", spend)
 		}
 	}
-
 	// Create a chain of transactions rooted with the first spendable
 	// output provided by the harness.
 	const txChainLength = 5
@@ -832,7 +739,6 @@ func TestCheckSpend(t *testing.T) {
 				"tx: %v", err)
 		}
 	}
-
 	// The first tx in the chain should be the spend of the spendable
 	// output.
 	op := outputs[0].outPoint
@@ -841,7 +747,6 @@ func TestCheckSpend(t *testing.T) {
 		t.Fatalf("expected %v to be spent by %v, instead "+
 			"got %v", op, chainedTxns[0], spend)
 	}
-
 	// Now all but the last tx should be spent by the next.
 	for i := 0; i < len(chainedTxns)-1; i++ {
 		op = wire.OutPoint{
@@ -855,7 +760,6 @@ func TestCheckSpend(t *testing.T) {
 				"got %v", op, expSpend, spend)
 		}
 	}
-
 	// The last tx should have no spend.
 	op = wire.OutPoint{
 		Hash:  *chainedTxns[txChainLength-1].Hash(),
