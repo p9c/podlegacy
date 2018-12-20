@@ -1,25 +1,22 @@
-
 package btcutil_test
+
 import (
+	"github.com/parallelcointeam/pod/btcutil"
 	"os"
 	"os/user"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"unicode"
-	"github.com/parallelcointeam/pod/btcutil"
 )
-// TestAppDataDir tests the API for AppDataDir to ensure it gives expected
-// results for various operating systems.
+
+// TestAppDataDir tests the API for AppDataDir to ensure it gives expected results for various operating systems.
 func TestAppDataDir(t *testing.T) {
 	// App name plus upper and lowercase variants.
 	appName := "myapp"
 	appNameUpper := string(unicode.ToUpper(rune(appName[0]))) + appName[1:]
 	appNameLower := string(unicode.ToLower(rune(appName[0]))) + appName[1:]
-	// When we're on Windows, set the expected local and roaming directories
-	// per the environment vars.  When we aren't on Windows, the function
-	// should return the current directory when forced to provide the
-	// Windows path since the environment variables won't exist.
+	// When we're on Windows, set the expected local and roaming directories per the environment vars.  When we aren't on Windows, the function should return the current directory when forced to provide the Windows path since the environment variables won't exist.
 	winLocal := "."
 	winRoaming := "."
 	if runtime.GOOS == "windows" {
@@ -47,8 +44,7 @@ func TestAppDataDir(t *testing.T) {
 		roaming bool
 		want    string
 	}{
-		// Various combinations of application name casing, leading
-		// period, operating system, and roaming flags.
+		// Various combinations of application name casing, leading period, operating system, and roaming flags.
 		{"windows", appNameLower, false, winLocal},
 		{"windows", appNameUpper, false, winLocal},
 		{"windows", "." + appNameLower, false, winLocal},

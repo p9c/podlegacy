@@ -1,14 +1,15 @@
-
 package bloom_test
+
 import (
 	"bytes"
 	"encoding/hex"
-	"testing"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/btcutil/bloom"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/wire"
+	"testing"
 )
+
 // TestFilterLarge ensures a maximum sized filter can be created.
 func TestFilterLarge(t *testing.T) {
 	f := bloom.NewFilter(100000000, 0, 0.01, wire.BloomUpdateNone)
@@ -17,6 +18,7 @@ func TestFilterLarge(t *testing.T) {
 			len(f.MsgFilterLoad().Filter), wire.MaxFilterLoadFilterSize)
 	}
 }
+
 // TestFilterLoad ensures loading and unloading of a filter pass.
 func TestFilterLoad(t *testing.T) {
 	merkle := wire.MsgFilterLoad{}
@@ -33,9 +35,8 @@ func TestFilterLoad(t *testing.T) {
 		return
 	}
 }
-// TestFilterInsert ensures inserting data into the filter causes that data
-// to be matched and the resulting serialized MsgFilterLoad is the expected
-// value.
+
+// TestFilterInsert ensures inserting data into the filter causes that data to be matched and the resulting serialized MsgFilterLoad is the expected value.
 func TestFilterInsert(t *testing.T) {
 	var tests = []struct {
 		hex    string
@@ -80,8 +81,8 @@ func TestFilterInsert(t *testing.T) {
 		return
 	}
 }
-// TestFilterFPRange checks that new filters made with out of range
-// false positive targets result in either max or min false positive rates.
+
+// TestFilterFPRange checks that new filters made with out of range false positive targets result in either max or min false positive rates.
 func TestFilterFPRange(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -137,9 +138,8 @@ func TestFilterFPRange(t *testing.T) {
 		}
 	}
 }
-// TestFilterInsert ensures inserting data into the filter with a tweak causes
-// that data to be matched and the resulting serialized MsgFilterLoad is the
-// expected value.
+
+// TestFilterInsert ensures inserting data into the filter with a tweak causes that data to be matched and the resulting serialized MsgFilterLoad is the expected value.
 func TestFilterInsertWithTweak(t *testing.T) {
 	var tests = []struct {
 		hex    string
@@ -184,8 +184,8 @@ func TestFilterInsertWithTweak(t *testing.T) {
 		return
 	}
 }
-// TestFilterInsertKey ensures inserting public keys and addresses works as
-// expected.
+
+// TestFilterInsertKey ensures inserting public keys and addresses works as expected.
 func TestFilterInsertKey(t *testing.T) {
 	secret := "5Kg1gnAjaLfKiwhhPpGS3QfRg2m6awQvaj98JCZBZQ5SuS2F15C"
 	wif, err := btcutil.DecodeWIF(secret)

@@ -1,8 +1,9 @@
-
 package bloom
+
 import (
 	"encoding/binary"
 )
+
 // The following constants are used by the MurmurHash3 algorithm.
 const (
 	murmurC1 = 0xcc9e2d51
@@ -12,11 +13,8 @@ const (
 	murmurM  = 5
 	murmurN  = 0xe6546b64
 )
-// MurmurHash3 implements a non-cryptographic hash function using the
-// MurmurHash3 algorithm.  This implementation yields a 32-bit hash value which
-// is suitable for general hash-based lookups.  The seed can be used to
-// effectively randomize the hash function.  This makes it ideal for use in
-// bloom filters which need multiple independent hash functions.
+
+// MurmurHash3 implements a non-cryptographic hash function using the MurmurHash3 algorithm.  This implementation yields a 32-bit hash value which is suitable for general hash-based lookups.  The seed can be used to effectively randomize the hash function.  This makes it ideal for use in bloom filters which need multiple independent hash functions.
 func MurmurHash3(seed uint32, data []byte) uint32 {
 	dataLen := uint32(len(data))
 	hash := seed

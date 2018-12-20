@@ -1,16 +1,17 @@
-
 package btcutil_test
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/btcutil"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/wire"
 	"io"
 	"reflect"
 	"testing"
 	"time"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestBlock tests the API for Block.
 func TestBlock(t *testing.T) {
 	b := btcutil.NewBlock(&Block100000)
@@ -73,8 +74,7 @@ func TestBlock(t *testing.T) {
 	}
 	// Create a new block to nuke all cached data.
 	b = btcutil.NewBlock(&Block100000)
-	// Request slice of all transactions multiple times to test generation
-	// and caching.
+	// Request slice of all transactions multiple times to test generation and caching.
 	for i := 0; i < 2; i++ {
 		transactions := b.Transactions()
 		// Ensure we get the expected number of transactions.
@@ -105,8 +105,7 @@ func TestBlock(t *testing.T) {
 		t.Errorf("Serialize: %v", err)
 	}
 	block100000Bytes := block100000Buf.Bytes()
-	// Request serialized bytes multiple times to test generation and
-	// caching.
+	// Request serialized bytes multiple times to test generation and caching.
 	for i := 0; i < 2; i++ {
 		serializedBytes, err := b.Bytes()
 		if err != nil {
@@ -139,6 +138,7 @@ func TestBlock(t *testing.T) {
 			spew.Sdump(wantTxLocs))
 	}
 }
+
 // TestNewBlockFromBytes tests creation of a Block from serialized bytes.
 func TestNewBlockFromBytes(t *testing.T) {
 	// Serialize the test block.
@@ -171,8 +171,8 @@ func TestNewBlockFromBytes(t *testing.T) {
 			spew.Sdump(msgBlock), spew.Sdump(&Block100000))
 	}
 }
-// TestNewBlockFromBlockAndBytes tests creation of a Block from a MsgBlock and
-// raw bytes.
+
+// TestNewBlockFromBlockAndBytes tests creation of a Block from a MsgBlock and raw bytes.
 func TestNewBlockFromBlockAndBytes(t *testing.T) {
 	// Serialize the test block.
 	var block100000Buf bytes.Buffer
@@ -199,6 +199,7 @@ func TestNewBlockFromBlockAndBytes(t *testing.T) {
 			spew.Sdump(msgBlock), spew.Sdump(&Block100000))
 	}
 }
+
 // TestBlockErrors tests the error paths for the Block API.
 func TestBlockErrors(t *testing.T) {
 	// Ensure out of range errors are as expected.
@@ -250,9 +251,7 @@ func TestBlockErrors(t *testing.T) {
 		t.Errorf("Tx: wrong error - got: %v <%T>, "+
 			"want: <%T>", err, err, btcutil.OutOfRangeError(""))
 	}
-	// Ensure TxLoc returns expected error with short byte buffer.
-	// This makes use of the test package only function, SetBlockBytes, to
-	// inject a short byte buffer.
+	// Ensure TxLoc returns expected error with short byte buffer. This makes use of the test package only function, SetBlockBytes, to inject a short byte buffer.
 	b.SetBlockBytes(shortBytes)
 	_, err = b.TxLoc()
 	if err != io.EOF {
@@ -260,8 +259,8 @@ func TestBlockErrors(t *testing.T) {
 			"got %v, want %v", err, io.EOF)
 	}
 }
-// Block100000 defines block 100,000 of the block chain.  It is used to
-// test Block operations.
+
+// Block100000 defines block 100,000 of the block chain.  It is used to test Block operations.
 var Block100000 = wire.MsgBlock{
 	Header: wire.BlockHeader{
 		Version: 1,

@@ -1,9 +1,10 @@
-
 package base58_test
+
 import (
 	"fmt"
 	"github.com/parallelcointeam/pod/btcutil/base58"
 )
+
 // This example demonstrates how to decode modified base58 encoded data.
 func ExampleDecode() {
 	// Decode example modified base58 encoded data.
@@ -14,8 +15,8 @@ func ExampleDecode() {
 	// Output:
 	// Decoded Data: Test data
 }
-// This example demonstrates how to encode data using the modified base58
-// encoding scheme.
+
+// This example demonstrates how to encode data using the modified base58 encoding scheme.
 func ExampleEncode() {
 	// Encode example data with the modified base58 encoding scheme.
 	data := []byte("Test data")
@@ -25,6 +26,7 @@ func ExampleEncode() {
 	// Output:
 	// Encoded Data: 25JnwSn7XKfNQ
 }
+
 // This example demonstrates how to decode Base58Check encoded data.
 func ExampleCheckDecode() {
 	// Decode an example Base58Check encoded data.
@@ -41,8 +43,8 @@ func ExampleCheckDecode() {
 	// Decoded data: 62e907b15cbf27d5425399ebf6f0fb50ebb88f18
 	// Version Byte: 0
 }
-// This example demonstrates how to encode data using the Base58Check encoding
-// scheme.
+
+// This example demonstrates how to encode data using the Base58Check encoding scheme.
 func ExampleCheckEncode() {
 	// Encode example data with the Base58Check encoding scheme.
 	data := []byte("Test data")

@@ -1,11 +1,11 @@
-
 package bloom_test
+
 import (
-	"testing"
 	"github.com/parallelcointeam/pod/btcutil/bloom"
+	"testing"
 )
-// TestMurmurHash3 ensure the MurmurHash3 function produces the correct hash
-// when given various seeds and data.
+
+// TestMurmurHash3 ensure the MurmurHash3 function produces the correct hash when given various seeds and data.
 func TestMurmurHash3(t *testing.T) {
 	var tests = []struct {
 		seed uint32

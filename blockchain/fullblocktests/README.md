@@ -1,6 +1,5 @@
 # fullblocktests
 
-[![Build Status](http://img.shields.io/travis/parallelcointeam/pod.svg)](https://travis-ci.org/parallelcointeam/pod)
 [![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/parallelcointeam/pod/blockchain/fullblocktests)
 

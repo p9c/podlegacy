@@ -1,19 +1,18 @@
-
 package hdkeychain
+
 // References:
-//   [BIP32]: BIP0032 - Hierarchical Deterministic Wallets
-//   https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+//   [BIP32]: BIP0032 - Hierarchical Deterministic Wallets https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
 import (
 	"bytes"
 	"encoding/hex"
 	"errors"
+	"github.com/parallelcointeam/pod/chaincfg"
 	"math"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/chaincfg"
 )
-// TestBIP0032Vectors tests the vectors provided by [BIP32] to ensure the
-// derivation works as intended.
+
+// TestBIP0032Vectors tests the vectors provided by [BIP32] to ensure the derivation works as intended.
 func TestBIP0032Vectors(t *testing.T) {
 	// The master seeds for each of the two test vectors in [BIP32].
 	testVec1MasterHex := "000102030405060708090a0b0c0d0e0f"
@@ -250,8 +249,8 @@ tests:
 		}
 	}
 }
-// TestPrivateDerivation tests several vectors which derive private keys from
-// other private keys works as intended.
+
+// TestPrivateDerivation tests several vectors which derive private keys from other private keys works as intended.
 func TestPrivateDerivation(t *testing.T) {
 	// The private extended keys for test vectors in [BIP32].
 	testVec1MasterPrivKey := "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi"
@@ -371,8 +370,8 @@ tests:
 		}
 	}
 }
-// TestPublicDerivation tests several vectors which derive public keys from
-// other public keys works as intended.
+
+// TestPublicDerivation tests several vectors which derive public keys from other public keys works as intended.
 func TestPublicDerivation(t *testing.T) {
 	// The public extended keys for test vectors in [BIP32].
 	testVec1MasterPubKey := "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8"
@@ -484,6 +483,7 @@ tests:
 		}
 	}
 }
+
 // TestGenenerateSeed ensures the GenerateSeed function works as intended.
 func TestGenenerateSeed(t *testing.T) {
 	wantErr := errors.New("seed length must be between 128 and 512 bits")
@@ -517,6 +517,7 @@ func TestGenenerateSeed(t *testing.T) {
 		}
 	}
 }
+
 // TestExtendedKeyAPI ensures the API on the ExtendedKey type works as intended.
 func TestExtendedKeyAPI(t *testing.T) {
 	tests := []struct {
@@ -617,6 +618,7 @@ func TestExtendedKeyAPI(t *testing.T) {
 		}
 	}
 }
+
 // TestNet ensures the network related APIs work as intended.
 func TestNet(t *testing.T) {
 	tests := []struct {
@@ -743,8 +745,8 @@ func TestNet(t *testing.T) {
 		}
 	}
 }
-// TestErrors performs some negative tests for various invalid cases to ensure
-// the errors are handled properly.
+
+// TestErrors performs some negative tests for various invalid cases to ensure the errors are handled properly.
 func TestErrors(t *testing.T) {
 	// Should get an error when seed has too few bytes.
 	net := &chaincfg.MainNetParams
@@ -828,6 +830,7 @@ func TestErrors(t *testing.T) {
 		}
 	}
 }
+
 // TestZero ensures that zeroing an extended key works as intended.
 func TestZero(t *testing.T) {
 	tests := []struct {
@@ -927,8 +930,7 @@ func TestZero(t *testing.T) {
 				test.name, err)
 			continue
 		}
-		// Ensure both non-neutered and neutered keys are zeroed
-		// properly.
+		// Ensure both non-neutered and neutered keys are zeroed properly.
 		key.Zero()
 		if !testZeroed(i, test.name+" from seed not neutered", key) {
 			continue
@@ -950,8 +952,7 @@ func TestZero(t *testing.T) {
 				test.name, err)
 			continue
 		}
-		// Ensure both non-neutered and neutered keys are zeroed
-		// properly.
+		// Ensure both non-neutered and neutered keys are zeroed properly.
 		key.Zero()
 		if !testZeroed(i, test.name+" deserialized not neutered", key) {
 			continue
@@ -962,10 +963,8 @@ func TestZero(t *testing.T) {
 		}
 	}
 }
-// TestMaximumDepth ensures that attempting to retrieve a child key when already
-// at the maximum depth is not allowed.  The serialization of a BIP32 key uses
-// uint8 to encode the depth.  This implicitly bounds the depth of the tree to
-// 255 derivations.  Here we test that an error is returned after 'max uint8'.
+
+// TestMaximumDepth ensures that attempting to retrieve a child key when already at the maximum depth is not allowed.  The serialization of a BIP32 key uses uint8 to encode the depth.  This implicitly bounds the depth of the tree to 255 derivations.  Here we test that an error is returned after 'max uint8'.
 func TestMaximumDepth(t *testing.T) {
 	net := &chaincfg.MainNetParams
 	extKey, err := NewMaster([]byte(`abcd1234abcd1234abcd1234abcd1234`), net)

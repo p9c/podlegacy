@@ -1,16 +1,17 @@
-
 package builder_test
+
 import (
 	"encoding/hex"
-	"testing"
+	"github.com/parallelcointeam/pod/btcutil"
+	"github.com/parallelcointeam/pod/btcutil/gcs"
+	"github.com/parallelcointeam/pod/btcutil/gcs/builder"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
-	"github.com/parallelcointeam/pod/btcutil/gcs"
-	"github.com/parallelcointeam/pod/btcutil/gcs/builder"
+	"testing"
 )
+
 var (
 	// No need to allocate an err variable in every test
 	err error
@@ -38,7 +39,7 @@ var (
 		0x3b, 0x8b, 0x0e, 0x26, 0x64, 0x8d, 0x4a, 0x15}
 	testHash = "000000000000000000496d7ff9bd2c96154a8d64260e8b3b411e625712abb14c"
 	testAddr = "3Nxwenay9Z8Lc9JBiywExpnEFiLp6Afp8v"
-	witness = [][]byte{
+	witness  = [][]byte{
 		{0x4c, 0xb1, 0xab, 0x12, 0x57, 0x62, 0x1e, 0x41,
 			0x3b, 0x8b, 0x0e, 0x26, 0x64, 0x8d, 0x4a, 0x15,
 			0x3b, 0x8b, 0x0e, 0x26, 0x64, 0x8d, 0x4a, 0x15,
@@ -51,6 +52,7 @@ var (
 			0x94, 0xb9, 0x67, 0x89, 0xb2, 0x1a, 0x03, 0x98},
 	}
 )
+
 // TestUseBlockHash tests using a block hash as a filter key.
 func TestUseBlockHash(t *testing.T) {
 	// Block hash #448710, pretty high difficulty.
@@ -72,8 +74,7 @@ func TestUseBlockHash(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Address script build failed: %s", err.Error())
 	}
-	// Create a GCSBuilder with a key hash and check that the key is derived
-	// correctly, then test it.
+	// Create a GCSBuilder with a key hash and check that the key is derived correctly, then test it.
 	b := builder.WithKeyHash(hash)
 	key, err := b.Key()
 	if err != nil {
@@ -89,8 +90,7 @@ func TestUseBlockHash(t *testing.T) {
 	// Create a GCSBuilder with a key hash and non-default P and test it.
 	b = builder.WithKeyHashPM(hash, 30, 90)
 	BuilderTest(b, hash, 30, outPoint, addrBytes, witness, t)
-	// Create a GCSBuilder with a random key, set the key from a hash
-	// manually, check that the key is correct, and test it.
+	// Create a GCSBuilder with a random key, set the key from a hash manually, check that the key is correct, and test it.
 	b = builder.WithRandomKey()
 	b.SetKeyFromHash(hash)
 	key, err = b.Key()
@@ -151,8 +151,7 @@ func TestUseBlockHash(t *testing.T) {
 			hex.EncodeToString(testKey[:]))
 	}
 	BuilderTest(b, hash, 30, outPoint, addrBytes, witness, t)
-	// Create a GCSBuilder with a known key and too-high P and ensure error
-	// works throughout all functions that use it.
+	// Create a GCSBuilder with a known key and too-high P and ensure error works throughout all functions that use it.
 	b = builder.WithRandomKeyPM(33, 99).SetKeyFromHash(hash).SetKey(testKey)
 	b.SetP(30).AddEntry(hash.CloneBytes()).AddEntries(contents).
 		AddHash(hash).AddEntry(addrBytes)
@@ -223,8 +222,7 @@ func BuilderTest(b *builder.GCSBuilder, hash *chainhash.Hash, p uint8,
 	if !match {
 		t.Fatal("Filter didn't match when it should have!")
 	}
-	// Add a routine witness stack, build a filter, and test that it
-	// matches.
+	// Add a routine witness stack, build a filter, and test that it matches.
 	b.AddWitness(witness)
 	f, err = b.Build()
 	if err != nil {

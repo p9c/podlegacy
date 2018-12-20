@@ -1,9 +1,10 @@
-
 package base58_test
+
 import (
-	"testing"
 	"github.com/parallelcointeam/pod/btcutil/base58"
+	"testing"
 )
+
 var checkEncodingStringTests = []struct {
 	version byte
 	in      string
@@ -21,6 +22,7 @@ var checkEncodingStringTests = []struct {
 	{20, "abcdefghijklmnopqrstuvwxyz", "K2RYDcKfupxwXdWhSAxQPCeiULntKm63UXyx5MvEH2"},
 	{20, "00000000000000000000000000000000000000000000000000000000000000", "bi1EWXwJay2udZVxLJozuTb8Meg4W9c6xnmJaRDjg6pri5MBAxb9XwrpQXbtnqEoRV5U2pixnFfwyXC8tRAVC8XxnjK"},
 }
+
 func TestBase58Check(t *testing.T) {
 	for x, test := range checkEncodingStringTests {
 		// test encoding
@@ -43,8 +45,7 @@ func TestBase58Check(t *testing.T) {
 	if err != base58.ErrChecksum {
 		t.Error("Checkdecode test failed, expected ErrChecksum")
 	}
-	// case 2: invalid formats (string lengths below 5 mean the version byte and/or the checksum
-	// bytes are missing).
+	// case 2: invalid formats (string lengths below 5 mean the version byte and/or the checksum bytes are missing).
 	testString := ""
 	for len := 0; len < 4; len++ {
 		// make a string of length `len`

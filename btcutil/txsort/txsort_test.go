@@ -1,14 +1,15 @@
-
 package txsort_test
+
 import (
 	"bytes"
 	"encoding/hex"
+	"github.com/parallelcointeam/pod/btcutil/txsort"
+	"github.com/parallelcointeam/pod/wire"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
-	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil/txsort"
 )
+
 // TestSort ensures the transaction sorting works according to the BIP.
 func TestSort(t *testing.T) {
 	tests := []struct {
@@ -76,16 +77,14 @@ func TestSort(t *testing.T) {
 				test.name, err)
 			continue
 		}
-		// Ensure the sort order of the original transaction matches the
-		// expected value.
+		// Ensure the sort order of the original transaction matches the expected value.
 		if got := txsort.IsSorted(&tx); got != test.isSorted {
 			t.Errorf("IsSorted (%s): sort does not match "+
 				"expected - got %v, want %v", test.name, got,
 				test.isSorted)
 			continue
 		}
-		// Sort the transaction and ensure the resulting hash is the
-		// expected value.
+		// Sort the transaction and ensure the resulting hash is the expected value.
 		sortedTx := txsort.Sort(&tx)
 		if got := sortedTx.TxHash().String(); got != test.sortedHash {
 			t.Errorf("Sort (%s): sorted hash does not match "+
@@ -100,8 +99,7 @@ func TestSort(t *testing.T) {
 				test.unsortedHash)
 			continue
 		}
-		// Now sort the transaction using the mutable version and ensure
-		// the resulting hash is the expected value.
+		// Now sort the transaction using the mutable version and ensure the resulting hash is the expected value.
 		txsort.InPlaceSort(&tx)
 		if got := tx.TxHash().String(); got != test.sortedHash {
 			t.Errorf("SortMutate (%s): sorted hash does not match "+

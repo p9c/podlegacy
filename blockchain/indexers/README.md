@@ -1,6 +1,5 @@
 # indexers
 
-[![Build Status](https://travis-ci.org/parallelcointeam/pod.png?branch=master)](https://travis-ci.org/parallelcointeam/pod)
 [![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org)
 [![GoDoc](https://godoc.org/github.com/parallelcointeam/pod/blockchain/indexers?status.png)](http://godoc.org/github.com/parallelcointeam/pod/blockchain/indexers)
 

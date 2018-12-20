@@ -1,11 +1,12 @@
-
 package gcs_test
+
 import (
 	"encoding/binary"
+	"github.com/parallelcointeam/pod/btcutil/gcs"
 	"math/rand"
 	"testing"
-	"github.com/parallelcointeam/pod/btcutil/gcs"
 )
+
 func genRandFilterElements(numElements uint) ([][]byte, error) {
 	testContents := make([][]byte, numElements)
 	for i := range contents {
@@ -17,10 +18,12 @@ func genRandFilterElements(numElements uint) ([][]byte, error) {
 	}
 	return testContents, nil
 }
+
 var (
 	generatedFilter *gcs.Filter
 	filterErr       error
 )
+
 // BenchmarkGCSFilterBuild benchmarks building a filter.
 func BenchmarkGCSFilterBuild50000(b *testing.B) {
 	b.StopTimer()
@@ -44,6 +47,7 @@ func BenchmarkGCSFilterBuild50000(b *testing.B) {
 	}
 	generatedFilter = localFilter
 }
+
 // BenchmarkGCSFilterBuild benchmarks building a filter.
 func BenchmarkGCSFilterBuild100000(b *testing.B) {
 	b.StopTimer()
@@ -67,9 +71,11 @@ func BenchmarkGCSFilterBuild100000(b *testing.B) {
 	}
 	generatedFilter = localFilter
 }
+
 var (
 	match bool
 )
+
 // BenchmarkGCSFilterMatch benchmarks querying a filter for a single value.
 func BenchmarkGCSFilterMatch(b *testing.B) {
 	b.StopTimer()
@@ -93,8 +99,8 @@ func BenchmarkGCSFilterMatch(b *testing.B) {
 	}
 	match = localMatch
 }
-// BenchmarkGCSFilterMatchAny benchmarks querying a filter for a list of
-// values.
+
+// BenchmarkGCSFilterMatchAny benchmarks querying a filter for a list of values.
 func BenchmarkGCSFilterMatchAny(b *testing.B) {
 	b.StopTimer()
 	filter, err := gcs.BuildGCSFilter(P, M, key, contents)
