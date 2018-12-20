@@ -1,19 +1,22 @@
-chainhash
-=========
-[![Build Status](http://img.shields.io/travis/parallelcointeam/pod.svg)](https://travis-ci.org/parallelcointeam/pod)
+# chainhash
+
 [![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/parallelcointeam/pod/chaincfg/chainhash)
-=======
-chainhash provides a generic hash type and associated functions that allows the
-specific hash algorithm to be abstracted.
+
+chainhash provides a generic hash type and associated functions that allows the specific hash algorithm to be abstracted.
+
 ## Installation and Updating
+
 ```bash
 $ go get -u github.com/parallelcointeam/pod/chaincfg/chainhash
 ```
+
 ## GPG Verification Key
+
 All official release tags are signed by Conformal so users can ensure the code
-has not been tampered with and is coming from the btcsuite developers.  To
+has not been tampered with and is coming from the btcsuite developers. To
 verify the signature perform the following:
+
 - Download the public key from the Conformal website at
   https://opensource.conformal.com/GIT-GPG-KEY-conformal.txt
 - Import the public key into your GPG keyring:
@@ -25,6 +28,8 @@ verify the signature perform the following:
   ```bash
   git tag -v TAG_NAME
   ```
+
 ## License
+
 Package chainhash is licensed under the [copyfree](http://copyfree.org) ISC
 License.
