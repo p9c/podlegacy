@@ -1,7 +1,3 @@
-// Copyright (c) 2015-2017 The btcsuite developers
-
-
-
 package txscript
 
 import (

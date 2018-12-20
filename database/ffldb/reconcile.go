@@ -1,22 +1,14 @@
-// Copyright (c) 2015-2016 The btcsuite developers
-
-
 
 package ffldb
-
 import (
 	"fmt"
 	"hash/crc32"
-
 	"github.com/parallelcointeam/pod/database"
 )
-
 // The serialized write cursor location format is:
-//
 //  [0:4]  Block file (4 bytes)
 //  [4:8]  File offset (4 bytes)
 //  [8:12] Castagnoli CRC-32 checksum (4 bytes)
-
 // serializeWriteRow serialize the current block file and offset where new
 // will be written into a format suitable for storage into the metadata.
 func serializeWriteRow(curBlockFileNum, curFileOffset uint32) []byte {
@@ -27,7 +19,6 @@ func serializeWriteRow(curBlockFileNum, curFileOffset uint32) []byte {
 	byteOrder.PutUint32(serializedRow[8:12], checksum)
 	return serializedRow[:]
 }
-
 // deserializeWriteRow deserializes the write cursor location stored in the
 // metadata.  Returns ErrCorruption if the checksum of the entry doesn't match.
 func deserializeWriteRow(writeRow []byte) (uint32, uint32, error) {
@@ -41,12 +32,10 @@ func deserializeWriteRow(writeRow []byte) (uint32, uint32, error) {
 			wantChecksum)
 		return 0, 0, makeDbErr(database.ErrCorruption, str, nil)
 	}
-
 	fileNum := byteOrder.Uint32(writeRow[0:4])
 	fileOffset := byteOrder.Uint32(writeRow[4:8])
 	return fileNum, fileOffset, nil
 }
-
 // reconcileDB reconciles the metadata with the flat block files on disk.  It
 // will also initialize the underlying database if the create flag is set.
 func reconcileDB(pdb *db, create bool) (database.DB, error) {
@@ -57,7 +46,6 @@ func reconcileDB(pdb *db, create bool) (database.DB, error) {
 			return nil, err
 		}
 	}
-
 	// Load the current write cursor position from the metadata.
 	var curFileNum, curOffset uint32
 	err := pdb.View(func(tx database.Tx) error {
@@ -66,7 +54,6 @@ func reconcileDB(pdb *db, create bool) (database.DB, error) {
 			str := "write cursor does not exist"
 			return makeDbErr(database.ErrCorruption, str, nil)
 		}
-
 		var err error
 		curFileNum, curOffset, err = deserializeWriteRow(writeRow)
 		return err
@@ -74,7 +61,6 @@ func reconcileDB(pdb *db, create bool) (database.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	// When the write cursor position found by scanning the block files on
 	// disk is AFTER the position the metadata believes to be true, truncate
 	// the files on disk to match the metadata.  This can be a fairly common
@@ -85,7 +71,6 @@ func reconcileDB(pdb *db, create bool) (database.DB, error) {
 	wc := pdb.store.writeCursor
 	if wc.curFileNum > curFileNum || (wc.curFileNum == curFileNum &&
 		wc.curOffset > curOffset) {
-
 		log.Info("Detected unclean shutdown - Repairing...")
 		log.Debugf("Metadata claims file %d, offset %d. Block data is "+
 			"at file %d, offset %d", curFileNum, curOffset,
@@ -93,7 +78,6 @@ func reconcileDB(pdb *db, create bool) (database.DB, error) {
 		pdb.store.handleRollback(curFileNum, curOffset)
 		log.Infof("Database sync complete")
 	}
-
 	// When the write cursor position found by scanning the block files on
 	// disk is BEFORE the position the metadata believes to be true, return
 	// a corruption error.  Since sync is called after each block is written
@@ -105,13 +89,11 @@ func reconcileDB(pdb *db, create bool) (database.DB, error) {
 	// layer since it could invalidate other metadata.
 	if wc.curFileNum < curFileNum || (wc.curFileNum == curFileNum &&
 		wc.curOffset < curOffset) {
-
 		str := fmt.Sprintf("metadata claims file %d, offset %d, but "+
 			"block data is at file %d, offset %d", curFileNum,
 			curOffset, wc.curFileNum, wc.curOffset)
 		log.Warnf("***Database corruption detected***: %v", str)
 		return nil, makeDbErr(database.ErrCorruption, str, nil)
 	}
-
 	return pdb, nil
 }

@@ -1,21 +1,16 @@
 mempool
 =======
-
 [![Build Status](http://img.shields.io/travis/parallelcointeam/pod.svg)](https://travis-ci.org/parallelcointeam/pod)
 [![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/parallelcointeam/pod/mempool)
-
 Package mempool provides a policy-enforced pool of unmined bitcoin transactions.
-
 A key responsbility of the bitcoin network is mining user-generated transactions
 into blocks.  In order to facilitate this, the mining process relies on having a
 readily-available source of transactions to include in a block that is being
 solved.
-
 At a high level, this package satisfies that requirement by providing an
 in-memory pool of fully validated transactions that can also optionally be
 further filtered based upon a configurable policy.
-
 One of the policy configuration options controls whether or not "standard"
 transactions are accepted.  In essence, a "standard" transaction is one that
 satisfies a fairly strict set of requirements that are largely intended to help
@@ -25,24 +20,19 @@ the time of this writing, an example of _some_ of the criteria that are required
 for a transaction to be considered standard are that it is of the most-recently
 supported version, finalized, does not exceed a specific size, and only consists
 of specific script forms.
-
 Since this package does not deal with other bitcoin specifics such as network
 communication and transaction relay, it returns a list of transactions that were
 accepted which gives the caller a high level of flexibility in how they want to
 proceed.  Typically, this will involve things such as relaying the transactions
 to other peers on the network and notifying the mining process that new
 transactions are available.
-
 This package has intentionally been designed so it can be used as a standalone
 package for any projects needing the ability create an in-memory pool of bitcoin
 transactions that are not only valid by consensus rules, but also adhere to a
 configurable policy.
-
 ## Feature Overview
-
 The following is a quick overview of the major features.  It is not intended to
 be an exhaustive list.
-
 - Maintain a pool of fully validated transactions
   - Reject non-fully-spent duplicate transactions
   - Reject coinbase transactions
@@ -70,14 +60,10 @@ be an exhaustive list.
   - The starting priority for the transaction
 - Manual control of transaction removal
   - Recursive removal of all dependent transactions
-
 ## Installation and Updating
-
 ```bash
 $ go get -u github.com/parallelcointeam/pod/mempool
 ```
-
 ## License
-
 Package mempool is licensed under the [copyfree](http://copyfree.org) ISC
 License.

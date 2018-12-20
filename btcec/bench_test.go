@@ -1,7 +1,3 @@
-// Copyright 2013-2016 The btcsuite developers
-
-
-
 package btcec
 
 import "testing"

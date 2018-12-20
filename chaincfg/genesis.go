@@ -1,15 +1,11 @@
-// Copyright (c) 2014-2016 The btcsuite developers
 
 package chaincfg
-
 import (
 	"time"
-
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/fork"
 	"github.com/parallelcointeam/pod/wire"
 )
-
 // genesisCoinbaseTx is the coinbase transaction for the genesis blocks for
 // the main network, regression test network, and test network (version 3).
 var genesisCoinbaseTx = wire.MsgTx{
@@ -51,7 +47,6 @@ var genesisCoinbaseTx = wire.MsgTx{
 	},
 	LockTime: 0,
 }
-
 // genesisHash is the hash of the first block in the block chain for the main
 // network (genesis block).
 var genesisHash = chainhash.Hash([chainhash.HashSize]byte{
@@ -59,15 +54,11 @@ var genesisHash = chainhash.Hash([chainhash.HashSize]byte{
 	0x1d, 0xdf, 0x3a, 0xe7, 0xcf, 0x98, 0xf2, 0x8b,
 	0x23, 0xcf, 0xfd, 0x0c, 0x66, 0xd3, 0x04, 0xc9,
 	0xaa, 0xd3, 0xba, 0xfc, 0xf0, 0x09, 0x00, 0x00,
-
 	// 0x00, 0x00, 0x09, 0xf0, 0xfc, 0xba, 0xd3, 0xaa,
 	// 0xc9, 0x04, 0xd3, 0x66, 0x0c, 0xfd, 0xcf, 0x23,
 	// 0x8b, 0xf2, 0x98, 0xcf, 0xe7, 0x3a, 0xdf, 0x1d,
 	// 0x39, 0xd1, 0x4f, 0xc5, 0xc7, 0x40, 0xcc, 0xc7,
 })
-
-//
-
 // genesisMerkleRoot is the hash of the first transaction in the genesis block
 // for the main network.
 var genesisMerkleRoot = chainhash.Hash([chainhash.HashSize]byte{
@@ -75,13 +66,11 @@ var genesisMerkleRoot = chainhash.Hash([chainhash.HashSize]byte{
 	// 0xd2, 0xf2, 0x80, 0xc3, 0x63, 0x76, 0xce, 0x56,
 	// 0xdc, 0x71, 0xa6, 0xc7, 0x0e, 0x4b, 0x1c, 0x5a,
 	// 0xd2, 0xd7, 0xa9, 0x31, 0x6f, 0x9b, 0x9a, 0xb7,
-
 	0xb7, 0x9a, 0x9b, 0x6f, 0x31, 0xa9, 0xd7, 0xd2,
 	0x5a, 0x1c, 0x4b, 0x0e, 0xc7, 0xa6, 0x71, 0xdc,
 	0x56, 0xce, 0x76, 0x63, 0xc3, 0x80, 0xf2, 0xd2,
 	0x51, 0x3a, 0x8e, 0x65, 0xe4, 0xea, 0x43, 0xc8,
 })
-
 // genesisBlock defines the genesis block of the block chain which serves as the
 // public transaction ledger for the main network.
 var genesisBlock = wire.MsgBlock{
@@ -95,7 +84,6 @@ var genesisBlock = wire.MsgBlock{
 	},
 	Transactions: []*wire.MsgTx{&genesisCoinbaseTx},
 }
-
 // regTestGenesisHash is the hash of the first block in the block chain for the
 // regression test network (genesis block).
 var regTestGenesisHash = chainhash.Hash([chainhash.HashSize]byte{
@@ -104,12 +92,10 @@ var regTestGenesisHash = chainhash.Hash([chainhash.HashSize]byte{
 	0x48, 0x7e, 0x66, 0x25, 0xc8, 0x52, 0x2a, 0xdc,
 	0x83, 0xa1, 0x0e, 0x22, 0x9e, 0xb7, 0xe9, 0x69,
 })
-
 // regTestGenesisMerkleRoot is the hash of the first transaction in the genesis
 // block for the regression test network.  It is the same as the merkle root for
 // the main network.
 var regTestGenesisMerkleRoot = genesisMerkleRoot
-
 // regTestGenesisBlock defines the genesis block of the block chain which serves
 // as the public transaction ledger for the regression test network.
 var regTestGenesisBlock = wire.MsgBlock{
@@ -123,12 +109,10 @@ var regTestGenesisBlock = wire.MsgBlock{
 	},
 	Transactions: []*wire.MsgTx{&genesisCoinbaseTx},
 }
-
 // testNet3GenesisMerkleRoot is the hash of the first transaction in the genesis
 // block for the test network (version 3).  It is the same as the merkle root
 // for the main network.
 var testNet3GenesisMerkleRoot = genesisMerkleRoot
-
 // testNet3GenesisBlock defines the genesis block of the block chain which
 // serves as the public transaction ledger for the test network (version 3).
 var testNet3GenesisBlock = wire.MsgBlock{
@@ -142,7 +126,6 @@ var testNet3GenesisBlock = wire.MsgBlock{
 	},
 	Transactions: []*wire.MsgTx{&genesisCoinbaseTx},
 }
-
 // testNet3GenesisHash is the hash of the first block in the block chain for the
 // test network (version 3).
 // var testNet3GenesisHash = chainhash.Hash([chainhash.HashSize]byte{
@@ -151,9 +134,7 @@ var testNet3GenesisBlock = wire.MsgBlock{
 // 	0x85, 0x4d, 0xed, 0x22, 0x2c, 0x0c, 0x1b, 0xf9,
 // 	0x5e, 0xa3, 0xba, 0xec, 0x41, 0x0e, 0x00, 0x00,
 // })
-
 var testNet3GenesisHash = testNet3GenesisBlock.Header.BlockHash()
-
 // simNetGenesisHash is the hash of the first block in the block chain for the
 // simulation test network.
 var simNetGenesisHash = chainhash.Hash([chainhash.HashSize]byte{
@@ -162,12 +143,10 @@ var simNetGenesisHash = chainhash.Hash([chainhash.HashSize]byte{
 	0x85, 0x4d, 0xed, 0x22, 0x2c, 0x0c, 0x1b, 0xf9,
 	0x5e, 0xa3, 0xba, 0xec, 0x41, 0x0e, 0x00, 0x00,
 })
-
 // simNetGenesisMerkleRoot is the hash of the first transaction in the genesis
 // block for the simulation test network.  It is the same as the merkle root for
 // the main network.
 var simNetGenesisMerkleRoot = genesisMerkleRoot
-
 // simNetGenesisBlock defines the genesis block of the block chain which serves
 // as the public transaction ledger for the simulation test network.
 var simNetGenesisBlock = wire.MsgBlock{

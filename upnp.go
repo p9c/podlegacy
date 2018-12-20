@@ -1,22 +1,19 @@
 package main
 
 // Upnp code taken from Taipei Torrent license is below:
-// Copyright (c) 2010 Jack Palevich. All rights reserved.
-//
+
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
-//
 //    * Redistributions of source code must retain the above copyright
 // notice, this list of conditions and the following disclaimer.
 //    * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
+
 // in the documentation and/or other materials provided with the
 // distribution.
 //    * Neither the name of Google Inc. nor the names of its
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
-//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 // "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 // LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -28,10 +25,7 @@ package main
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 // Just enough UPnP to be able to forward ports
-//
-
 import (
 	"bytes"
 	"encoding/xml"
@@ -57,7 +51,6 @@ type NAT interface {
 	// internal port.
 	DeletePortMapping(protocol string, externalPort, internalPort int) (err error)
 }
-
 type upnpNAT struct {
 	serviceURL string
 	ourIP      string
@@ -76,12 +69,10 @@ func Discover() (nat NAT, err error) {
 	}
 	socket := conn.(*net.UDPConn)
 	defer socket.Close()
-
 	err = socket.SetDeadline(time.Now().Add(3 * time.Second))
 	if err != nil {
 		return
 	}
-
 	st := "ST: urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\n"
 	buf := bytes.NewBufferString(
 		"M-SEARCH * HTTP/1.1\r\n" +
@@ -291,7 +282,6 @@ func soapRequest(url, function, message string) (replyXML []byte, err error) {
 	fullMessage := "<?xml version=\"1.0\" ?>" +
 		"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\r\n" +
 		"<s:Body>" + message + "</s:Body></s:Envelope>"
-
 	req, err := http.NewRequest("POST", url, strings.NewReader(fullMessage))
 	if err != nil {
 		return nil, err
@@ -303,7 +293,6 @@ func soapRequest(url, function, message string) (replyXML []byte, err error) {
 	req.Header.Set("Connection", "Close")
 	req.Header.Set("Cache-Control", "no-cache")
 	req.Header.Set("Pragma", "no-cache")
-
 	r, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -311,7 +300,6 @@ func soapRequest(url, function, message string) (replyXML []byte, err error) {
 	if r.Body != nil {
 		defer r.Body.Close()
 	}
-
 	if r.StatusCode >= 400 {
 		// log.Stderr(function, r.StatusCode)
 		err = errors.New("Error " + strconv.Itoa(r.StatusCode) + " for " + function)
@@ -341,13 +329,11 @@ func (n *upnpNAT) GetExternalAddress() (addr net.IP, err error) {
 	if err != nil {
 		return nil, err
 	}
-
 	var reply getExternalIPAddressResponse
 	err = xml.Unmarshal(response, &reply)
 	if err != nil {
 		return nil, err
 	}
-
 	addr = net.ParseIP(reply.ExternalIPAddress)
 	if addr == nil {
 		return nil, errors.New("unable to parse ip address")
@@ -368,12 +354,10 @@ func (n *upnpNAT) AddPortMapping(protocol string, externalPort, internalPort int
 	message += description +
 		"</NewPortMappingDescription><NewLeaseDuration>" + strconv.Itoa(timeout) +
 		"</NewLeaseDuration></u:AddPortMapping>"
-
 	response, err := soapRequest(n.serviceURL, "AddPortMapping", message)
 	if err != nil {
 		return
 	}
-
 	// TODO: check response to see if the port was forwarded
 	// If the port was not wildcard we don't get an reply with the port in
 	// it. Not sure about wildcard yet. miniupnpc just checks for error
@@ -386,17 +370,14 @@ func (n *upnpNAT) AddPortMapping(protocol string, externalPort, internalPort int
 // DeletePortMapping implements the NAT interface by removing up a port forwarding
 // from the UPnP router to the local machine with the given ports and.
 func (n *upnpNAT) DeletePortMapping(protocol string, externalPort, internalPort int) (err error) {
-
 	message := "<u:DeletePortMapping xmlns:u=\"urn:schemas-upnp-org:service:WANIPConnection:1\">\r\n" +
 		"<NewRemoteHost></NewRemoteHost><NewExternalPort>" + strconv.Itoa(externalPort) +
 		"</NewExternalPort><NewProtocol>" + strings.ToUpper(protocol) + "</NewProtocol>" +
 		"</u:DeletePortMapping>"
-
 	response, err := soapRequest(n.serviceURL, "DeletePortMapping", message)
 	if err != nil {
 		return
 	}
-
 	// TODO: check response to see if the port was deleted
 	// log.Println(message, response)
 	_ = response

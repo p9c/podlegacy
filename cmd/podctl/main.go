@@ -1,5 +1,4 @@
 package main
-
 import (
 	"bufio"
 	"bytes"
@@ -9,15 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 const (
 	showHelpMessage = "Specify -h to show available options"
 	listCmdMessage  = "Specify -l to list available commands"
 )
-
 // commandUsage display the usage for a specific command.
 func commandUsage(method string) {
 	usage, err := btcjson.MethodUsageText(method)
@@ -27,11 +23,9 @@ func commandUsage(method string) {
 		fmt.Fprintln(os.Stderr, "Failed to obtain command usage:", err)
 		return
 	}
-
 	fmt.Fprintln(os.Stderr, "Usage:")
 	fmt.Fprintf(os.Stderr, "  %s\n", usage)
 }
-
 // usage displays the general usage when the help flag is not displayed and
 // and an invalid command was specified.  The commandUsage function is used
 // instead when a valid command was specified.
@@ -45,7 +39,6 @@ func usage(errorMessage string) {
 	fmt.Fprintln(os.Stderr, showHelpMessage)
 	fmt.Fprintln(os.Stderr, listCmdMessage)
 }
-
 func main() {
 	cfg, args, err := loadConfig()
 	if err != nil {
@@ -55,7 +48,6 @@ func main() {
 		usage("No command specified")
 		os.Exit(1)
 	}
-
 	// Ensure the specified method identifies a valid registered command and
 	// is one of the usable types.
 	method := args[0]
@@ -71,7 +63,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, listCmdMessage)
 		os.Exit(1)
 	}
-
 	// Convert remaining command line args to a slice of interface values
 	// to be passed along as parameters to new command creation function.
 	//
@@ -98,10 +89,8 @@ func main() {
 			params = append(params, param)
 			continue
 		}
-
 		params = append(params, arg)
 	}
-
 	// Attempt to create the appropriate command using the arguments
 	// provided by the user.
 	cmd, err := btcjson.NewCmd(method, params...)
@@ -116,7 +105,6 @@ func main() {
 			commandUsage(method)
 			os.Exit(1)
 		}
-
 		// The error is not a btcjson.Error and this really should not
 		// happen.  Nevertheless, fallback to just showing the error
 		// if it should happen due to a bug in the package.
@@ -124,7 +112,6 @@ func main() {
 		commandUsage(method)
 		os.Exit(1)
 	}
-
 	// Marshal the command into a JSON-RPC byte slice in preparation for
 	// sending it to the RPC server.
 	marshalledJSON, err := btcjson.MarshalCmd(1, cmd)
@@ -132,7 +119,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-
 	// Send the JSON-RPC request to the server using the user-specified
 	// connection configuration.
 	result, err := sendPostRequest(marshalledJSON, cfg)
@@ -140,7 +126,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-
 	// Choose how to display the result based on its type.
 	strResult := string(result)
 	if strings.HasPrefix(strResult, "{") || strings.HasPrefix(strResult, "[") {
@@ -151,7 +136,6 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println(dst.String())
-
 	} else if strings.HasPrefix(strResult, `"`) {
 		var str string
 		if err := json.Unmarshal(result, &str); err != nil {
@@ -160,7 +144,6 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println(str)
-
 	} else if strResult != "null" {
 		fmt.Println(strResult)
 	}

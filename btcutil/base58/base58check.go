@@ -1,20 +1,14 @@
 
-
-
 package base58
-
 import (
 	"crypto/sha256"
 	"errors"
 )
-
 // ErrChecksum indicates that the checksum of a check-encoded string does not verify against
 // the checksum.
 var ErrChecksum = errors.New("checksum error")
-
 // ErrInvalidFormat indicates that the check-encoded string has an invalid format.
 var ErrInvalidFormat = errors.New("invalid format: version and/or checksum bytes missing")
-
 // checksum: first four bytes of sha256^2
 func checksum(input []byte) (cksum [4]byte) {
 	h := sha256.Sum256(input)
@@ -22,7 +16,6 @@ func checksum(input []byte) (cksum [4]byte) {
 	copy(cksum[:], h2[:4])
 	return
 }
-
 // CheckEncode prepends a version byte and appends a four byte checksum.
 func CheckEncode(input []byte, version byte) string {
 	b := make([]byte, 0, 1+len(input)+4)
@@ -32,7 +25,6 @@ func CheckEncode(input []byte, version byte) string {
 	b = append(b, cksum[:]...)
 	return Encode(b)
 }
-
 // CheckDecode decodes a string that was encoded with CheckEncode and verifies the checksum.
 func CheckDecode(input string) (result []byte, version byte, err error) {
 	decoded := Decode(input)

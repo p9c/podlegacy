@@ -1,6 +1,3 @@
-// Copyright (c) 2015 The btcsuite developers
-
-
 
 package blockchain
 

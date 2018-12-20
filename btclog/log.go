@@ -1,23 +1,15 @@
-// Copyright (c) 2017 The btcsuite developers
-
-
-//
-// Copyright (c) 2009 The Go Authors. All rights reserved.
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
-//
 //    * Redistributions of source code must retain the above copyright
 // notice, this list of conditions and the following disclaimer.
 //    * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
+
 // in the documentation and/or other materials provided with the
 // distribution.
 //    * Neither the name of Google Inc. nor the names of its
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
-//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 // "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 // LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -29,7 +21,6 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 package btclog
 
 import (
@@ -55,7 +46,6 @@ const (
 	// Llongfile modifies the logger output to include full path and line number
 	// of the logging callsite, e.g. /a/b/c/main.go:123.
 	Llongfile uint32 = 1 << iota
-
 	// Lshortfile modifies the logger output to include filename and line number
 	// of the logging callsite, e.g. main.go:123.  Overrides Llongfile.
 	Lshortfile
@@ -205,7 +195,6 @@ func formatHeader(buf *[]byte, t time.Time, lvl, tag string, file string, line i
 	year, month, day := t.Date()
 	hour, min, sec := t.Clock()
 	ms := t.Nanosecond() / 1e6
-
 	itoa(buf, year, 4)
 	*buf = append(*buf, '-')
 	itoa(buf, int(month), 2)
@@ -264,24 +253,19 @@ func callsite(flag uint32) (string, int) {
 // rules.
 func (b *Backend) print(lvl, tag string, args ...interface{}) {
 	t := time.Now() // get as early as possible
-
 	bytebuf := buffer()
-
 	var file string
 	var line int
 	if b.flag&(Lshortfile|Llongfile) != 0 {
 		file, line = callsite(b.flag)
 	}
-
 	formatHeader(bytebuf, t, lvl, tag, file, line)
 	buf := bytes.NewBuffer(*bytebuf)
 	fmt.Fprintln(buf, args...)
 	*bytebuf = buf.Bytes()
-
 	b.mu.Lock()
 	b.w.Write(*bytebuf)
 	b.mu.Unlock()
-
 	recycleBuffer(bytebuf)
 }
 
@@ -291,24 +275,19 @@ func (b *Backend) print(lvl, tag string, args ...interface{}) {
 // specifier.
 func (b *Backend) printf(lvl, tag string, format string, args ...interface{}) {
 	t := time.Now() // get as early as possible
-
 	bytebuf := buffer()
-
 	var file string
 	var line int
 	if b.flag&(Lshortfile|Llongfile) != 0 {
 		file, line = callsite(b.flag)
 	}
-
 	formatHeader(bytebuf, t, lvl, tag, file, line)
 	buf := bytes.NewBuffer(*bytebuf)
 	fmt.Fprintf(buf, format, args...)
 	*bytebuf = append(buf.Bytes(), '\n')
-
 	b.mu.Lock()
 	b.w.Write(*bytebuf)
 	b.mu.Unlock()
-
 	recycleBuffer(bytebuf)
 }
 
@@ -328,7 +307,6 @@ type slog struct {
 
 // Trace formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelTrace.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Trace(args ...interface{}) {
 	lvl := l.Level()
@@ -339,7 +317,6 @@ func (l *slog) Trace(args ...interface{}) {
 
 // Tracef formats message according to format specifier, prepends the prefix as
 // necessary, and writes to log with LevelTrace.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Tracef(format string, args ...interface{}) {
 	lvl := l.Level()
@@ -350,7 +327,6 @@ func (l *slog) Tracef(format string, args ...interface{}) {
 
 // Debug formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelDebug.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Debug(args ...interface{}) {
 	lvl := l.Level()
@@ -361,7 +337,6 @@ func (l *slog) Debug(args ...interface{}) {
 
 // Debugf formats message according to format specifier, prepends the prefix as
 // necessary, and writes to log with LevelDebug.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Debugf(format string, args ...interface{}) {
 	lvl := l.Level()
@@ -372,7 +347,6 @@ func (l *slog) Debugf(format string, args ...interface{}) {
 
 // Info formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelInfo.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Info(args ...interface{}) {
 	lvl := l.Level()
@@ -383,7 +357,6 @@ func (l *slog) Info(args ...interface{}) {
 
 // Infof formats message according to format specifier, prepends the prefix as
 // necessary, and writes to log with LevelInfo.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Infof(format string, args ...interface{}) {
 	lvl := l.Level()
@@ -394,7 +367,6 @@ func (l *slog) Infof(format string, args ...interface{}) {
 
 // Warn formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelWarn.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Warn(args ...interface{}) {
 	lvl := l.Level()
@@ -405,7 +377,6 @@ func (l *slog) Warn(args ...interface{}) {
 
 // Warnf formats message according to format specifier, prepends the prefix as
 // necessary, and writes to log with LevelWarn.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Warnf(format string, args ...interface{}) {
 	lvl := l.Level()
@@ -416,7 +387,6 @@ func (l *slog) Warnf(format string, args ...interface{}) {
 
 // Error formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelError.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Error(args ...interface{}) {
 	lvl := l.Level()
@@ -427,7 +397,6 @@ func (l *slog) Error(args ...interface{}) {
 
 // Errorf formats message according to format specifier, prepends the prefix as
 // necessary, and writes to log with LevelError.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Errorf(format string, args ...interface{}) {
 	lvl := l.Level()
@@ -438,7 +407,6 @@ func (l *slog) Errorf(format string, args ...interface{}) {
 
 // Critical formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelCritical.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Critical(args ...interface{}) {
 	lvl := l.Level()
@@ -449,7 +417,6 @@ func (l *slog) Critical(args ...interface{}) {
 
 // Criticalf formats message according to format specifier, prepends the prefix
 // as necessary, and writes to log with LevelCritical.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Criticalf(format string, args ...interface{}) {
 	lvl := l.Level()
@@ -459,14 +426,12 @@ func (l *slog) Criticalf(format string, args ...interface{}) {
 }
 
 // Level returns the current logging level
-//
 // This is part of the Logger interface implementation.
 func (l *slog) Level() Level {
 	return Level(atomic.LoadUint32((*uint32)(&l.lvl)))
 }
 
 // SetLevel changes the logging level to the passed level.
-//
 // This is part of the Logger interface implementation.
 func (l *slog) SetLevel(level Level) {
 	atomic.StoreUint32((*uint32)(&l.lvl), uint32(level))

@@ -1,13 +1,10 @@
 #!/bin/bash
-
 #!/bin/bash #NOPRINT
 export NAME="docker-parallelcoind" #NOPRINT
 export DATADIR="`pwd`" #NOPRINT
 # source $DATADIR/config #NOPRINT
 echo "Loading command aliases... Type 'halp' to see available commands" #NOPRINT
-
 ### HALP! How to control your $NAME docker container
-
 alias      dkr="sudo docker"
          ### [ shortcut to run docker with sudo ]
 alias   .where="echo $DATADIR"

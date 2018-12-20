@@ -1,16 +1,10 @@
-// Copyright (c) 2015-2016 The btcsuite developers
-
-
 
 package txscript
-
 import (
 	"sync"
-
 	"github.com/parallelcointeam/pod/btcec"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 )
-
 // sigCacheEntry represents an entry in the SigCache. Entries within the
 // SigCache are keyed according to the sigHash of the signature. In the
 // scenario of a cache-hit (according to the sigHash), an additional comparison
@@ -21,7 +15,6 @@ type sigCacheEntry struct {
 	sig    *btcec.Signature
 	pubKey *btcec.PublicKey
 }
-
 // SigCache implements an ECDSA signature verification cache with a randomized
 // entry eviction policy. Only valid signatures will be added to the cache. The
 // benefits of SigCache are two fold. Firstly, usage of SigCache mitigates a DoS
@@ -37,7 +30,6 @@ type SigCache struct {
 	validSigs  map[chainhash.Hash]sigCacheEntry
 	maxEntries uint
 }
-
 // NewSigCache creates and initializes a new instance of SigCache. Its sole
 // parameter 'maxEntries' represents the maximum number of entries allowed to
 // exist in the SigCache at any particular moment. Random entries are evicted
@@ -49,35 +41,28 @@ func NewSigCache(maxEntries uint) *SigCache {
 		maxEntries: maxEntries,
 	}
 }
-
 // Exists returns true if an existing entry of 'sig' over 'sigHash' for public
 // key 'pubKey' is found within the SigCache. Otherwise, false is returned.
-//
 // NOTE: This function is safe for concurrent access. Readers won't be blocked
 // unless there exists a writer, adding an entry to the SigCache.
 func (s *SigCache) Exists(sigHash chainhash.Hash, sig *btcec.Signature, pubKey *btcec.PublicKey) bool {
 	s.RLock()
 	entry, ok := s.validSigs[sigHash]
 	s.RUnlock()
-
 	return ok && entry.pubKey.IsEqual(pubKey) && entry.sig.IsEqual(sig)
 }
-
 // Add adds an entry for a signature over 'sigHash' under public key 'pubKey'
 // to the signature cache. In the event that the SigCache is 'full', an
 // existing entry is randomly chosen to be evicted in order to make space for
 // the new entry.
-//
 // NOTE: This function is safe for concurrent access. Writers will block
 // simultaneous readers until function execution has concluded.
 func (s *SigCache) Add(sigHash chainhash.Hash, sig *btcec.Signature, pubKey *btcec.PublicKey) {
 	s.Lock()
 	defer s.Unlock()
-
 	if s.maxEntries <= 0 {
 		return
 	}
-
 	// If adding this new entry will put us over the max number of allowed
 	// entries, then evict an entry.
 	if uint(len(s.validSigs)+1) > s.maxEntries {

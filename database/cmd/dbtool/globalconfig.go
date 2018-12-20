@@ -1,34 +1,26 @@
-// Copyright (c) 2015-2016 The btcsuite developers
-
-
 
 package main
-
 import (
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 var (
 	podHomeDir     = btcutil.AppDataDir("pod", false)
 	knownDbTypes    = database.SupportedDrivers()
 	activeNetParams = &chaincfg.MainNetParams
-
 	// Default global config.
 	cfg = &config{
 		DataDir: filepath.Join(podHomeDir, "data"),
 		DbType:  "ffldb",
 	}
 )
-
 // config defines the global configuration options.
 type config struct {
 	DataDir        string `short:"b" long:"datadir" description:"Location of the pod data directory"`
@@ -37,7 +29,6 @@ type config struct {
 	RegressionTest bool   `long:"regtest" description:"Use the regression test network"`
 	SimNet         bool   `long:"simnet" description:"Use the simulation test network"`
 }
-
 // fileExists reports whether the named file or directory exists.
 func fileExists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
@@ -47,7 +38,6 @@ func fileExists(name string) bool {
 	}
 	return true
 }
-
 // validDbType returns whether or not dbType is a supported database type.
 func validDbType(dbType string) bool {
 	for _, knownType := range knownDbTypes {
@@ -55,16 +45,13 @@ func validDbType(dbType string) bool {
 			return true
 		}
 	}
-
 	return false
 }
-
 // netName returns the name used when referring to a bitcoin network.  At the
 // time of writing, pod currently places blocks for testnet version 3 in the
 // data and log directory "testnet", which does not match the Name field of the
 // chaincfg parameters.  This function can be used to override this directory name
 // as "testnet" when the passed active network matches wire.TestNet3.
-//
 // A proper upgrade to move the data and log directories for this network to
 // "testnet3" is planned for the future, at which point this function can be
 // removed and the network parameter's name used instead.
@@ -76,7 +63,6 @@ func netName(chainParams *chaincfg.Params) string {
 		return chainParams.Name
 	}
 }
-
 // setupGlobalConfig examine the global configuration options for any conditions
 // which are invalid as well as performs any addition setup necessary after the
 // initial parse.
@@ -101,14 +87,12 @@ func setupGlobalConfig() error {
 		return errors.New("The testnet, regtest, and simnet params " +
 			"can't be used together -- choose one of the three")
 	}
-
 	// Validate database type.
 	if !validDbType(cfg.DbType) {
 		str := "The specified database type [%v] is invalid -- " +
 			"supported types %v"
 		return fmt.Errorf(str, cfg.DbType, knownDbTypes)
 	}
-
 	// Append the network type to the data directory so it is "namespaced"
 	// per network.  In addition to the block database, there are other
 	// pieces of data that are saved to disk such as address manager state.
@@ -116,6 +100,5 @@ func setupGlobalConfig() error {
 	// means each individual piece of serialized data does not have to
 	// worry about changing names per network and such.
 	cfg.DataDir = filepath.Join(cfg.DataDir, netName(activeNetParams))
-
 	return nil
 }

@@ -1,6 +1,3 @@
-// Copyright (c) 2017 The btcsuite developers
-
-
 
 /*
 Package netsync implements a concurrency safe block syncing protocol. The

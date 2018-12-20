@@ -1,18 +1,15 @@
-// Copyright (c) 2015-2017 The btcsuite developers
-
 package blockchain
 
 import (
-	"math/big"
-	"sort"
-	"sync"
-	"time"
-
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/fork"
 	"github.com/parallelcointeam/pod/wire"
+	"math/big"
+	"sort"
+	"sync"
+	"time"
 )
 
 // blockStatus is a bit field representing the validation state of the block.
@@ -21,17 +18,13 @@ type blockStatus byte
 const (
 	// statusDataStored indicates that the block's payload is stored on disk.
 	statusDataStored blockStatus = 1 << iota
-
 	// statusValid indicates that the block has been fully validated.
 	statusValid
-
 	// statusValidateFailed indicates that the block has failed validation.
 	statusValidateFailed
-
 	// statusInvalidAncestor indicates that one of the block's ancestors has
 	// has failed validation, thus the block is also invalid.
 	statusInvalidAncestor
-
 	// statusNone indicates that the block has no validation state flags set.
 	//
 	// NOTE: This must be defined last in order to avoid influencing iota.
@@ -69,20 +62,15 @@ type blockNode struct {
 	// specifically crafted to result in minimal padding.  There will be
 	// hundreds of thousands of these in memory, so a few extra bytes of
 	// padding adds up.
-
 	// parent is the parent block for this node.
 	parent *blockNode
-
 	// hash is the double sha 256 of the block.
 	hash chainhash.Hash
-
 	// workSum is the total amount of work in the chain up to and including
 	// this node.
 	workSum *big.Int
-
 	// height is the position in the block chain.
 	height int32
-
 	// Some fields from block headers to aid in best chain selection and
 	// reconstructing headers from memory.  These must be treated as
 	// immutable and are intentionally ordered to avoid padding on 64-bit
@@ -92,7 +80,6 @@ type blockNode struct {
 	nonce      uint32
 	timestamp  int64
 	merkleRoot chainhash.Hash
-
 	// status is a bitfield representing the validation state of the block. The
 	// status field, unlike the other fields, may be written to and so should
 	// only be accessed using the concurrent-safe NodeStatus method on
@@ -132,7 +119,6 @@ func newBlockNode(blockHeader *wire.BlockHeader, parent *blockNode) *blockNode {
 }
 
 // Header constructs a block header from the node and returns it.
-//
 // This function is safe for concurrent access.
 func (node *blockNode) Header() wire.BlockHeader {
 	// No lock is needed because all accessed fields are immutable.
@@ -154,25 +140,21 @@ func (node *blockNode) Header() wire.BlockHeader {
 // the chain backwards from this node.  The returned block will be nil when a
 // height is requested that is after the height of the passed node or is less
 // than zero.
-//
 // This function is safe for concurrent access.
 func (node *blockNode) Ancestor(height int32) *blockNode {
 	if height < 0 || height > node.height {
 		return nil
 	}
-
 	n := node
 	for ; n != nil && n.height != height; n = n.parent {
 		// Intentionally left blank
 	}
-
 	return n
 }
 
 // RelativeAncestor returns the ancestor block node a relative 'distance' blocks
 // before this node.  This is equivalent to calling Ancestor with the node's
 // height minus provided distance.
-//
 // This function is safe for concurrent access.
 func (node *blockNode) RelativeAncestor(distance int32) *blockNode {
 	return node.Ancestor(node.height - distance)
@@ -180,7 +162,6 @@ func (node *blockNode) RelativeAncestor(distance int32) *blockNode {
 
 // CalcPastMedianTime calculates the median time of the previous few blocks
 // prior to, and including, the block node.
-//
 // This function is safe for concurrent access.
 func (node *blockNode) CalcPastMedianTime() time.Time {
 	// Create a slice of the previous few block timestamps used to calculate
@@ -191,16 +172,13 @@ func (node *blockNode) CalcPastMedianTime() time.Time {
 	for i := 0; i < medianTimeBlocks && iterNode != nil; i++ {
 		timestamps[i] = iterNode.timestamp
 		numNodes++
-
 		iterNode = iterNode.parent
 	}
-
 	// Prune the slice to the actual number of available timestamps which
 	// will be fewer than desired near the beginning of the block chain
 	// and sort them.
 	timestamps = timestamps[:numNodes]
 	sort.Sort(timeSorter(timestamps))
-
 	// NOTE: The consensus rules incorrectly calculate the median for even
 	// numbers of blocks.  A true median averages the middle two elements
 	// for a set with an even number of elements in it.   Since the constant
@@ -228,7 +206,6 @@ type blockIndex struct {
 	// separate mutex.
 	db          database.DB
 	chainParams *chaincfg.Params
-
 	sync.RWMutex
 	index map[chainhash.Hash]*blockNode
 	dirty map[*blockNode]struct{}
@@ -247,7 +224,6 @@ func newBlockIndex(db database.DB, chainParams *chaincfg.Params) *blockIndex {
 }
 
 // HaveBlock returns whether or not the block index contains the provided hash.
-//
 // This function is safe for concurrent access.
 func (bi *blockIndex) HaveBlock(hash *chainhash.Hash) bool {
 	bi.RLock()
@@ -258,7 +234,6 @@ func (bi *blockIndex) HaveBlock(hash *chainhash.Hash) bool {
 
 // LookupNode returns the block node identified by the provided hash.  It will
 // return nil if there is no entry for the hash.
-//
 // This function is safe for concurrent access.
 func (bi *blockIndex) LookupNode(hash *chainhash.Hash) *blockNode {
 	bi.RLock()
@@ -269,7 +244,6 @@ func (bi *blockIndex) LookupNode(hash *chainhash.Hash) *blockNode {
 
 // AddNode adds the provided node to the block index and marks it as dirty.
 // Duplicate entries are not checked so it is up to caller to avoid adding them.
-//
 // This function is safe for concurrent access.
 func (bi *blockIndex) AddNode(node *blockNode) {
 	bi.Lock()
@@ -280,14 +254,12 @@ func (bi *blockIndex) AddNode(node *blockNode) {
 
 // addNode adds the provided node to the block index, but does not mark it as
 // dirty. This can be used while initializing the block index.
-//
 // This function is NOT safe for concurrent access.
 func (bi *blockIndex) addNode(node *blockNode) {
 	bi.index[node.hash] = node
 }
 
 // NodeStatus provides concurrent-safe access to the status field of a node.
-//
 // This function is safe for concurrent access.
 func (bi *blockIndex) NodeStatus(node *blockNode) blockStatus {
 	bi.RLock()
@@ -299,7 +271,6 @@ func (bi *blockIndex) NodeStatus(node *blockNode) blockStatus {
 // SetStatusFlags flips the provided status flags on the block node to on,
 // regardless of whether they were on or off previously. This does not unset any
 // flags currently on.
-//
 // This function is safe for concurrent access.
 func (bi *blockIndex) SetStatusFlags(node *blockNode, flags blockStatus) {
 	bi.Lock()
@@ -310,7 +281,6 @@ func (bi *blockIndex) SetStatusFlags(node *blockNode, flags blockStatus) {
 
 // UnsetStatusFlags flips the provided status flags on the block node to off,
 // regardless of whether they were on or off previously.
-//
 // This function is safe for concurrent access.
 func (bi *blockIndex) UnsetStatusFlags(node *blockNode, flags blockStatus) {
 	bi.Lock()
@@ -327,7 +297,6 @@ func (bi *blockIndex) flushToDB() error {
 		bi.Unlock()
 		return nil
 	}
-
 	err := bi.db.Update(func(dbTx database.Tx) error {
 		for node := range bi.dirty {
 			err := dbStoreBlockNode(dbTx, node)
@@ -337,12 +306,10 @@ func (bi *blockIndex) flushToDB() error {
 		}
 		return nil
 	})
-
 	// If write was successful, clear the dirty set.
 	if err == nil {
 		bi.dirty = make(map[*blockNode]struct{})
 	}
-
 	bi.Unlock()
 	return err
 }
@@ -371,7 +338,6 @@ func (node *blockNode) GetPrevWithAlgo(algo int32) (prev *blockNode) {
 		}
 	}
 	for algo != prev.version {
-
 		prev = prev.RelativeAncestor(1)
 		if prev == nil {
 			return

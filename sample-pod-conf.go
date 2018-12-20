@@ -1,5 +1,4 @@
 package main
-
 var samplePodConf = []byte(`[Application Options]
 ;datadir=              Directory to store data (default: ~/.pod/data)
 ;;;  Directory to log output. (default: ~/.pod/logs)

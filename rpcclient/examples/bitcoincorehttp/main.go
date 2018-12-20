@@ -1,15 +1,9 @@
-// Copyright (c) 2014-2017 The btcsuite developers
-
-
 
 package main
-
 import (
 	"log"
-
 	"github.com/parallelcointeam/pod/rpcclient"
 )
-
 func main() {
 	// Connect to local bitcoin core RPC server using HTTP POST mode.
 	connCfg := &rpcclient.ConnConfig{
@@ -26,7 +20,6 @@ func main() {
 		log.Fatal(err)
 	}
 	defer client.Shutdown()
-
 	// Get the current block count.
 	blockCount, err := client.GetBlockCount()
 	if err != nil {

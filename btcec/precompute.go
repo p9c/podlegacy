@@ -1,7 +1,3 @@
-// Copyright 2015 The btcsuite developers
-
-
-
 package btcec
 
 import (
@@ -13,7 +9,6 @@ import (
 )
 
 //go:generate go run -tags gensecp256k1 genprecomps.go
-
 // loadS256BytePoints decompresses and deserializes the pre-computed byte points
 // used to accelerate scalar base multiplication for the secp256k1 curve.  This
 // approach is used since it allows the compile to use significantly less ram
@@ -26,7 +21,6 @@ func loadS256BytePoints() error {
 	if len(bp) == 0 {
 		return nil
 	}
-
 	// Decompress the pre-computed table used to accelerate scalar base
 	// multiplication.
 	decoder := base64.NewDecoder(base64.StdEncoding, strings.NewReader(bp))
@@ -38,7 +32,6 @@ func loadS256BytePoints() error {
 	if err != nil {
 		return err
 	}
-
 	// Deserialize the precomputed byte points and set the curve to them.
 	offset := 0
 	var bytePoints [32][256][3]fieldVal

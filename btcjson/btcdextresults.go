@@ -1,13 +1,8 @@
-// Copyright (c) 2016-2017 The btcsuite developers
-// Copyright (c) 2015-2017 The Decred developers
-
 
 
 package btcjson
-
 // VersionResult models objects included in the version response.  In the actual
 // result, these objects are keyed by the program or API name.
-//
 // NOTE: This is a btcsuite extension ported from
 // github.com/decred/dcrd/dcrjson.
 type VersionResult struct {

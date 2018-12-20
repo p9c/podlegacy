@@ -1,20 +1,14 @@
-// Copyright (c) 2014-2017 The btcsuite developers
-
-
 
 package main
-
 import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
 	"time"
-
 	"github.com/parallelcointeam/pod/rpcclient"
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 func main() {
 	// Only override the handlers for notifications you care about.
 	// Also note most of these handlers will only be called if you register
@@ -30,7 +24,6 @@ func main() {
 				header.BlockHash(), height, header.Timestamp)
 		},
 	}
-
 	// Connect to local pod RPC server using websockets.
 	podHomeDir := btcutil.AppDataDir("pod", false)
 	certs, err := ioutil.ReadFile(filepath.Join(podHomeDir, "rpc.cert"))
@@ -48,20 +41,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	// Register for block connect and disconnect notifications.
 	if err := client.NotifyBlocks(); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("NotifyBlocks: Registration Complete")
-
 	// Get the current block count.
 	blockCount, err := client.GetBlockCount()
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("Block count: %d", blockCount)
-
 	// For this example gracefully shutdown the client after 10 seconds.
 	// Ordinarily when to shutdown the client is highly application
 	// specific.
@@ -71,7 +61,6 @@ func main() {
 		client.Shutdown()
 		log.Println("Client shutdown complete.")
 	})
-
 	// Wait until the client either shuts down gracefully (or the user
 	// terminates the process with Ctrl+C).
 	client.WaitForShutdown()

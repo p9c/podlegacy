@@ -1,9 +1,3 @@
-// Copyright 2011 The Go Authors. All rights reserved.
-// Copyright 2011 ThePiachu. All rights reserved.
-// Copyright 2013-2016 The btcsuite developers
-
-
-
 package btcec
 
 import (

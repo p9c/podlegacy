@@ -2,7 +2,6 @@
 User visible changes for pod
   A full-node bitcoin implementation written in Go
 ============================================================================
-
 Changes in 0.12.0 (Fri Nov 20 2015)
   - Protocol and network related changes:
     - Add a new checkpoint at block height 382320 (#555)
@@ -122,7 +121,6 @@ Changes in 0.12.0 (Fri Nov 20 2015)
     - Mawuli Adzoe
     - Olaoluwa Osuntokun
     - Rune T. Aune
-
 Changes in 0.11.1 (Wed May 27 2015)
   - Protocol and network related changes:
     - Use correct sub-command in reject message for rejected transactions
@@ -156,7 +154,6 @@ Changes in 0.11.1 (Wed May 27 2015)
     - Federico Bond
     - Ishbir Singh
     - Josh Rickmar
-
 Changes in 0.11.0 (Wed May 06 2015)
   - Protocol and network related changes:
     - **IMPORTANT: Update is required due to the following point**
@@ -233,7 +230,6 @@ Changes in 0.11.0 (Wed May 06 2015)
     - Josh Rickmar
     - Olaoluwa Osuntokun
     - Oleg Andreev
-
 Changes in 0.10.0 (Sun Mar 01 2015)
   - Protocol and network related changes:
     - Add a new checkpoint at block height 343185
@@ -388,7 +384,6 @@ Changes in 0.10.0 (Sun Mar 01 2015)
     - Michail Kargakis
     - kac
     - Olaoluwa Osuntokun
-
 Changes in 0.9.0 (Sat Sep 20 2014)
   - Protocol and network related changes:
     - Add a new checkpoint at block height 319400
@@ -498,7 +493,6 @@ Changes in 0.9.0 (Sat Sep 20 2014)
     - Always show help when given the help flag even when the config file
       contains invalid entries
     - General code cleanup and minor optimizations
-
 Changes in 0.8.0-beta (Sun May 25 2014)
   - Pod is now Beta (https://github.com/conformal/pod/issues/130)
   - Add a new checkpoint at block height 300255
@@ -605,7 +599,6 @@ Changes in 0.8.0-beta (Sun May 25 2014)
     - Several minor optimizations to reduce GC churn and enhance speed
     - Other minor refactoring
     - General code cleanup
-
 Changes in 0.7.0 (Thu Feb 20 2014)
   - Fix an issue when parsing scripts which contain a multi-signature script
     which require zero signatures such as testnet block
@@ -656,7 +649,6 @@ Changes in 0.7.0 (Thu Feb 20 2014)
   - Add a new ScriptBuilder interface to btcscript to support creation of
     custom scripts (https://github.com/conformal/btcscript/issues/5)
   - General code cleanup
-
 Changes in 0.6.0 (Tue Feb 04 2014)
   - Fix an issue when parsing scripts which contain invalid signatures that
     caused a chain fork on block
@@ -742,7 +734,6 @@ Changes in 0.6.0 (Tue Feb 04 2014)
   - Several optimizations related to fetching block information from the
     database
   - General code cleanup
-
 Changes in 0.5.0 (Mon Jan 13 2014)
   - Optimize initial block download by introducing a new mode which
     downloads the block headers first (up to the final checkpoint)
@@ -789,7 +780,6 @@ Changes in 0.5.0 (Mon Jan 13 2014)
   - Remove deprecated sqlite3 imports from utilities
   - Remove leftover profile write from addblock utility
   - Quite a bit of code cleanup and refactoring to improve maintainability
-
 Changes in 0.4.0 (Thu Dec 12 2013)
   - Allow listen interfaces to be specified via --listen instead of only the
     port (https://github.com/conformal/pod/issues/33)
@@ -867,7 +857,6 @@ Changes in 0.4.0 (Thu Dec 12 2013)
   - Add support for TravisCI (continuous build integration)
   - Cleanup some documentation and usage
   - Several other minor bug fixes and general code cleanup
-
 Changes in 0.3.3 (Wed Nov 13 2013)
   - Significantly improve initial block chain download speed
     (https://github.com/conformal/pod/issues/20)
@@ -908,7 +897,6 @@ Changes in 0.3.3 (Wed Nov 13 2013)
     profiling data on platforms that support it
   - Several other minor performance optimizations
   - Other minor bug fixes and general code cleanup
-
 Changes in 0.3.2 (Tue Oct 22 2013)
   - Fix an issue that could cause the download of the block chain to stall
     (https://github.com/conformal/pod/issues/12)
@@ -930,7 +918,6 @@ Changes in 0.3.2 (Tue Oct 22 2013)
   - Add support for plan9 - thanks @mischief
     (https://github.com/conformal/pod/pull/19)
   - Other minor bug fixes and general code cleanup
-
 Changes in 0.3.1-alpha (Tue Oct 15 2013)
   - Change default database to leveldb
     NOTE: This does mean you will have to redownload the block chain.  Since we
@@ -950,6 +937,5 @@ Changes in 0.3.1-alpha (Tue Oct 15 2013)
   - Add a flag to disable checkpoints for developers
   - Add a lot of useful debug logging such as message summaries
   - Other minor bug fixes and general code cleanup
-
 Initial Release 0.3.0-alpha (Sat Oct 05 2013):
   - Initial release

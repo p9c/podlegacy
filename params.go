@@ -1,14 +1,11 @@
 package main
-
 import (
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/wire"
 )
-
 // activeNetParams is a pointer to the parameters specific to the
 // currently active bitcoin network.
 var activeNetParams = &mainNetParams
-
 // params is used to group parameters for various networks such as the main
 // network and test networks.
 type params struct {
@@ -23,7 +20,6 @@ type params struct {
 	X11RPCPort         string
 	GostRPCPort        string
 }
-
 // mainNetParams contains parameters specific to the main network
 // (wire.MainNet).  NOTE: The RPC port is intentionally different than the
 // reference implementation because pod does not handle wallet requests.  The
@@ -42,7 +38,6 @@ var mainNetParams = params{
 	X11RPCPort:         "11055",
 	GostRPCPort:        "11056",
 }
-
 // regressionNetParams contains parameters specific to the regression test
 // network (wire.TestNet).  NOTE: The RPC port is intentionally different
 // than the reference implementation - see the mainNetParams comment for
@@ -59,7 +54,6 @@ var regressionNetParams = params{
 	X11RPCPort:         "31055",
 	GostRPCPort:        "31056",
 }
-
 // testNet3Params contains parameters specific to the test network (version 3)
 // (wire.TestNet3).  NOTE: The RPC port is intentionally different than the
 // reference implementation - see the mainNetParams comment for details.
@@ -75,7 +69,6 @@ var testNet3Params = params{
 	X11RPCPort:         "21055",
 	GostRPCPort:        "21056",
 }
-
 // simNetParams contains parameters specific to the simulation test network
 // (wire.SimNet).
 var simNetParams = params{
@@ -90,13 +83,11 @@ var simNetParams = params{
 	X11RPCPort:         "41055",
 	GostRPCPort:        "41056",
 }
-
 // netName returns the name used when referring to a bitcoin network.  At the
 // time of writing, pod currently places blocks for testnet version 3 in the
 // data and log directory "testnet", which does not match the Name field of the
 // chaincfg parameters.  This function can be used to override this directory
 // name as "testnet" when the passed active network matches wire.TestNet3.
-//
 // A proper upgrade to move the data and log directories for this network to
 // "testnet3" is planned for the future, at which point this function can be
 // removed and the network parameter's name used instead.

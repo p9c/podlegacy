@@ -1,5 +1,4 @@
 package main
-
 import (
 	"fmt"
 	"net"
@@ -10,35 +9,22 @@ import (
 	"runtime"
 	"runtime/debug"
 	"runtime/pprof"
-
 	"github.com/parallelcointeam/pod/blockchain/indexers"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/limits"
 )
-
 const (
-	// blockDbNamePrefix is the prefix for the block database name.  The
-	// database type is appended to this value to form the full block
-	// database name.
+	// blockDbNamePrefix is the prefix for the block database name.  The database type is appended to this value to form the full block database name.
 	blockDbNamePrefix = "blocks"
 )
-
 var (
 	cfg *config
 )
-
-// winServiceMain is only invoked on Windows.  It detects when pod is running
-// as a service and reacts accordingly.
+// winServiceMain is only invoked on Windows.  It detects when pod is running as a service and reacts accordingly.
 var winServiceMain func() (bool, error)
-
-// podMain is the real main function for pod.  It is necessary to work around
-// the fact that deferred functions do not run when os.Exit() is called.  The
-// optional serverChan parameter is mainly used by the service code to be
-// notified with the server once it is setup so it can gracefully stop it when
-// requested from the service control manager.
+// podMain is the real main function for pod.  It is necessary to work around the fact that deferred functions do not run when os.Exit() is called.  The optional serverChan parameter is mainly used by the service code to be notified with the server once it is setup so it can gracefully stop it when requested from the service control manager.
 func podMain(serverChan chan<- *server) error {
-	// Load configuration and parse command line.  This function also
-	// initializes logging and configures it accordingly.
+	// Load configuration and parse command line.  This function also initializes logging and configures it accordingly.
 	tcfg, _, err := loadConfig()
 	if err != nil {
 		return err
@@ -49,16 +35,11 @@ func podMain(serverChan chan<- *server) error {
 			logRotator.Close()
 		}
 	}()
-
-	// Get a channel that will be closed when a shutdown signal has been
-	// triggered either from an OS signal such as SIGINT (Ctrl+C) or from
-	// another subsystem such as the RPC server.
+	// Get a channel that will be closed when a shutdown signal has been triggered either from an OS signal such as SIGINT (Ctrl+C) or from another subsystem such as the RPC server.
 	interrupt := interruptListener()
 	defer podLog.Info("Shutdown complete")
-
 	// Show version at startup.
 	podLog.Infof("Version %s", version())
-
 	// Enable http profiling server if requested.
 	if cfg.Profile != "" {
 		go func() {
@@ -70,7 +51,6 @@ func podMain(serverChan chan<- *server) error {
 			podLog.Errorf("%v", http.ListenAndServe(listenAddr, nil))
 		}()
 	}
-
 	// Write cpu profile if requested.
 	if cfg.CPUProfile != "" {
 		f, err := os.Create(cfg.CPUProfile)
@@ -82,18 +62,15 @@ func podMain(serverChan chan<- *server) error {
 		defer f.Close()
 		defer pprof.StopCPUProfile()
 	}
-
 	// Perform upgrades to pod as new versions require it.
 	if err := doUpgrades(); err != nil {
 		podLog.Errorf("%v", err)
 		return err
 	}
-
 	// Return now if an interrupt signal was triggered.
 	if interruptRequested(interrupt) {
 		return nil
 	}
-
 	// Load the block database.
 	db, err := loadBlockDB()
 	if err != nil {
@@ -105,12 +82,10 @@ func podMain(serverChan chan<- *server) error {
 		podLog.Infof("Gracefully shutting down the database...")
 		db.Close()
 	}()
-
 	// Return now if an interrupt signal was triggered.
 	if interruptRequested(interrupt) {
 		return nil
 	}
-
 	// Drop indexes and exit if requested.
 	//
 	// NOTE: The order is important here because dropping the tx index also
@@ -120,7 +95,6 @@ func podMain(serverChan chan<- *server) error {
 			podLog.Errorf("%v", err)
 			return err
 		}
-
 		return nil
 	}
 	if cfg.DropTxIndex {
@@ -128,7 +102,6 @@ func podMain(serverChan chan<- *server) error {
 			podLog.Errorf("%v", err)
 			return err
 		}
-
 		return nil
 	}
 	if cfg.DropCfIndex {
@@ -136,7 +109,6 @@ func podMain(serverChan chan<- *server) error {
 			podLog.Errorf("%v", err)
 			return err
 		}
-
 		return nil
 	}
 	// Create server and start it.
@@ -157,14 +129,12 @@ func podMain(serverChan chan<- *server) error {
 	if serverChan != nil {
 		serverChan <- server
 	}
-
 	// Wait until the interrupt signal is received from an OS signal or
 	// shutdown is requested through one of the subsystems such as the RPC
 	// server.
 	<-interrupt
 	return nil
 }
-
 // removeRegressionDB removes the existing regression test database if running
 // in regression test mode and it already exists.
 func removeRegressionDB(dbPath string) error {
@@ -172,7 +142,6 @@ func removeRegressionDB(dbPath string) error {
 	if !cfg.RegressionTest {
 		return nil
 	}
-
 	// Remove the old regression test database if it already exists.
 	fi, err := os.Stat(dbPath)
 	if err == nil {
@@ -189,10 +158,8 @@ func removeRegressionDB(dbPath string) error {
 			}
 		}
 	}
-
 	return nil
 }
-
 // dbPath returns the path to the block database given a database type.
 func blockDbPath(dbType string) string {
 	// The database name is based on the database type.
@@ -203,7 +170,6 @@ func blockDbPath(dbType string) string {
 	dbPath := filepath.Join(cfg.DataDir, dbName)
 	return dbPath
 }
-
 // warnMultipleDBs shows a warning if multiple block database types are detected.
 // This is not a situation most users want.  It is handy for development however
 // to support multiple side-by-side databases.
@@ -217,14 +183,12 @@ func warnMultipleDBs() {
 		if dbType == cfg.DbType {
 			continue
 		}
-
 		// Store db path as a duplicate db if it exists.
 		dbPath := blockDbPath(dbType)
 		if fileExists(dbPath) {
 			duplicateDbPaths = append(duplicateDbPaths, dbPath)
 		}
 	}
-
 	// Warn if there are extra databases.
 	if len(duplicateDbPaths) > 0 {
 		selectedDbPath := blockDbPath(cfg.DbType)
@@ -236,7 +200,6 @@ func warnMultipleDBs() {
 			duplicateDbPaths)
 	}
 }
-
 // loadBlockDB loads (or creates when needed) the block database taking into
 // account the selected database backend and returns a handle to it.  It also
 // contains additional logic such warning the user if there are multiple
@@ -254,16 +217,12 @@ func loadBlockDB() (database.DB, error) {
 		}
 		return db, nil
 	}
-
 	warnMultipleDBs()
-
 	// The database name is based on the database type.
 	dbPath := blockDbPath(cfg.DbType)
-
 	// The regression test is special in that it needs a clean database for
 	// each run, so remove it now if it already exists.
 	removeRegressionDB(dbPath)
-
 	podLog.Infof("Loading block database from '%s'", dbPath)
 	db, err := database.Open(cfg.DbType, dbPath, activeNetParams.Net)
 	if err != nil {
@@ -271,10 +230,8 @@ func loadBlockDB() (database.DB, error) {
 		// exist.
 		if dbErr, ok := err.(database.Error); !ok || dbErr.ErrorCode !=
 			database.ErrDbDoesNotExist {
-
 			return nil, err
 		}
-
 		// Create the db if it does not exist.
 		err = os.MkdirAll(cfg.DataDir, 0700)
 		if err != nil {
@@ -285,27 +242,22 @@ func loadBlockDB() (database.DB, error) {
 			return nil, err
 		}
 	}
-
 	podLog.Info("Block database loaded")
 	return db, nil
 }
-
 func main() {
 	// Use all processor cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
-
 	// Block and transaction processing can cause bursty allocations.  This
 	// limits the garbage collector from excessively overallocating during
 	// bursts.  This value was arrived at with the help of profiling live
 	// usage.
 	debug.SetGCPercent(10)
-
 	// Up some limits.
 	if err := limits.SetLimits(); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to set limits: %v\n", err)
 		os.Exit(1)
 	}
-
 	// Call serviceMain on Windows to handle running as a service.  When
 	// the return isService flag is true, exit now since we ran as a
 	// service.  Otherwise, just fall through to normal operation.
@@ -319,7 +271,6 @@ func main() {
 			os.Exit(0)
 		}
 	}
-
 	// Work around defer not working after os.Exit()
 	if err := podMain(nil); err != nil {
 		os.Exit(1)

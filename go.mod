@@ -1,5 +1,4 @@
 module github.com/parallelcointeam/pod
-
 require (
 	github.com/aead/siphash v1.0.1
 	github.com/aead/skein v0.0.0-20160722084837-9365ae6e95d2 // indirect

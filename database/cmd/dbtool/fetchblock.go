@@ -1,33 +1,24 @@
-// Copyright (c) 2015-2016 The btcsuite developers
-
-
 
 package main
-
 import (
 	"encoding/hex"
 	"errors"
 	"time"
-
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 )
-
 // fetchBlockCmd defines the configuration options for the fetchblock command.
 type fetchBlockCmd struct{}
-
 var (
 	// fetchBlockCfg defines the configuration options for the command.
 	fetchBlockCfg = fetchBlockCmd{}
 )
-
 // Execute is the main entry point for the command.  It's invoked by the parser.
 func (cmd *fetchBlockCmd) Execute(args []string) error {
 	// Setup the global config options and ensure they are valid.
 	if err := setupGlobalConfig(); err != nil {
 		return err
 	}
-
 	if len(args) < 1 {
 		return errors.New("required block hash parameter not specified")
 	}
@@ -35,14 +26,12 @@ func (cmd *fetchBlockCmd) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-
 	// Load the block database.
 	db, err := loadBlockDB()
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-
 	return db.View(func(tx database.Tx) error {
 		log.Infof("Fetching block %s", blockHash)
 		startTime := time.Now()
@@ -55,7 +44,6 @@ func (cmd *fetchBlockCmd) Execute(args []string) error {
 		return nil
 	})
 }
-
 // Usage overrides the usage display for the command.
 func (cmd *fetchBlockCmd) Usage() string {
 	return "<block-hash>"

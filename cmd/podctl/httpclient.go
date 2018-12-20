@@ -1,5 +1,4 @@
 package main
-
 import (
 	"bytes"
 	"crypto/tls"
@@ -9,11 +8,9 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-
 	"github.com/btcsuite/go-socks/socks"
 	"github.com/parallelcointeam/pod/btcjson"
 )
-
 // newHTTPClient returns a new HTTP client that is configured according to the
 // proxy and TLS settings in the associated connection configuration.
 func newHTTPClient(cfg *config) (*http.Client, error) {
@@ -33,7 +30,6 @@ func newHTTPClient(cfg *config) (*http.Client, error) {
 			return c, nil
 		}
 	}
-
 	// Configure TLS if needed.
 	var tlsConfig *tls.Config
 	if cfg.TLS && cfg.RPCCert != "" {
@@ -41,7 +37,6 @@ func newHTTPClient(cfg *config) (*http.Client, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		pool := x509.NewCertPool()
 		pool.AppendCertsFromPEM(pem)
 		tlsConfig = &tls.Config{
@@ -49,7 +44,6 @@ func newHTTPClient(cfg *config) (*http.Client, error) {
 			InsecureSkipVerify: cfg.TLSSkipVerify,
 		}
 	}
-
 	// Create and return the new HTTP client potentially configured with a
 	// proxy and TLS.
 	client := http.Client{
@@ -60,7 +54,6 @@ func newHTTPClient(cfg *config) (*http.Client, error) {
 	}
 	return &client, nil
 }
-
 // sendPostRequest sends the marshalled JSON-RPC command using HTTP-POST mode
 // to the server described in the passed config struct.  It also attempts to
 // unmarshal the response as a JSON-RPC response and returns either the result
@@ -79,10 +72,8 @@ func sendPostRequest(marshalledJSON []byte, cfg *config) ([]byte, error) {
 	}
 	httpRequest.Close = true
 	httpRequest.Header.Set("Content-Type", "application/json")
-
 	// Configure basic access authorization.
 	httpRequest.SetBasicAuth(cfg.RPCUser, cfg.RPCPassword)
-
 	// Create the new HTTP client that is configured according to the user-
 	// specified options and submit the request.
 	httpClient, err := newHTTPClient(cfg)
@@ -93,7 +84,6 @@ func sendPostRequest(marshalledJSON []byte, cfg *config) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	// Read the raw bytes and close the response.
 	respBytes, err := ioutil.ReadAll(httpResponse.Body)
 	httpResponse.Body.Close()
@@ -101,7 +91,6 @@ func sendPostRequest(marshalledJSON []byte, cfg *config) ([]byte, error) {
 		err = fmt.Errorf("error reading json reply: %v", err)
 		return nil, err
 	}
-
 	// Handle unsuccessful HTTP responses
 	if httpResponse.StatusCode < 200 || httpResponse.StatusCode >= 300 {
 		// Generate a standard error to return if the server body is
@@ -114,13 +103,11 @@ func sendPostRequest(marshalledJSON []byte, cfg *config) ([]byte, error) {
 		}
 		return nil, fmt.Errorf("%s", respBytes)
 	}
-
 	// Unmarshal the response.
 	var resp btcjson.Response
 	if err := json.Unmarshal(respBytes, &resp); err != nil {
 		return nil, err
 	}
-
 	if resp.Error != nil {
 		return nil, resp.Error
 	}

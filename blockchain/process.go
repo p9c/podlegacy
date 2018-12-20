@@ -1,50 +1,39 @@
-// Copyright (c) 2013-2017 The btcsuite developers
 
 package blockchain
-
 import (
 	"fmt"
 	"math/big"
 	"time"
-
 	"github.com/parallelcointeam/pod/fork"
-
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 )
-
 // BehaviorFlags is a bitmask defining tweaks to the normal behavior when
 // performing chain processing and consensus rules checks.
 type BehaviorFlags uint32
-
 const (
 	// BFFastAdd may be set to indicate that several checks can be avoided
 	// for the block since it is already known to fit into the chain due to
 	// already proving it correct links into the chain up to a known
 	// checkpoint.  This is primarily used for headers-first mode.
 	BFFastAdd BehaviorFlags = 1 << iota
-
 	// BFNoPoWCheck may be set to indicate the proof of work check which
 	// ensures a block hashes to a value less than the required target will
 	// not be performed.
 	BFNoPoWCheck
-
 	// BFNone is a convenience value to specifically indicate no flags.
 	BFNone BehaviorFlags = 0
 )
-
 // blockExists determines whether a block with the given hash exists either in
 // the main chain or any side chains.
-//
 // This function is safe for concurrent access.
 func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 	// Check block index first (could be main chain or side chain blocks).
 	if b.Index.HaveBlock(hash) {
 		return true, nil
 	}
-
 	// Check in the database.
 	var exists bool
 	err := b.db.View(func(dbTx database.Tx) error {
@@ -53,7 +42,6 @@ func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 		if err != nil || !exists {
 			return err
 		}
-
 		// Ignore side chain blocks in the database.  This is necessary because there is not currently any record of the associated block index data such as its block height, so it's not yet possible to efficiently load the block and do anything useful with it.
 		// Ultimately the entire block index should be serialized instead of only the current main chain so it can be consulted directly.
 		_, err = dbFetchHeightByHash(dbTx, hash)
@@ -65,15 +53,12 @@ func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 	})
 	return exists, err
 }
-
 // processOrphans determines if there are any orphans which depend on the passed
 // block hash (they are no longer orphans if true) and potentially accepts them.
 // It repeats the process for the newly accepted blocks (to detect further
 // orphans which may no longer be orphans) until there are no more.
-//
 // The flags do not modify the behavior of this function directly, however they
 // are needed to pass along to maybeAcceptBlock.
-//
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) error {
 	// Start with processing at least the passed hash.  Leave a little room for additional orphan blocks that need to be processed without needing to grow the array in the common case.
@@ -84,7 +69,6 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 		processHash := processHashes[0]
 		processHashes[0] = nil // Prevent GC leak.
 		processHashes = processHashes[1:]
-
 		// Look up all orphans that are parented by the block we just accepted.  This will typically only be one, but it could be multiple if multiple blocks are mined and broadcast around the same time.  The one with the most proof of work will eventually win out.  An indexing for loop is intentionally used over a range here as range does not reevaluate the slice on each iteration nor does it adjust the index for the modified slice.
 		for i := 0; i < len(b.prevOrphans[*processHash]); i++ {
 			orphan := b.prevOrphans[*processHash][i]
@@ -94,18 +78,15 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 					processHash)
 				continue
 			}
-
 			// Remove the orphan from the orphan pool.
 			orphanHash := orphan.block.Hash()
 			b.removeOrphanBlock(orphan)
 			i--
-
 			// Potentially accept the block into the block chain.
 			_, err := b.maybeAcceptBlock(orphan.block, flags)
 			if err != nil {
 				return err
 			}
-
 			// Add this block to the list of blocks to process so
 			// any orphan blocks that depend on this block are
 			// handled too.
@@ -114,16 +95,13 @@ func (b *BlockChain) processOrphans(hash *chainhash.Hash, flags BehaviorFlags) e
 	}
 	return nil
 }
-
 // ProcessBlock is the main workhorse for handling insertion of new blocks into
 // the block chain.  It includes functionality such as rejecting duplicate
 // blocks, ensuring blocks follow all rules, orphan handling, and insertion into
 // the block chain along with best chain selection and reorganization.
-//
 // When no errors occurred during processing, the first return value indicates
 // whether or not the block is on the main chain and the second indicates
 // whether or not the block is an orphan.
-//
 // This function is safe for concurrent access.
 func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, height int32) (bool, bool, error) {
 	b.chainLock.Lock()
@@ -153,13 +131,11 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 		str := fmt.Sprintf("already have block %v", blockHashWithAlgo)
 		return false, false, ruleError(ErrDuplicateBlock, str)
 	}
-
 	// The block must not already exist as an orphan.
 	if _, exists := b.orphans[*blockHash]; exists {
 		str := fmt.Sprintf("already have block (orphan) %v", blockHashWithAlgo)
 		return false, false, ruleError(ErrDuplicateBlock, str)
 	}
-
 	// Perform preliminary sanity checks on the block and its transactions.
 	var DoNotCheckPow bool
 	var pl *big.Int
@@ -206,7 +182,6 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 			}
 		}
 	}
-
 	// Handle orphan blocks.
 	prevHash := &blockHeader.PrevBlock
 	prevHashExists, err := b.blockExists(prevHash)
@@ -216,17 +191,14 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 	if !prevHashExists {
 		log.Infof("Adding orphan block %v with parent %v", blockHashWithAlgo, prevHash)
 		b.addOrphanBlock(block)
-
 		return false, true, nil
 	}
-
 	// The block has passed all context independent checks and appears sane
 	// enough to potentially accept it into the block chain.
 	isMainChain, err := b.maybeAcceptBlock(block, flags)
 	if err != nil {
 		return false, false, err
 	}
-
 	// Accept any orphan blocks that depend on this block (they are
 	// no longer orphans) and repeat for those accepted blocks until
 	// there are no more.
@@ -234,7 +206,6 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags, hei
 	if err != nil {
 		return false, false, err
 	}
-
 	log.Debugf("Accepted block %s %v, height %d", fork.GetAlgoName(block.MsgBlock().Header.Version, height), blockHashWithAlgo, height)
 	return isMainChain, false, nil
 }

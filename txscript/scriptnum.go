@@ -1,7 +1,3 @@
-// Copyright (c) 2015-2017 The btcsuite developers
-
-
-
 package txscript
 
 import (
@@ -11,7 +7,6 @@ import (
 const (
 	maxInt32 = 1<<31 - 1
 	minInt32 = -1 << 31
-
 	// defaultScriptNumLen is the default number of bytes
 	// data being interpreted as an integer may be.
 	defaultScriptNumLen = 4
@@ -19,25 +14,21 @@ const (
 
 // scriptNum represents a numeric value used in the scripting engine with
 // special handling to deal with the subtle semantics required by consensus.
-//
 // All numbers are stored on the data and alternate stacks encoded as little
 // endian with a sign bit.  All numeric opcodes such as OP_ADD, OP_SUB,
 // and OP_MUL, are only allowed to operate on 4-byte integers in the range
 // [-2^31 + 1, 2^31 - 1], however the results of numeric operations may overflow
 // and remain valid so long as they are not used as inputs to other numeric
 // operations or otherwise interpreted as an integer.
-//
 // For example, it is possible for OP_ADD to have 2^31 - 1 for its two operands
 // resulting 2^32 - 2, which overflows, but is still pushed to the stack as the
 // result of the addition.  That value can then be used as input to OP_VERIFY
 // which will succeed because the data is being interpreted as a boolean.
 // However, if that same value were to be used as input to another numeric
 // opcode, such as OP_SUB, it must fail.
-//
 // This type handles the aforementioned requirements by storing all numeric
 // operation results as an int64 to handle overflow and provides the Bytes
 // method to get the serialized representation (including values that overflow).
-//
 // Then, whenever data is interpreted as an integer, it is converted to this
 // type by using the makeScriptNum function which will return an error if the
 // number is out of range or not minimally encoded depending on parameters.
@@ -51,7 +42,6 @@ func checkMinimalDataEncoding(v []byte) error {
 	if len(v) == 0 {
 		return nil
 	}
-
 	// Check that the number is encoded with the minimum possible
 	// number of bytes.
 	//
@@ -70,12 +60,10 @@ func checkMinimalDataEncoding(v []byte) error {
 			return scriptError(ErrMinimalData, str)
 		}
 	}
-
 	return nil
 }
 
 // Bytes returns the number serialized as a little endian with a sign bit.
-//
 // Example encodings:
 //       127 -> [0x7f]
 //      -127 -> [0xff]
@@ -94,14 +82,12 @@ func (n scriptNum) Bytes() []byte {
 	if n == 0 {
 		return nil
 	}
-
 	// Take the absolute value and keep track of whether it was originally
 	// negative.
 	isNegative := n < 0
 	if isNegative {
 		n = -n
 	}
-
 	// Encode to little endian.  The maximum number of encoded bytes is 9
 	// (8 bytes for max int64 plus a potential byte for sign extension).
 	result := make([]byte, 0, 9)
@@ -109,7 +95,6 @@ func (n scriptNum) Bytes() []byte {
 		result = append(result, byte(n&0xff))
 		n >>= 8
 	}
-
 	// When the most significant byte already has the high bit set, an
 	// additional high byte is required to indicate whether the number is
 	// negative or positive.  The additional byte is removed when converting
@@ -123,11 +108,9 @@ func (n scriptNum) Bytes() []byte {
 			extraByte = 0x80
 		}
 		result = append(result, extraByte)
-
 	} else if isNegative {
 		result[len(result)-1] |= 0x80
 	}
-
 	return result
 }
 
@@ -137,7 +120,6 @@ func (n scriptNum) Bytes() []byte {
 // behavior is different from a simple int32 cast because that truncates
 // and the consensus rules dictate numbers which are directly cast to ints
 // provide this behavior.
-//
 // In practice, for most opcodes, the number should never be out of range since
 // it will have been created with makeScriptNum using the defaultScriptLen
 // value, which rejects them.  In case something in the future ends up calling
@@ -148,17 +130,14 @@ func (n scriptNum) Int32() int32 {
 	if n > maxInt32 {
 		return maxInt32
 	}
-
 	if n < minInt32 {
 		return minInt32
 	}
-
 	return int32(n)
 }
 
 // makeScriptNum interprets the passed serialized bytes as an encoded integer
 // and returns the result as a script number.
-//
 // Since the consensus rules dictate that serialized bytes interpreted as ints
 // are only allowed to be in the range determined by a maximum number of bytes,
 // on a per opcode basis, an error will be returned when the provided bytes
@@ -166,21 +145,18 @@ func (n scriptNum) Int32() int32 {
 // the vast majority of opcodes dealing with numeric values are limited to 4
 // bytes and therefore will pass that value to this function resulting in an
 // allowed range of [-2^31 + 1, 2^31 - 1].
-//
 // The requireMinimal flag causes an error to be returned if additional checks
 // on the encoding determine it is not represented with the smallest possible
 // number of bytes or is the negative 0 encoding, [0x80].  For example, consider
 // the number 127.  It could be encoded as [0x7f], [0x7f 0x00],
 // [0x7f 0x00 0x00 ...], etc.  All forms except [0x7f] will return an error with
 // requireMinimal enabled.
-//
 // The scriptNumLen is the maximum number of bytes the encoded value can be
 // before an ErrStackNumberTooBig is returned.  This effectively limits the
 // range of allowed values.
 // WARNING:  Great care should be taken if passing a value larger than
 // defaultScriptNumLen, which could lead to addition and multiplication
 // overflows.
-//
 // See the Bytes function documentation for example encodings.
 func makeScriptNum(v []byte, requireMinimal bool, scriptNumLen int) (scriptNum, error) {
 	// Interpreting data requires that it is not larger than
@@ -191,25 +167,21 @@ func makeScriptNum(v []byte, requireMinimal bool, scriptNumLen int) (scriptNum, 
 			scriptNumLen)
 		return 0, scriptError(ErrNumberTooBig, str)
 	}
-
 	// Enforce minimal encoded if requested.
 	if requireMinimal {
 		if err := checkMinimalDataEncoding(v); err != nil {
 			return 0, err
 		}
 	}
-
 	// Zero is encoded as an empty byte slice.
 	if len(v) == 0 {
 		return 0, nil
 	}
-
 	// Decode from little endian.
 	var result int64
 	for i, val := range v {
 		result |= int64(val) << uint8(8*i)
 	}
-
 	// When the most significant byte of the input bytes has the sign bit
 	// set, the result is negative.  So, remove the sign bit from the result
 	// and make it negative.
@@ -220,6 +192,5 @@ func makeScriptNum(v []byte, requireMinimal bool, scriptNumLen int) (scriptNum, 
 		result &= ^(int64(0x80) << uint8(8*(len(v)-1)))
 		return scriptNum(-result), nil
 	}
-
 	return scriptNum(result), nil
 }

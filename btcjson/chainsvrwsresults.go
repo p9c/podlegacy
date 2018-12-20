@@ -1,7 +1,3 @@
-// Copyright (c) 2015-2017 The btcsuite developers
-// Copyright (c) 2015-2017 The Decred developers
-
-
 
 package btcjson
 
@@ -12,7 +8,6 @@ type SessionResult struct {
 
 // RescannedBlock contains the hash and all discovered transactions of a single
 // rescanned block.
-//
 // NOTE: This is a btcsuite extension ported from
 // github.com/decred/dcrd/dcrjson.
 type RescannedBlock struct {

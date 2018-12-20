@@ -1,8 +1,5 @@
 
-
-
 package main
-
 import (
 	"fmt"
 	"io/ioutil"
@@ -10,11 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
 	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 type config struct {
 	Directory    string   `short:"d" long:"directory" description:"Directory to write certificate pair"`
 	Years        int      `short:"y" long:"years" description:"How many years a certificate is valid for"`
@@ -22,7 +17,6 @@ type config struct {
 	ExtraHosts   []string `short:"H" long:"host" description:"Additional hosts/IPs to create certificate for"`
 	Force        bool     `short:"f" long:"force" description:"Force overwriting of any old certs and keys"`
 }
-
 func main() {
 	cfg := config{
 		Years:        10,
@@ -36,7 +30,6 @@ func main() {
 		}
 		return
 	}
-
 	if cfg.Directory == "" {
 		var err error
 		cfg.Directory, err = os.Getwd()
@@ -48,21 +41,18 @@ func main() {
 	cfg.Directory = cleanAndExpandPath(cfg.Directory)
 	certFile := filepath.Join(cfg.Directory, "rpc.cert")
 	keyFile := filepath.Join(cfg.Directory, "rpc.key")
-
 	if !cfg.Force {
 		if fileExists(certFile) || fileExists(keyFile) {
 			fmt.Fprintf(os.Stderr, "%v: certificate and/or key files exist; use -f to force\n", cfg.Directory)
 			os.Exit(1)
 		}
 	}
-
 	validUntil := time.Now().Add(time.Duration(cfg.Years) * 365 * 24 * time.Hour)
 	cert, key, err := btcutil.NewTLSCertPair(cfg.Organization, validUntil, cfg.ExtraHosts)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "cannot generate certificate pair: %v\n", err)
 		os.Exit(1)
 	}
-
 	// Write cert and key files.
 	if err = ioutil.WriteFile(certFile, cert, 0666); err != nil {
 		fmt.Fprintf(os.Stderr, "cannot write cert: %v\n", err)
@@ -74,7 +64,6 @@ func main() {
 		os.Exit(1)
 	}
 }
-
 // cleanAndExpandPath expands environement variables and leading ~ in the
 // passed path, cleans the result, and returns it.
 func cleanAndExpandPath(path string) string {
@@ -84,12 +73,10 @@ func cleanAndExpandPath(path string) string {
 		homeDir := filepath.Dir(appHomeDir)
 		path = strings.Replace(path, "~", homeDir, 1)
 	}
-
 	// NOTE: The os.ExpandEnv doesn't work with Windows-style %VARIABLE%,
 	// but they variables can still be expanded via POSIX-style $VARIABLE.
 	return filepath.Clean(os.ExpandEnv(path))
 }
-
 // filesExists reports whether the named file or directory exists.
 func fileExists(name string) bool {
 	if _, err := os.Stat(name); err != nil {

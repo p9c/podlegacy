@@ -1,6 +1,5 @@
 // Bitcoin fork genesis block generator, based on https://bitcointalk.org/index.php?topic=181981.0 hosted at https://pastebin.com/nhuuV7y9
 package main
-
 import (
 	"crypto/rand"
 	"crypto/sha256"
@@ -11,7 +10,6 @@ import (
 	"strconv"
 	"time"
 )
-
 type transaction struct {
 	merkleHash     []byte // 32 bytes long
 	serializedData []byte
@@ -26,16 +24,13 @@ type transaction struct {
 	pubkeyScript   []byte
 	locktime       uint32
 }
-
 const coin uint64 = 10000000
-
 var (
 	op_checksig byte = 172
 	startNonce  uint32
 	unixtime    uint32
 	maxNonce    = ^uint32(0)
 )
-
 // This function reverses the bytes in a byte array
 func byteswap(buf []byte) {
 	length := len(buf)
@@ -43,7 +38,6 @@ func byteswap(buf []byte) {
 		buf[i], buf[length-i-1] = buf[length-i-1], buf[i]
 	}
 }
-
 func initTransaction() (t transaction) {
 	t.version = 1
 	t.numInputs = 1
@@ -55,7 +49,6 @@ func initTransaction() (t transaction) {
 	t.prevOutput = make([]byte, 32, 32)
 	return
 }
-
 func main() {
 	args := os.Args
 	if len(args) != 4 {
@@ -178,7 +171,6 @@ func main() {
 	}
 	time.Sleep(time.Hour)
 }
-
 func findNonce(b []byte, bytes, bits uint32, start time.Time) []byte {
 	blockHeader := append([]byte(nil), b...)
 	unixtime = uint32(time.Now().Unix())
@@ -212,7 +204,6 @@ func findNonce(b []byte, bytes, bits uint32, start time.Time) []byte {
 		}
 	}
 }
-
 func joinBytes(segment ...[]byte) (joined []byte) {
 	joined = make([]byte, 0)
 	for i := range segment {
@@ -220,7 +211,6 @@ func joinBytes(segment ...[]byte) (joined []byte) {
 	}
 	return
 }
-
 func undertarget(hash []byte, bits uint32) bool {
 	// for i:=len(hash)-1; i>0; i-- { hash[i]=0 }
 	// fmt.Println(hash)
@@ -238,7 +228,6 @@ func undertarget(hash []byte, bits uint32) bool {
 	}
 	return true
 }
-
 func uint32tobytes(u uint32) []byte {
 	b := make([]byte, 4)
 	b[0] = byte(u)
@@ -247,7 +236,6 @@ func uint32tobytes(u uint32) []byte {
 	}
 	return b
 }
-
 func bytestouint32(b []byte) uint32 {
 	if len(b) > 4 {
 		return 0
@@ -258,7 +246,6 @@ func bytestouint32(b []byte) uint32 {
 	}
 	return u
 }
-
 func uint64tobytes(u uint64) []byte {
 	b := make([]byte, 8)
 	b[0] = byte(u)

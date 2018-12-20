@@ -1,9 +1,5 @@
-// Copyright (c) 2015-2016 The btcsuite developers
-
-
 
 package txscript
-
 const (
 	// LockTimeThreshold is the number below which a lock time is
 	// interpreted to be a block number.  Since an average of one block

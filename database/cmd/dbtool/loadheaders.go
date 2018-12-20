@@ -1,42 +1,32 @@
-// Copyright (c) 2015-2016 The btcsuite developers
-
-
 
 package main
-
 import (
 	"time"
-
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 )
-
 // headersCmd defines the configuration options for the loadheaders command.
 type headersCmd struct {
 	Bulk bool `long:"bulk" description:"Use bulk loading of headers instead of one at a time"`
 }
-
 var (
 	// headersCfg defines the configuration options for the command.
 	headersCfg = headersCmd{
 		Bulk: false,
 	}
 )
-
 // Execute is the main entry point for the command.  It's invoked by the parser.
 func (cmd *headersCmd) Execute(args []string) error {
 	// Setup the global config options and ensure they are valid.
 	if err := setupGlobalConfig(); err != nil {
 		return err
 	}
-
 	// Load the block database.
 	db, err := loadBlockDB()
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-
 	// NOTE: This code will only work for ffldb.  Ideally the package using
 	// the database would keep a metadata index of its own.
 	blockIdxName := []byte("ffldb-blockidx")
@@ -67,7 +57,6 @@ func (cmd *headersCmd) Execute(args []string) error {
 		})
 		return err
 	}
-
 	// Bulk load headers.
 	err = db.View(func(tx database.Tx) error {
 		blockIdxBucket := tx.Metadata().Bucket(blockIdxName)
@@ -78,7 +67,6 @@ func (cmd *headersCmd) Execute(args []string) error {
 			hashes = append(hashes, hash)
 			return nil
 		})
-
 		log.Infof("Loading headers for %d blocks...", len(hashes))
 		startTime := time.Now()
 		hdrs, err := tx.FetchBlockHeaders(hashes)

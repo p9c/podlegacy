@@ -1,36 +1,27 @@
-// Copyright (c) 2015-2016 The btcsuite developers
-
-
 
 package main
-
 import (
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-
 	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/btclog"
 	"github.com/parallelcointeam/pod/database"
 )
-
 const (
 	// blockDbNamePrefix is the prefix for the pod block database.
 	blockDbNamePrefix = "blocks"
 )
-
 var (
 	log             btclog.Logger
 	shutdownChannel = make(chan error)
 )
-
 // loadBlockDB opens the block database and returns a handle to it.
 func loadBlockDB() (database.DB, error) {
 	// The database name is based on the database type.
 	dbName := blockDbNamePrefix + "_" + cfg.DbType
 	dbPath := filepath.Join(cfg.DataDir, dbName)
-
 	log.Infof("Loading block database from '%s'", dbPath)
 	db, err := database.Open(cfg.DbType, dbPath, activeNetParams.Net)
 	if err != nil {
@@ -38,10 +29,8 @@ func loadBlockDB() (database.DB, error) {
 		// exist.
 		if dbErr, ok := err.(database.Error); !ok || dbErr.ErrorCode !=
 			database.ErrDbDoesNotExist {
-
 			return nil, err
 		}
-
 		// Create the db if it does not exist.
 		err = os.MkdirAll(cfg.DataDir, 0700)
 		if err != nil {
@@ -52,11 +41,9 @@ func loadBlockDB() (database.DB, error) {
 			return nil, err
 		}
 	}
-
 	log.Info("Block database loaded")
 	return db, nil
 }
-
 // realMain is the real main function for the utility.  It is necessary to work
 // around the fact that deferred functions do not run when os.Exit() is called.
 func realMain() error {
@@ -67,7 +54,6 @@ func realMain() error {
 	dbLog := backendLogger.Logger("BCDB")
 	dbLog.SetLevel(btclog.LevelDebug)
 	database.UseLogger(dbLog)
-
 	// Setup the parser options and commands.
 	appName := filepath.Base(os.Args[0])
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
@@ -89,7 +75,6 @@ func realMain() error {
 	parser.AddCommand("fetchblockregion",
 		"Fetch the specified block region from the database", "",
 		&blockRegionCfg)
-
 	// Parse command line and invoke the Execute function for the specified
 	// command.
 	if _, err := parser.Parse(); err != nil {
@@ -98,17 +83,13 @@ func realMain() error {
 		} else {
 			log.Error(err)
 		}
-
 		return err
 	}
-
 	return nil
 }
-
 func main() {
 	// Use all processor cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
-
 	// Work around defer not working after os.Exit()
 	if err := realMain(); err != nil {
 		os.Exit(1)

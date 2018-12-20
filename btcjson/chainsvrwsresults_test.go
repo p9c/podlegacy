@@ -1,5 +1,5 @@
-// Copyright (c) 2017 The btcsuite developers
-// Copyright (c) 2017 The Decred developers
+
+
 
 
 

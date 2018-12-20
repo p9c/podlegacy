@@ -1,14 +1,9 @@
-// Copyright (c) 2013-2017 The btcsuite developers
-
-
 
 package txscript
-
 import (
 	"encoding/hex"
 	"fmt"
 )
-
 // asBool gets the boolean value of the byte array.
 func asBool(t []byte) bool {
 	for i := range t {
@@ -22,7 +17,6 @@ func asBool(t []byte) bool {
 	}
 	return false
 }
-
 // fromBool converts a boolean into the appropriate byte array.
 func fromBool(v bool) []byte {
 	if v {
@@ -30,7 +24,6 @@ func fromBool(v bool) []byte {
 	}
 	return nil
 }
-
 // stack represents a stack of immutable objects to be used with bitcoin
 // scripts.  Objects may be shared, therefore in usage if a value is to be
 // changed it *must* be deep-copied first to avoid changing other values on the
@@ -39,69 +32,53 @@ type stack struct {
 	stk               [][]byte
 	verifyMinimalData bool
 }
-
 // Depth returns the number of items on the stack.
 func (s *stack) Depth() int32 {
 	return int32(len(s.stk))
 }
-
 // PushByteArray adds the given back array to the top of the stack.
-//
 // Stack transformation: [... x1 x2] -> [... x1 x2 data]
 func (s *stack) PushByteArray(so []byte) {
 	s.stk = append(s.stk, so)
 }
-
 // PushInt converts the provided scriptNum to a suitable byte array then pushes
 // it onto the top of the stack.
-//
 // Stack transformation: [... x1 x2] -> [... x1 x2 int]
 func (s *stack) PushInt(val scriptNum) {
 	s.PushByteArray(val.Bytes())
 }
-
 // PushBool converts the provided boolean to a suitable byte array then pushes
 // it onto the top of the stack.
-//
 // Stack transformation: [... x1 x2] -> [... x1 x2 bool]
 func (s *stack) PushBool(val bool) {
 	s.PushByteArray(fromBool(val))
 }
-
 // PopByteArray pops the value off the top of the stack and returns it.
-//
 // Stack transformation: [... x1 x2 x3] -> [... x1 x2]
 func (s *stack) PopByteArray() ([]byte, error) {
 	return s.nipN(0)
 }
-
 // PopInt pops the value off the top of the stack, converts it into a script
 // num, and returns it.  The act of converting to a script num enforces the
 // consensus rules imposed on data interpreted as numbers.
-//
 // Stack transformation: [... x1 x2 x3] -> [... x1 x2]
 func (s *stack) PopInt() (scriptNum, error) {
 	so, err := s.PopByteArray()
 	if err != nil {
 		return 0, err
 	}
-
 	return makeScriptNum(so, s.verifyMinimalData, defaultScriptNumLen)
 }
-
 // PopBool pops the value off the top of the stack, converts it into a bool, and
 // returns it.
-//
 // Stack transformation: [... x1 x2 x3] -> [... x1 x2]
 func (s *stack) PopBool() (bool, error) {
 	so, err := s.PopByteArray()
 	if err != nil {
 		return false, err
 	}
-
 	return asBool(so), nil
 }
-
 // PeekByteArray returns the Nth item on the stack without removing it.
 func (s *stack) PeekByteArray(idx int32) ([]byte, error) {
 	sz := int32(len(s.stk))
@@ -110,10 +87,8 @@ func (s *stack) PeekByteArray(idx int32) ([]byte, error) {
 			sz)
 		return nil, scriptError(ErrInvalidStackOperation, str)
 	}
-
 	return s.stk[sz-idx-1], nil
 }
-
 // PeekInt returns the Nth item on the stack as a script num without removing
 // it.  The act of converting to a script num enforces the consensus rules
 // imposed on data interpreted as numbers.
@@ -122,23 +97,18 @@ func (s *stack) PeekInt(idx int32) (scriptNum, error) {
 	if err != nil {
 		return 0, err
 	}
-
 	return makeScriptNum(so, s.verifyMinimalData, defaultScriptNumLen)
 }
-
 // PeekBool returns the Nth item on the stack as a bool without removing it.
 func (s *stack) PeekBool(idx int32) (bool, error) {
 	so, err := s.PeekByteArray(idx)
 	if err != nil {
 		return false, err
 	}
-
 	return asBool(so), nil
 }
-
 // nipN is an internal function that removes the nth item on the stack and
 // returns it.
-//
 // Stack transformation:
 // nipN(0): [... x1 x2 x3] -> [... x1 x2]
 // nipN(1): [... x1 x2 x3] -> [... x1 x3]
@@ -150,7 +120,6 @@ func (s *stack) nipN(idx int32) ([]byte, error) {
 			sz)
 		return nil, scriptError(ErrInvalidStackOperation, str)
 	}
-
 	so := s.stk[sz-idx-1]
 	if idx == 0 {
 		s.stk = s.stk[:sz-1]
@@ -165,9 +134,7 @@ func (s *stack) nipN(idx int32) ([]byte, error) {
 	}
 	return so, nil
 }
-
 // NipN removes the Nth object on the stack
-//
 // Stack transformation:
 // NipN(0): [... x1 x2 x3] -> [... x1 x2]
 // NipN(1): [... x1 x2 x3] -> [... x1 x3]
@@ -176,10 +143,8 @@ func (s *stack) NipN(idx int32) error {
 	_, err := s.nipN(idx)
 	return err
 }
-
 // Tuck copies the item at the top of the stack and inserts it before the 2nd
 // to top item.
-//
 // Stack transformation: [... x1 x2] -> [... x2 x1 x2]
 func (s *stack) Tuck() error {
 	so2, err := s.PopByteArray()
@@ -193,12 +158,9 @@ func (s *stack) Tuck() error {
 	s.PushByteArray(so2) // stack [... x2]
 	s.PushByteArray(so1) // stack [... x2 x1]
 	s.PushByteArray(so2) // stack [... x2 x1 x2]
-
 	return nil
 }
-
 // DropN removes the top N items from the stack.
-//
 // Stack transformation:
 // DropN(1): [... x1 x2] -> [... x1]
 // DropN(2): [... x1 x2] -> [...]
@@ -207,7 +169,6 @@ func (s *stack) DropN(n int32) error {
 		str := fmt.Sprintf("attempt to drop %d items from stack", n)
 		return scriptError(ErrInvalidStackOperation, str)
 	}
-
 	for ; n > 0; n-- {
 		_, err := s.PopByteArray()
 		if err != nil {
@@ -216,9 +177,7 @@ func (s *stack) DropN(n int32) error {
 	}
 	return nil
 }
-
 // DupN duplicates the top N items on the stack.
-//
 // Stack transformation:
 // DupN(1): [... x1 x2] -> [... x1 x2 x2]
 // DupN(2): [... x1 x2] -> [... x1 x2 x1 x2]
@@ -227,7 +186,6 @@ func (s *stack) DupN(n int32) error {
 		str := fmt.Sprintf("attempt to dup %d stack items", n)
 		return scriptError(ErrInvalidStackOperation, str)
 	}
-
 	// Iteratively duplicate the value n-1 down the stack n times.
 	// This leaves an in-order duplicate of the top n items on the stack.
 	for i := n; i > 0; i-- {
@@ -239,9 +197,7 @@ func (s *stack) DupN(n int32) error {
 	}
 	return nil
 }
-
 // RotN rotates the top 3N items on the stack to the left N times.
-//
 // Stack transformation:
 // RotN(1): [... x1 x2 x3] -> [... x2 x3 x1]
 // RotN(2): [... x1 x2 x3 x4 x5 x6] -> [... x3 x4 x5 x6 x1 x2]
@@ -250,7 +206,6 @@ func (s *stack) RotN(n int32) error {
 		str := fmt.Sprintf("attempt to rotate %d stack items", n)
 		return scriptError(ErrInvalidStackOperation, str)
 	}
-
 	// Nip the 3n-1th item from the stack to the top n times to rotate
 	// them up to the head of the stack.
 	entry := 3*n - 1
@@ -259,14 +214,11 @@ func (s *stack) RotN(n int32) error {
 		if err != nil {
 			return err
 		}
-
 		s.PushByteArray(so)
 	}
 	return nil
 }
-
 // SwapN swaps the top N items on the stack with those below them.
-//
 // Stack transformation:
 // SwapN(1): [... x1 x2] -> [... x2 x1]
 // SwapN(2): [... x1 x2 x3 x4] -> [... x3 x4 x1 x2]
@@ -275,7 +227,6 @@ func (s *stack) SwapN(n int32) error {
 		str := fmt.Sprintf("attempt to swap %d stack items", n)
 		return scriptError(ErrInvalidStackOperation, str)
 	}
-
 	entry := 2*n - 1
 	for i := n; i > 0; i-- {
 		// Swap 2n-1th entry to top.
@@ -283,14 +234,11 @@ func (s *stack) SwapN(n int32) error {
 		if err != nil {
 			return err
 		}
-
 		s.PushByteArray(so)
 	}
 	return nil
 }
-
 // OverN copies N items N items back to the top of the stack.
-//
 // Stack transformation:
 // OverN(1): [... x1 x2 x3] -> [... x1 x2 x3 x2]
 // OverN(2): [... x1 x2 x3 x4] -> [... x1 x2 x3 x4 x1 x2]
@@ -300,7 +248,6 @@ func (s *stack) OverN(n int32) error {
 			n)
 		return scriptError(ErrInvalidStackOperation, str)
 	}
-
 	// Copy 2n-1th entry to top of the stack.
 	entry := 2*n - 1
 	for ; n > 0; n-- {
@@ -310,12 +257,9 @@ func (s *stack) OverN(n int32) error {
 		}
 		s.PushByteArray(so)
 	}
-
 	return nil
 }
-
 // PickN copies the item N items back in the stack to the top.
-//
 // Stack transformation:
 // PickN(0): [x1 x2 x3] -> [x1 x2 x3 x3]
 // PickN(1): [x1 x2 x3] -> [x1 x2 x3 x2]
@@ -326,12 +270,9 @@ func (s *stack) PickN(n int32) error {
 		return err
 	}
 	s.PushByteArray(so)
-
 	return nil
 }
-
 // RollN moves the item N items back in the stack to the top.
-//
 // Stack transformation:
 // RollN(0): [x1 x2 x3] -> [x1 x2 x3]
 // RollN(1): [x1 x2 x3] -> [x1 x3 x2]
@@ -341,12 +282,9 @@ func (s *stack) RollN(n int32) error {
 	if err != nil {
 		return err
 	}
-
 	s.PushByteArray(so)
-
 	return nil
 }
-
 // String returns the stack in a readable format.
 func (s *stack) String() string {
 	var result string
@@ -356,6 +294,5 @@ func (s *stack) String() string {
 		}
 		result += hex.Dump(stack)
 	}
-
 	return result
 }

@@ -1,13 +1,8 @@
-// Copyright (c) 2013, 2014 The btcsuite developers
-
-
 
 package bloom
-
 import (
 	"encoding/binary"
 )
-
 // The following constants are used by the MurmurHash3 algorithm.
 const (
 	murmurC1 = 0xcc9e2d51
@@ -17,7 +12,6 @@ const (
 	murmurM  = 5
 	murmurN  = 0xe6546b64
 )
-
 // MurmurHash3 implements a non-cryptographic hash function using the
 // MurmurHash3 algorithm.  This implementation yields a 32-bit hash value which
 // is suitable for general hash-based lookups.  The seed can be used to
@@ -28,23 +22,19 @@ func MurmurHash3(seed uint32, data []byte) uint32 {
 	hash := seed
 	k := uint32(0)
 	numBlocks := dataLen / 4
-
 	// Calculate the hash in 4-byte chunks.
 	for i := uint32(0); i < numBlocks; i++ {
 		k = binary.LittleEndian.Uint32(data[i*4:])
 		k *= murmurC1
 		k = (k << murmurR1) | (k >> (32 - murmurR1))
 		k *= murmurC2
-
 		hash ^= k
 		hash = (hash << murmurR2) | (hash >> (32 - murmurR2))
 		hash = hash*murmurM + murmurN
 	}
-
 	// Handle remaining bytes.
 	tailIdx := numBlocks * 4
 	k = 0
-
 	switch dataLen & 3 {
 	case 3:
 		k ^= uint32(data[tailIdx+2]) << 16
@@ -59,7 +49,6 @@ func MurmurHash3(seed uint32, data []byte) uint32 {
 		k *= murmurC2
 		hash ^= k
 	}
-
 	// Finalization.
 	hash ^= dataLen
 	hash ^= hash >> 16
@@ -67,6 +56,5 @@ func MurmurHash3(seed uint32, data []byte) uint32 {
 	hash ^= hash >> 13
 	hash *= 0xc2b2ae35
 	hash ^= hash >> 16
-
 	return hash
 }

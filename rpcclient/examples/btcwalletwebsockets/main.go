@@ -1,20 +1,14 @@
-// Copyright (c) 2014-2017 The btcsuite developers
-
-
 
 package main
-
 import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
 	"time"
-
 	"github.com/davecgh/go-spew/spew"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/rpcclient"
 )
-
 func main() {
 	// Only override the handlers for notifications you care about.
 	// Also note most of the handlers will only be called if you register
@@ -26,7 +20,6 @@ func main() {
 				balance)
 		},
 	}
-
 	// Connect to local btcwallet RPC server using websockets.
 	certHomeDir := btcutil.AppDataDir("mod", false)
 	certs, err := ioutil.ReadFile(filepath.Join(certHomeDir, "rpc.cert"))
@@ -44,7 +37,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	// Get the list of unspent transaction outputs (utxos) that the
 	// connected wallet has at least one private key for.
 	unspent, err := client.ListUnspent()
@@ -55,7 +47,6 @@ func main() {
 	if len(unspent) > 0 {
 		log.Printf("First utxo:\n%v", spew.Sdump(unspent[0]))
 	}
-
 	// For this example gracefully shutdown the client after 10 seconds.
 	// Ordinarily when to shutdown the client is highly application
 	// specific.
@@ -65,7 +56,6 @@ func main() {
 		client.Shutdown()
 		log.Println("Client shutdown complete.")
 	})
-
 	// Wait until the client either shuts down gracefully (or the user
 	// terminates the process with Ctrl+C).
 	client.WaitForShutdown()

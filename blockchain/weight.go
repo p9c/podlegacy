@@ -1,17 +1,11 @@
-// Copyright (c) 2013-2017 The btcsuite developers
-
-
 
 package blockchain
-
 import (
 	"fmt"
-
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 const (
 	// MaxBlockWeight defines the maximum block weight, where "block
 	// weight" is interpreted as defined in BIP0141. A block's weight is
@@ -21,44 +15,35 @@ const (
 	// 1. As a result, for a block to be valid, the BlockWeight MUST be
 	// less than, or equal to MaxBlockWeight.
 	MaxBlockWeight = 4000000
-
 	// MaxBlockBaseSize is the maximum number of bytes within a block
 	// which can be allocated to non-witness data.
 	MaxBlockBaseSize = 1000000
-
 	// MaxBlockSigOpsCost is the maximum number of signature operations
 	// allowed for a block. It is calculated via a weighted algorithm which
 	// weights segregated witness sig ops lower than regular sig ops.
 	MaxBlockSigOpsCost = 80000
-
 	// WitnessScaleFactor determines the level of "discount" witness data
 	// receives compared to "base" data. A scale factor of 4, denotes that
 	// witness data is 1/4 as cheap as regular non-witness data.
 	WitnessScaleFactor = 4
-
 	// MinTxOutputWeight is the minimum possible weight for a transaction
 	// output.
 	MinTxOutputWeight = WitnessScaleFactor * wire.MinTxOutPayload
-
 	// MaxOutputsPerBlock is the maximum number of transaction outputs there
 	// can be in a block of max weight size.
 	MaxOutputsPerBlock = MaxBlockWeight / MinTxOutputWeight
 )
-
 // GetBlockWeight computes the value of the weight metric for a given block.
 // Currently the weight metric is simply the sum of the block's serialized size
 // without any witness data scaled proportionally by the WitnessScaleFactor,
 // and the block's serialized size including any witness data.
 func GetBlockWeight(blk *btcutil.Block) int64 {
 	msgBlock := blk.MsgBlock()
-
 	baseSize := msgBlock.SerializeSizeStripped()
 	totalSize := msgBlock.SerializeSize()
-
 	// (baseSize * 3) + totalSize
 	return int64((baseSize * (WitnessScaleFactor - 1)) + totalSize)
 }
-
 // GetTransactionWeight computes the value of the weight metric for a given
 // transaction. Currently the weight metric is simply the sum of the
 // transactions's serialized size without any witness data scaled
@@ -66,14 +51,11 @@ func GetBlockWeight(blk *btcutil.Block) int64 {
 // size including any witness data.
 func GetTransactionWeight(tx *btcutil.Tx) int64 {
 	msgTx := tx.MsgTx()
-
 	baseSize := msgTx.SerializeSizeStripped()
 	totalSize := msgTx.SerializeSize()
-
 	// (baseSize * 3) + totalSize
 	return int64((baseSize * (WitnessScaleFactor - 1)) + totalSize)
 }
-
 // GetSigOpCost returns the unified sig op cost for the passed transaction
 // respecting current active soft-forks which modified sig op cost counting.
 // The unified sig op cost for a transaction is computed as the sum of: the
@@ -89,7 +71,6 @@ func GetSigOpCost(tx *btcutil.Tx, isCoinBaseTx bool, utxoView *UtxoViewpoint, bi
 		}
 		numSigOps += (numP2SHSigOps * WitnessScaleFactor)
 	}
-
 	if segWit && !isCoinBaseTx {
 		msgTx := tx.MsgTx()
 		for txInIndex, txIn := range msgTx.TxIn {
@@ -104,14 +85,11 @@ func GetSigOpCost(tx *btcutil.Tx, isCoinBaseTx bool, utxoView *UtxoViewpoint, bi
 					txInIndex)
 				return 0, ruleError(ErrMissingTxOut, str)
 			}
-
 			witness := txIn.Witness
 			sigScript := txIn.SignatureScript
 			pkScript := utxo.PkScript()
 			numSigOps += txscript.GetWitnessSigOpCount(sigScript, pkScript, witness)
 		}
-
 	}
-
 	return numSigOps, nil
 }

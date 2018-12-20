@@ -1,9 +1,6 @@
 
-
-
 /*
 Package blockchain implements bitcoin block handling and chain selection rules.
-
 The bitcoin block handling and chain selection rules are an integral, and quite
 likely the most important, part of bitcoin.  Unfortunately, at the time of
 this writing, these rules are also largely undocumented and had to be
@@ -12,26 +9,21 @@ distributed consensus of which blocks are valid and which ones will comprise the
 main block chain (public ledger) that ultimately determines accepted
 transactions, so it is extremely important that fully validating nodes agree on
 all rules.
-
 At a high level, this package provides support for inserting new blocks into
 the block chain according to the aforementioned rules.  It includes
 functionality such as rejecting duplicate blocks, ensuring blocks and
 transactions follow all rules, orphan handling, and best chain selection along
 with reorganization.
-
 Since this package does not deal with other bitcoin specifics such as network
 communication or wallets, it provides a notification system which gives the
 caller a high level of flexibility in how they want to react to certain events
 such as orphan blocks which need their parents requested and newly connected
 main chain blocks which might result in wallet updates.
-
 Bitcoin Chain Processing Overview
-
 Before a block is allowed into the block chain, it must go through an intensive
 series of validation rules.  The following list serves as a general outline of
 those rules to provide some intuition into what is going on under the hood, but
 is by no means exhaustive:
-
  - Reject duplicate blocks
  - Perform a series of sanity checks on the block and its transactions such as
    verifying proof of work, timestamps, number and character of transactions,
@@ -59,20 +51,15 @@ is by no means exhaustive:
  - Run the transaction scripts to verify the spender is allowed to spend the
    coins
  - Insert the block into the block database
-
 Errors
-
 Errors returned by this package are either the raw errors provided by underlying
 calls or of type blockchain.RuleError.  This allows the caller to differentiate
 between unexpected errors, such as database errors, versus errors due to rule
 violations through type assertions.  In addition, callers can programmatically
 determine the specific rule violation by examining the ErrorCode field of the
 type asserted blockchain.RuleError.
-
 Bitcoin Improvement Proposals
-
 This package includes spec changes outlined by the following BIPs:
-
 		BIP0016 (https://en.bitcoin.it/wiki/BIP_0016)
 		BIP0030 (https://en.bitcoin.it/wiki/BIP_0030)
 		BIP0034 (https://en.bitcoin.it/wiki/BIP_0034)

@@ -1,26 +1,19 @@
 peer
 ====
-
 [![Build Status](http://img.shields.io/travis/parallelcointeam/pod.svg)](https://travis-ci.org/parallelcointeam/pod)
 [![ISC License](http://img.shields.io/badge/license-ISC-blue.svg)](http://copyfree.org)
 [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/parallelcointeam/pod/peer)
-
 Package peer provides a common base for creating and managing bitcoin network
 peers.
-
 This package has intentionally been designed so it can be used as a standalone
 package for any projects needing a full featured bitcoin peer base to build on.
-
 ## Overview
-
 This package builds upon the wire package, which provides the fundamental
 primitives necessary to speak the bitcoin wire protocol, in order to simplify
 the process of creating fully functional peers.  In essence, it provides a
 common base for creating concurrent safe fully validating nodes, Simplified
 Payment Verification (SPV) nodes, proxies, etc.
-
 A quick overview of the major features peer provides are as follows:
-
  - Provides a basic concurrent safe bitcoin peer for handling bitcoin
    communications via the peer-to-peer protocol
  - Full duplex reading and writing of bitcoin protocol messages
@@ -54,20 +47,14 @@ A quick overview of the major features peer provides are as follows:
      filtering and address randomization
  - Ability to wait for shutdown/disconnect
  - Comprehensive test coverage
-
 ## Installation and Updating
-
 ```bash
 $ go get -u github.com/parallelcointeam/pod/peer
 ```
-
 ## Examples
-
 * [New Outbound Peer Example](https://godoc.org/github.com/parallelcointeam/pod/peer#example-package--NewOutboundPeer)  
   Demonstrates the basic process for initializing and creating an outbound peer.
   Peers negotiate by exchanging version and verack messages.  For demonstration,
   a simple handler for the version message is attached to the peer.
-
 ## License
-
 Package peer is licensed under the [copyfree](http://copyfree.org) ISC License.

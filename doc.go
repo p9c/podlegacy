@@ -1,14 +1,9 @@
-// Copyright (c) 2013-2017 The btcsuite developers
-
-
 
 /*
 pod is a full-node bitcoin implementation written in Go.
-
 The default options are sane for most users.  This means pod will work 'out of
 the box' for most users.  However, there are also a wide variety of flags that
 can be used to control it.
-
 The following section provides a usage overview which enumerates the flags.  An
 interesting point to note is that the long form of all of these options
 (except -C) can be specified in a configuration file that is automatically
@@ -16,10 +11,8 @@ parsed when pod starts up.  By default, the configuration file is located at
 ~/.pod/pod.conf on POSIX-style operating systems and %LOCALAPPDATA%\pod\pod.conf
 on Windows.  The -C (--configfile) flag, as shown below, can be used to override
 this location.
-
 Usage:
   pod [OPTIONS]
-
 Application Options:
   -V, --version             Display version information and exit
   -C, --configfile=         Path to configuration file
@@ -119,9 +112,7 @@ Application Options:
                             default settings for the active network.
       --rejectnonstd        Reject non-standard transactions regardless of the
                             default settings for the active network.
-
 Help Options:
   -h, --help           Show this help message
-
 */
 package main

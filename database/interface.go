@@ -1,20 +1,13 @@
-// Copyright (c) 2015-2016 The btcsuite developers
-
-
 
 // Parts of this interface were inspired heavily by the excellent boltdb project
 // at https://github.com/boltdb/bolt by Ben B. Johnson.
-
 package database
-
 import (
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 )
-
 // Cursor represents a cursor over key/value pairs and nested buckets of a
 // bucket.
-//
 // Note that open cursors are not tracked on bucket changes and any
 // modifications to the bucket, with the exception of Cursor.Delete, invalidates
 // the cursor.  After invalidation, the cursor must be repositioned, or the keys
@@ -22,7 +15,6 @@ import (
 type Cursor interface {
 	// Bucket returns the bucket the cursor was created for.
 	Bucket() Bucket
-
 	// Delete removes the current key/value pair the cursor is at without
 	// invalidating the cursor.
 	//
@@ -33,42 +25,33 @@ type Cursor interface {
 	//   - ErrTxNotWritable if attempted against a read-only transaction
 	//   - ErrTxClosed if the transaction has already been closed
 	Delete() error
-
 	// First positions the cursor at the first key/value pair and returns
 	// whether or not the pair exists.
 	First() bool
-
 	// Last positions the cursor at the last key/value pair and returns
 	// whether or not the pair exists.
 	Last() bool
-
 	// Next moves the cursor one key/value pair forward and returns whether
 	// or not the pair exists.
 	Next() bool
-
 	// Prev moves the cursor one key/value pair backward and returns whether
 	// or not the pair exists.
 	Prev() bool
-
 	// Seek positions the cursor at the first key/value pair that is greater
 	// than or equal to the passed seek key.  Returns whether or not the
 	// pair exists.
 	Seek(seek []byte) bool
-
 	// Key returns the current key the cursor is pointing to.
 	Key() []byte
-
 	// Value returns the current value the cursor is pointing to.  This will
 	// be nil for nested buckets.
 	Value() []byte
 }
-
 // Bucket represents a collection of key/value pairs.
 type Bucket interface {
 	// Bucket retrieves a nested bucket with the given key.  Returns nil if
 	// the bucket does not exist.
 	Bucket(key []byte) Bucket
-
 	// CreateBucket creates and returns a new nested bucket with the given
 	// key.
 	//
@@ -81,7 +64,6 @@ type Bucket interface {
 	//   - ErrTxNotWritable if attempted against a read-only transaction
 	//   - ErrTxClosed if the transaction has already been closed
 	CreateBucket(key []byte) (Bucket, error)
-
 	// CreateBucketIfNotExists creates and returns a new nested bucket with
 	// the given key if it does not already exist.
 	//
@@ -93,7 +75,6 @@ type Bucket interface {
 	//   - ErrTxNotWritable if attempted against a read-only transaction
 	//   - ErrTxClosed if the transaction has already been closed
 	CreateBucketIfNotExists(key []byte) (Bucket, error)
-
 	// DeleteBucket removes a nested bucket with the given key.  This also
 	// includes removing all nested buckets and keys under the bucket being
 	// deleted.
@@ -104,7 +85,6 @@ type Bucket interface {
 	//   - ErrTxNotWritable if attempted against a read-only transaction
 	//   - ErrTxClosed if the transaction has already been closed
 	DeleteBucket(key []byte) error
-
 	// ForEach invokes the passed function with every key/value pair in the
 	// bucket.  This does not include nested buckets or the key/value pairs
 	// within those nested buckets.
@@ -123,7 +103,6 @@ type Bucket interface {
 	// be modified by the caller.  These constraints prevent additional data
 	// copies and allows support for memory-mapped database implementations.
 	ForEach(func(k, v []byte) error) error
-
 	// ForEachBucket invokes the passed function with the key of every
 	// nested bucket in the current bucket.  This does not include any
 	// nested buckets within those nested buckets.
@@ -142,7 +121,6 @@ type Bucket interface {
 	// data copies and allows support for memory-mapped database
 	// implementations.
 	ForEachBucket(func(k []byte) error) error
-
 	// Cursor returns a new cursor, allowing for iteration over the bucket's
 	// key/value pairs and nested buckets in forward or backward order.
 	//
@@ -152,10 +130,8 @@ type Bucket interface {
 	// which is false for the Prev and Next functions and nil for Key and
 	// Value functions.
 	Cursor() Cursor
-
 	// Writable returns whether or not the bucket is writable.
 	Writable() bool
-
 	// Put saves the specified key/value pair to the bucket.  Keys that do
 	// not already exist are added and keys that already exist are
 	// overwritten.
@@ -171,7 +147,6 @@ type Bucket interface {
 	// caller.  This constraint prevents the requirement for additional data
 	// copies and allows support for memory-mapped database implementations.
 	Put(key, value []byte) error
-
 	// Get returns the value for the given key.  Returns nil if the key does
 	// not exist in this bucket.  An empty slice is returned for keys that
 	// exist but have no value assigned.
@@ -182,7 +157,6 @@ type Bucket interface {
 	// be modified by the caller.  These constraints prevent additional data
 	// copies and allows support for memory-mapped database implementations.
 	Get(key []byte) []byte
-
 	// Delete removes the specified key from the bucket.  Deleting a key
 	// that does not exist does not return an error.
 	//
@@ -194,7 +168,6 @@ type Bucket interface {
 	//   - ErrTxClosed if the transaction has already been closed
 	Delete(key []byte) error
 }
-
 // BlockRegion specifies a particular region of a block identified by the
 // specified hash, given an offset and length.
 type BlockRegion struct {
@@ -202,11 +175,9 @@ type BlockRegion struct {
 	Offset uint32
 	Len    uint32
 }
-
 // Tx represents a database transaction.  It can either by read-only or
 // read-write.  The transaction provides a metadata bucket against which all
 // read and writes occur.
-//
 // As would be expected with a transaction, no changes will be saved to the
 // database until it has been committed.  The transaction will only provide a
 // view of the database at the time it was created.  Transactions should not be
@@ -214,7 +185,6 @@ type BlockRegion struct {
 type Tx interface {
 	// Metadata returns the top-most bucket for all metadata storage.
 	Metadata() Bucket
-
 	// StoreBlock stores the provided block into the database.  There are no
 	// checks to ensure the block connects to a previous block, contains
 	// double spends, or any additional functionality such as transaction
@@ -228,7 +198,6 @@ type Tx interface {
 	//
 	// Other errors are possible depending on the implementation.
 	StoreBlock(block *btcutil.Block) error
-
 	// HasBlock returns whether or not a block with the given hash exists
 	// in the database.
 	//
@@ -238,7 +207,6 @@ type Tx interface {
 	//
 	// Other errors are possible depending on the implementation.
 	HasBlock(hash *chainhash.Hash) (bool, error)
-
 	// HasBlocks returns whether or not the blocks with the provided hashes
 	// exist in the database.
 	//
@@ -248,7 +216,6 @@ type Tx interface {
 	//
 	// Other errors are possible depending on the implementation.
 	HasBlocks(hashes []chainhash.Hash) ([]bool, error)
-
 	// FetchBlockHeader returns the raw serialized bytes for the block
 	// header identified by the given hash.  The raw bytes are in the format
 	// returned by Serialize on a wire.BlockHeader.
@@ -271,7 +238,6 @@ type Tx interface {
 	// additional data copies and allows support for memory-mapped database
 	// implementations.
 	FetchBlockHeader(hash *chainhash.Hash) ([]byte, error)
-
 	// FetchBlockHeaders returns the raw serialized bytes for the block
 	// headers identified by the given hashes.  The raw bytes are in the
 	// format returned by Serialize on a wire.BlockHeader.
@@ -298,7 +264,6 @@ type Tx interface {
 	// additional data copies and allows support for memory-mapped database
 	// implementations.
 	FetchBlockHeaders(hashes []chainhash.Hash) ([][]byte, error)
-
 	// FetchBlock returns the raw serialized bytes for the block identified
 	// by the given hash.  The raw bytes are in the format returned by
 	// Serialize on a wire.MsgBlock.
@@ -315,7 +280,6 @@ type Tx interface {
 	// additional data copies and allows support for memory-mapped database
 	// implementations.
 	FetchBlock(hash *chainhash.Hash) ([]byte, error)
-
 	// FetchBlocks returns the raw serialized bytes for the blocks
 	// identified by the given hashes.  The raw bytes are in the format
 	// returned by Serialize on a wire.MsgBlock.
@@ -333,7 +297,6 @@ type Tx interface {
 	// additional data copies and allows support for memory-mapped database
 	// implementations.
 	FetchBlocks(hashes []chainhash.Hash) ([][]byte, error)
-
 	// FetchBlockRegion returns the raw serialized bytes for the given
 	// block region.
 	//
@@ -360,7 +323,6 @@ type Tx interface {
 	// additional data copies and allows support for memory-mapped database
 	// implementations.
 	FetchBlockRegion(region *BlockRegion) ([]byte, error)
-
 	// FetchBlockRegions returns the raw serialized bytes for the given
 	// block regions.
 	//
@@ -388,11 +350,9 @@ type Tx interface {
 	// additional data copies and allows support for memory-mapped database
 	// implementations.
 	FetchBlockRegions(regions []BlockRegion) ([][]byte, error)
-
 	// ******************************************************************
 	// Methods related to both atomic metadata storage and block storage.
 	// ******************************************************************
-
 	// Commit commits all changes that have been made to the metadata or
 	// block storage.  Depending on the backend implementation this could be
 	// to a cache that is periodically synced to persistent storage or
@@ -401,23 +361,18 @@ type Tx interface {
 	// by this transaction.  Calling this function on a managed transaction
 	// will result in a panic.
 	Commit() error
-
 	// Rollback undoes all changes that have been made to the metadata or
 	// block storage.  Calling this function on a managed transaction will
 	// result in a panic.
 	Rollback() error
 }
-
 // DB provides a generic interface that is used to store bitcoin blocks and
 // related metadata.  This interface is intended to be agnostic to the actual
 // mechanism used for backend data storage.  The RegisterDriver function can be
 // used to add a new backend data storage method.
-//
 // This interface is divided into two distinct categories of functionality.
-//
 // The first category is atomic metadata storage with bucket support.  This is
 // accomplished through the use of database transactions.
-//
 // The second category is generic block storage.  This functionality is
 // intentionally separate because the mechanism used for block storage may or
 // may not be the same mechanism used for metadata storage.  For example, it is
@@ -428,7 +383,6 @@ type DB interface {
 	// Type returns the database driver type the current database instance
 	// was created with.
 	Type() string
-
 	// Begin starts a transaction which is either read-only or read-write
 	// depending on the specified flag.  Multiple read-only transactions
 	// can be started simultaneously while only a single read-write
@@ -440,7 +394,6 @@ type DB interface {
 	// unclaimed memory and/or inablity to close the database due to locks
 	// depending on the specific database implementation.
 	Begin(writable bool) (Tx, error)
-
 	// View invokes the passed function in the context of a managed
 	// read-only transaction.  Any errors returned from the user-supplied
 	// function are returned from this function.
@@ -448,7 +401,6 @@ type DB interface {
 	// Calling Rollback or Commit on the transaction passed to the
 	// user-supplied function will result in a panic.
 	View(fn func(tx Tx) error) error
-
 	// Update invokes the passed function in the context of a managed
 	// read-write transaction.  Any errors returned from the user-supplied
 	// function will cause the transaction to be rolled back and are
@@ -458,7 +410,6 @@ type DB interface {
 	// Calling Rollback or Commit on the transaction passed to the
 	// user-supplied function will result in a panic.
 	Update(fn func(tx Tx) error) error
-
 	// Close cleanly shuts down the database and syncs all data.  It will
 	// block until all database transactions have been finalized (rolled
 	// back or committed).

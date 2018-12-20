@@ -1,5 +1,4 @@
 package main
-
 import (
 	"fmt"
 	"io/ioutil"
@@ -8,19 +7,16 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-
 	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/btcjson"
 	"github.com/parallelcointeam/pod/btcutil"
 )
-
 const (
 	// unusableFlags are the command usage flags which this utility are not
 	// able to use.  In particular it doesn't support websockets and
 	// consequently notifications.
 	unusableFlags = btcjson.UFWebsocketOnly | btcjson.UFNotification
 )
-
 var (
 	podHomeDir            = btcutil.AppDataDir("pod", false)
 	podctlHomeDir         = btcutil.AppDataDir("podctl", false)
@@ -30,7 +26,6 @@ var (
 	defaultRPCCertFile    = filepath.Join(podHomeDir, "rpc.cert")
 	defaultWalletCertFile = filepath.Join(sacHomeDir, "rpc.cert")
 )
-
 // listCommands categorizes and lists all of the usable commands along with
 // their one-line usage.
 func listCommands() {
@@ -39,7 +34,6 @@ func listCommands() {
 		categoryWallet
 		numCategories
 	)
-
 	// Get a list of registered commands and categorize and filter them.
 	cmdMethods := btcjson.RegisteredCmdMethods()
 	categorized := make([][]string, numCategories)
@@ -50,19 +44,16 @@ func listCommands() {
 			// returned from the package, but be safe.
 			continue
 		}
-
 		// Skip the commands that aren't usable from this utility.
 		if flags&unusableFlags != 0 {
 			continue
 		}
-
 		usage, err := btcjson.MethodUsageText(method)
 		if err != nil {
 			// This should never happen since the method was just
 			// returned from the package, but be safe.
 			continue
 		}
-
 		// Categorize the command based on the usage flags.
 		category := categoryChain
 		if flags&btcjson.UFWalletOnly != 0 {
@@ -70,7 +61,6 @@ func listCommands() {
 		}
 		categorized[category] = append(categorized[category], usage)
 	}
-
 	// Display the command according to their categories.
 	categoryTitles := make([]string, numCategories)
 	categoryTitles[categoryChain] = "Chain Server Commands:"
@@ -83,9 +73,7 @@ func listCommands() {
 		fmt.Println()
 	}
 }
-
 // config defines the configuration options for podctl.
-//
 // See loadConfig for details on the configuration load process.
 type config struct {
 	ShowVersion   bool   `short:"V" long:"version" description:"Display version information and exit"`
@@ -104,7 +92,6 @@ type config struct {
 	TLSSkipVerify bool   `long:"skipverify" description:"Do not verify tls certificates (not recommended!)"`
 	Wallet        bool   `long:"wallet" description:"Connect to wallet"`
 }
-
 // normalizeAddress returns addr with the passed default port appended if
 // there is not already a port specified.
 func normalizeAddress(addr string, useTestNet3, useSimNet, useWallet bool) string {
@@ -131,12 +118,10 @@ func normalizeAddress(addr string, useTestNet3, useSimNet, useWallet bool) strin
 				defaultPort = "11048"
 			}
 		}
-
 		return net.JoinHostPort(addr, defaultPort)
 	}
 	return addr
 }
-
 // cleanAndExpandPath expands environement variables and leading ~ in the
 // passed path, cleans the result, and returns it.
 func cleanAndExpandPath(path string) string {
@@ -145,21 +130,17 @@ func cleanAndExpandPath(path string) string {
 		homeDir := filepath.Dir(podctlHomeDir)
 		path = strings.Replace(path, "~", homeDir, 1)
 	}
-
 	// NOTE: The os.ExpandEnv doesn't work with Windows-style %VARIABLE%,
 	// but they variables can still be expanded via POSIX-style $VARIABLE.
 	return filepath.Clean(os.ExpandEnv(path))
 }
-
 // loadConfig initializes and parses the config using a config file and command
 // line options.
-//
 // The configuration proceeds as follows:
 // 	1) Start with a default config with sane settings
 // 	2) Pre-parse the command line to check for an alternative config file
 // 	3) Load configuration file overwriting defaults with any specified options
 // 	4) Parse CLI options and overwrite/add any specified options
-//
 // The above results in functioning properly without any config settings
 // while still allowing the user to override settings with config files and
 // command line options.  Command line options always take precedence.
@@ -170,7 +151,6 @@ func loadConfig() (*config, []string, error) {
 		RPCServer:  defaultRPCServer,
 		RPCCert:    defaultRPCCertFile,
 	}
-
 	// Pre-parse the command line options to see if an alternative config
 	// file, the version flag, or the list commands flag was specified.  Any
 	// errors aside from the help message error can be ignored here since
@@ -189,7 +169,6 @@ func loadConfig() (*config, []string, error) {
 			return nil, nil, err
 		}
 	}
-
 	// Show the version and exit if the version flag was specified.
 	appName := filepath.Base(os.Args[0])
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
@@ -198,7 +177,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Println(appName, "version", version())
 		os.Exit(0)
 	}
-
 	// Show the available commands and exit if the associated flag was
 	// specified.
 	if preCfg.ListCommands {
@@ -219,7 +197,6 @@ func loadConfig() (*config, []string, error) {
 			fmt.Fprintf(os.Stderr, "Error creating a default config file: %v\n", err)
 		}
 	}
-
 	// Load additional config from file.
 	parser := flags.NewParser(&cfg, flags.Default)
 	err = flags.NewIniParser(parser).ParseFile(preCfg.ConfigFile)
@@ -231,7 +208,6 @@ func loadConfig() (*config, []string, error) {
 			return nil, nil, err
 		}
 	}
-
 	// Parse command line options again to ensure they take precedence.
 	remainingArgs, err := parser.Parse()
 	if err != nil {
@@ -240,7 +216,6 @@ func loadConfig() (*config, []string, error) {
 		}
 		return nil, nil, err
 	}
-
 	// Multiple networks can't be selected simultaneously.
 	numNets := 0
 	if cfg.TestNet3 {
@@ -256,24 +231,19 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, err)
 		return nil, nil, err
 	}
-
 	// Override the RPC certificate if the --wallet flag was specified and
 	// the user did not specify one.
 	if cfg.Wallet && cfg.RPCCert == defaultRPCCertFile {
 		cfg.RPCCert = defaultWalletCertFile
 	}
-
 	// Handle environment variable expansion in the RPC certificate path.
 	cfg.RPCCert = cleanAndExpandPath(cfg.RPCCert)
-
 	// Add default port to RPC server based on --testnet and --wallet flags
 	// if needed.
 	cfg.RPCServer = normalizeAddress(cfg.RPCServer, cfg.TestNet3,
 		cfg.SimNet, cfg.Wallet)
-
 	return &cfg, remainingArgs, nil
 }
-
 // createDefaultConfig creates a basic config file at the given destination path.
 // For this it tries to read the config file for the RPC server (either pod or
 // sac), and extract the RPC user and password from it.
@@ -289,7 +259,6 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 		return err
 	}
 	// content := []byte(samplePodCtlConf)
-
 	// Extract the rpcuser
 	rpcUserRegexp, err := regexp.Compile(`(?m)^\s*rpcuser=([^\s]+)`)
 	if err != nil {
@@ -300,7 +269,6 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 		// No user found, nothing to do
 		return nil
 	}
-
 	// Extract the rpcpass
 	rpcPassRegexp, err := regexp.Compile(`(?m)^\s*rpcpass=([^\s]+)`)
 	if err != nil {
@@ -311,14 +279,12 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 		// No password found, nothing to do
 		return nil
 	}
-
 	// Extract the TLS
 	TLSRegexp, err := regexp.Compile(`(?m)^\s*TLS=(0|1)(?:\s|$)`)
 	if err != nil {
 		return err
 	}
 	TLSSubmatches := TLSRegexp.FindSubmatch(content)
-
 	// Create the destination directory if it does not exists
 	err = os.MkdirAll(filepath.Dir(destinationPath), 0700)
 	if err != nil {
@@ -332,7 +298,6 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 		return err
 	}
 	defer dest.Close()
-
 	destString := fmt.Sprintf("rpcuser=%s\nrpcpass=%s\n",
 		string(userSubmatches[1]), string(passSubmatches[1]))
 	if TLSSubmatches != nil {
@@ -340,6 +305,5 @@ func createDefaultConfigFile(destinationPath, serverConfigPath string) error {
 	}
 	output := ";;; Defaults created from local pod/sac configuration:\n" + destString + "\n" + samplePodCtlConf
 	dest.WriteString(output)
-
 	return nil
 }

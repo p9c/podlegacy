@@ -1,35 +1,26 @@
-// Copyright (c) 2015-2016 The btcsuite developers
-
-
 
 package main
-
 import (
 	"encoding/hex"
 	"errors"
 	"strconv"
 	"time"
-
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 )
-
 // blockRegionCmd defines the configuration options for the fetchblockregion
 // command.
 type blockRegionCmd struct{}
-
 var (
 	// blockRegionCfg defines the configuration options for the command.
 	blockRegionCfg = blockRegionCmd{}
 )
-
 // Execute is the main entry point for the command.  It's invoked by the parser.
 func (cmd *blockRegionCmd) Execute(args []string) error {
 	// Setup the global config options and ensure they are valid.
 	if err := setupGlobalConfig(); err != nil {
 		return err
 	}
-
 	// Ensure expected arguments.
 	if len(args) < 1 {
 		return errors.New("required block hash parameter not specified")
@@ -42,7 +33,6 @@ func (cmd *blockRegionCmd) Execute(args []string) error {
 		return errors.New("required region length parameter not " +
 			"specified")
 	}
-
 	// Parse arguments.
 	blockHash, err := chainhash.NewHashFromStr(args[0])
 	if err != nil {
@@ -56,14 +46,12 @@ func (cmd *blockRegionCmd) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-
 	// Load the block database.
 	db, err := loadBlockDB()
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-
 	return db.View(func(tx database.Tx) error {
 		log.Infof("Fetching block region %s<%d:%d>", blockHash,
 			startOffset, startOffset+regionLen-1)
@@ -83,7 +71,6 @@ func (cmd *blockRegionCmd) Execute(args []string) error {
 		return nil
 	})
 }
-
 // Usage overrides the usage display for the command.
 func (cmd *blockRegionCmd) Usage() string {
 	return "<block-hash> <start-offset> <length-of-region>"

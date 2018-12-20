@@ -1,4 +1,4 @@
-// Copyright (c) 2016 The btcsuite developers
+
 
 // The vast majority of the rules tested in this package were ported from the
 // the original Java-based 'official' block acceptance tests at

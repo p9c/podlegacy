@@ -1,5 +1,5 @@
-// Copyright (c) 2016-2017 The btcsuite developers
-// Copyright (c) 2016-2017 The Lightning Network Developers
+
+
 
 
 

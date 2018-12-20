@@ -6,20 +6,15 @@
 # 4. go vet        (http://golang.org/cmd/vet)
 # 5. race detector (http://blog.golang.org/race-detector)
 # 6. test coverage (http://blog.golang.org/cover)
-
 set -e
-
 # Automatic checks
 test -z $(gofmt -l -w . | tee /dev/stderr)
 test -z $(goimports -l -w . | tee /dev/stderr)
 test -z $(golint ./... | tee /dev/stderr)
 go vet ./...
 env GORACE="halt_on_error=1" go test -v -race ./...
-
 # Run test coverage on each subdirectories and merge the coverage profile.
-
 echo "mode: count" > profile.cov
-
 # Standard go tooling behavior is to ignore dirs with leading underscores.
 for dir in $(find . -maxdepth 10 -not -path './.git*' -not -path '*/_*' -type d)
 do
@@ -31,7 +26,6 @@ if ls $dir/*.go &> /dev/null; then
   fi
 fi
 done
-
 # To submit the test coverage result to coveralls.io,
 # use goveralls (https://github.com/mattn/goveralls)
 # goveralls -coverprofile=profile.cov -service=travis-ci

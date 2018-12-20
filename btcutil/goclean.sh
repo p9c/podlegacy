@@ -11,9 +11,7 @@
 #
 # gometalint (github.com/alecthomas/gometalinter) is used to run each each
 # static checker.
-
 set -ex
-
 # Automatic checks
 test -z "$(gometalinter --disable-all \
 --enable=gofmt \
@@ -24,11 +22,8 @@ test -z "$(gometalinter --disable-all \
 --enable=unconvert \
 --deadline=120s ./... | grep -v 'ExampleNew' 2>&1 | tee /dev/stderr)"
 env GORACE="halt_on_error=1" go test -race ./...
-
 # Run test coverage on each subdirectories and merge the coverage profile.
-
 echo "mode: count" > profile.cov
-
 # Standard go tooling behavior is to ignore dirs with leading underscores.
 for dir in $(find . -maxdepth 10 -not -path './.git*' -not -path '*/_*' -type d);
 do
@@ -40,9 +35,7 @@ if ls $dir/*.go &> /dev/null; then
   fi
 fi
 done
-
 go tool cover -func profile.cov
-
 # To submit the test coverage result to coveralls.io,
 # use goveralls (https://github.com/mattn/goveralls)
 # goveralls -coverprofile=profile.cov -service=travis-ci

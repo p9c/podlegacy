@@ -1,32 +1,23 @@
-// Copyright (c) 2018 The btcsuite developers
-
-
 
 package wire
-
 import (
 	"errors"
 	"fmt"
 	"io"
-
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 )
-
 const (
 	// CFCheckptInterval is the gap (in number of blocks) between each
 	// filter header checkpoint.
 	CFCheckptInterval = 1000
-
 	// maxCFHeadersLen is the max number of filter headers we will attempt
 	// to decode.
 	maxCFHeadersLen = 100000
 )
-
 // ErrInsaneCFHeaderCount signals that we were asked to decode an
 // unreasonable number of cfilter headers.
 var ErrInsaneCFHeaderCount = errors.New(
 	"refusing to decode unreasonable number of filter headers")
-
 // MsgCFCheckpt implements the Message interface and represents a bitcoin
 // cfcheckpt message.  It is used to deliver committed filter header information
 // in response to a getcfcheckpt message (MsgGetCFCheckpt). See MsgGetCFCheckpt
@@ -36,7 +27,6 @@ type MsgCFCheckpt struct {
 	StopHash      chainhash.Hash
 	FilterHeaders []*chainhash.Hash
 }
-
 // AddCFHeader adds a new committed filter header to the message.
 func (msg *MsgCFCheckpt) AddCFHeader(header *chainhash.Hash) error {
 	if len(msg.FilterHeaders) == cap(msg.FilterHeaders) {
@@ -44,11 +34,9 @@ func (msg *MsgCFCheckpt) AddCFHeader(header *chainhash.Hash) error {
 			"additional header: len = %d", len(msg.FilterHeaders))
 		return messageError("MsgCFCheckpt.AddCFHeader", str)
 	}
-
 	msg.FilterHeaders = append(msg.FilterHeaders, header)
 	return nil
 }
-
 // BtcDecode decodes r using the bitcoin protocol encoding into the receiver.
 // This is part of the Message interface implementation.
 func (msg *MsgCFCheckpt) BtcDecode(r io.Reader, pver uint32, _ MessageEncoding) error {
@@ -57,24 +45,20 @@ func (msg *MsgCFCheckpt) BtcDecode(r io.Reader, pver uint32, _ MessageEncoding) 
 	if err != nil {
 		return err
 	}
-
 	// Read stop hash
 	err = readElement(r, &msg.StopHash)
 	if err != nil {
 		return err
 	}
-
 	// Read number of filter headers
 	count, err := ReadVarInt(r, pver)
 	if err != nil {
 		return err
 	}
-
 	// Refuse to decode an insane number of cfheaders.
 	if count > maxCFHeadersLen {
 		return ErrInsaneCFHeaderCount
 	}
-
 	// Create a contiguous slice of hashes to deserialize into in order to
 	// reduce the number of allocations.
 	msg.FilterHeaders = make([]*chainhash.Hash, count)
@@ -86,10 +70,8 @@ func (msg *MsgCFCheckpt) BtcDecode(r io.Reader, pver uint32, _ MessageEncoding) 
 		}
 		msg.FilterHeaders[i] = &cfh
 	}
-
 	return nil
 }
-
 // BtcEncode encodes the receiver to w using the bitcoin protocol encoding.
 // This is part of the Message interface implementation.
 func (msg *MsgCFCheckpt) BtcEncode(w io.Writer, pver uint32, _ MessageEncoding) error {
@@ -98,30 +80,25 @@ func (msg *MsgCFCheckpt) BtcEncode(w io.Writer, pver uint32, _ MessageEncoding) 
 	if err != nil {
 		return err
 	}
-
 	// Write stop hash
 	err = writeElement(w, msg.StopHash)
 	if err != nil {
 		return err
 	}
-
 	// Write length of FilterHeaders slice
 	count := len(msg.FilterHeaders)
 	err = WriteVarInt(w, pver, uint64(count))
 	if err != nil {
 		return err
 	}
-
 	for _, cfh := range msg.FilterHeaders {
 		err := writeElement(w, cfh)
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
-
 // Deserialize decodes a filter header from r into the receiver using a format
 // that is suitable for long-term storage such as a database. This function
 // differs from BtcDecode in that BtcDecode decodes from the bitcoin wire
@@ -137,13 +114,11 @@ func (msg *MsgCFCheckpt) Deserialize(r io.Reader) error {
 	// BtcDecode.
 	return msg.BtcDecode(r, 0, BaseEncoding)
 }
-
 // Command returns the protocol command string for the message.  This is part
 // of the Message interface implementation.
 func (msg *MsgCFCheckpt) Command() string {
 	return CmdCFCheckpt
 }
-
 // MaxPayloadLength returns the maximum length the payload can be for the
 // receiver. This is part of the Message interface implementation.
 func (msg *MsgCFCheckpt) MaxPayloadLength(pver uint32) uint32 {
@@ -151,7 +126,6 @@ func (msg *MsgCFCheckpt) MaxPayloadLength(pver uint32) uint32 {
 	// for all messages.
 	return MaxMessagePayload
 }
-
 // NewMsgCFCheckpt returns a new bitcoin cfheaders message that conforms to
 // the Message interface. See MsgCFCheckpt for details.
 func NewMsgCFCheckpt(filterType FilterType, stopHash *chainhash.Hash,

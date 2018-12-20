@@ -1,7 +1,5 @@
-// Copyright (c) 2013-2017 The btcsuite developers
 
 package main
-
 import (
 	"bufio"
 	"bytes"
@@ -18,7 +16,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/btcsuite/go-socks/socks"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/blockchain"
@@ -32,7 +29,6 @@ import (
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/peer"
 )
-
 const (
 	defaultConfigFilename       = "pod.conf"
 	defaultDataDirname          = "data"
@@ -49,13 +45,11 @@ const (
 	defaultDbType               = "ffldb"
 	defaultFreeTxRelayLimit     = 15.0
 	defaultTrickleInterval      = peer.DefaultTrickleInterval
-
 	////////////////////////////////////////////////////////////////////////////
 	// TODO:                                                                  //
 	//                                                                        //
 	// CHECK ALL THESE WILL COMPLY WITH PARALLELCOIN CONSENSUS !!!!!!!!!!!!!1 //
 	////////////////////////////////////////////////////////////////////////////
-
 	defaultBlockMinSize          = 80
 	defaultBlockMaxSize          = 200000
 	defaultBlockMinWeight        = 10
@@ -73,7 +67,6 @@ const (
 	defaultAddrIndex = false
 	defaultAlgo      = "sha256d"
 )
-
 var (
 	defaultHomeDir     = btcutil.AppDataDir("pod", false)
 	defaultConfigFile  = filepath.Join(defaultHomeDir, defaultConfigFilename)
@@ -83,11 +76,9 @@ var (
 	defaultRPCCertFile = filepath.Join(defaultHomeDir, "rpc.cert")
 	defaultLogDir      = filepath.Join(defaultHomeDir, defaultLogDirname)
 )
-
 // runServiceCommand is only set to a real function on Windows.  It is used
 // to parse and execute service commands specified via the -s flag.
 var runServiceCommand func(string) error
-
 // minUint32 is a helper function to return the minimum of two uint32s.
 // This avoids a math import and the need to cast to floats.
 func minUint32(a, b uint32) uint32 {
@@ -96,9 +87,7 @@ func minUint32(a, b uint32) uint32 {
 	}
 	return b
 }
-
 // config defines the configuration options for pod.
-//
 // See loadConfig for details on the configuration load process.
 type config struct {
 	ShowVersion          bool          `short:"V" long:"version" description:"Display version information and exit"`
@@ -189,13 +178,11 @@ type config struct {
 	minRelayTxFee        btcutil.Amount
 	whitelists           []*net.IPNet
 }
-
 // serviceOptions defines the configuration options for the daemon as a service on
 // Windows.
 type serviceOptions struct {
 	ServiceCommand string `short:"s" long:"service" description:"Service command {install, remove, start, stop}"`
 }
-
 // cleanAndExpandPath expands environment variables and leading ~ in the
 // passed path, cleans the result, and returns it.
 func cleanAndExpandPath(path string) string {
@@ -204,12 +191,10 @@ func cleanAndExpandPath(path string) string {
 		homeDir := filepath.Dir(defaultHomeDir)
 		path = strings.Replace(path, "~", homeDir, 1)
 	}
-
 	// NOTE: The os.ExpandEnv doesn't work with Windows-style %VARIABLE%,
 	// but they variables can still be expanded via POSIX-style $VARIABLE.
 	return filepath.Clean(os.ExpandEnv(path))
 }
-
 // validLogLevel returns whether or not logLevel is a valid debug log level.
 func validLogLevel(logLevel string) bool {
 	switch logLevel {
@@ -228,7 +213,6 @@ func validLogLevel(logLevel string) bool {
 	}
 	return false
 }
-
 // supportedSubsystems returns a sorted slice of the supported subsystems for
 // logging purposes.
 func supportedSubsystems() []string {
@@ -237,12 +221,10 @@ func supportedSubsystems() []string {
 	for subsysID := range subsystemLoggers {
 		subsystems = append(subsystems, subsysID)
 	}
-
 	// Sort the subsystems for stable display.
 	sort.Strings(subsystems)
 	return subsystems
 }
-
 // parseAndSetDebugLevels attempts to parse the specified debug level and set
 // the levels accordingly.  An appropriate error is returned if anything is
 // invalid.
@@ -255,13 +237,10 @@ func parseAndSetDebugLevels(debugLevel string) error {
 			str := "The specified debug level [%v] is invalid"
 			return fmt.Errorf(str, debugLevel)
 		}
-
 		// Change the logging level for all subsystems.
 		setLogLevels(debugLevel)
-
 		return nil
 	}
-
 	// Split the specified string into subsystem/level pairs while detecting
 	// issues and update the log levels accordingly.
 	for _, logLevelPair := range strings.Split(debugLevel, ",") {
@@ -270,30 +249,24 @@ func parseAndSetDebugLevels(debugLevel string) error {
 				"subsystem/level pair [%v]"
 			return fmt.Errorf(str, logLevelPair)
 		}
-
 		// Extract the specified subsystem and log level.
 		fields := strings.Split(logLevelPair, "=")
 		subsysID, logLevel := fields[0], fields[1]
-
 		// Validate subsystem.
 		if _, exists := subsystemLoggers[subsysID]; !exists {
 			str := "The specified subsystem [%v] is invalid -- " +
 				"supported subsytems %v"
 			return fmt.Errorf(str, subsysID, supportedSubsystems())
 		}
-
 		// Validate log level.
 		if !validLogLevel(logLevel) {
 			str := "The specified debug level [%v] is invalid"
 			return fmt.Errorf(str, logLevel)
 		}
-
 		setLogLevel(subsysID, logLevel)
 	}
-
 	return nil
 }
-
 // validDbType returns whether or not dbType is a supported database type.
 func validDbType(dbType string) bool {
 	for _, knownType := range knownDbTypes {
@@ -301,10 +274,8 @@ func validDbType(dbType string) bool {
 			return true
 		}
 	}
-
 	return false
 }
-
 // removeDuplicateAddresses returns a new slice with all duplicate entries in
 // addrs removed.
 func removeDuplicateAddresses(addrs []string) []string {
@@ -318,7 +289,6 @@ func removeDuplicateAddresses(addrs []string) []string {
 	}
 	return result
 }
-
 // normalizeAddress returns addr with the passed default port appended if
 // there is not already a port specified.
 func normalizeAddress(addr, defaultPort string) string {
@@ -328,17 +298,14 @@ func normalizeAddress(addr, defaultPort string) string {
 	}
 	return addr
 }
-
 // normalizeAddresses returns a new slice with all the passed peer addresses
 // normalized with the given default port, and all duplicates removed.
 func normalizeAddresses(addrs []string, defaultPort string) []string {
 	for i, addr := range addrs {
 		addrs[i] = normalizeAddress(addr, defaultPort)
 	}
-
 	return removeDuplicateAddresses(addrs)
 }
-
 // newCheckpointFromStr parses checkpoints in the '<height>:<hash>' format.
 func newCheckpointFromStr(checkpoint string) (chaincfg.Checkpoint, error) {
 	parts := strings.Split(checkpoint, ":")
@@ -347,13 +314,11 @@ func newCheckpointFromStr(checkpoint string) (chaincfg.Checkpoint, error) {
 			"checkpoint %q -- use the syntax <height>:<hash>",
 			checkpoint)
 	}
-
 	height, err := strconv.ParseInt(parts[0], 10, 32)
 	if err != nil {
 		return chaincfg.Checkpoint{}, fmt.Errorf("unable to parse "+
 			"checkpoint %q due to malformed height", checkpoint)
 	}
-
 	if len(parts[1]) == 0 {
 		return chaincfg.Checkpoint{}, fmt.Errorf("unable to parse "+
 			"checkpoint %q due to missing hash", checkpoint)
@@ -363,13 +328,11 @@ func newCheckpointFromStr(checkpoint string) (chaincfg.Checkpoint, error) {
 		return chaincfg.Checkpoint{}, fmt.Errorf("unable to parse "+
 			"checkpoint %q due to malformed hash", checkpoint)
 	}
-
 	return chaincfg.Checkpoint{
 		Height: int32(height),
 		Hash:   hash,
 	}, nil
 }
-
 // parseCheckpoints checks the checkpoint strings for valid syntax
 // ('<height>:<hash>') and parses them to chaincfg.Checkpoint instances.
 func parseCheckpoints(checkpointStrings []string) ([]chaincfg.Checkpoint, error) {
@@ -386,7 +349,6 @@ func parseCheckpoints(checkpointStrings []string) ([]chaincfg.Checkpoint, error)
 	}
 	return checkpoints, nil
 }
-
 // filesExists reports whether the named file or directory exists.
 func fileExists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
@@ -396,7 +358,6 @@ func fileExists(name string) bool {
 	}
 	return true
 }
-
 // newConfigParser returns a new command line flags parser.
 func newConfigParser(cfg *config, so *serviceOptions, options flags.Options) *flags.Parser {
 	parser := flags.NewParser(cfg, options)
@@ -405,16 +366,13 @@ func newConfigParser(cfg *config, so *serviceOptions, options flags.Options) *fl
 	}
 	return parser
 }
-
 // loadConfig initializes and parses the config using a config file and command
 // line options.
-//
 // The configuration proceeds as follows:
 // 	1) Start with a default config with sane settings
 // 	2) Pre-parse the command line to check for an alternative config file
 // 	3) Load configuration file overwriting defaults with any specified options
 // 	4) Parse CLI options and overwrite/add any specified options
-//
 // The above results in pod functioning properly without any config settings
 // while still allowing the user to override settings with config files and
 // command line options.  Command line options always take precedence.
@@ -450,10 +408,8 @@ func loadConfig() (*config, []string, error) {
 		AddrIndex:            defaultAddrIndex,
 		Algo:                 defaultAlgo,
 	}
-
 	// Service options which are only added on Windows.
 	serviceOpts := serviceOptions{}
-
 	// Pre-parse the command line options to see if an alternative config
 	// file or the version flag was specified.  Any errors aside from the
 	// help message error can be ignored here since they will be caught by
@@ -467,7 +423,6 @@ func loadConfig() (*config, []string, error) {
 			return nil, nil, err
 		}
 	}
-
 	// Show the version and exit if the version flag was specified.
 	appName := filepath.Base(os.Args[0])
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
@@ -476,7 +431,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Println(appName, "version", version())
 		os.Exit(0)
 	}
-
 	// Perform service command and exit if specified.  Invalid service
 	// commands show an appropriate error.  Only runs on Windows since
 	// the runServiceCommand function will be nil when not on Windows.
@@ -487,13 +441,11 @@ func loadConfig() (*config, []string, error) {
 		}
 		os.Exit(0)
 	}
-
 	// Load additional config from file.
 	var configFileError error
 	parser := newConfigParser(&cfg, &serviceOpts, flags.Default)
 	if !(preCfg.RegressionTest || preCfg.SimNet) || preCfg.ConfigFile !=
 		defaultConfigFile {
-
 		if _, err := os.Stat(preCfg.ConfigFile); os.IsNotExist(err) {
 			err := createDefaultConfigFile(preCfg.ConfigFile)
 			if err != nil {
@@ -501,7 +453,6 @@ func loadConfig() (*config, []string, error) {
 					"default config file: %v\n", err)
 			}
 		}
-
 		err := flags.NewIniParser(parser).ParseFile(preCfg.ConfigFile)
 		if err != nil {
 			if _, ok := err.(*os.PathError); !ok {
@@ -513,12 +464,10 @@ func loadConfig() (*config, []string, error) {
 			configFileError = err
 		}
 	}
-
 	// Don't add peers from the config file when in regression test mode.
 	if preCfg.RegressionTest && len(cfg.AddPeers) > 0 {
 		cfg.AddPeers = nil
 	}
-
 	// Parse command line options again to ensure they take precedence.
 	remainingArgs, err := parser.Parse()
 	if err != nil {
@@ -527,7 +476,6 @@ func loadConfig() (*config, []string, error) {
 		}
 		return nil, nil, err
 	}
-
 	// Create the home directory if it doesn't already exist.
 	funcName := "loadConfig"
 	err = os.MkdirAll(defaultHomeDir, 0700)
@@ -541,13 +489,11 @@ func loadConfig() (*config, []string, error) {
 				err = fmt.Errorf(str, e.Path, link)
 			}
 		}
-
 		str := "%s: Failed to create home directory: %v"
 		err := fmt.Errorf(str, funcName, err)
 		fmt.Fprintln(os.Stderr, err)
 		return nil, nil, err
 	}
-
 	// Multiple networks can't be selected simultaneously.
 	numNets := 0
 	// Count number of network flags passed; assign active network params
@@ -577,14 +523,12 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Set the mining algorithm correctly, default to sha256d if unrecognised
 	switch cfg.Algo {
 	case "blake14lr", "whirlpool", "keccak", "lyra2rev2", "scrypt", "skein", "x11", "gost":
 	default:
 		cfg.Algo = "sha256d"
 	}
-
 	// Set the default policy for relaying non-standard transactions
 	// according to the default of the active network. The set
 	// configuration value takes precedence over the default value for the
@@ -604,7 +548,6 @@ func loadConfig() (*config, []string, error) {
 		relayNonStd = true
 	}
 	cfg.RelayNonStd = relayNonStd
-
 	// Append the network type to the data directory so it is "namespaced"
 	// per network.  In addition to the block database, there are other
 	// pieces of data that are saved to disk such as address manager state.
@@ -613,22 +556,18 @@ func loadConfig() (*config, []string, error) {
 	// worry about changing names per network and such.
 	cfg.DataDir = cleanAndExpandPath(cfg.DataDir)
 	cfg.DataDir = filepath.Join(cfg.DataDir, netName(activeNetParams))
-
 	// Append the network type to the log directory so it is "namespaced"
 	// per network in the same fashion as the data directory.
 	cfg.LogDir = cleanAndExpandPath(cfg.LogDir)
 	cfg.LogDir = filepath.Join(cfg.LogDir, netName(activeNetParams))
-
 	// Special show command to list supported subsystems and exit.
 	if cfg.DebugLevel == "show" {
 		fmt.Println("Supported subsystems", supportedSubsystems())
 		os.Exit(0)
 	}
-
 	// Initialize log rotation.  After log rotation has been initialized, the
 	// logger variables may be used.
 	initLogRotator(filepath.Join(cfg.LogDir, defaultLogFilename))
-
 	// Parse, validate, and set debug log level(s).
 	if err := parseAndSetDebugLevels(cfg.DebugLevel); err != nil {
 		err := fmt.Errorf("%s: %v", funcName, err.Error())
@@ -636,7 +575,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Validate database type.
 	if !validDbType(cfg.DbType) {
 		str := "%s: The specified database type [%v] is invalid -- " +
@@ -646,7 +584,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Validate profile port number
 	if cfg.Profile != "" {
 		profilePort, err := strconv.Atoi(cfg.Profile)
@@ -658,7 +595,6 @@ func loadConfig() (*config, []string, error) {
 			return nil, nil, err
 		}
 	}
-
 	// Don't allow ban durations that are too short.
 	if cfg.BanDuration < time.Second {
 		str := "%s: The banduration option may not be less than 1s -- parsed [%v]"
@@ -667,12 +603,10 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Validate any given whitelisted IP addresses and networks.
 	if len(cfg.Whitelists) > 0 {
 		var ip net.IP
 		cfg.whitelists = make([]*net.IPNet, 0, len(cfg.Whitelists))
-
 		for _, addr := range cfg.Whitelists {
 			_, ipnet, err := net.ParseCIDR(addr)
 			if err != nil {
@@ -699,7 +633,6 @@ func loadConfig() (*config, []string, error) {
 			cfg.whitelists = append(cfg.whitelists, ipnet)
 		}
 	}
-
 	// --addPeer and --connect do not mix.
 	if len(cfg.AddPeers) > 0 && len(cfg.ConnectPeers) > 0 {
 		str := "%s: the --addpeer and --connect options can not be " +
@@ -709,18 +642,15 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// --proxy or --connect without --listen disables listening.
 	if (cfg.Proxy != "" || len(cfg.ConnectPeers) > 0) &&
 		len(cfg.Listeners) == 0 {
 		cfg.DisableListen = true
 	}
-
 	// Connect means no DNS seeding.
 	if len(cfg.ConnectPeers) > 0 {
 		cfg.DisableDNSSeed = true
 	}
-
 	// Add the default listener if none were specified. The default
 	// listener is all addresses on the listen port for the network
 	// we are to connect to.
@@ -729,7 +659,6 @@ func loadConfig() (*config, []string, error) {
 			net.JoinHostPort("", activeNetParams.DefaultPort),
 		}
 	}
-
 	// Check to make sure limited and admin users don't have the same username
 	if cfg.RPCUser == cfg.RPCLimitUser && cfg.RPCUser != "" {
 		str := "%s: --rpcuser and --rpclimituser must not specify the " +
@@ -739,7 +668,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Check to make sure limited and admin users don't have the same password
 	if cfg.RPCPass == cfg.RPCLimitPass && cfg.RPCPass != "" {
 		str := "%s: --rpcpass and --rpclimitpass must not specify the " +
@@ -749,17 +677,14 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// The RPC server is disabled if no username or password is provided.
 	if (cfg.RPCUser == "" || cfg.RPCPass == "") &&
 		(cfg.RPCLimitUser == "" || cfg.RPCLimitPass == "") {
 		cfg.DisableRPC = true
 	}
-
 	if cfg.DisableRPC {
 		podLog.Infof("RPC service is disabled")
 	}
-
 	// Default RPC to listen on localhost only.
 	if !cfg.DisableRPC && len(cfg.RPCListeners) == 0 {
 		addrs, err := net.LookupHost("localhost")
@@ -812,7 +737,6 @@ func loadConfig() (*config, []string, error) {
 			cfg.GostListeners = append(cfg.GostListeners, addr)
 		}
 	}
-
 	if cfg.RPCMaxConcurrentReqs < 0 {
 		str := "%s: The rpcmaxwebsocketconcurrentrequests option may " +
 			"not be less than 0 -- parsed [%d]"
@@ -821,7 +745,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Validate the the minrelaytxfee.
 	cfg.minRelayTxFee, err = btcutil.NewAmount(cfg.MinRelayTxFee)
 	if err != nil {
@@ -831,11 +754,9 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Limit the max block size to a sane value.
 	if cfg.BlockMaxSize < blockMaxSizeMin || cfg.BlockMaxSize >
 		blockMaxSizeMax {
-
 		str := "%s: The blockmaxsize option must be in between %d " +
 			"and %d -- parsed [%d]"
 		err := fmt.Errorf(str, funcName, blockMaxSizeMin,
@@ -844,11 +765,9 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Limit the max block weight to a sane value.
 	if cfg.BlockMaxWeight < blockMaxWeightMin ||
 		cfg.BlockMaxWeight > blockMaxWeightMax {
-
 		str := "%s: The blockmaxweight option must be in between %d " +
 			"and %d -- parsed [%d]"
 		err := fmt.Errorf(str, funcName, blockMaxWeightMin,
@@ -857,7 +776,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Limit the max orphan count to a sane vlue.
 	if cfg.MaxOrphanTxs < 0 {
 		str := "%s: The maxorphantx option may not be less than 0 " +
@@ -867,29 +785,23 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Limit the block priority and minimum block sizes to max block size.
 	cfg.BlockPrioritySize = minUint32(cfg.BlockPrioritySize, cfg.BlockMaxSize)
 	cfg.BlockMinSize = minUint32(cfg.BlockMinSize, cfg.BlockMaxSize)
 	cfg.BlockMinWeight = minUint32(cfg.BlockMinWeight, cfg.BlockMaxWeight)
-
 	switch {
 	// If the max block size isn't set, but the max weight is, then we'll
 	// set the limit for the max block size to a safe limit so weight takes
 	// precedence.
 	case cfg.BlockMaxSize == defaultBlockMaxSize &&
 		cfg.BlockMaxWeight != defaultBlockMaxWeight:
-
 		cfg.BlockMaxSize = blockchain.MaxBlockBaseSize - 1000
-
 	// If the max block weight isn't set, but the block size is, then we'll
 	// scale the set weight accordingly based on the max block size value.
 	case cfg.BlockMaxSize != defaultBlockMaxSize &&
 		cfg.BlockMaxWeight == defaultBlockMaxWeight:
-
 		cfg.BlockMaxWeight = cfg.BlockMaxSize * blockchain.WitnessScaleFactor
 	}
-
 	// Look for illegal characters in the user agent comments.
 	for _, uaComment := range cfg.UserAgentComments {
 		if strings.ContainsAny(uaComment, "/:()") {
@@ -901,7 +813,6 @@ func loadConfig() (*config, []string, error) {
 			return nil, nil, err
 		}
 	}
-
 	// --txindex and --droptxindex do not mix.
 	if cfg.TxIndex && cfg.DropTxIndex {
 		err := fmt.Errorf("%s: the --txindex and --droptxindex "+
@@ -911,7 +822,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// --addrindex and --dropaddrindex do not mix.
 	if cfg.AddrIndex && cfg.DropAddrIndex {
 		err := fmt.Errorf("%s: the --addrindex and --dropaddrindex "+
@@ -921,7 +831,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// --addrindex and --droptxindex do not mix.
 	if cfg.AddrIndex && cfg.DropTxIndex {
 		err := fmt.Errorf("%s: the --addrindex and --droptxindex "+
@@ -933,7 +842,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Check mining addresses are valid and saved parsed versions.
 	cfg.miningAddrs = make([]btcutil.Address, 0, len(cfg.MiningAddrs))
 	for _, strAddr := range cfg.MiningAddrs {
@@ -954,7 +862,6 @@ func loadConfig() (*config, []string, error) {
 		}
 		cfg.miningAddrs = append(cfg.miningAddrs, addr)
 	}
-
 	// Ensure there is at least one mining address when the generate flag is
 	// set.
 	if cfg.Generate && len(cfg.MiningAddrs) == 0 {
@@ -965,17 +872,14 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Add default port to all listener addresses if needed and remove
 	// duplicate addresses.
 	cfg.Listeners = normalizeAddresses(cfg.Listeners,
 		activeNetParams.DefaultPort)
-
 	// Add default port to all rpc listener addresses if needed and remove
 	// duplicate addresses.
 	cfg.RPCListeners = normalizeAddresses(cfg.RPCListeners,
 		activeNetParams.rpcPort)
-
 	// Only allow TLS to be disabled if the RPC is bound to localhost
 	// addresses.
 	if !cfg.DisableRPC && !cfg.TLS {
@@ -1006,14 +910,12 @@ func loadConfig() (*config, []string, error) {
 			// }
 		}
 	}
-
 	// Add default port to all added peer addresses if needed and remove
 	// duplicate addresses.
 	cfg.AddPeers = normalizeAddresses(cfg.AddPeers,
 		activeNetParams.DefaultPort)
 	cfg.ConnectPeers = normalizeAddresses(cfg.ConnectPeers,
 		activeNetParams.DefaultPort)
-
 	// --noonion and --onion do not mix.
 	if cfg.NoOnion && cfg.OnionProxy != "" {
 		err := fmt.Errorf("%s: the --noonion and --onion options may "+
@@ -1022,7 +924,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Check the checkpoints for syntax errors.
 	cfg.addCheckpoints, err = parseCheckpoints(cfg.AddCheckpoints)
 	if err != nil {
@@ -1032,7 +933,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Tor stream isolation requires either proxy or onion proxy to be set.
 	if cfg.TorIsolation && cfg.Proxy == "" && cfg.OnionProxy == "" {
 		str := "%s: Tor stream isolation requires either proxy or " +
@@ -1042,7 +942,6 @@ func loadConfig() (*config, []string, error) {
 		fmt.Fprintln(os.Stderr, usageMessage)
 		return nil, nil, err
 	}
-
 	// Setup dial and DNS resolution (lookup) functions depending on the
 	// specified options.  The default is to use the standard
 	// net.DialTimeout function as well as the system DNS resolver.  When a
@@ -1060,19 +959,16 @@ func loadConfig() (*config, []string, error) {
 			fmt.Fprintln(os.Stderr, usageMessage)
 			return nil, nil, err
 		}
-
 		// Tor isolation flag means proxy credentials will be overridden
 		// unless there is also an onion proxy configured in which case
 		// that one will be overridden.
 		torIsolation := false
 		if cfg.TorIsolation && cfg.OnionProxy == "" &&
 			(cfg.ProxyUser != "" || cfg.ProxyPass != "") {
-
 			torIsolation = true
 			fmt.Fprintln(os.Stderr, "Tor isolation set -- "+
 				"overriding specified proxy user credentials")
 		}
-
 		proxy := &socks.Proxy{
 			Addr:         cfg.Proxy,
 			Username:     cfg.ProxyUser,
@@ -1080,7 +976,6 @@ func loadConfig() (*config, []string, error) {
 			TorIsolation: torIsolation,
 		}
 		cfg.dial = proxy.DialTimeout
-
 		// Treat the proxy as tor and perform DNS resolution through it
 		// unless the --noonion flag is set or there is an
 		// onion-specific proxy configured.
@@ -1090,7 +985,6 @@ func loadConfig() (*config, []string, error) {
 			}
 		}
 	}
-
 	// Setup onion address dial function depending on the specified options.
 	// The default is to use the same dial function selected above.  However,
 	// when an onion-specific proxy is specified, the onion address dial
@@ -1106,7 +1000,6 @@ func loadConfig() (*config, []string, error) {
 			fmt.Fprintln(os.Stderr, usageMessage)
 			return nil, nil, err
 		}
-
 		// Tor isolation flag means onion proxy credentials will be
 		// overridden.
 		if cfg.TorIsolation &&
@@ -1115,7 +1008,6 @@ func loadConfig() (*config, []string, error) {
 				"overriding specified onionproxy user "+
 				"credentials ")
 		}
-
 		cfg.oniondial = func(network, addr string, timeout time.Duration) (net.Conn, error) {
 			proxy := &socks.Proxy{
 				Addr:         cfg.OnionProxy,
@@ -1125,7 +1017,6 @@ func loadConfig() (*config, []string, error) {
 			}
 			return proxy.DialTimeout(network, addr, timeout)
 		}
-
 		// When configured in bridge mode (both --onion and --proxy are
 		// configured), it means that the proxy configured by --proxy is
 		// not a tor proxy, so override the DNS resolution to use the
@@ -1138,7 +1029,6 @@ func loadConfig() (*config, []string, error) {
 	} else {
 		cfg.oniondial = cfg.dial
 	}
-
 	// Specifying --noonion means the onion address dial function results in
 	// an error.
 	if cfg.NoOnion {
@@ -1146,17 +1036,14 @@ func loadConfig() (*config, []string, error) {
 			return nil, errors.New("tor has been disabled")
 		}
 	}
-
 	// Warn about missing config file only after all other configuration is
 	// done.  This prevents the warning on help messages and invalid
 	// options.  Note this should go directly before the return.
 	if configFileError != nil {
 		podLog.Warnf("%v", configFileError)
 	}
-
 	return &cfg, remainingArgs, nil
 }
-
 // createDefaultConfig copies the file sample-pod.conf to the given destination path,
 // and populates it with some randomly generated RPC username and password.
 func createDefaultConfigFile(destinationPath string) error {
@@ -1165,14 +1052,12 @@ func createDefaultConfigFile(destinationPath string) error {
 	if err != nil {
 		return err
 	}
-
 	// We assume sample config file path is same as binary
 	// path, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	// if err != nil {
 	// 	return err
 	// }
 	// sampleConfigPath := filepath.Join(path, sampleConfigFilename)
-
 	// We generate a random user and password
 	randomBytes := make([]byte, 20)
 	_, err = rand.Read(randomBytes)
@@ -1180,29 +1065,24 @@ func createDefaultConfigFile(destinationPath string) error {
 		return err
 	}
 	generatedRPCUser := base64.StdEncoding.EncodeToString(randomBytes)
-
 	_, err = rand.Read(randomBytes)
 	if err != nil {
 		return err
 	}
 	generatedRPCPass := base64.StdEncoding.EncodeToString(randomBytes)
-
 	// src, err := os.Open(sampleConfigPath)
 	// if err != nil {
 	// 	return err
 	// }
 	// defer src.Close()
-
 	var bb bytes.Buffer
 	bb.Write(samplePodConf)
-
 	dest, err := os.OpenFile(destinationPath,
 		os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
 	defer dest.Close()
-
 	// We copy every line from the sample config file to the destination,
 	// only replacing the two lines for rpcuser and rpcpass
 	reader := bufio.NewReader(&bb)
@@ -1212,21 +1092,17 @@ func createDefaultConfigFile(destinationPath string) error {
 		if err != nil && err != io.EOF {
 			return err
 		}
-
 		if strings.Contains(line, "rpcuser=") {
 			line = "rpcuser=" + generatedRPCUser + "\n"
 		} else if strings.Contains(line, "rpcpass=") {
 			line = "rpcpass=" + generatedRPCPass + "\n"
 		}
-
 		if _, err := dest.WriteString(line); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
-
 // podDial connects to the address on the named network using the appropriate
 // dial function depending on the address and configuration options.  For
 // example, .onion addresses will be dialed using the onion specific proxy if
@@ -1239,18 +1115,15 @@ func podDial(addr net.Addr) (net.Conn, error) {
 	}
 	return cfg.dial(addr.Network(), addr.String(), defaultConnectTimeout)
 }
-
 // podLookup resolves the IP of the given host using the correct DNS lookup
 // function depending on the configuration options.  For example, addresses will
 // be resolved using tor when the --proxy flag was specified unless --noonion
 // was also specified in which case the normal system DNS resolver will be used.
-//
 // Any attempt to resolve a tor address (.onion) will return an error since they
 // are not intended to be resolved outside of the tor proxy.
 func podLookup(host string) ([]net.IP, error) {
 	if strings.HasSuffix(host, ".onion") {
 		return nil, fmt.Errorf("attempt to resolve tor address %s", host)
 	}
-
 	return cfg.lookup(host)
 }
