@@ -1,7 +1,8 @@
 package btcec
+
 import "testing"
-// BenchmarkAddJacobian benchmarks the secp256k1 curve addJacobian function with
-// Z values of 1 so that the associated optimizations are used.
+
+// BenchmarkAddJacobian benchmarks the secp256k1 curve addJacobian function with Z values of 1 so that the associated optimizations are used.
 func BenchmarkAddJacobian(b *testing.B) {
 	b.StopTimer()
 	x1 := new(fieldVal).SetHex("34f9460f0e4f08393d192b3c5133a6ba099aa0ad9fd54ebccfacdfa239ff49c6")
@@ -17,9 +18,8 @@ func BenchmarkAddJacobian(b *testing.B) {
 		curve.addJacobian(x1, y1, z1, x2, y2, z2, x3, y3, z3)
 	}
 }
-// BenchmarkAddJacobianNotZOne benchmarks the secp256k1 curve addJacobian
-// function with Z values other than one so the optimizations associated with
-// Z=1 aren't used.
+
+// BenchmarkAddJacobianNotZOne benchmarks the secp256k1 curve addJacobian function with Z values other than one so the optimizations associated with Z=1 aren't used.
 func BenchmarkAddJacobianNotZOne(b *testing.B) {
 	b.StopTimer()
 	x1 := new(fieldVal).SetHex("d3e5183c393c20e4f464acf144ce9ae8266a82b67f553af33eb37e88e7fd2718")
@@ -35,8 +35,8 @@ func BenchmarkAddJacobianNotZOne(b *testing.B) {
 		curve.addJacobian(x1, y1, z1, x2, y2, z2, x3, y3, z3)
 	}
 }
-// BenchmarkScalarBaseMult benchmarks the secp256k1 curve ScalarBaseMult
-// function.
+
+// BenchmarkScalarBaseMult benchmarks the secp256k1 curve ScalarBaseMult function.
 func BenchmarkScalarBaseMult(b *testing.B) {
 	k := fromHex("d74bf844b0862475103d96a611cf2d898447e288d34b360bc885cb8ce7c00575")
 	curve := S256()
@@ -44,8 +44,8 @@ func BenchmarkScalarBaseMult(b *testing.B) {
 		curve.ScalarBaseMult(k.Bytes())
 	}
 }
-// BenchmarkScalarBaseMultLarge benchmarks the secp256k1 curve ScalarBaseMult
-// function with abnormally large k values.
+
+// BenchmarkScalarBaseMultLarge benchmarks the secp256k1 curve ScalarBaseMult function with abnormally large k values.
 func BenchmarkScalarBaseMultLarge(b *testing.B) {
 	k := fromHex("d74bf844b0862475103d96a611cf2d898447e288d34b360bc885cb8ce7c005751111111011111110")
 	curve := S256()
@@ -53,6 +53,7 @@ func BenchmarkScalarBaseMultLarge(b *testing.B) {
 		curve.ScalarBaseMult(k.Bytes())
 	}
 }
+
 // BenchmarkScalarMult benchmarks the secp256k1 curve ScalarMult function.
 func BenchmarkScalarMult(b *testing.B) {
 	x := fromHex("34f9460f0e4f08393d192b3c5133a6ba099aa0ad9fd54ebccfacdfa239ff49c6")
@@ -63,6 +64,7 @@ func BenchmarkScalarMult(b *testing.B) {
 		curve.ScalarMult(x, y, k.Bytes())
 	}
 }
+
 // BenchmarkNAF benchmarks the NAF function.
 func BenchmarkNAF(b *testing.B) {
 	k := fromHex("d74bf844b0862475103d96a611cf2d898447e288d34b360bc885cb8ce7c00575")
@@ -70,12 +72,11 @@ func BenchmarkNAF(b *testing.B) {
 		NAF(k.Bytes())
 	}
 }
-// BenchmarkSigVerify benchmarks how long it takes the secp256k1 curve to
-// verify signatures.
+
+// BenchmarkSigVerify benchmarks how long it takes the secp256k1 curve to verify signatures.
 func BenchmarkSigVerify(b *testing.B) {
 	b.StopTimer()
-	// Randomly generated keypair.
-	// Private key: 9e0699c91ca1e3b7e3c9ba71eb71c89890872be97576010fe593fbf3fd57e66d
+	// Randomly generated keypair. Private key: 9e0699c91ca1e3b7e3c9ba71eb71c89890872be97576010fe593fbf3fd57e66d
 	pubKey := PublicKey{
 		Curve: S256(),
 		X:     fromHex("d2e670a19c6d753d1a6d8b20bd045df8a08fb162cf508956c31268c6d81ffdab"),
@@ -96,8 +97,8 @@ func BenchmarkSigVerify(b *testing.B) {
 		sig.Verify(msgHash.Bytes(), &pubKey)
 	}
 }
-// BenchmarkFieldNormalize benchmarks how long it takes the internal field
-// to perform normalization (which includes modular reduction).
+
+// BenchmarkFieldNormalize benchmarks how long it takes the internal field to perform normalization (which includes modular reduction).
 func BenchmarkFieldNormalize(b *testing.B) {
 	// The normalize function is constant time so default value is fine.
 	f := new(fieldVal)

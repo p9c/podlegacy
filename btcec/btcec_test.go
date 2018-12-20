@@ -1,12 +1,13 @@
 package btcec
+
 import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
 	"testing"
 )
-// isJacobianOnS256Curve returns boolean if the point (x,y,z) is on the
-// secp256k1 curve.
+
+// isJacobianOnS256Curve returns boolean if the point (x,y,z) is on the secp256k1 curve.
 func isJacobianOnS256Curve(x, y, z *fieldVal) bool {
 	// Elliptic curve equation for secp256k1 is: y^2 = x^3 + 7
 	// In Jacobian coordinates, Y = y/z^3 and X = x/z^2
@@ -21,6 +22,7 @@ func isJacobianOnS256Curve(x, y, z *fieldVal) bool {
 	result.SquareVal(&z2).Mul(&z2).MulInt(7).Add(&x3).Normalize()
 	return y2.Equals(&result)
 }
+
 // TestAddJacobian tests addition of points projected in Jacobian coordinates.
 func TestAddJacobian(t *testing.T) {
 	tests := []struct {
@@ -219,8 +221,7 @@ func TestAddJacobian(t *testing.T) {
 		x3 := new(fieldVal).SetHex(test.x3)
 		y3 := new(fieldVal).SetHex(test.y3)
 		z3 := new(fieldVal).SetHex(test.z3)
-		// Ensure the test data is using points that are actually on
-		// the curve (or the point at infinity).
+		// Ensure the test data is using points that are actually on the curve (or the point at infinity).
 		if !z1.IsZero() && !isJacobianOnS256Curve(x1, y1, z1) {
 			t.Errorf("#%d first point is not on the curve -- "+
 				"invalid test data", i)
@@ -247,6 +248,7 @@ func TestAddJacobian(t *testing.T) {
 		}
 	}
 }
+
 // TestAddAffine tests addition of points in affine coordinates.
 func TestAddAffine(t *testing.T) {
 	tests := []struct {
@@ -310,8 +312,7 @@ func TestAddAffine(t *testing.T) {
 		x1, y1 := fromHex(test.x1), fromHex(test.y1)
 		x2, y2 := fromHex(test.x2), fromHex(test.y2)
 		x3, y3 := fromHex(test.x3), fromHex(test.y3)
-		// Ensure the test data is using points that are actually on
-		// the curve (or the point at infinity).
+		// Ensure the test data is using points that are actually on the curve (or the point at infinity).
 		if !(x1.Sign() == 0 && y1.Sign() == 0) && !S256().IsOnCurve(x1, y1) {
 			t.Errorf("#%d first point is not on the curve -- "+
 				"invalid test data", i)
@@ -337,8 +338,8 @@ func TestAddAffine(t *testing.T) {
 		}
 	}
 }
-// TestDoubleJacobian tests doubling of points projected in Jacobian
-// coordinates.
+
+// TestDoubleJacobian tests doubling of points projected in Jacobian coordinates.
 func TestDoubleJacobian(t *testing.T) {
 	tests := []struct {
 		x1, y1, z1 string // Coordinates (in hex) of point to double
@@ -390,8 +391,7 @@ func TestDoubleJacobian(t *testing.T) {
 		x3 := new(fieldVal).SetHex(test.x3)
 		y3 := new(fieldVal).SetHex(test.y3)
 		z3 := new(fieldVal).SetHex(test.z3)
-		// Ensure the test data is using points that are actually on
-		// the curve (or the point at infinity).
+		// Ensure the test data is using points that are actually on the curve (or the point at infinity).
 		if !z1.IsZero() && !isJacobianOnS256Curve(x1, y1, z1) {
 			t.Errorf("#%d first point is not on the curve -- "+
 				"invalid test data", i)
@@ -413,6 +413,7 @@ func TestDoubleJacobian(t *testing.T) {
 		}
 	}
 }
+
 // TestDoubleAffine tests doubling of points in affine coordinates.
 func TestDoubleAffine(t *testing.T) {
 	tests := []struct {
@@ -458,8 +459,7 @@ func TestDoubleAffine(t *testing.T) {
 		// Convert hex to field values.
 		x1, y1 := fromHex(test.x1), fromHex(test.y1)
 		x3, y3 := fromHex(test.x3), fromHex(test.y3)
-		// Ensure the test data is using points that are actually on
-		// the curve (or the point at infinity).
+		// Ensure the test data is using points that are actually on the curve (or the point at infinity).
 		if !(x1.Sign() == 0 && y1.Sign() == 0) && !S256().IsOnCurve(x1, y1) {
 			t.Errorf("#%d first point is not on the curve -- "+
 				"invalid test data", i)
@@ -486,10 +486,12 @@ func TestOnCurve(t *testing.T) {
 		t.Errorf("FAIL S256")
 	}
 }
+
 type baseMultTest struct {
 	k    string
 	x, y string
 }
+
 //TODO: add more test vectors
 var s256BaseMultTests = []baseMultTest{
 	{
@@ -518,6 +520,7 @@ var s256BaseMultTests = []baseMultTest{
 		"F449A8376906482A84ED01479BD18882B919C140D638307F0C0934BA12590BDE",
 	},
 }
+
 //TODO: test different curves as well?
 func TestBaseMult(t *testing.T) {
 	s256 := S256()
@@ -596,11 +599,7 @@ func TestScalarMult(t *testing.T) {
 }
 func TestScalarMultRand(t *testing.T) {
 	// Strategy for this test:
-	// Get a random exponent from the generator point at first
-	// This creates a new point which is used in the next iteration
-	// Use another random exponent on the new point.
-	// We use BaseMult to verify by multiplying the previous exponent
-	// and the new random exponent together (mod N)
+	// Get a random exponent from the generator point at first This creates a new point which is used in the next iteration Use another random exponent on the new point. We use BaseMult to verify by multiplying the previous exponent and the new random exponent together (mod N)
 	s256 := S256()
 	x, y := s256.Gx, s256.Gy
 	exponent := big.NewInt(1)
@@ -729,6 +728,7 @@ func TestSplitKRand(t *testing.T) {
 		}
 	}
 }
+
 // Test this curve's usage with the ecdsa package.
 func testKeyGeneration(t *testing.T, c *KoblitzCurve, tag string) {
 	priv, err := NewPrivateKey(c)

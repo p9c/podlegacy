@@ -1,5 +1,5 @@
-
 package btcec
+
 import (
 	"bytes"
 	"crypto/rand"
@@ -10,15 +10,15 @@ import (
 	"reflect"
 	"testing"
 )
+
 type signatureTest struct {
 	name    string
 	sig     []byte
 	der     bool
 	isValid bool
 }
-// decodeHex decodes the passed hex string and returns the resulting bytes.  It
-// panics if an error occurs.  This is only used in the tests as a helper since
-// the only way it can fail is if there is an error in the test source code.
+
+// decodeHex decodes the passed hex string and returns the resulting bytes.  It panics if an error occurs.  This is only used in the tests as a helper since the only way it can fail is if there is an error in the test source code.
 func decodeHex(hexStr string) []byte {
 	b, err := hex.DecodeString(hexStr)
 	if err != nil {
@@ -27,9 +27,9 @@ func decodeHex(hexStr string) []byte {
 	}
 	return b
 }
+
 var signatureTests = []signatureTest{
-	// signatures from bitcoin blockchain tx
-	// 0437cd7f8525ceed2324359c2d0ba26006d92d85
+	// signatures from bitcoin blockchain tx 0437cd7f8525ceed2324359c2d0ba26006d92d85
 	{
 		name: "valid signature.",
 		sig: []byte{0x30, 0x44, 0x02, 0x20, 0x4e, 0x45, 0xe1, 0x69,
@@ -179,11 +179,7 @@ var signatureTests = []signatureTest{
 			0x08, 0x22, 0x21, 0xa8, 0x76, 0x8d, 0x1d, 0x09, 0x01,
 		},
 		der: true,
-		// This test is now passing (used to be failing) because there
-		// are signatures in the blockchain that have trailing zero
-		// bytes before the hashtype. So ParseSignature was fixed to
-		// permit buffers with trailing nonsense after the actual
-		// signature.
+		// This test is now passing (used to be failing) because there are signatures in the blockchain that have trailing zero bytes before the hashtype. So ParseSignature was fixed to permit buffers with trailing nonsense after the actual signature.
 		isValid: true,
 	},
 	{
@@ -292,14 +288,7 @@ var signatureTests = []signatureTest{
 		der:     true,
 		isValid: false,
 	},
-	// Standard checks (in BER format, without checking for 'canonical' DER
-	// signatures) don't test for negative numbers here because there isn't
-	// a way that is the same between openssl and go that will mark a number
-	// as negative. The Go ASN.1 parser marks numbers as negative when
-	// openssl does not (it doesn't handle negative numbers that I can tell
-	// at all. When not parsing DER signatures, which is done by by bitcoind
-	// when accepting transactions into its mempool, we otherwise only check
-	// for the coordinates being zero.
+	// Standard checks (in BER format, without checking for 'canonical' DER signatures) don't test for negative numbers here because there isn't a way that is the same between openssl and go that will mark a number as negative. The Go ASN.1 parser marks numbers as negative when openssl does not (it doesn't handle negative numbers that I can tell at all. When not parsing DER signatures, which is done by by bitcoind when accepting transactions into its mempool, we otherwise only check for the coordinates being zero.
 	{
 		name: "X == 0",
 		sig: []byte{0x30, 0x25, 0x02, 0x01, 0x00, 0x02, 0x20, 0x18,
@@ -323,6 +312,7 @@ var signatureTests = []signatureTest{
 		isValid: false,
 	},
 }
+
 func TestSignatures(t *testing.T) {
 	for _, test := range signatureTests {
 		var err error
@@ -346,6 +336,7 @@ func TestSignatures(t *testing.T) {
 		}
 	}
 }
+
 // TestSignatureSerialize ensures that serializing signatures works as expected.
 func TestSignatureSerialize(t *testing.T) {
 	tests := []struct {
@@ -353,8 +344,7 @@ func TestSignatureSerialize(t *testing.T) {
 		ecsig    *Signature
 		expected []byte
 	}{
-		// signature from bitcoin blockchain tx
-		// 0437cd7f8525ceed2324359c2d0ba26006d92d85
+		// signature from bitcoin blockchain tx 0437cd7f8525ceed2324359c2d0ba26006d92d85
 		{
 			"valid 1 - r and s most significant bits are zero",
 			&Signature{
@@ -373,8 +363,7 @@ func TestSignatureSerialize(t *testing.T) {
 				0x21, 0xa8, 0x76, 0x8d, 0x1d, 0x09,
 			},
 		},
-		// signature from bitcoin blockchain tx
-		// cb00f8a0573b18faa8c4f467b049f5d202bf1101d9ef2633bc611be70376a4b4
+		// signature from bitcoin blockchain tx cb00f8a0573b18faa8c4f467b049f5d202bf1101d9ef2633bc611be70376a4b4
 		{
 			"valid 2 - r most significant bit is one",
 			&Signature{
@@ -393,8 +382,7 @@ func TestSignatureSerialize(t *testing.T) {
 				0xac, 0xad, 0x7f, 0x9c, 0x86, 0x87, 0x24,
 			},
 		},
-		// signature from bitcoin blockchain tx
-		// fda204502a3345e08afd6af27377c052e77f1fefeaeb31bdd45f1e1237ca5470
+		// signature from bitcoin blockchain tx fda204502a3345e08afd6af27377c052e77f1fefeaeb31bdd45f1e1237ca5470
 		{
 			"valid 3 - s most significant bit is one",
 			&Signature{
@@ -474,8 +462,7 @@ func testSignCompact(t *testing.T, tag string, curve *KoblitzCurve,
 			"(%v vs %v)", tag, isCompressed, wasCompressed)
 		return
 	}
-	// If we change the compressed bit we should get the same key back,
-	// but the compressed flag should be reversed.
+	// If we change the compressed bit we should get the same key back, but the compressed flag should be reversed.
 	if isCompressed {
 		sig[0] -= 4
 	} else {
@@ -511,8 +498,8 @@ func TestSignCompact(t *testing.T) {
 		testSignCompact(t, name, S256(), data, compressed)
 	}
 }
-// recoveryTests assert basic tests for public key recovery from signatures.
-// The cases are borrowed from github.com/fjl/btcec-issue.
+
+// recoveryTests assert basic tests for public key recovery from signatures. The cases are borrowed from github.com/fjl/btcec-issue.
 var recoveryTests = []struct {
 	msg string
 	sig string
@@ -538,6 +525,7 @@ var recoveryTests = []struct {
 		pub: "04A7640409AA2083FDAD38B2D8DE1263B2251799591D840653FB02DBBA503D7745FCB83D80E08A1E02896BE691EA6AFFB8A35939A646F1FC79052A744B1C82EDC3",
 	},
 }
+
 func TestRecoverCompact(t *testing.T) {
 	for i, test := range recoveryTests {
 		msg := decodeHex(test.msg)
@@ -582,8 +570,7 @@ func TestRFC6979(t *testing.T) {
 			"3045022100af340daf02cc15c8d5d08d7735dfe6b98a474ed373bdb5fbecf7571be52b384202205009fb27f37034a9b24b707b7c6b79ca23ddef9e25f7282e8a797efe53a8f124",
 		},
 		{
-			// This signature hits the case when S is higher than halforder.
-			// If S is not canonicalized (lowered by halforder), this test will fail.
+			// This signature hits the case when S is higher than halforder. If S is not canonicalized (lowered by halforder), this test will fail.
 			"0000000000000000000000000000000000000000000000000000000000000001",
 			"Satoshi Nakamoto",
 			"8f8a276c19f4149656b280621e358cce24f5f52542772691ee69063b74f15d15",

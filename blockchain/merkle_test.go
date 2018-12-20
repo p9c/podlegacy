@@ -1,9 +1,10 @@
-
 package blockchain
+
 import (
-	"testing"
 	"github.com/parallelcointeam/pod/btcutil"
+	"testing"
 )
+
 // TestMerkle tests the BuildMerkleTreeStore API.
 func TestMerkle(t *testing.T) {
 	block := btcutil.NewBlock(&Block100000)
@@ -11,7 +12,6 @@ func TestMerkle(t *testing.T) {
 	calculatedMerkleRoot := merkles[len(merkles)-1]
 	wantMerkle := &Block100000.Header.MerkleRoot
 	if !wantMerkle.IsEqual(calculatedMerkleRoot) {
-		t.Errorf("BuildMerkleTreeStore: merkle root mismatch - "+
-			"got %v, want %v", calculatedMerkleRoot, wantMerkle)
+		t.Errorf("BuildMerkleTreeStore: merkle root mismatch - got %v, want %v", calculatedMerkleRoot, wantMerkle)
 	}
 }

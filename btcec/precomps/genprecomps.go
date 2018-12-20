@@ -1,8 +1,7 @@
-// This file is ignored during the regular build due to the following build tag.
-// It is called by go generate and used to automatically generate pre-computed
-// tables used to accelerate operations.
+// This file is ignored during the regular build due to the following build tag. It is called by go generate and used to automatically generate pre-computed tables used to accelerate operations.
 // +build ignore
 package main
+
 import (
 	"bytes"
 	"compress/zlib"
@@ -12,6 +11,7 @@ import (
 	"log"
 	"os"
 )
+
 func main() {
 	fi, err := os.Create("secp256k1.go")
 	if err != nil {

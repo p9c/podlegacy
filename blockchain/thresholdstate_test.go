@@ -1,11 +1,11 @@
-
 package blockchain
+
 import (
-	"testing"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"testing"
 )
-// TestThresholdStateStringer tests the stringized output for the
-// ThresholdState type.
+
+// TestThresholdStateStringer tests the stringized output for the ThresholdState type.
 func TestThresholdStateStringer(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -34,8 +34,8 @@ func TestThresholdStateStringer(t *testing.T) {
 		}
 	}
 }
-// TestThresholdStateCache ensure the threshold state cache works as intended
-// including adding entries, updating existing entries, and flushing.
+
+// TestThresholdStateCache ensure the threshold state cache works as intended including adding entries, updating existing entries, and flushing.
 func TestThresholdStateCache(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -62,8 +62,7 @@ nextTest:
 					test.name, hash)
 				continue nextTest
 			}
-			// Ensure hash that was added to the cache reports it's
-			// available and the state is the expected value.
+			// Ensure hash that was added to the cache reports it's available and the state is the expected value.
 			cache.Update(&hash, test.state)
 			state, ok := cache.Lookup(&hash)
 			if !ok {
@@ -77,8 +76,7 @@ nextTest:
 					test.state)
 				continue nextTest
 			}
-			// Ensure adding an existing hash with the same state
-			// doesn't break the existing entry.
+			// Ensure adding an existing hash with the same state doesn't break the existing entry.
 			cache.Update(&hash, test.state)
 			state, ok = cache.Lookup(&hash)
 			if !ok {
@@ -93,8 +91,7 @@ nextTest:
 					test.name, state, test.state)
 				continue nextTest
 			}
-			// Ensure adding an existing hash with a different state
-			// updates the existing entry.
+			// Ensure adding an existing hash with a different state updates the existing entry.
 			newState := ThresholdFailed
 			if newState == test.state {
 				newState = ThresholdStarted
