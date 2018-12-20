@@ -30,11 +30,17 @@ After the upcoming hardfork, Parallelcoin will have the following features in it
 
 - Deterministic noise is added to the difficulty adjustment in a similar way as is done with digital audio and images to improve the effective resolution of the signal
 
-  The pod has no RPC wallet functionality, only core chain functions. It is fully compliant with the original [parallelcoind](https://github.com/marcetin/parallelcoin) but will be switching over to its first Hard Fork at a future appointed block height in the official release.
+  The pod has no RPC wallet functionality, only core chain functions. It is fully compliant with the original [parallelcoind](https://github.com/marcetin/parallelcoin) but will be switching over to its first Hard Fork at a future appointed block height in the official release. For the wallet server, which works also with the CLI controller `podctl`, it will be possible to send commands to both mod (wallet) and pod full node using the command line.
+
+  A Webview/Golang based GUI wallet will come a little later, following the release, and will be able to run on all platforms with with browser or supported built-in web application platforms, Blink and Webkit engines.
 
   ## Hard Fork 1: Plan 9 from Crypto Space
 
-  At the time of release there will not be any GPU nor ASIC miners for the GOST Stribog (just stribog 256 bit hash, not combined) and whirlpool (only coin with this is long dead but it is a commonly used disk encryption hash function so likely there may be some on the network at the fork). ASIC miners can be pleased to hear that it runs SHA256D, Scrypt and X11, and though not so many ASICs exist yet, for Lyra2REv2, Skein, Keccac, and Blake14lr, which will have been proven in testing to work with multi-algo miners such as ccminer, sgminer and bfgminer. Possibly some blocks can be found by CPU miners for a few days.
+  At the time of release there will not be any GPU nor ASIC miners for the GOST Stribog (just stribog 256 bit hash, not combined) and whirlpool (only coin with this is long dead but it is a commonly used disk encryption hash function so likely there may be some on the network at the fork).
+
+  ASIC miners can be pleased to hear that it runs SHA256D, Scrypt and X11, and though not so many ASICs exist yet, for Lyra2REv2, Skein, Keccac, and Blake14lr, which will have been proven in testing to work with multi-algo miners such as ccminer, sgminer and bfgminer.
+
+  Possibly some blocks can be found by CPU miners for a few days. A multi-algo GPU miner that automatically recognises and configures and enables multi-mining based on benchmarks and difficulty adjustment has been scheduled for the next major work after the full Parallelcoin suite is completed.
 
 ## Installation
 
