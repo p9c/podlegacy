@@ -481,6 +481,7 @@ type GetMiningInfoResult struct {
 	DifficultyKeccak    float64 `json:"difficulty_keccak"`
 	Errors              string  `json:"errors"`
 	Generate            bool    `json:"generate"`
+	GenAlgo             string  `json:"genalgo"`
 	GenProcLimit        int32   `json:"genproclimit"`
 	HashesPerSec        int64   `json:"hashespersec"`
 	NetworkHashPS       int64   `json:"networkhashps"`

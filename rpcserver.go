@@ -2717,6 +2717,7 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 			DifficultyGost:      dGost,
 			DifficultyKeccak:    dKeccak,
 			Generate:            s.cfg.CPUMiner.IsMining(),
+			GenAlgo:             s.cfg.CPUMiner.GetAlgo(),
 			GenProcLimit:        s.cfg.CPUMiner.NumWorkers(),
 			HashesPerSec:        int64(s.cfg.CPUMiner.HashesPerSecond()),
 			NetworkHashPS:       networkHashesPerSec,
@@ -3757,8 +3758,7 @@ func handleSetGenerate(s *rpcServer, cmd interface{}, closeChan <-chan struct{})
 	if !generate {
 		s.cfg.CPUMiner.Stop()
 	} else {
-		// Respond with an error if there are no addresses to pay the
-		// created blocks to.
+		// Respond with an error if there are no addresses to pay the created blocks to.
 		if len(cfg.miningAddrs) == 0 {
 			return nil, &btcjson.RPCError{
 				Code: btcjson.ErrRPCInternal.Code,
