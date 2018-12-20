@@ -121,7 +121,7 @@ func (h *BlockHeader) BlockHashWithAlgos(height int32) (out chainhash.Hash) {
 	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
 	_ = writeBlockHeader(buf, 0, h)
 	vers := h.Version
-	Hash(buf.Bytes(), fork.GetAlgoName(vers, height))
+	out = Hash(buf.Bytes(), fork.GetAlgoName(vers, height))
 	return
 }
 

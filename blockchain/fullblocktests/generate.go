@@ -1,7 +1,5 @@
 // Copyright (c) 2016 The btcsuite developers
 
-
-
 // The vast majority of the rules tested in this package were ported from the
 // the original Java-based 'official' block acceptance tests at
 // https://github.com/TheBlueMatt/test-scripts as well as some additional tests
@@ -20,11 +18,11 @@ import (
 
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/btcec"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
 )
 
 const (
@@ -321,7 +319,7 @@ func calcMerkleRoot(txns []*wire.MsgTx) chainhash.Hash {
 // NOTE: This function will never solve blocks with a nonce of 0.  This is done
 // so the 'nextBlock' function can properly detect when a nonce was modified by
 // a munge function.
-func solveBlock(header *wire.BlockHeader) bool {
+func solveBlock(header *wire.BlockHeader, height int32) bool {
 	// sbResult is used by the solver goroutines to send results.
 	type sbResult struct {
 		found bool
@@ -342,7 +340,7 @@ func solveBlock(header *wire.BlockHeader) bool {
 				return
 			default:
 				hdr.Nonce = i
-				hash := hdr.BlockHash()
+				hash := hdr.BlockHashWithAlgos(height)
 				if blockchain.HashToBig(&hash).Cmp(
 					targetDifficulty) <= 0 {
 
@@ -533,7 +531,7 @@ func (g *testGenerator) nextBlock(blockName string, spend *spendableOut, mungers
 
 	// Only solve the block if the nonce wasn't manually changed by a munge
 	// function.
-	if block.Header.Nonce == curNonce && !solveBlock(&block.Header) {
+	if block.Header.Nonce == curNonce && !solveBlock(&block.Header, nextHeight) {
 		panic(fmt.Sprintf("Unable to solve block at height %d",
 			nextHeight))
 	}

@@ -11,13 +11,13 @@ gostlisten=0.0.0.0:11456
 connect=127.0.0.1:11347
 rpcuser=user
 rpcpass=pa55word
-debuglevel=debug
+debuglevel=critical
 debuglevel=RPCS=trace
 debuglevel=MINR=trace
 algo=scrypt
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
 generate=0
-genthreads=1
+genthreads=12
 txindex=1
 addrindex=1

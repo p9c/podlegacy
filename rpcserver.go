@@ -902,6 +902,9 @@ func handleGenerate(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		}
 	}
 
+	// Set the algorithm according to the port we were called on
+	s.cfg.CPUMiner.SetAlgo(s.cfg.Algo)
+
 	c := cmd.(*btcjson.GenerateCmd)
 
 	// Respond with an error if the client is requesting 0 blocks to be generated.
@@ -914,8 +917,8 @@ func handleGenerate(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 
 	// Create a reply
 	reply := make([]string, c.NumBlocks)
-
-	blockHashes, err := s.cfg.CPUMiner.GenerateNBlocks(c.NumBlocks)
+	fmt.Println(s.cfg.Algo)
+	blockHashes, err := s.cfg.CPUMiner.GenerateNBlocks(c.NumBlocks, s.cfg.Algo)
 	if err != nil {
 		return nil, &btcjson.RPCError{
 			Code:    btcjson.ErrRPCInternal.Code,
@@ -1137,7 +1140,7 @@ func handleGetBlock(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (i
 		VersionHex:    fmt.Sprintf("%08x", blockHeader.Version),
 		PowAlgoID:     algoid,
 		PowAlgo:       algoname,
-		PowHash:       blk.MsgBlock().BlockHashWithAlgos(s.cfg.Chain.BestSnapshot().Height + 1).String(),
+		PowHash:       blk.MsgBlock().BlockHashWithAlgos(10000000).String(),
 		MerkleRoot:    blockHeader.MerkleRoot.String(),
 		PreviousHash:  blockHeader.PrevBlock.String(),
 		Nonce:         blockHeader.Nonce,
@@ -2263,12 +2266,12 @@ func handleGetDifficulty(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 		fmt.Println("ERROR", err)
 	}
 	var algo = prev.MsgBlock().Header.Version
-	fmt.Println(algo, best.Height)
+	// fmt.Println(algo, best.Height)
 	if algo != 514 {
 		algo = 2
 	}
 	bestbits := best.Bits
-	fmt.Printf("%08x\n", bestbits)
+	// fmt.Printf("%08x\n", bestbits)
 	if c.Algo == "scrypt" && algo != 514 {
 		algo = 514
 		for {
@@ -2493,7 +2496,7 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 			Difficulty = dScrypt
 		default:
 		}
-		fmt.Println(version)
+		// fmt.Println(version)
 		ret = &btcjson.InfoChainResult{
 			Version:             int32(1000000*appMajor + 10000*appMinor + 100*appPatch),
 			ProtocolVersion:     int32(maxProtocolVersion),
@@ -3744,7 +3747,12 @@ func handleSetGenerate(s *rpcServer, cmd interface{}, closeChan <-chan struct{})
 		generate = false
 	}
 
-	// if
+	if s.cfg.CPUMiner.IsMining() {
+		if s.cfg.CPUMiner.GetAlgo() != s.cfg.Algo {
+			s.cfg.CPUMiner.Stop()
+			generate = true
+		}
+	}
 
 	if !generate {
 		s.cfg.CPUMiner.Stop()
@@ -3759,6 +3767,7 @@ func handleSetGenerate(s *rpcServer, cmd interface{}, closeChan <-chan struct{})
 			}
 		}
 
+		s.cfg.CPUMiner.SetAlgo(s.cfg.Algo)
 		// It's safe to call start even if it's already started.
 		s.cfg.CPUMiner.SetNumWorkers(int32(genProcLimit))
 		s.cfg.CPUMiner.Start()

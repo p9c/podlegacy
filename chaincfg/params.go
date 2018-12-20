@@ -479,7 +479,7 @@ var TestNet3Params = Params{
 	RetargetAdjustmentFactor: 2,
 	ReduceMinDifficulty:      false,
 	MinDiffReductionTime:     0, // time.Minute * 10, // TargetTimePerBlock * 2
-	GenerateSupported:        false,
+	GenerateSupported:        true,
 
 	// Checkpoints ordered from oldest to newest.
 	Checkpoints: []Checkpoint{

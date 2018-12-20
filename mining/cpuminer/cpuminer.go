@@ -111,6 +111,16 @@ type CPUMiner struct {
 	quit              chan struct{}
 }
 
+// SetAlgo sets the algorithm for the CPU miner
+func (m *CPUMiner) SetAlgo(name string) {
+	m.cfg.Algo = name
+}
+
+// GetAlgo returns the algorithm currently configured for the miner
+func (m *CPUMiner) GetAlgo() (name string) {
+	return m.cfg.Algo
+}
+
 // speedMonitor handles tracking the number of hashes per second the mining
 // process is performing.  It must be run as a goroutine.
 func (m *CPUMiner) speedMonitor() {
@@ -452,7 +462,7 @@ func (m *CPUMiner) Start() {
 	go m.miningWorkerController()
 
 	m.started = true
-	log.Infof("CPU miner started")
+	log.Infof("CPU miner started mining %s", m.cfg.Algo)
 }
 
 // Stop gracefully stops the mining process by signalling all workers, and the
@@ -548,8 +558,9 @@ func (m *CPUMiner) NumWorkers() int32 {
 // detecting when it is performing stale work and reacting accordingly by
 // generating a new block template.  When a block is solved, it is submitted.
 // The function returns a list of the hashes of generated blocks.
-func (m *CPUMiner) GenerateNBlocks(n uint32) ([]*chainhash.Hash, error) {
+func (m *CPUMiner) GenerateNBlocks(n uint32, algo string) ([]*chainhash.Hash, error) {
 	m.Lock()
+	log.Infof("Generating %s block...\n", m.cfg.Algo)
 
 	// Respond with an error if server is already mining.
 	if m.started || m.discreteMining {
@@ -599,7 +610,7 @@ func (m *CPUMiner) GenerateNBlocks(n uint32) ([]*chainhash.Hash, error) {
 		// Create a new block template using the available transactions
 		// in the memory pool as a source of transactions to potentially
 		// include in the block.
-		template, err := m.g.NewBlockTemplate(payToAddr, m.cfg.Algo)
+		template, err := m.g.NewBlockTemplate(payToAddr, algo)
 		m.submitBlockLock.Unlock()
 		if err != nil {
 			errStr := fmt.Sprintf("(cpuminer.go 2) Failed to create new block "+

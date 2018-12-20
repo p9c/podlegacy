@@ -157,10 +157,8 @@ func handleGetWork(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (in
 		// 	}
 		// }
 
-		rpcsLog.Debugf("Updated block template (timestamp %v, extra "+
-			"nonce %d, target %064x, merkle root %s, signature "+
+		rpcsLog.Debugf("Updated block template (timestamp %v, target %064x, merkle root %s, signature "+
 			"script %x)", msgBlock.Header.Timestamp,
-			// state.extraNonce,
 			blockchain.CompactToBig(msgBlock.Header.Bits),
 			msgBlock.Header.MerkleRoot,
 			msgBlock.Transactions[0].TxIn[0].SignatureScript)
