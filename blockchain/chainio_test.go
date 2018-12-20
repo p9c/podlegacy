@@ -1,4 +1,5 @@
 package blockchain
+
 import (
 	"bytes"
 	"errors"
@@ -8,8 +9,8 @@ import (
 	"reflect"
 	"testing"
 )
-// TestErrNotInMainChain ensures the functions related to errNotInMainChain work
-// as expected.
+
+// TestErrNotInMainChain ensures the functions related to errNotInMainChain work as expected.
 func TestErrNotInMainChain(t *testing.T) {
 	errStr := "no block at height 1 exists"
 	err := error(errNotInMainChain(errStr))
@@ -27,8 +28,8 @@ func TestErrNotInMainChain(t *testing.T) {
 		t.Fatalf("isNotInMainChainErr detected incorrect type")
 	}
 }
-// TestStxoSerialization ensures serializing and deserializing spent transaction
-// output entries works as expected.
+
+// TestStxoSerialization ensures serializing and deserializing spent transaction output entries works as expected.
 func TestStxoSerialization(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -69,8 +70,7 @@ func TestStxoSerialization(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		// Ensure the function to calculate the serialized size without
-		// actually serializing it is calculated properly.
+		// Ensure the function to calculate the serialized size without actually serializing it is calculated properly.
 		gotSize := spentTxOutSerializeSize(&test.stxo)
 		if gotSize != len(test.serialized) {
 			t.Errorf("SpentTxOutSerializeSize (%s): did not get "+
@@ -94,8 +94,7 @@ func TestStxoSerialization(t *testing.T) {
 				len(test.serialized))
 			continue
 		}
-		// Ensure the serialized bytes are decoded back to the expected
-		// stxo.
+		// Ensure the serialized bytes are decoded back to the expected stxo.
 		var gotStxo SpentTxOut
 		gotBytesRead, err := decodeSpentTxOut(test.serialized, &gotStxo)
 		if err != nil {
@@ -116,15 +115,15 @@ func TestStxoSerialization(t *testing.T) {
 		}
 	}
 }
-// TestStxoDecodeErrors performs negative tests against decoding spent
-// transaction outputs to ensure error paths work as expected.
+
+// TestStxoDecodeErrors performs negative tests against decoding spent transaction outputs to ensure error paths work as expected.
 func TestStxoDecodeErrors(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name       string
 		stxo       SpentTxOut
 		serialized []byte
-		bytesRead  int // Expected number of bytes read.
+		bytesRead  int
 		errType    error
 	}{
 		{
@@ -182,8 +181,8 @@ func TestStxoDecodeErrors(t *testing.T) {
 		}
 	}
 }
-// TestSpendJournalSerialization ensures serializing and deserializing spend
-// journal entries works as expected.
+
+// TestSpendJournalSerialization ensures serializing and deserializing spend journal entries works as expected.
 func TestSpendJournalSerialization(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -310,8 +309,8 @@ func TestSpendJournalSerialization(t *testing.T) {
 		}
 	}
 }
-// TestSpendJournalErrors performs negative tests against deserializing spend
-// journal entries to ensure error paths work as expected.
+
+// TestSpendJournalErrors performs negative tests against deserializing spend journal entries to ensure error paths work as expected.
 func TestSpendJournalErrors(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -357,8 +356,7 @@ func TestSpendJournalErrors(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		// Ensure the expected error type is returned and the returned
-		// slice is nil.
+		// Ensure the expected error type is returned and the returned slice is nil.
 		stxos, err := deserializeSpendJournalEntry(test.serialized,
 			test.blockTxns)
 		if reflect.TypeOf(err) != reflect.TypeOf(test.errType) {
@@ -375,8 +373,8 @@ func TestSpendJournalErrors(t *testing.T) {
 		}
 	}
 }
-// TestUtxoSerialization ensures serializing and deserializing unspent
-// trasaction output entries works as expected.
+
+// TestUtxoSerialization ensures serializing and deserializing unspent trasaction output entries works as expected.
 func TestUtxoSerialization(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -384,8 +382,7 @@ func TestUtxoSerialization(t *testing.T) {
 		entry      *UtxoEntry
 		serialized []byte
 	}{
-		// From tx in main blockchain:
-		// 0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098:0
+		// From tx in main blockchain: 0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098:0
 		{
 			name: "height 1, coinbase",
 			entry: &UtxoEntry{
@@ -396,8 +393,7 @@ func TestUtxoSerialization(t *testing.T) {
 			},
 			serialized: hexToBytes("03320496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52"),
 		},
-		// From tx in main blockchain:
-		// 0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098:0
+		// From tx in main blockchain: 0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098:0
 		{
 			name: "height 1, coinbase, spent",
 			entry: &UtxoEntry{
@@ -408,8 +404,7 @@ func TestUtxoSerialization(t *testing.T) {
 			},
 			serialized: nil,
 		},
-		// From tx in main blockchain:
-		// 8131ffb0a2c945ecaf9b9063e59558784f9c3a74741ce6ae2a18d0571dac15bb:1
+		// From tx in main blockchain: 8131ffb0a2c945ecaf9b9063e59558784f9c3a74741ce6ae2a18d0571dac15bb:1
 		{
 			name: "height 100001, not coinbase",
 			entry: &UtxoEntry{
@@ -420,8 +415,7 @@ func TestUtxoSerialization(t *testing.T) {
 			},
 			serialized: hexToBytes("8b99420700ee8bd501094a7d5ca318da2506de35e1cb025ddc"),
 		},
-		// From tx in main blockchain:
-		// 8131ffb0a2c945ecaf9b9063e59558784f9c3a74741ce6ae2a18d0571dac15bb:1
+		// From tx in main blockchain: 8131ffb0a2c945ecaf9b9063e59558784f9c3a74741ce6ae2a18d0571dac15bb:1
 		{
 			name: "height 100001, not coinbase, spent",
 			entry: &UtxoEntry{
@@ -447,8 +441,7 @@ func TestUtxoSerialization(t *testing.T) {
 				gotBytes, test.serialized)
 			continue
 		}
-		// Don't try to deserialize if the test entry was spent since it
-		// will have a nil serialization.
+		// Don't try to deserialize if the test entry was spent since it will have a nil serialization.
 		if test.entry.IsSpent() {
 			continue
 		}
@@ -459,15 +452,13 @@ func TestUtxoSerialization(t *testing.T) {
 				"error: %v", i, test.name, err)
 			continue
 		}
-		// The deserialized entry must not be marked spent since unspent
-		// entries are not serialized.
+		// The deserialized entry must not be marked spent since unspent entries are not serialized.
 		if utxoEntry.IsSpent() {
 			t.Errorf("deserializeUtxoEntry #%d (%s) output should "+
 				"not be marked spent", i, test.name)
 			continue
 		}
-		// Ensure the deserialized entry has the same properties as the
-		// ones in the test entry.
+		// Ensure the deserialized entry has the same properties as the ones in the test entry.
 		if utxoEntry.Amount() != test.entry.Amount() {
 			t.Errorf("deserializeUtxoEntry #%d (%s) mismatched "+
 				"amounts: got %d, want %d", i, test.name,
@@ -494,8 +485,8 @@ func TestUtxoSerialization(t *testing.T) {
 		}
 	}
 }
-// TestUtxoEntryHeaderCodeErrors performs negative tests against unspent
-// transaction output header codes to ensure error paths work as expected.
+
+// TestUtxoEntryHeaderCodeErrors performs negative tests against unspent transaction output header codes to ensure error paths work as expected.
 func TestUtxoEntryHeaderCodeErrors(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -526,8 +517,8 @@ func TestUtxoEntryHeaderCodeErrors(t *testing.T) {
 		}
 	}
 }
-// TestUtxoEntryDeserializeErrors performs negative tests against deserializing
-// unspent transaction outputs to ensure error paths work as expected.
+
+// TestUtxoEntryDeserializeErrors performs negative tests against deserializing unspent transaction outputs to ensure error paths work as expected.
 func TestUtxoEntryDeserializeErrors(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -547,8 +538,7 @@ func TestUtxoEntryDeserializeErrors(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		// Ensure the expected error type is returned and the returned
-		// entry is nil.
+		// Ensure the expected error type is returned and the returned entry is nil.
 		entry, err := deserializeUtxoEntry(test.serialized)
 		if reflect.TypeOf(err) != reflect.TypeOf(test.errType) {
 			t.Errorf("deserializeUtxoEntry (%s): expected error "+
@@ -563,8 +553,8 @@ func TestUtxoEntryDeserializeErrors(t *testing.T) {
 		}
 	}
 }
-// TestBestChainStateSerialization ensures serializing and deserializing the
-// best chain state works as expected.
+
+// TestBestChainStateSerialization ensures serializing and deserializing the best chain state works as expected.
 func TestBestChainStateSerialization(t *testing.T) {
 	t.Parallel()
 	workSum := new(big.Int)
@@ -609,8 +599,7 @@ func TestBestChainStateSerialization(t *testing.T) {
 				gotBytes, test.serialized)
 			continue
 		}
-		// Ensure the serialized bytes are decoded back to the expected
-		// state.
+		// Ensure the serialized bytes are decoded back to the expected state.
 		state, err := deserializeBestChainState(test.serialized)
 		if err != nil {
 			t.Errorf("deserializeBestChainState #%d (%s) "+
@@ -625,8 +614,8 @@ func TestBestChainStateSerialization(t *testing.T) {
 		}
 	}
 }
-// TestBestChainStateDeserializeErrors performs negative tests against
-// deserializing the chain state to ensure error paths work as expected.
+
+// TestBestChainStateDeserializeErrors performs negative tests against deserializing the chain state to ensure error paths work as expected.
 func TestBestChainStateDeserializeErrors(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

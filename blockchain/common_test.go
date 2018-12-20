@@ -1,13 +1,9 @@
 package blockchain
+
 import (
 	"compress/bzip2"
 	"encoding/binary"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
@@ -15,7 +11,13 @@ import (
 	_ "github.com/parallelcointeam/pod/database/ffldb"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
+
 const (
 	// testDbType is the database backend type to use for the tests.
 	testDbType = "ffldb"
@@ -24,6 +26,7 @@ const (
 	// blockDataNet is the expected network in the test block data.
 	blockDataNet = wire.MainNet
 )
+
 // filesExists returns whether or not the named file or directory exists.
 func fileExists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
@@ -33,8 +36,8 @@ func fileExists(name string) bool {
 	}
 	return true
 }
-// isSupportedDbType returns whether or not the passed database type is
-// currently supported.
+
+// isSupportedDbType returns whether or not the passed database type is currently supported.
 func isSupportedDbType(dbType string) bool {
 	supportedDrivers := database.SupportedDrivers()
 	for _, driver := range supportedDrivers {
@@ -44,9 +47,8 @@ func isSupportedDbType(dbType string) bool {
 	}
 	return false
 }
-// loadBlocks reads files containing bitcoin block data (gzipped but otherwise
-// in the format bitcoind writes) from disk and returns them as an array of
-// btcutil.Block.  This is largely borrowed from the test code in podb.
+
+// loadBlocks reads files containing bitcoin block data (gzipped but otherwise in the format bitcoind writes) from disk and returns them as an array of btcutil.Block.  This is largely borrowed from the test code in podb.
 func loadBlocks(filename string) (blocks []*btcutil.Block, err error) {
 	filename = filepath.Join("testdata/", filename)
 	var network = wire.MainNet
@@ -92,15 +94,13 @@ func loadBlocks(filename string) (blocks []*btcutil.Block, err error) {
 	}
 	return
 }
-// chainSetup is used to create a new db and chain instance with the genesis
-// block already inserted.  In addition to the new chain instance, it returns
-// a teardown function the caller should invoke when done testing to clean up.
+
+// chainSetup is used to create a new db and chain instance with the genesis block already inserted.  In addition to the new chain instance, it returns a teardown function the caller should invoke when done testing to clean up.
 func chainSetup(dbName string, params *chaincfg.Params) (*BlockChain, func(), error) {
 	if !isSupportedDbType(testDbType) {
 		return nil, nil, fmt.Errorf("unsupported db type %v", testDbType)
 	}
-	// Handle memory database specially since it doesn't need the disk
-	// specific handling.
+	// Handle memory database specially since it doesn't need the disk specific handling.
 	var db database.DB
 	var teardown func()
 	if testDbType == "memdb" {
@@ -109,8 +109,7 @@ func chainSetup(dbName string, params *chaincfg.Params) (*BlockChain, func(), er
 			return nil, nil, fmt.Errorf("error creating db: %v", err)
 		}
 		db = ndb
-		// Setup a teardown function for cleaning up.  This function is
-		// returned to the caller to be invoked when it is done testing.
+		// Setup a teardown function for cleaning up.  This function is returned to the caller to be invoked when it is done testing.
 		teardown = func() {
 			db.Close()
 		}
@@ -131,16 +130,14 @@ func chainSetup(dbName string, params *chaincfg.Params) (*BlockChain, func(), er
 			return nil, nil, fmt.Errorf("error creating db: %v", err)
 		}
 		db = ndb
-		// Setup a teardown function for cleaning up.  This function is
-		// returned to the caller to be invoked when it is done testing.
+		// Setup a teardown function for cleaning up.  This function is returned to the caller to be invoked when it is done testing.
 		teardown = func() {
 			db.Close()
 			os.RemoveAll(dbPath)
 			os.RemoveAll(testDbRoot)
 		}
 	}
-	// Copy the chain params to ensure any modifications the tests do to
-	// the chain parameters do not affect the global instance.
+	// Copy the chain params to ensure any modifications the tests do to the chain parameters do not affect the global instance.
 	paramsCopy := *params
 	// Create the main chain instance.
 	chain, err := New(&Config{
@@ -157,13 +154,13 @@ func chainSetup(dbName string, params *chaincfg.Params) (*BlockChain, func(), er
 	}
 	return chain, teardown, nil
 }
+
 // loadUtxoView returns a utxo view loaded from a file.
 func loadUtxoView(filename string) (*UtxoViewpoint, error) {
 	// The utxostore file format is:
 	// <tx hash><output index><serialized utxo len><serialized utxo>
 	//
-	// The output index and serialized utxo len are little endian uint32s
-	// and the serialized utxo uses the format described in chainio.go.
+	// The output index and serialized utxo len are little endian uint32s and the serialized utxo uses the format described in chainio.go.
 	filename = filepath.Join("testdata", filename)
 	fi, err := os.Open(filename)
 	if err != nil {
@@ -216,16 +213,13 @@ func loadUtxoView(filename string) (*UtxoViewpoint, error) {
 	}
 	return view, nil
 }
-// convertUtxoStore reads a utxostore from the legacy format and writes it back
-// out using the latest format.  It is only useful for converting utxostore data
-// used in the tests, which has already been done.  However, the code is left
-// available for future reference.
+
+// convertUtxoStore reads a utxostore from the legacy format and writes it back out using the latest format.  It is only useful for converting utxostore data used in the tests, which has already been done.  However, the code is left available for future reference.
 func convertUtxoStore(r io.Reader, w io.Writer) error {
 	// The old utxostore file format was:
 	// <tx hash><serialized utxo len><serialized utxo>
 	//
-	// The serialized utxo len was a little endian uint32 and the serialized
-	// utxo uses the format described in upgrade.go.
+	// The serialized utxo len was a little endian uint32 and the serialized utxo uses the format described in upgrade.go.
 	littleEndian := binary.LittleEndian
 	for {
 		// Hash of the utxo entry.
@@ -255,8 +249,7 @@ func convertUtxoStore(r io.Reader, w io.Writer) error {
 		if err != nil {
 			return err
 		}
-		// Loop through all of the utxos and write them out in the new
-		// format.
+		// Loop through all of the utxos and write them out in the new format.
 		for outputIdx, entry := range entries {
 			// Reserialize the entries using the new format.
 			serialized, err := serializeUtxoEntry(entry)
@@ -287,18 +280,15 @@ func convertUtxoStore(r io.Reader, w io.Writer) error {
 	}
 	return nil
 }
-// TstSetCoinbaseMaturity makes the ability to set the coinbase maturity
-// available when running tests.
+
+// TstSetCoinbaseMaturity makes the ability to set the coinbase maturity available when running tests.
 func (b *BlockChain) TstSetCoinbaseMaturity(maturity uint16) {
 	b.chainParams.CoinbaseMaturity = maturity
 }
-// newFakeChain returns a chain that is usable for syntetic tests.  It is
-// important to note that this chain has no database associated with it, so
-// it is not usable with all functions and the tests must take care when making
-// use of it.
+
+// newFakeChain returns a chain that is usable for syntetic tests.  It is important to note that this chain has no database associated with it, so it is not usable with all functions and the tests must take care when making use of it.
 func newFakeChain(params *chaincfg.Params) *BlockChain {
-	// Create a genesis block node and block index index populated with it
-	// for use when creating the fake chain below.
+	// Create a genesis block node and block index index populated with it for use when creating the fake chain below.
 	node := newBlockNode(&params.GenesisBlock.Header, nil)
 	index := newBlockIndex(nil, params)
 	index.AddNode(node)
@@ -317,9 +307,9 @@ func newFakeChain(params *chaincfg.Params) *BlockChain {
 		deploymentCaches:    newThresholdCaches(chaincfg.DefinedDeployments),
 	}
 }
-// newFakeNode creates a block node connected to the passed parent with the
-// provided fields populated and fake values for the other fields.
-func newFakeNode(parent *blockNode, blockVersion uint32, bits uint32, timestamp time.Time) *blockNode {
+
+// newFakeNode creates a block node connected to the passed parent with the provided fields populated and fake values for the other fields.
+func newFakeNode(parent *blockNode, blockVersion int32, bits uint32, timestamp time.Time) *blockNode {
 	// Make up a header and create a block node from it.
 	header := &wire.BlockHeader{
 		Version:   blockVersion,

@@ -1,9 +1,12 @@
 // Package fork handles tracking the hard fork status and is used to determine which consensus rules apply on a block
+// TODO: add trailing auto-checkpoint system
 package fork
+
 import (
 	"encoding/hex"
 	"math/big"
 )
+
 // HardForks is the details related to a hard fork, number, name and activation height
 type HardForks struct {
 	Number           uint32
@@ -12,25 +15,27 @@ type HardForks struct {
 	Algos            map[string]AlgoParams
 	AlgoVers         map[int32]string
 }
+
 // AlgoParams are the identifying block version number and their minimum target bits
 type AlgoParams struct {
 	Version int32
 	MinBits uint32
 	AlgoID  uint32
 }
+
 var (
 	// IsTestnet is set at startup here to be accessible to all other libraries
 	IsTestnet bool
 	// List is the list of existing hard forks and when they activate
 	List = []HardForks{
-		HardForks{
+		{
 			Number:           0,
 			Name:             "Halcyon days",
 			ActivationHeight: 0, // Approximately 18 Jan 2019
 			Algos:            Algos,
 			AlgoVers:         AlgoVers,
 		},
-		HardForks{
+		{
 			Number:           1,
 			Name:             "Plan 9 from Crypto Space",
 			ActivationHeight: 185463,
@@ -45,20 +50,20 @@ var (
 	mainPowLimitBits = BigToCompact(&mainPowLimit)
 	// Algos are the specifications identifying the algorithm used in the block proof
 	Algos = map[string]AlgoParams{
-		"sha256d": AlgoParams{2, mainPowLimitBits, 0},
-		"scrypt":  AlgoParams{514, mainPowLimitBits, 1},
+		"sha256d": {2, mainPowLimitBits, 0},
+		"scrypt":  {514, mainPowLimitBits, 1},
 	}
 	// P9Algos is the algorithm specifications after the hard fork
 	P9Algos = map[string]AlgoParams{
-		"blake14lr": AlgoParams{0, mainPowLimitBits, 0},
-		"gost":      AlgoParams{1, mainPowLimitBits, 1},
-		"keccak":    AlgoParams{2, mainPowLimitBits, 2},
-		"lyra2rev2": AlgoParams{3, mainPowLimitBits, 3},
-		"scrypt":    AlgoParams{4, mainPowLimitBits, 4},
-		"sha256d":   AlgoParams{5, mainPowLimitBits, 5},
-		"skein":     AlgoParams{6, mainPowLimitBits, 6},
-		"whirlpool": AlgoParams{7, mainPowLimitBits, 7},
-		"x11":       AlgoParams{8, mainPowLimitBits, 8},
+		"blake14lr": {0, mainPowLimitBits, 0},
+		"gost":      {1, mainPowLimitBits, 1},
+		"keccak":    {2, mainPowLimitBits, 2},
+		"lyra2rev2": {3, mainPowLimitBits, 3},
+		"scrypt":    {4, mainPowLimitBits, 4},
+		"sha256d":   {5, mainPowLimitBits, 5},
+		"skein":     {6, mainPowLimitBits, 6},
+		"whirlpool": {7, mainPowLimitBits, 7},
+		"x11":       {8, mainPowLimitBits, 8},
 	}
 	// AlgoVers is the lookup for pre hardfork
 	AlgoVers = map[int32]string{
@@ -78,6 +83,7 @@ var (
 		8: "x11",
 	}
 )
+
 // GetAlgoVer returns the version number for a given algorithm (by string name) at a given height
 func GetAlgoVer(name string, height int32) (version int32) {
 	if IsTestnet {
@@ -90,6 +96,7 @@ func GetAlgoVer(name string, height int32) (version int32) {
 	}
 	return
 }
+
 // GetAlgoName returns the string identifier of an algorithm depending on hard fork activation status
 func GetAlgoName(algoVer int32, height int32) (name string) {
 	if IsTestnet {
@@ -102,6 +109,7 @@ func GetAlgoName(algoVer int32, height int32) (name string) {
 	}
 	return
 }
+
 // GetAlgoID returns the 'algo_id' which in pre-hardfork is not the same as the block version number, but is afterwards
 func GetAlgoID(algoname string, height int32) uint32 {
 	if GetCurrent(height) > 1 {
@@ -109,6 +117,7 @@ func GetAlgoID(algoname string, height int32) uint32 {
 	}
 	return Algos[algoname].AlgoID
 }
+
 // GetCurrent returns the hardfork number code
 func GetCurrent(height int32) (curr int) {
 	if IsTestnet {
@@ -121,20 +130,20 @@ func GetCurrent(height int32) (curr int) {
 	}
 	return
 }
+
 // GetMinBits returns the minimum diff bits based on height and testnet
 func GetMinBits(algoname string, height int32) uint32 {
 	curr := GetCurrent(height)
 	return List[curr].Algos[algoname].MinBits
 }
+
 // GetMinDiff returns the minimum difficulty in uint256 form
 func GetMinDiff(algoname string, height int32) *big.Int {
 	return CompactToBig(GetMinBits(algoname, height))
 }
-// CompactToBig converts a compact representation of a whole number N to an
-// unsigned 32-bit number.  The representation is similar to IEEE754 floating
-// point numbers.
-// Like IEEE754 floating point, there are three basic components: the sign,
-// the exponent, and the mantissa.  They are broken out as follows:
+
+// CompactToBig converts a compact representation of a whole number N to an unsigned 32-bit number.  The representation is similar to IEEE754 floating point numbers.
+// Like IEEE754 floating point, there are three basic components: the sign, the exponent, and the mantissa.  They are broken out as follows:
 //	* the most significant 8 bits represent the unsigned base 256 exponent
 // 	* bit 23 (the 24th bit) represents the sign bit
 //	* the least significant 23 bits represent the mantissa
@@ -145,19 +154,13 @@ func GetMinDiff(algoname string, height int32) *big.Int {
 //	-------------------------------------------------
 // The formula to calculate N is:
 // 	N = (-1^sign) * mantissa * 256^(exponent-3)
-// This compact form is only used in bitcoin to encode unsigned 256-bit numbers
-// which represent difficulty targets, thus there really is not a need for a
-// sign bit, but it is implemented here to stay consistent with bitcoind.
+// This compact form is only used in bitcoin to encode unsigned 256-bit numbers which represent difficulty targets, thus there really is not a need for a sign bit, but it is implemented here to stay consistent with bitcoind.
 func CompactToBig(compact uint32) *big.Int {
 	// Extract the mantissa, sign bit, and exponent.
 	mantissa := compact & 0x007fffff
 	isNegative := compact&0x00800000 != 0
 	exponent := uint(compact >> 24)
-	// Since the base for the exponent is 256, the exponent can be treated
-	// as the number of bytes to represent the full 256-bit number.  So,
-	// treat the exponent as the number of bytes and shift the mantissa
-	// right or left accordingly.  This is equivalent to:
-	// N = mantissa * 256^(exponent-3)
+	// Since the base for the exponent is 256, the exponent can be treated as the number of bytes to represent the full 256-bit number.  So, treat the exponent as the number of bytes and shift the mantissa right or left accordingly.  This is equivalent to N = mantissa * 256^(exponent-3)
 	var bn *big.Int
 	if exponent <= 3 {
 		mantissa >>= 8 * (3 - exponent)
@@ -172,19 +175,14 @@ func CompactToBig(compact uint32) *big.Int {
 	}
 	return bn
 }
-// BigToCompact converts a whole number N to a compact representation using
-// an unsigned 32-bit number.  The compact representation only provides 23 bits
-// of precision, so values larger than (2^23 - 1) only encode the most
-// significant digits of the number.  See CompactToBig for details.
+
+// BigToCompact converts a whole number N to a compact representation using an unsigned 32-bit number.  The compact representation only provides 23 bits of precision, so values larger than (2^23 - 1) only encode the most significant digits of the number.  See CompactToBig for details.
 func BigToCompact(n *big.Int) uint32 {
 	// No need to do any work if it's zero.
 	if n.Sign() == 0 {
 		return 0
 	}
-	// Since the base for the exponent is 256, the exponent can be treated
-	// as the number of bytes.  So, shift the number right or left
-	// accordingly.  This is equivalent to:
-	// mantissa = mantissa / 256^(exponent-3)
+	// Since the base for the exponent is 256, the exponent can be treated as the number of bytes.  So, shift the number right or left accordingly.  This is equivalent to: mantissa = mantissa / 256^(exponent-3)
 	var mantissa uint32
 	exponent := uint(len(n.Bytes()))
 	if exponent <= 3 {
@@ -195,15 +193,12 @@ func BigToCompact(n *big.Int) uint32 {
 		tn := new(big.Int).Set(n)
 		mantissa = uint32(tn.Rsh(tn, 8*(exponent-3)).Bits()[0])
 	}
-	// When the mantissa already has the sign bit set, the number is too
-	// large to fit into the available 23-bits, so divide the number by 256
-	// and increment the exponent accordingly.
+	// When the mantissa already has the sign bit set, the number is too large to fit into the available 23-bits, so divide the number by 256 and increment the exponent accordingly.
 	if mantissa&0x00800000 != 0 {
 		mantissa >>= 8
 		exponent++
 	}
-	// Pack the exponent, sign bit, and mantissa into an unsigned 32-bit
-	// int and return it.
+	// Pack the exponent, sign bit, and mantissa into an unsigned 32-bit int and return it.
 	compact := uint32(exponent<<24) | mantissa
 	if n.Sign() < 0 {
 		compact |= 0x00800000
