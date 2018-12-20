@@ -1,20 +1,22 @@
-
 package main
+
 import (
 	"encoding/hex"
 	"errors"
-	"strconv"
-	"time"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
+	"strconv"
+	"time"
 )
-// blockRegionCmd defines the configuration options for the fetchblockregion
-// command.
+
+// blockRegionCmd defines the configuration options for the fetchblockregion command.
 type blockRegionCmd struct{}
+
 var (
 	// blockRegionCfg defines the configuration options for the command.
 	blockRegionCfg = blockRegionCmd{}
 )
+
 // Execute is the main entry point for the command.  It's invoked by the parser.
 func (cmd *blockRegionCmd) Execute(args []string) error {
 	// Setup the global config options and ensure they are valid.
@@ -71,6 +73,7 @@ func (cmd *blockRegionCmd) Execute(args []string) error {
 		return nil
 	})
 }
+
 // Usage overrides the usage display for the command.
 func (cmd *blockRegionCmd) Usage() string {
 	return "<block-hash> <start-offset> <length-of-region>"

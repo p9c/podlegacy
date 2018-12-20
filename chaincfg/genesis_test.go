@@ -1,12 +1,12 @@
-
 package chaincfg
+
 import (
 	"bytes"
-	"testing"
 	"github.com/davecgh/go-spew/spew"
+	"testing"
 )
-// TestGenesisBlock tests the genesis block of the main network for validity by
-// checking the encoded bytes and hashes.
+
+// TestGenesisBlock tests the genesis block of the main network for validity by checking the encoded bytes and hashes.
 func TestGenesisBlock(t *testing.T) {
 	// Encode the genesis block to raw bytes.
 	var buf bytes.Buffer
@@ -28,8 +28,8 @@ func TestGenesisBlock(t *testing.T) {
 			spew.Sdump(MainNetParams.GenesisHash))
 	}
 }
-// TestRegTestGenesisBlock tests the genesis block of the regression test
-// network for validity by checking the encoded bytes and hashes.
+
+// TestRegTestGenesisBlock tests the genesis block of the regression test network for validity by checking the encoded bytes and hashes.
 func TestRegTestGenesisBlock(t *testing.T) {
 	// Encode the genesis block to raw bytes.
 	var buf bytes.Buffer
@@ -52,8 +52,8 @@ func TestRegTestGenesisBlock(t *testing.T) {
 			spew.Sdump(RegressionNetParams.GenesisHash))
 	}
 }
-// TestTestNet3GenesisBlock tests the genesis block of the test network (version
-// 3) for validity by checking the encoded bytes and hashes.
+
+// TestTestNet3GenesisBlock tests the genesis block of the test network (version 3) for validity by checking the encoded bytes and hashes.
 func TestTestNet3GenesisBlock(t *testing.T) {
 	// Encode the genesis block to raw bytes.
 	var buf bytes.Buffer
@@ -76,8 +76,8 @@ func TestTestNet3GenesisBlock(t *testing.T) {
 			spew.Sdump(TestNet3Params.GenesisHash))
 	}
 }
-// TestSimNetGenesisBlock tests the genesis block of the simulation test network
-// for validity by checking the encoded bytes and hashes.
+
+// TestSimNetGenesisBlock tests the genesis block of the simulation test network for validity by checking the encoded bytes and hashes.
 func TestSimNetGenesisBlock(t *testing.T) {
 	// Encode the genesis block to raw bytes.
 	var buf bytes.Buffer
@@ -100,8 +100,8 @@ func TestSimNetGenesisBlock(t *testing.T) {
 			spew.Sdump(SimNetParams.GenesisHash))
 	}
 }
-// genesisBlockBytes are the wire encoded bytes for the genesis block of the
-// main network as of protocol version 60002.
+
+// genesisBlockBytes are the wire encoded bytes for the genesis block of the main network as of protocol version 60002.
 var genesisBlockBytes = []byte{
 	0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* |........| */
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* |........| */
@@ -140,8 +140,8 @@ var genesisBlockBytes = []byte{
 	0x8a, 0x4c, 0x70, 0x2b, 0x6b, 0xf1, 0x1d, 0x5f, /* |.Lp+k.._|*/
 	0xac, 0x00, 0x00, 0x00, 0x00, /* |.....|    */
 }
-// regTestGenesisBlockBytes are the wire encoded bytes for the genesis block of
-// the regression test network as of protocol version 60002.
+
+// regTestGenesisBlockBytes are the wire encoded bytes for the genesis block of the regression test network as of protocol version 60002.
 var regTestGenesisBlockBytes = []byte{
 	0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* |........| */
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* |........| */
@@ -180,8 +180,8 @@ var regTestGenesisBlockBytes = []byte{
 	0x8a, 0x4c, 0x70, 0x2b, 0x6b, 0xf1, 0x1d, 0x5f, /* |.Lp+k.._|*/
 	0xac, 0x00, 0x00, 0x00, 0x00, /* |.....|    */
 }
-// testNet3GenesisBlockBytes are the wire encoded bytes for the genesis block of
-// the test network (version 3) as of protocol version 60002.
+
+// testNet3GenesisBlockBytes are the wire encoded bytes for the genesis block of the test network (version 3) as of protocol version 60002.
 var testNet3GenesisBlockBytes = []byte{
 	0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* |........| */
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* |........| */
@@ -220,8 +220,8 @@ var testNet3GenesisBlockBytes = []byte{
 	0x8a, 0x4c, 0x70, 0x2b, 0x6b, 0xf1, 0x1d, 0x5f, /* |.Lp+k.._|*/
 	0xac, 0x00, 0x00, 0x00, 0x00, /* |.....|    */
 }
-// simNetGenesisBlockBytes are the wire encoded bytes for the genesis block of
-// the simulation test network as of protocol version 70002.
+
+// simNetGenesisBlockBytes are the wire encoded bytes for the genesis block of the simulation test network as of protocol version 70002.
 var simNetGenesisBlockBytes = []byte{
 	0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* |........| */
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* |........| */

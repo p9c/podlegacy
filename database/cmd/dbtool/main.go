@@ -1,22 +1,25 @@
-
 package main
+
 import (
+	flags "github.com/jessevdk/go-flags"
+	"github.com/parallelcointeam/pod/btclog"
+	"github.com/parallelcointeam/pod/database"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-	flags "github.com/jessevdk/go-flags"
-	"github.com/parallelcointeam/pod/btclog"
-	"github.com/parallelcointeam/pod/database"
 )
+
 const (
 	// blockDbNamePrefix is the prefix for the pod block database.
 	blockDbNamePrefix = "blocks"
 )
+
 var (
 	log             btclog.Logger
 	shutdownChannel = make(chan error)
 )
+
 // loadBlockDB opens the block database and returns a handle to it.
 func loadBlockDB() (database.DB, error) {
 	// The database name is based on the database type.
@@ -44,8 +47,8 @@ func loadBlockDB() (database.DB, error) {
 	log.Info("Block database loaded")
 	return db, nil
 }
-// realMain is the real main function for the utility.  It is necessary to work
-// around the fact that deferred functions do not run when os.Exit() is called.
+
+// realMain is the real main function for the utility.  It is necessary to work around the fact that deferred functions do not run when os.Exit() is called.
 func realMain() error {
 	// Setup logging.
 	backendLogger := btclog.NewBackend(os.Stdout)
@@ -75,8 +78,7 @@ func realMain() error {
 	parser.AddCommand("fetchblockregion",
 		"Fetch the specified block region from the database", "",
 		&blockRegionCfg)
-	// Parse command line and invoke the Execute function for the specified
-	// command.
+	// Parse command line and invoke the Execute function for the specified command.
 	if _, err := parser.Parse(); err != nil {
 		if e, ok := err.(*flags.Error); ok && e.Type == flags.ErrHelp {
 			parser.WriteHelp(os.Stderr)

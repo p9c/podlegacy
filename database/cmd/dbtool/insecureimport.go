@@ -1,40 +1,42 @@
-
 package main
+
 import (
 	"encoding/binary"
 	"fmt"
-	"io"
-	"os"
-	"sync"
-	"time"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/wire"
+	"io"
+	"os"
+	"sync"
+	"time"
 )
+
 // importCmd defines the configuration options for the insecureimport command.
 type importCmd struct {
 	InFile   string `short:"i" long:"infile" description:"File containing the block(s)"`
 	Progress int    `short:"p" long:"progress" description:"Show a progress message each time this number of seconds have passed -- Use 0 to disable progress announcements"`
 }
+
 var (
 	// importCfg defines the configuration options for the command.
 	importCfg = importCmd{
 		InFile:   "bootstrap.dat",
 		Progress: 10,
 	}
-	// zeroHash is a simply a hash with all zeros.  It is defined here to
-	// avoid creating it multiple times.
+	// zeroHash is a simply a hash with all zeros.  It is defined here to avoid creating it multiple times.
 	zeroHash = chainhash.Hash{}
 )
+
 // importResults houses the stats and result as an import operation.
 type importResults struct {
 	blocksProcessed int64
 	blocksImported  int64
 	err             error
 }
-// blockImporter houses information about an ongoing import from a block data
-// file to the block database.
+
+// blockImporter houses information about an ongoing import from a block data file to the block database.
 type blockImporter struct {
 	db                database.DB
 	r                 io.ReadSeeker
@@ -51,6 +53,7 @@ type blockImporter struct {
 	lastBlockTime     time.Time
 	lastLogTime       time.Time
 }
+
 // readBlock reads the next block from the input file.
 func (bi *blockImporter) readBlock() ([]byte, error) {
 	// The block file format is:
@@ -84,11 +87,8 @@ func (bi *blockImporter) readBlock() ([]byte, error) {
 	}
 	return serializedBlock, nil
 }
-// processBlock potentially imports the block into the database.  It first
-// deserializes the raw block while checking for errors.  Already known blocks
-// are skipped and orphan blocks are considered errors.  Returns whether the
-// block was imported along with any potential errors.
-// NOTE: This is not a safe import as it does not verify chain rules.
+
+// processBlock potentially imports the block into the database.  It first deserializes the raw block while checking for errors.  Already known blocks are skipped and orphan blocks are considered errors.  Returns whether the block was imported along with any potential errors. NOTE: This is not a safe import as it does not verify chain rules.
 func (bi *blockImporter) processBlock(serializedBlock []byte) (bool, error) {
 	// Deserialize the block which includes checks for malformed blocks.
 	block, err := btcutil.NewBlockFromBytes(serializedBlock)
@@ -136,14 +136,12 @@ func (bi *blockImporter) processBlock(serializedBlock []byte) (bool, error) {
 	}
 	return true, nil
 }
-// readHandler is the main handler for reading blocks from the import file.
-// This allows block processing to take place in parallel with block reads.
-// It must be run as a goroutine.
+
+// readHandler is the main handler for reading blocks from the import file. This allows block processing to take place in parallel with block reads. It must be run as a goroutine.
 func (bi *blockImporter) readHandler() {
 out:
 	for {
-		// Read the next block from the file and if anything goes wrong
-		// notify the status handler with the error and bail.
+		// Read the next block from the file and if anything goes wrong notify the status handler with the error and bail.
 		serializedBlock, err := bi.readBlock()
 		if err != nil {
 			bi.errChan <- fmt.Errorf("Error reading from input "+
@@ -154,8 +152,7 @@ out:
 		if serializedBlock == nil {
 			break out
 		}
-		// Send the block or quit if we've been signalled to exit by
-		// the status handler due to an error elsewhere.
+		// Send the block or quit if we've been signalled to exit by the status handler due to an error elsewhere.
 		select {
 		case bi.processQueue <- serializedBlock:
 		case <-bi.quit:
@@ -166,9 +163,8 @@ out:
 	close(bi.processQueue)
 	bi.wg.Done()
 }
-// logProgress logs block progress as an information message.  In order to
-// prevent spam, it limits logging to one message every importCfg.Progress
-// seconds with duration and totals included.
+
+// logProgress logs block progress as an information message.  In order to prevent spam, it limits logging to one message every importCfg.Progress seconds with duration and totals included.
 func (bi *blockImporter) logProgress() {
 	bi.receivedLogBlocks++
 	now := time.Now()
@@ -195,9 +191,8 @@ func (bi *blockImporter) logProgress() {
 	bi.receivedLogTx = 0
 	bi.lastLogTime = now
 }
-// processHandler is the main handler for processing blocks.  This allows block
-// processing to take place in parallel with block reads from the import file.
-// It must be run as a goroutine.
+
+// processHandler is the main handler for processing blocks.  This allows block processing to take place in parallel with block reads from the import file. It must be run as a goroutine.
 func (bi *blockImporter) processHandler() {
 out:
 	for {
@@ -224,13 +219,11 @@ out:
 	}
 	bi.wg.Done()
 }
-// statusHandler waits for updates from the import operation and notifies
-// the passed doneChan with the results of the import.  It also causes all
-// goroutines to exit if an error is reported from any of them.
+
+// statusHandler waits for updates from the import operation and notifies the passed doneChan with the results of the import.  It also causes all goroutines to exit if an error is reported from any of them.
 func (bi *blockImporter) statusHandler(resultsChan chan *importResults) {
 	select {
-	// An error from either of the goroutines means we're done so signal
-	// caller with the error and signal all goroutines to quit.
+	// An error from either of the goroutines means we're done so signal caller with the error and signal all goroutines to quit.
 	case err := <-bi.errChan:
 		resultsChan <- &importResults{
 			blocksProcessed: bi.blocksProcessed,
@@ -247,29 +240,25 @@ func (bi *blockImporter) statusHandler(resultsChan chan *importResults) {
 		}
 	}
 }
-// Import is the core function which handles importing the blocks from the file
-// associated with the block importer to the database.  It returns a channel
-// on which the results will be returned when the operation has completed.
+
+// Import is the core function which handles importing the blocks from the file associated with the block importer to the database.  It returns a channel on which the results will be returned when the operation has completed.
 func (bi *blockImporter) Import() chan *importResults {
-	// Start up the read and process handling goroutines.  This setup allows
-	// blocks to be read from disk in parallel while being processed.
+	// Start up the read and process handling goroutines.  This setup allows blocks to be read from disk in parallel while being processed.
 	bi.wg.Add(2)
 	go bi.readHandler()
 	go bi.processHandler()
-	// Wait for the import to finish in a separate goroutine and signal
-	// the status handler when done.
+	// Wait for the import to finish in a separate goroutine and signal the status handler when done.
 	go func() {
 		bi.wg.Wait()
 		bi.doneChan <- true
 	}()
-	// Start the status handler and return the result channel that it will
-	// send the results on when the import is done.
+	// Start the status handler and return the result channel that it will send the results on when the import is done.
 	resultChan := make(chan *importResults)
 	go bi.statusHandler(resultChan)
 	return resultChan
 }
-// newBlockImporter returns a new importer for the provided file reader seeker
-// and database.
+
+// newBlockImporter returns a new importer for the provided file reader seeker and database.
 func newBlockImporter(db database.DB, r io.ReadSeeker) *blockImporter {
 	return &blockImporter{
 		db:           db,
@@ -281,6 +270,7 @@ func newBlockImporter(db database.DB, r io.ReadSeeker) *blockImporter {
 		lastLogTime:  time.Now(),
 	}
 }
+
 // Execute is the main entry point for the command.  It's invoked by the parser.
 func (cmd *importCmd) Execute(args []string) error {
 	// Setup the global config options and ensure they are valid.
@@ -308,19 +298,9 @@ func (cmd *importCmd) Execute(args []string) error {
 		return err
 	}
 	defer fi.Close()
-	// Create a block importer for the database and input file and start it.
-	// The results channel returned from start will contain an error if
-	// anything went wrong.
+	// Create a block importer for the database and input file and start it. The results channel returned from start will contain an error if anything went wrong.
 	importer := newBlockImporter(db, fi)
-	// Perform the import asynchronously and signal the main goroutine when
-	// done.  This allows blocks to be processed and read in parallel.  The
-	// results channel returned from Import contains the statistics about
-	// the import including an error if something went wrong.  This is done
-	// in a separate goroutine rather than waiting directly so the main
-	// goroutine can be signaled for shutdown by either completion, error,
-	// or from the main interrupt handler.  This is necessary since the main
-	// goroutine must be kept running long enough for the interrupt handler
-	// goroutine to finish.
+	// Perform the import asynchronously and signal the main goroutine when done.  This allows blocks to be processed and read in parallel.  The results channel returned from Import contains the statistics about the import including an error if something went wrong.  This is done in a separate goroutine rather than waiting directly so the main goroutine can be signaled for shutdown by either completion, error, or from the main interrupt handler.  This is necessary since the main goroutine must be kept running long enough for the interrupt handler goroutine to finish.
 	go func() {
 		log.Info("Starting import")
 		resultsChan := importer.Import()
@@ -338,8 +318,7 @@ func (cmd *importCmd) Execute(args []string) error {
 			results.blocksProcessed-results.blocksImported)
 		shutdownChannel <- nil
 	}()
-	// Wait for shutdown signal from either a normal completion or from the
-	// interrupt handler.
+	// Wait for shutdown signal from either a normal completion or from the interrupt handler.
 	err = <-shutdownChannel
 	return err
 }

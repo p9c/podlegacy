@@ -1,25 +1,27 @@
-
 package connmgr
+
 import (
 	"fmt"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/wire"
 	mrand "math/rand"
 	"net"
 	"strconv"
 	"time"
-	"github.com/parallelcointeam/pod/chaincfg"
-	"github.com/parallelcointeam/pod/wire"
 )
+
 const (
-	// These constants are used by the DNS seed code to pick a random last
-	// seen time.
+	// These constants are used by the DNS seed code to pick a random last seen time.
 	secondsIn3Days int32 = 24 * 60 * 60 * 3
 	secondsIn4Days int32 = 24 * 60 * 60 * 4
 )
-// OnSeed is the signature of the callback function which is invoked when DNS
-// seeding is succesfull.
+
+// OnSeed is the signature of the callback function which is invoked when DNS seeding is succesfull.
 type OnSeed func(addrs []*wire.NetAddress)
+
 // LookupFunc is the signature of the DNS lookup function.
 type LookupFunc func(string) ([]net.IP, error)
+
 // SeedFromDNS uses DNS seeding to populate the address manager with peers.
 func SeedFromDNS(chainParams *chaincfg.Params, reqServices wire.ServiceFlag,
 	lookupFn LookupFunc, seedFn OnSeed) {
@@ -47,9 +49,7 @@ func SeedFromDNS(chainParams *chaincfg.Params, reqServices wire.ServiceFlag,
 			intPort, _ := strconv.Atoi(chainParams.DefaultPort)
 			for i, peer := range seedpeers {
 				addresses[i] = wire.NewNetAddressTimestamp(
-					// bitcoind seeds with addresses from
-					// a time randomly selected between 3
-					// and 7 days ago.
+					// bitcoind seeds with addresses from a time randomly selected between 3 and 7 days ago.
 					time.Now().Add(-1*time.Second*time.Duration(secondsIn3Days+
 						randSource.Int31n(secondsIn4Days))),
 					0, peer, uint16(intPort))

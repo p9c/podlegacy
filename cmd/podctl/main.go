@@ -1,34 +1,35 @@
 package main
+
 import (
 	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/parallelcointeam/pod/btcjson"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-	"github.com/parallelcointeam/pod/btcjson"
 )
+
 const (
 	showHelpMessage = "Specify -h to show available options"
 	listCmdMessage  = "Specify -l to list available commands"
 )
+
 // commandUsage display the usage for a specific command.
 func commandUsage(method string) {
 	usage, err := btcjson.MethodUsageText(method)
 	if err != nil {
-		// This should never happen since the method was already checked
-		// before calling this function, but be safe.
+		// This should never happen since the method was already checked before calling this function, but be safe.
 		fmt.Fprintln(os.Stderr, "Failed to obtain command usage:", err)
 		return
 	}
 	fmt.Fprintln(os.Stderr, "Usage:")
 	fmt.Fprintf(os.Stderr, "  %s\n", usage)
 }
-// usage displays the general usage when the help flag is not displayed and
-// and an invalid command was specified.  The commandUsage function is used
-// instead when a valid command was specified.
+
+// usage displays the general usage when the help flag is not displayed and and an invalid command was specified.  The commandUsage function is used instead when a valid command was specified.
 func usage(errorMessage string) {
 	appName := filepath.Base(os.Args[0])
 	appName = strings.TrimSuffix(appName, filepath.Ext(appName))
@@ -48,8 +49,7 @@ func main() {
 		usage("No command specified")
 		os.Exit(1)
 	}
-	// Ensure the specified method identifies a valid registered command and
-	// is one of the usable types.
+	// Ensure the specified method identifies a valid registered command and is one of the usable types.
 	method := args[0]
 	usageFlags, err := btcjson.MethodUsageFlags(method)
 	if err != nil {
@@ -63,13 +63,8 @@ func main() {
 		fmt.Fprintln(os.Stderr, listCmdMessage)
 		os.Exit(1)
 	}
-	// Convert remaining command line args to a slice of interface values
-	// to be passed along as parameters to new command creation function.
-	//
-	// Since some commands, such as submitblock, can involve data which is
-	// too large for the Operating System to allow as a normal command line
-	// parameter, support using '-' as an argument to allow the argument
-	// to be read from a stdin pipe.
+	// Convert remaining command line args to a slice of interface values to be passed along as parameters to new command creation function.
+	// Since some commands, such as submitblock, can involve data which is too large for the Operating System to allow as a normal command line parameter, support using '-' as an argument to allow the argument to be read from a stdin pipe.
 	bio := bufio.NewReader(os.Stdin)
 	params := make([]interface{}, 0, len(args[1:]))
 	for _, arg := range args[1:] {
@@ -91,36 +86,28 @@ func main() {
 		}
 		params = append(params, arg)
 	}
-	// Attempt to create the appropriate command using the arguments
-	// provided by the user.
+	// Attempt to create the appropriate command using the arguments provided by the user.
 	cmd, err := btcjson.NewCmd(method, params...)
 	if err != nil {
-		// Show the error along with its error code when it's a
-		// btcjson.Error as it reallistcally will always be since the
-		// NewCmd function is only supposed to return errors of that
-		// type.
+		// Show the error along with its error code when it's a btcjson.Error as it reallistcally will always be since the NewCmd function is only supposed to return errors of that type.
 		if jerr, ok := err.(btcjson.Error); ok {
 			fmt.Fprintf(os.Stderr, "%s command: %v (code: %s)\n",
 				method, err, jerr.ErrorCode)
 			commandUsage(method)
 			os.Exit(1)
 		}
-		// The error is not a btcjson.Error and this really should not
-		// happen.  Nevertheless, fallback to just showing the error
-		// if it should happen due to a bug in the package.
+		// The error is not a btcjson.Error and this really should not happen.  Nevertheless, fallback to just showing the error if it should happen due to a bug in the package.
 		fmt.Fprintf(os.Stderr, "%s command: %v\n", method, err)
 		commandUsage(method)
 		os.Exit(1)
 	}
-	// Marshal the command into a JSON-RPC byte slice in preparation for
-	// sending it to the RPC server.
+	// Marshal the command into a JSON-RPC byte slice in preparation for sending it to the RPC server.
 	marshalledJSON, err := btcjson.MarshalCmd(1, cmd)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	// Send the JSON-RPC request to the server using the user-specified
-	// connection configuration.
+	// Send the JSON-RPC request to the server using the user-specified connection configuration.
 	result, err := sendPostRequest(marshalledJSON, cfg)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

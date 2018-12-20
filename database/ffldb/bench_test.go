@@ -1,18 +1,18 @@
-
 package ffldb
+
 import (
+	"github.com/parallelcointeam/pod/btcutil"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/database"
 	"os"
 	"path/filepath"
 	"testing"
-	"github.com/parallelcointeam/pod/chaincfg"
-	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/pod/btcutil"
 )
+
 // BenchmarkBlockHeader benchmarks how long it takes to load the mainnet genesis
 // block header.
 func BenchmarkBlockHeader(b *testing.B) {
-	// Start by creating a new database and populating it with the mainnet
-	// genesis block.
+	// Start by creating a new database and populating it with the mainnet genesis block.
 	dbPath := filepath.Join(os.TempDir(), "ffldb-benchblkhdr")
 	_ = os.RemoveAll(dbPath)
 	db, err := database.Create("ffldb", dbPath, blockDataNet)
@@ -46,11 +46,10 @@ func BenchmarkBlockHeader(b *testing.B) {
 	// Don't benchmark teardown.
 	b.StopTimer()
 }
-// BenchmarkBlockHeader benchmarks how long it takes to load the mainnet genesis
-// block.
+
+// BenchmarkBlockHeader benchmarks how long it takes to load the mainnet genesis block.
 func BenchmarkBlock(b *testing.B) {
-	// Start by creating a new database and populating it with the mainnet
-	// genesis block.
+	// Start by creating a new database and populating it with the mainnet genesis block.
 	dbPath := filepath.Join(os.TempDir(), "ffldb-benchblk")
 	_ = os.RemoveAll(dbPath)
 	db, err := database.Create("ffldb", dbPath, blockDataNet)

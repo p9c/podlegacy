@@ -1,30 +1,32 @@
-
 package main
+
 import (
 	"fmt"
-	"os"
-	"path/filepath"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/database"
 	_ "github.com/parallelcointeam/pod/database/ffldb"
-	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/wire"
+	"os"
+	"path/filepath"
 )
+
 const (
 	minCandidates        = 1
 	maxCandidates        = 20
 	defaultNumCandidates = 5
 	defaultDbType        = "ffldb"
 )
+
 var (
-	podHomeDir     = btcutil.AppDataDir("pod", false)
+	podHomeDir      = btcutil.AppDataDir("pod", false)
 	defaultDataDir  = filepath.Join(podHomeDir, "data")
 	knownDbTypes    = database.SupportedDrivers()
 	activeNetParams = &chaincfg.MainNetParams
 )
-// config defines the configuration options for findcheckpoint.
-// See loadConfig for details on the configuration load process.
+
+// config defines the configuration options for findcheckpoint. See loadConfig for details on the configuration load process.
 type config struct {
 	DataDir        string `short:"b" long:"datadir" description:"Location of the pod data directory"`
 	DbType         string `long:"dbtype" description:"Database backend to use for the Block Chain"`
@@ -34,6 +36,7 @@ type config struct {
 	NumCandidates  int    `short:"n" long:"numcandidates" description:"Max num of checkpoint candidates to show {1-20}"`
 	UseGoOutput    bool   `short:"g" long:"gooutput" description:"Display the candidates using Go syntax that is ready to insert into the btcchain checkpoint list"`
 }
+
 // validDbType returns whether or not dbType is a supported database type.
 func validDbType(dbType string) bool {
 	for _, knownType := range knownDbTypes {
@@ -43,14 +46,8 @@ func validDbType(dbType string) bool {
 	}
 	return false
 }
-// netName returns the name used when referring to a bitcoin network.  At the
-// time of writing, pod currently places blocks for testnet version 3 in the
-// data and log directory "testnet", which does not match the Name field of the
-// chaincfg parameters.  This function can be used to override this directory name
-// as "testnet" when the passed active network matches wire.TestNet3.
-// A proper upgrade to move the data and log directories for this network to
-// "testnet3" is planned for the future, at which point this function can be
-// removed and the network parameter's name used instead.
+
+// netName returns the name used when referring to a bitcoin network.  At the time of writing, pod currently places blocks for testnet version 3 in the data and log directory "testnet", which does not match the Name field of the chaincfg parameters.  This function can be used to override this directory name as "testnet" when the passed active network matches wire.TestNet3. A proper upgrade to move the data and log directories for this network to "testnet3" is planned for the future, at which point this function can be removed and the network parameter's name used instead.
 func netName(chainParams *chaincfg.Params) string {
 	switch chainParams.Net {
 	case wire.TestNet3:
@@ -59,6 +56,7 @@ func netName(chainParams *chaincfg.Params) string {
 		return chainParams.Name
 	}
 }
+
 // loadConfig initializes and parses the config using command line options.
 func loadConfig() (*config, []string, error) {
 	// Default config.
@@ -79,8 +77,7 @@ func loadConfig() (*config, []string, error) {
 	// Multiple networks can't be selected simultaneously.
 	funcName := "loadConfig"
 	numNets := 0
-	// Count number of network flags passed; assign active network params
-	// while we're at it
+	// Count number of network flags passed; assign active network params while we're at it
 	if cfg.TestNet3 {
 		numNets++
 		activeNetParams = &chaincfg.TestNet3Params
@@ -110,12 +107,7 @@ func loadConfig() (*config, []string, error) {
 		parser.WriteHelp(os.Stderr)
 		return nil, nil, err
 	}
-	// Append the network type to the data directory so it is "namespaced"
-	// per network.  In addition to the block database, there are other
-	// pieces of data that are saved to disk such as address manager state.
-	// All data is specific to a network, so namespacing the data directory
-	// means each individual piece of serialized data does not have to
-	// worry about changing names per network and such.
+	// Append the network type to the data directory so it is "namespaced" per network.  In addition to the block database, there are other pieces of data that are saved to disk such as address manager state. All data is specific to a network, so namespacing the data directory means each individual piece of serialized data does not have to worry about changing names per network and such.
 	cfg.DataDir = filepath.Join(cfg.DataDir, netName(activeNetParams))
 	// Validate the number of candidates.
 	if cfg.NumCandidates < minCandidates || cfg.NumCandidates > maxCandidates {

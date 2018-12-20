@@ -1,27 +1,29 @@
-
 package main
+
 import (
 	"encoding/binary"
 	"fmt"
-	"io"
-	"sync"
-	"time"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/blockchain/indexers"
 	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/wire"
+	"io"
+	"sync"
+	"time"
 )
+
 var zeroHash = chainhash.Hash{}
+
 // importResults houses the stats and result as an import operation.
 type importResults struct {
 	blocksProcessed int64
 	blocksImported  int64
 	err             error
 }
-// blockImporter houses information about an ongoing import from a block data
-// file to the block database.
+
+// blockImporter houses information about an ongoing import from a block data file to the block database.
 type blockImporter struct {
 	db                database.DB
 	chain             *blockchain.BlockChain
@@ -39,6 +41,7 @@ type blockImporter struct {
 	lastBlockTime     time.Time
 	lastLogTime       time.Time
 }
+
 // readBlock reads the next block from the input file.
 func (bi *blockImporter) readBlock() ([]byte, error) {
 	// The block file format is:
@@ -72,12 +75,8 @@ func (bi *blockImporter) readBlock() ([]byte, error) {
 	}
 	return serializedBlock, nil
 }
-// processBlock potentially imports the block into the database.  It first
-// deserializes the raw block while checking for errors.  Already known blocks
-// are skipped and orphan blocks are considered errors.  Finally, it runs the
-// block through the chain rules to ensure it follows all rules and matches
-// up to the known checkpoint.  Returns whether the block was imported along
-// with any potential errors.
+
+// processBlock potentially imports the block into the database.  It first deserializes the raw block while checking for errors.  Already known blocks are skipped and orphan blocks are considered errors.  Finally, it runs the block through the chain rules to ensure it follows all rules and matches up to the known checkpoint.  Returns whether the block was imported along with any potential errors.
 func (bi *blockImporter) processBlock(serializedBlock []byte) (bool, error) {
 	// Deserialize the block which includes checks for malformed blocks.
 	block, err := btcutil.NewBlockFromBytes(serializedBlock)
@@ -109,10 +108,9 @@ func (bi *blockImporter) processBlock(serializedBlock []byte) (bool, error) {
 				"block chain", prevHash)
 		}
 	}
-	// Ensure the blocks follows all of the chain rules and match up to the
-	// known checkpoints.
+	// Ensure the blocks follows all of the chain rules and match up to the known checkpoints.
 	isMainChain, isOrphan, err := bi.chain.ProcessBlock(block,
-		blockchain.BFFastAdd)
+		blockchain.BFFastAdd, block.Height())
 	if err != nil {
 		return false, err
 	}
@@ -126,14 +124,12 @@ func (bi *blockImporter) processBlock(serializedBlock []byte) (bool, error) {
 	}
 	return true, nil
 }
-// readHandler is the main handler for reading blocks from the import file.
-// This allows block processing to take place in parallel with block reads.
-// It must be run as a goroutine.
+
+// readHandler is the main handler for reading blocks from the import file. This allows block processing to take place in parallel with block reads. It must be run as a goroutine.
 func (bi *blockImporter) readHandler() {
 out:
 	for {
-		// Read the next block from the file and if anything goes wrong
-		// notify the status handler with the error and bail.
+		// Read the next block from the file and if anything goes wrong notify the status handler with the error and bail.
 		serializedBlock, err := bi.readBlock()
 		if err != nil {
 			bi.errChan <- fmt.Errorf("Error reading from input "+
@@ -144,8 +140,7 @@ out:
 		if serializedBlock == nil {
 			break out
 		}
-		// Send the block or quit if we've been signalled to exit by
-		// the status handler due to an error elsewhere.
+		// Send the block or quit if we've been signalled to exit by the status handler due to an error elsewhere.
 		select {
 		case bi.processQueue <- serializedBlock:
 		case <-bi.quit:
@@ -156,9 +151,8 @@ out:
 	close(bi.processQueue)
 	bi.wg.Done()
 }
-// logProgress logs block progress as an information message.  In order to
-// prevent spam, it limits logging to one message every cfg.Progress seconds
-// with duration and totals included.
+
+// logProgress logs block progress as an information message.  In order to prevent spam, it limits logging to one message every cfg.Progress seconds with duration and totals included.
 func (bi *blockImporter) logProgress() {
 	bi.receivedLogBlocks++
 	now := time.Now()
@@ -185,9 +179,8 @@ func (bi *blockImporter) logProgress() {
 	bi.receivedLogTx = 0
 	bi.lastLogTime = now
 }
-// processHandler is the main handler for processing blocks.  This allows block
-// processing to take place in parallel with block reads from the import file.
-// It must be run as a goroutine.
+
+// processHandler is the main handler for processing blocks.  This allows block processing to take place in parallel with block reads from the import file. It must be run as a goroutine.
 func (bi *blockImporter) processHandler() {
 out:
 	for {
@@ -214,13 +207,11 @@ out:
 	}
 	bi.wg.Done()
 }
-// statusHandler waits for updates from the import operation and notifies
-// the passed doneChan with the results of the import.  It also causes all
-// goroutines to exit if an error is reported from any of them.
+
+// statusHandler waits for updates from the import operation and notifies the passed doneChan with the results of the import.  It also causes all goroutines to exit if an error is reported from any of them.
 func (bi *blockImporter) statusHandler(resultsChan chan *importResults) {
 	select {
-	// An error from either of the goroutines means we're done so signal
-	// caller with the error and signal all goroutines to quit.
+	// An error from either of the goroutines means we're done so signal caller with the error and signal all goroutines to quit.
 	case err := <-bi.errChan:
 		resultsChan <- &importResults{
 			blocksProcessed: bi.blocksProcessed,
@@ -237,6 +228,7 @@ func (bi *blockImporter) statusHandler(resultsChan chan *importResults) {
 		}
 	}
 }
+
 // Import is the core function which handles importing the blocks from the file
 // associated with the block importer to the database.  It returns a channel
 // on which the results will be returned when the operation has completed.
@@ -258,6 +250,7 @@ func (bi *blockImporter) Import() chan *importResults {
 	go bi.statusHandler(resultChan)
 	return resultChan
 }
+
 // newBlockImporter returns a new importer for the provided file reader seeker
 // and database.
 func newBlockImporter(db database.DB, r io.ReadSeeker) (*blockImporter, error) {

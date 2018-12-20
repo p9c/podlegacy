@@ -1,14 +1,14 @@
 package chaincfg_test
+
 import (
 	"bytes"
+	. "github.com/parallelcointeam/pod/chaincfg"
 	"reflect"
 	"strings"
 	"testing"
-	. "github.com/parallelcointeam/pod/chaincfg"
 )
-// Define some of the required parameters for a user-registered
-// network.  This is necessary to test the registration of and
-// lookup of encoding magics from the network.
+
+// Define some of the required parameters for a user-registered network.  This is necessary to test the registration of and lookup of encoding magics from the network.
 var mockNetParams = Params{
 	Name:             "mocknet",
 	Net:              1<<32 - 1,
@@ -18,6 +18,7 @@ var mockNetParams = Params{
 	HDPrivateKeyID:   [4]byte{0x01, 0x02, 0x03, 0x04},
 	HDPublicKeyID:    [4]byte{0x05, 0x06, 0x07, 0x08},
 }
+
 func TestRegister(t *testing.T) {
 	type registerTest struct {
 		name   string

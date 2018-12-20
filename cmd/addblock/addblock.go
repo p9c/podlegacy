@@ -1,23 +1,26 @@
-
 package main
+
 import (
+	"github.com/parallelcointeam/pod/blockchain"
+	"github.com/parallelcointeam/pod/blockchain/indexers"
+	"github.com/parallelcointeam/pod/btclog"
+	"github.com/parallelcointeam/pod/database"
+	"github.com/parallelcointeam/pod/limits"
 	"os"
 	"path/filepath"
 	"runtime"
-	"github.com/parallelcointeam/pod/blockchain"
-	"github.com/parallelcointeam/pod/blockchain/indexers"
-	"github.com/parallelcointeam/pod/database"
-	"github.com/parallelcointeam/pod/limits"
-	"github.com/parallelcointeam/pod/btclog"
 )
+
 const (
 	// blockDbNamePrefix is the prefix for the pod block database.
 	blockDbNamePrefix = "blocks"
 )
+
 var (
 	cfg *config
 	log btclog.Logger
 )
+
 // loadBlockDB opens the block database and returns a handle to it.
 func loadBlockDB() (database.DB, error) {
 	// The database name is based on the database type.
@@ -26,8 +29,7 @@ func loadBlockDB() (database.DB, error) {
 	log.Infof("Loading block database from '%s'", dbPath)
 	db, err := database.Open(cfg.DbType, dbPath, activeNetParams.Net)
 	if err != nil {
-		// Return the error if it's not because the database doesn't
-		// exist.
+		// Return the error if it's not because the database doesn't exist.
 		if dbErr, ok := err.(database.Error); !ok || dbErr.ErrorCode !=
 			database.ErrDbDoesNotExist {
 			return nil, err
@@ -45,8 +47,8 @@ func loadBlockDB() (database.DB, error) {
 	log.Info("Block database loaded")
 	return db, nil
 }
-// realMain is the real main function for the utility.  It is necessary to work
-// around the fact that deferred functions do not run when os.Exit() is called.
+
+// realMain is the real main function for the utility.  It is necessary to work around the fact that deferred functions do not run when os.Exit() is called.
 func realMain() error {
 	// Load configuration and parse command line.
 	tcfg, _, err := loadConfig()
@@ -74,18 +76,13 @@ func realMain() error {
 		return err
 	}
 	defer fi.Close()
-	// Create a block importer for the database and input file and start it.
-	// The done channel returned from start will contain an error if
-	// anything went wrong.
+	// Create a block importer for the database and input file and start it. The done channel returned from start will contain an error if anything went wrong.
 	importer, err := newBlockImporter(db, fi)
 	if err != nil {
 		log.Errorf("Failed create block importer: %v", err)
 		return err
 	}
-	// Perform the import asynchronously.  This allows blocks to be
-	// processed and read in parallel.  The results channel returned from
-	// Import contains the statistics about the import including an error
-	// if something went wrong.
+	// Perform the import asynchronously.  This allows blocks to be processed and read in parallel.  The results channel returned from Import contains the statistics about the import including an error if something went wrong.
 	log.Info("Starting import")
 	resultsChan := importer.Import()
 	results := <-resultsChan

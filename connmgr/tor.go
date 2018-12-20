@@ -1,10 +1,11 @@
-
 package connmgr
+
 import (
 	"encoding/binary"
 	"errors"
 	"net"
 )
+
 const (
 	torSucceeded         = 0x00
 	torGeneralError      = 0x01
@@ -16,17 +17,15 @@ const (
 	torCmdNotSupported   = 0x07
 	torAddrNotSupported  = 0x08
 )
+
 var (
-	// ErrTorInvalidAddressResponse indicates an invalid address was
-	// returned by the Tor DNS resolver.
+	// ErrTorInvalidAddressResponse indicates an invalid address was returned by the Tor DNS resolver.
 	ErrTorInvalidAddressResponse = errors.New("invalid address response")
-	// ErrTorInvalidProxyResponse indicates the Tor proxy returned a
-	// response in an unexpected format.
+	// ErrTorInvalidProxyResponse indicates the Tor proxy returned a response in an unexpected format.
 	ErrTorInvalidProxyResponse = errors.New("invalid proxy response")
-	// ErrTorUnrecognizedAuthMethod indicates the authentication method
-	// provided is not recognized.
+	// ErrTorUnrecognizedAuthMethod indicates the authentication method provided is not recognized.
 	ErrTorUnrecognizedAuthMethod = errors.New("invalid proxy authentication method")
-	torStatusErrors = map[byte]error{
+	torStatusErrors              = map[byte]error{
 		torSucceeded:         errors.New("tor succeeded"),
 		torGeneralError:      errors.New("tor general error"),
 		torNotAllowed:        errors.New("tor not allowed"),
@@ -38,9 +37,8 @@ var (
 		torAddrNotSupported:  errors.New("tor address type not supported"),
 	}
 )
-// TorLookupIP uses Tor to resolve DNS via the SOCKS extension they provide for
-// resolution over the Tor network. Tor itself doesn't support ipv6 so this
-// doesn't either.
+
+// TorLookupIP uses Tor to resolve DNS via the SOCKS extension they provide for resolution over the Tor network. Tor itself doesn't support ipv6 so this doesn't either.
 func TorLookupIP(host, proxy string) ([]net.IP, error) {
 	conn, err := net.Dial("tcp", proxy)
 	if err != nil {

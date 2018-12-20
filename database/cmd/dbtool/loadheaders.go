@@ -1,20 +1,23 @@
-
 package main
+
 import (
-	"time"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/database"
+	"time"
 )
+
 // headersCmd defines the configuration options for the loadheaders command.
 type headersCmd struct {
 	Bulk bool `long:"bulk" description:"Use bulk loading of headers instead of one at a time"`
 }
+
 var (
 	// headersCfg defines the configuration options for the command.
 	headersCfg = headersCmd{
 		Bulk: false,
 	}
 )
+
 // Execute is the main entry point for the command.  It's invoked by the parser.
 func (cmd *headersCmd) Execute(args []string) error {
 	// Setup the global config options and ensure they are valid.
@@ -27,8 +30,7 @@ func (cmd *headersCmd) Execute(args []string) error {
 		return err
 	}
 	defer db.Close()
-	// NOTE: This code will only work for ffldb.  Ideally the package using
-	// the database would keep a metadata index of its own.
+	// NOTE: This code will only work for ffldb.  Ideally the package using the database would keep a metadata index of its own.
 	blockIdxName := []byte("ffldb-blockidx")
 	if !headersCfg.Bulk {
 		err = db.View(func(tx database.Tx) error {

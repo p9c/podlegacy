@@ -1,12 +1,12 @@
-
 package connmgr
+
 import (
 	"math"
 	"testing"
 	"time"
 )
-// TestDynamicBanScoreDecay tests the exponential decay implemented in
-// DynamicBanScore.
+
+// TestDynamicBanScoreDecay tests the exponential decay implemented in DynamicBanScore.
 func TestDynamicBanScoreDecay(t *testing.T) {
 	var bs DynamicBanScore
 	base := time.Now()
@@ -23,8 +23,8 @@ func TestDynamicBanScoreDecay(t *testing.T) {
 		t.Errorf("Decay after 7m - %d instead of 100", r)
 	}
 }
-// TestDynamicBanScoreLifetime tests that DynamicBanScore properly yields zero
-// once the maximum age is reached.
+
+// TestDynamicBanScoreLifetime tests that DynamicBanScore properly yields zero once the maximum age is reached.
 func TestDynamicBanScoreLifetime(t *testing.T) {
 	var bs DynamicBanScore
 	base := time.Now()
@@ -38,8 +38,8 @@ func TestDynamicBanScoreLifetime(t *testing.T) {
 		t.Errorf("Zero after max age check failed - %d instead of 0", r)
 	}
 }
-// TestDynamicBanScore tests exported functions of DynamicBanScore. Exponential
-// decay or other time based behavior is tested by other functions.
+
+// TestDynamicBanScore tests exported functions of DynamicBanScore. Exponential decay or other time based behavior is tested by other functions.
 func TestDynamicBanScoreReset(t *testing.T) {
 	var bs DynamicBanScore
 	if bs.Int() != 0 {
