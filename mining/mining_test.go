@@ -1,16 +1,15 @@
-
 package mining
+
 import (
 	"container/heap"
+	"github.com/parallelcointeam/pod/btcutil"
 	"math/rand"
 	"testing"
-	"github.com/parallelcointeam/pod/btcutil"
 )
-// TestTxFeePrioHeap ensures the priority queue for transaction fees and
-// priorities works as expected.
+
+// TestTxFeePrioHeap ensures the priority queue for transaction fees and priorities works as expected.
 func TestTxFeePrioHeap(t *testing.T) {
-	// Create some fake priority items that exercise the expected sort
-	// edge conditions.
+	// Create some fake priority items that exercise the expected sort edge conditions.
 	testItems := []*txPrioItem{
 		{feePerKB: 5678, priority: 3},
 		{feePerKB: 5678, priority: 1},
@@ -25,8 +24,7 @@ func TestTxFeePrioHeap(t *testing.T) {
 		{feePerKB: 10000, priority: 0}, // Higher fee, smaller prio
 		{feePerKB: 0, priority: 10000}, // Higher prio, lower fee
 	}
-	// Add random data in addition to the edge conditions already manually
-	// specified.
+	// Add random data in addition to the edge conditions already manually specified.
 	randSeed := rand.Int63()
 	defer func() {
 		if t.Failed() {

@@ -1,21 +1,20 @@
-
 package peer_test
+
 import (
 	"errors"
-	"io"
-	"net"
-	"strconv"
-	"testing"
-	"time"
 	"github.com/btcsuite/go-socks/socks"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/wire"
+	"io"
+	"net"
+	"strconv"
+	"testing"
+	"time"
 )
-// conn mocks a network connection by implementing the net.Conn interface.  It
-// is used to test peer connection without actually opening a network
-// connection.
+
+// conn mocks a network connection by implementing the net.Conn interface.  It is used to test peer connection without actually opening a network connection.
 type conn struct {
 	io.Reader
 	io.Writer
@@ -27,10 +26,12 @@ type conn struct {
 	// mocks socks proxy if true
 	proxy bool
 }
+
 // LocalAddr returns the local address for the connection.
 func (c conn) LocalAddr() net.Addr {
 	return &addr{c.lnet, c.laddr}
 }
+
 // Remote returns the remote address for the connection.
 func (c conn) RemoteAddr() net.Addr {
 	if !c.proxy {
@@ -44,6 +45,7 @@ func (c conn) RemoteAddr() net.Addr {
 		Port: port,
 	}
 }
+
 // Close handles closing the connection.
 func (c conn) Close() error {
 	if c.Closer == nil {
@@ -54,14 +56,16 @@ func (c conn) Close() error {
 func (c conn) SetDeadline(t time.Time) error      { return nil }
 func (c conn) SetReadDeadline(t time.Time) error  { return nil }
 func (c conn) SetWriteDeadline(t time.Time) error { return nil }
+
 // addr mocks a network address
 type addr struct {
 	net, address string
 }
+
 func (m addr) Network() string { return m.net }
 func (m addr) String() string  { return m.address }
-// pipe turns two mock connections into a full-duplex connection similar to
-// net.Pipe to allow pipe's with (fake) addresses.
+
+// pipe turns two mock connections into a full-duplex connection similar to net.Pipe to allow pipe's with (fake) addresses.
 func pipe(c1, c2 *conn) (*conn, *conn) {
 	r1, w1 := io.Pipe()
 	r2, w2 := io.Pipe()
@@ -73,6 +77,7 @@ func pipe(c1, c2 *conn) (*conn, *conn) {
 	c2.Closer = w2
 	return c1, c2
 }
+
 // peerStats holds the expected peer stats used for testing peer.
 type peerStats struct {
 	wantUserAgent       string
@@ -91,6 +96,7 @@ type peerStats struct {
 	wantBytesReceived   uint64
 	wantWitnessEnabled  bool
 }
+
 // testPeer tests the given peer's flags and stats
 func testPeer(t *testing.T, p *peer.Peer, s peerStats) {
 	if p.UserAgent() != s.wantUserAgent {
@@ -129,8 +135,7 @@ func testPeer(t *testing.T, p *peer.Peer, s peerStats) {
 		t.Errorf("testPeer: wrong LastBlock - got %v, want %v", p.LastBlock(), s.wantLastBlock)
 		return
 	}
-	// Allow for a deviation of 1s, as the second may tick when the message is
-	// in transit and the protocol doesn't support any further precision.
+	// Allow for a deviation of 1s, as the second may tick when the message is in transit and the protocol doesn't support any further precision.
 	if p.TimeOffset() != s.wantTimeOffset && p.TimeOffset() != s.wantTimeOffset-1 {
 		t.Errorf("testPeer: wrong TimeOffset - got %v, want %v or %v", p.TimeOffset(),
 			s.wantTimeOffset, s.wantTimeOffset-1)
@@ -175,6 +180,7 @@ func testPeer(t *testing.T, p *peer.Peer, s peerStats) {
 		return
 	}
 }
+
 // TestPeerConnection tests connection between inbound and outbound peers.
 func TestPeerConnection(t *testing.T) {
 	verack := make(chan struct{})
@@ -305,6 +311,7 @@ func TestPeerConnection(t *testing.T) {
 		outPeer.WaitForDisconnect()
 	}
 }
+
 // TestPeerListeners tests that the peer listeners are called as expected.
 func TestPeerListeners(t *testing.T) {
 	verack := make(chan struct{}, 1)
@@ -532,7 +539,6 @@ func TestPeerListeners(t *testing.T) {
 			wire.NewMsgMerkleBlock(wire.NewBlockHeader(1,
 				&chainhash.Hash{}, &chainhash.Hash{}, 1, 1)),
 		},
-		// only one version message is allowed
 		// only one verack message is allowed
 		{
 			"OnReject",
@@ -557,6 +563,7 @@ func TestPeerListeners(t *testing.T) {
 	inPeer.Disconnect()
 	outPeer.Disconnect()
 }
+
 // TestOutboundPeer tests that the outbound peer works as expected.
 func TestOutboundPeer(t *testing.T) {
 	peerCfg := &peer.Config{
@@ -681,8 +688,8 @@ func TestOutboundPeer(t *testing.T) {
 	p2.QueueMessage(wire.NewMsgFeeFilter(20000), nil)
 	p2.Disconnect()
 }
-// Tests that the node disconnects from peers with an unsupported protocol
-// version.
+
+// Tests that the node disconnects from peers with an unsupported protocol version.
 func TestUnsupportedVersionPeer(t *testing.T) {
 	peerCfg := &peer.Config{
 		UserAgentName:     "peer",
@@ -774,11 +781,10 @@ func TestUnsupportedVersionPeer(t *testing.T) {
 		t.Fatal("Timeout waiting for remote reader to close")
 	}
 }
-// TestDuplicateVersionMsg ensures that receiving a version message after one
-// has already been received results in the peer being disconnected.
+
+// TestDuplicateVersionMsg ensures that receiving a version message after one has already been received results in the peer being disconnected.
 func TestDuplicateVersionMsg(t *testing.T) {
-	// Create a pair of peers that are connected to each other using a fake
-	// connection.
+	// Create a pair of peers that are connected to each other using a fake connection.
 	verack := make(chan struct{})
 	peerCfg := &peer.Config{
 		Listeners: peer.MessageListeners{
@@ -810,8 +816,7 @@ func TestDuplicateVersionMsg(t *testing.T) {
 			t.Fatal("verack timeout")
 		}
 	}
-	// Queue a duplicate version message from the outbound peer and wait until
-	// it is sent.
+	// Queue a duplicate version message from the outbound peer and wait until it is sent.
 	done := make(chan struct{})
 	outPeer.QueueMessage(&wire.MsgVersion{}, done)
 	select {
@@ -819,8 +824,7 @@ func TestDuplicateVersionMsg(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("send duplicate version timeout")
 	}
-	// Ensure the peer that is the recipient of the duplicate version closes the
-	// connection.
+	// Ensure the peer that is the recipient of the duplicate version closes the connection.
 	disconnected := make(chan struct{}, 1)
 	go func() {
 		inPeer.WaitForDisconnect()

@@ -1,17 +1,15 @@
-
 package mining
+
 import (
 	"encoding/hex"
-	"testing"
 	"github.com/parallelcointeam/pod/blockchain"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
+	"testing"
 )
-// newHashFromStr converts the passed big-endian hex string into a
-// chainhash.Hash.  It only differs from the one available in chainhash in that
-// it panics on an error since it will only (and must only) be called with
-// hard-coded, and therefore known good, hashes.
+
+// newHashFromStr converts the passed big-endian hex string into a chainhash.Hash.  It only differs from the one available in chainhash in that it panics on an error since it will only (and must only) be called with hard-coded, and therefore known good, hashes.
 func newHashFromStr(hexStr string) *chainhash.Hash {
 	hash, err := chainhash.NewHashFromStr(hexStr)
 	if err != nil {
@@ -19,10 +17,8 @@ func newHashFromStr(hexStr string) *chainhash.Hash {
 	}
 	return hash
 }
-// hexToBytes converts the passed hex string into bytes and will panic if there
-// is an error.  This is only provided for the hard-coded constants so errors in
-// the source code can be detected. It will only (and must only) be called with
-// hard-coded values.
+
+// hexToBytes converts the passed hex string into bytes and will panic if there is an error.  This is only provided for the hard-coded constants so errors in the source code can be detected. It will only (and must only) be called with hard-coded values.
 func hexToBytes(s string) []byte {
 	b, err := hex.DecodeString(s)
 	if err != nil {
@@ -30,10 +26,8 @@ func hexToBytes(s string) []byte {
 	}
 	return b
 }
-// newUtxoViewpoint returns a new utxo view populated with outputs of the
-// provided source transactions as if there were available at the respective
-// block height specified in the heights slice.  The length of the source txns
-// and source tx heights must match or it will panic.
+
+// newUtxoViewpoint returns a new utxo view populated with outputs of the provided source transactions as if there were available at the respective block height specified in the heights slice.  The length of the source txns and source tx heights must match or it will panic.
 func newUtxoViewpoint(sourceTxns []*wire.MsgTx, sourceTxHeights []int32) *blockchain.UtxoViewpoint {
 	if len(sourceTxns) != len(sourceTxHeights) {
 		panic("each transaction must have its block height specified")
@@ -44,11 +38,10 @@ func newUtxoViewpoint(sourceTxns []*wire.MsgTx, sourceTxHeights []int32) *blockc
 	}
 	return view
 }
+
 // TestCalcPriority ensures the priority calculations work as intended.
 func TestCalcPriority(t *testing.T) {
-	// commonSourceTx1 is a valid transaction used in the tests below as an
-	// input to transactions that are having their priority calculated.
-	//
+	// commonSourceTx1 is a valid transaction used in the tests below as an input to transactions that are having their priority calculated.
 	// From block 7 in main blockchain.
 	// tx 0437cd7f8525ceed2324359c2d0ba26006d92d856a9c20fa0241106ee5a597c9
 	commonSourceTx1 := &wire.MsgTx{
@@ -70,9 +63,7 @@ func TestCalcPriority(t *testing.T) {
 		}},
 		LockTime: 0,
 	}
-	// commonRedeemTx1 is a valid transaction used in the tests below as the
-	// transaction to calculate the priority for.
-	//
+	// commonRedeemTx1 is a valid transaction used in the tests below as the transaction to calculate the priority for.
 	// It originally came from block 170 in main blockchain.
 	commonRedeemTx1 := &wire.MsgTx{
 		Version: 1,

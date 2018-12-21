@@ -1,9 +1,10 @@
-
 package main
+
 import (
-	"log"
 	"github.com/parallelcointeam/pod/rpcclient"
+	"log"
 )
+
 func main() {
 	// Connect to local bitcoin core RPC server using HTTP POST mode.
 	connCfg := &rpcclient.ConnConfig{
@@ -13,8 +14,7 @@ func main() {
 		HTTPPostMode: true,  // Bitcoin core only supports HTTP POST mode
 		TLS:          false, // Bitcoin core does not provide TLS by default
 	}
-	// Notice the notification parameter is nil since notifications are
-	// not supported in HTTP POST mode.
+	// Notice the notification parameter is nil since notifications are not supported in HTTP POST mode.
 	client, err := rpcclient.New(connCfg, nil)
 	if err != nil {
 		log.Fatal(err)
