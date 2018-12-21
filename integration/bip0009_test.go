@@ -98,15 +98,7 @@ func assertSoftForkStatus(r *rpctest.Harness, t *testing.T, forkKey string, stat
 	}
 }
 
-// testBIP0009 ensures the BIP0009 soft fork mechanism follows the state
-// transition rules set forth by the BIP for the provided soft fork key.  It
-// uses the regression test network to signal support and advance through the
-// various threshold states including failure to achieve locked in status.
-//
-// See TestBIP0009 for an overview of what is tested.
-//
-// NOTE: This only differs from the exported version in that it accepts the
-// specific soft fork deployment to test.
+// testBIP0009 ensures the BIP0009 soft fork mechanism follows the state transition rules set forth by the BIP for the provided soft fork key.  It uses the regression test network to signal support and advance through the various threshold states including failure to achieve locked in status. See TestBIP0009 for an overview of what is tested. NOTE: This only differs from the exported version in that it accepts the specific soft fork deployment to test.
 func testBIP0009(t *testing.T, forkKey string, deploymentID uint32) {
 	// Initialize the primary mining node with only the genesis block.
 	r, err := rpctest.New(&chaincfg.RegressionNetParams, nil, nil)
@@ -118,25 +110,13 @@ func testBIP0009(t *testing.T, forkKey string, deploymentID uint32) {
 	}
 	defer r.TearDown()
 	// *** ThresholdDefined ***
-	//
-	// Assert the chain height is the expected value and the soft fork
-	// status starts out as defined.
+	// Assert the chain height is the expected value and the soft fork status starts out as defined.
 	assertChainHeight(r, t, 0)
 	assertSoftForkStatus(r, t, forkKey, blockchain.ThresholdDefined)
 	// *** ThresholdDefined part 2 - 1 block prior to ThresholdStarted ***
-	//
-	// Generate enough blocks to reach the height just before the first
-	// state transition without signalling support since the state should
-	// move to started once the start time has been reached regardless of
-	// support signalling.
-	//
-	// NOTE: This is two blocks before the confirmation window because the
-	// getblockchaininfo RPC reports the status for the block AFTER the
-	// current one.  All of the heights below are thus offset by one to
-	// compensate.
-	//
-	// Assert the chain height is the expected value and soft fork status is
-	// still defined and did NOT move to started.
+	// Generate enough blocks to reach the height just before the first state transition without signalling support since the state should move to started once the start time has been reached regardless of support signalling.
+	// NOTE: This is two blocks before the confirmation window because the getblockchaininfo RPC reports the status for the block AFTER the current one.  All of the heights below are thus offset by one to compensate.
+	// Assert the chain height is the expected value and soft fork status is still defined and did NOT move to started.
 	confirmationWindow := r.ActiveNet.MinerConfirmationWindow
 	for i := uint32(0); i < confirmationWindow-2; i++ {
 		_, err := r.GenerateAndSubmitBlock(nil, vbLegacyBlockVersion,
@@ -148,10 +128,7 @@ func testBIP0009(t *testing.T, forkKey string, deploymentID uint32) {
 	assertChainHeight(r, t, confirmationWindow-2)
 	assertSoftForkStatus(r, t, forkKey, blockchain.ThresholdDefined)
 	// *** ThresholdStarted ***
-	//
-	// Generate another block to reach the next window.
-	//
-	// Assert the chain height is the expected value and the soft fork
+	// Generate another block to reach the next window. Assert the chain height is the expected value and the soft fork
 	// status is started.
 	_, err = r.GenerateAndSubmitBlock(nil, vbLegacyBlockVersion, time.Time{})
 	if err != nil {
@@ -160,13 +137,7 @@ func testBIP0009(t *testing.T, forkKey string, deploymentID uint32) {
 	assertChainHeight(r, t, confirmationWindow-1)
 	assertSoftForkStatus(r, t, forkKey, blockchain.ThresholdStarted)
 	// *** ThresholdStarted part 2 - Fail to achieve ThresholdLockedIn ***
-	//
-	// Generate enough blocks to reach the next window in such a way that
-	// the number blocks with the version bit set to signal support is 1
-	// less than required to achieve locked in status.
-	//
-	// Assert the chain height is the expected value and the soft fork
-	// status is still started and did NOT move to locked in.
+	// Generate enough blocks to reach the next window in such a way that the number blocks with the version bit set to signal support is 1 less than required to achieve locked in status. Assert the chain height is the expected value and the soft fork status is still started and did NOT move to locked in.
 	if deploymentID > uint32(len(r.ActiveNet.Deployments)) {
 		t.Fatalf("deployment ID %d does not exist", deploymentID)
 	}
@@ -190,13 +161,7 @@ func testBIP0009(t *testing.T, forkKey string, deploymentID uint32) {
 	assertChainHeight(r, t, (confirmationWindow*2)-1)
 	assertSoftForkStatus(r, t, forkKey, blockchain.ThresholdStarted)
 	// *** ThresholdLockedIn ***
-	//
-	// Generate enough blocks to reach the next window in such a way that
-	// the number blocks with the version bit set to signal support is
-	// exactly the number required to achieve locked in status.
-	//
-	// Assert the chain height is the expected value and the soft fork
-	// status moved to locked in.
+	// Generate enough blocks to reach the next window in such a way that the number blocks with the version bit set to signal support is exactly the number required to achieve locked in status. Assert the chain height is the expected value and the soft fork status moved to locked in.
 	for i := uint32(0); i < activationThreshold; i++ {
 		_, err := r.GenerateAndSubmitBlock(nil, signalForkVersion,
 			time.Time{})
@@ -214,13 +179,7 @@ func testBIP0009(t *testing.T, forkKey string, deploymentID uint32) {
 	assertChainHeight(r, t, (confirmationWindow*3)-1)
 	assertSoftForkStatus(r, t, forkKey, blockchain.ThresholdLockedIn)
 	// *** ThresholdLockedIn part 2 -- 1 block prior to ThresholdActive ***
-	//
-	// Generate enough blocks to reach the height just before the next
-	// window without continuing to signal support since it is already
-	// locked in.
-	//
-	// Assert the chain height is the expected value and the soft fork
-	// status is still locked in and did NOT move to active.
+	// Generate enough blocks to reach the height just before the next window without continuing to signal support since it is already locked in. Assert the chain height is the expected value and the soft fork status is still locked in and did NOT move to active.
 	for i := uint32(0); i < confirmationWindow-1; i++ {
 		_, err := r.GenerateAndSubmitBlock(nil, vbLegacyBlockVersion,
 			time.Time{})
@@ -231,12 +190,7 @@ func testBIP0009(t *testing.T, forkKey string, deploymentID uint32) {
 	assertChainHeight(r, t, (confirmationWindow*4)-2)
 	assertSoftForkStatus(r, t, forkKey, blockchain.ThresholdLockedIn)
 	// *** ThresholdActive ***
-	//
-	// Generate another block to reach the next window without continuing to
-	// signal support since it is already locked in.
-	//
-	// Assert the chain height is the expected value and the soft fork
-	// status moved to active.
+	// Generate another block to reach the next window without continuing to signal support since it is already locked in. Assert the chain height is the expected value and the soft fork status moved to active.
 	_, err = r.GenerateAndSubmitBlock(nil, vbLegacyBlockVersion, time.Time{})
 	if err != nil {
 		t.Fatalf("failed to generated block: %v", err)
@@ -245,24 +199,16 @@ func testBIP0009(t *testing.T, forkKey string, deploymentID uint32) {
 	assertSoftForkStatus(r, t, forkKey, blockchain.ThresholdActive)
 }
 
-// TestBIP0009 ensures the BIP0009 soft fork mechanism follows the state
-// transition rules set forth by the BIP for all soft forks.  It uses the
-// regression test network to signal support and advance through the various
-// threshold states including failure to achieve locked in status.
-//
+// TestBIP0009 ensures the BIP0009 soft fork mechanism follows the state transition rules set forth by the BIP for all soft forks.  It uses the regression test network to signal support and advance through the various threshold states including failure to achieve locked in status.
 // Overview:
 // - Assert the chain height is 0 and the state is ThresholdDefined
 // - Generate 1 fewer blocks than needed to reach the first state transition
 //   - Assert chain height is expected and state is still ThresholdDefined
 // - Generate 1 more block to reach the first state transition
 //   - Assert chain height is expected and state moved to ThresholdStarted
-// - Generate enough blocks to reach the next state transition window, but only
-//   signal support in 1 fewer than the required number to achieve
-//   ThresholdLockedIn
+// - Generate enough blocks to reach the next state transition window, but only signal support in 1 fewer than the required number to achieve ThresholdLockedIn
 //   - Assert chain height is expected and state is still ThresholdStarted
-// - Generate enough blocks to reach the next state transition window with only
-//   the exact number of blocks required to achieve locked in status signalling
-//   support.
+// - Generate enough blocks to reach the next state transition window with only the exact number of blocks required to achieve locked in status signalling support.
 //   - Assert chain height is expected and state moved to ThresholdLockedIn
 // - Generate 1 fewer blocks than needed to reach the next state transition
 //   - Assert chain height is expected and state is still ThresholdLockedIn
@@ -274,9 +220,7 @@ func TestBIP0009(t *testing.T) {
 	testBIP0009(t, "segwit", chaincfg.DeploymentSegwit)
 }
 
-// TestBIP0009Mining ensures blocks built via pod's CPU miner follow the rules
-// set forth by BIP0009 by using the test dummy deployment.
-//
+// TestBIP0009Mining ensures blocks built via pod's CPU miner follow the rules set forth by BIP0009 by using the test dummy deployment.
 // Overview:
 // - Generate block 1
 //   - Assert bit is NOT set (ThresholdDefined)
@@ -302,10 +246,7 @@ func TestBIP0009Mining(t *testing.T) {
 	// Assert the chain only consists of the gensis block.
 	assertChainHeight(r, t, 0)
 	// *** ThresholdDefined ***
-	//
-	// Generate a block that extends the genesis block.  It should not have
-	// the test dummy bit set in the version since the first window is
-	// in the defined threshold state.
+	// Generate a block that extends the genesis block.  It should not have the test dummy bit set in the version since the first window is in the defined threshold state.
 	deployment := &r.ActiveNet.Deployments[chaincfg.DeploymentTestDummy]
 	testDummyBitNum := deployment.BitNumber
 	hashes, err := r.Node.Generate(1)
@@ -315,15 +256,9 @@ func TestBIP0009Mining(t *testing.T) {
 	assertChainHeight(r, t, 1)
 	assertVersionBit(r, t, hashes[0], testDummyBitNum, false)
 	// *** ThresholdStarted ***
-	//
 	// Generate enough blocks to reach the first state transition.
-	//
-	// The second to last generated block should not have the test bit set
-	// in the version.
-	//
-	// The last generated block should now have the test bit set in the
-	// version since the pod mining code will have recognized the test
-	// dummy deployment as started.
+	// The second to last generated block should not have the test bit set in the version.
+	// The last generated block should now have the test bit set in the version since the pod mining code will have recognized the test dummy deployment as started.
 	confirmationWindow := r.ActiveNet.MinerConfirmationWindow
 	numNeeded := confirmationWindow - 1
 	hashes, err = r.Node.Generate(numNeeded)
@@ -334,12 +269,8 @@ func TestBIP0009Mining(t *testing.T) {
 	assertVersionBit(r, t, hashes[len(hashes)-2], testDummyBitNum, false)
 	assertVersionBit(r, t, hashes[len(hashes)-1], testDummyBitNum, true)
 	// *** ThresholdLockedIn ***
-	//
 	// Generate enough blocks to reach the next state transition.
-	//
-	// The last generated block should still have the test bit set in the
-	// version since the pod mining code will have recognized the test
-	// dummy deployment as locked in.
+	// The last generated block should still have the test bit set in the version since the pod mining code will have recognized the test dummy deployment as locked in.
 	hashes, err = r.Node.Generate(confirmationWindow)
 	if err != nil {
 		t.Fatalf("failed to generated %d blocks: %v", confirmationWindow,
@@ -348,16 +279,9 @@ func TestBIP0009Mining(t *testing.T) {
 	assertChainHeight(r, t, confirmationWindow*2)
 	assertVersionBit(r, t, hashes[len(hashes)-1], testDummyBitNum, true)
 	// *** ThresholdActivated ***
-	//
 	// Generate enough blocks to reach the next state transition.
-	//
-	// The second to last generated block should still have the test bit set
-	// in the version since it is still locked in.
-	//
-	// The last generated block should NOT have the test bit set in the
-	// version since the pod mining code will have recognized the test
-	// dummy deployment as activated and thus there is no longer any need
-	// to set the bit.
+	// The second to last generated block should still have the test bit set in the version since it is still locked in.
+	// The last generated block should NOT have the test bit set in the version since the pod mining code will have recognized the test dummy deployment as activated and thus there is no longer any need to set the bit.
 	hashes, err = r.Node.Generate(confirmationWindow)
 	if err != nil {
 		t.Fatalf("failed to generated %d blocks: %v", confirmationWindow,

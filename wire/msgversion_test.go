@@ -1,15 +1,16 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
 	"io"
 	"net"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestVersion tests the MsgVersion API.
 func TestVersion(t *testing.T) {
 	pver := ProtocolVersion
@@ -86,11 +87,7 @@ func TestVersion(t *testing.T) {
 		t.Errorf("NewMsgVersion: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-	// Ensure max payload is expected value.
-	// Protocol version 4 bytes + services 8 bytes + timestamp 8 bytes +
-	// remote and local net addresses + nonce 8 bytes + length of user agent
-	// (varInt) + max allowed user agent length + last block 4 bytes +
-	// relay transactions flag 1 byte.
+	// Ensure max payload is expected value. Protocol version 4 bytes + services 8 bytes + timestamp 8 bytes + remote and local net addresses + nonce 8 bytes + length of user agent (varInt) + max allowed user agent length + last block 4 bytes + relay transactions flag 1 byte.
 	wantPayload := uint32(358)
 	maxPayload := msg.MaxPayloadLength(pver)
 	if maxPayload != wantPayload {
@@ -108,11 +105,10 @@ func TestVersion(t *testing.T) {
 		t.Errorf("HasService: SFNodeNetwork service not set")
 	}
 }
-// TestVersionWire tests the MsgVersion wire encode and decode for various
-// protocol versions.
+
+// TestVersionWire tests the MsgVersion wire encode and decode for various protocol versions.
 func TestVersionWire(t *testing.T) {
-	// verRelayTxFalse and verRelayTxFalseEncoded is a version message as of
-	// BIP0037Version with the transaction relay disabled.
+	// verRelayTxFalse and verRelayTxFalseEncoded is a version message as of BIP0037Version with the transaction relay disabled.
 	baseVersionBIP0037Copy := *baseVersionBIP0037
 	verRelayTxFalse := &baseVersionBIP0037Copy
 	verRelayTxFalse.DisableRelayTx = true
@@ -134,8 +130,7 @@ func TestVersionWire(t *testing.T) {
 			ProtocolVersion,
 			BaseEncoding,
 		},
-		// Protocol version BIP0037Version with relay transactions field
-		// true.
+		// Protocol version BIP0037Version with relay transactions field true.
 		{
 			baseVersionBIP0037,
 			baseVersionBIP0037,
@@ -143,8 +138,7 @@ func TestVersionWire(t *testing.T) {
 			BIP0037Version,
 			BaseEncoding,
 		},
-		// Protocol version BIP0037Version with relay transactions field
-		// false.
+		// Protocol version BIP0037Version with relay transactions field false.
 		{
 			verRelayTxFalse,
 			verRelayTxFalse,
@@ -214,17 +208,14 @@ func TestVersionWire(t *testing.T) {
 		}
 	}
 }
-// TestVersionWireErrors performs negative tests against wire encode and
-// decode of MsgGetHeaders to confirm error paths work correctly.
+
+// TestVersionWireErrors performs negative tests against wire encode and decode of MsgGetHeaders to confirm error paths work correctly.
 func TestVersionWireErrors(t *testing.T) {
-	// Use protocol version 60002 specifically here instead of the latest
-	// because the test data is using bytes encoded with that protocol
-	// version.
+	// Use protocol version 60002 specifically here instead of the latest because the test data is using bytes encoded with that protocol version.
 	pver := uint32(60002)
 	enc := BaseEncoding
 	wireErr := &MessageError{}
-	// Ensure calling MsgVersion.BtcDecode with a non *bytes.Buffer returns
-	// error.
+	// Ensure calling MsgVersion.BtcDecode with a non *bytes.Buffer returns error.
 	fr := newFixedReader(0, []byte{})
 	if err := baseVersion.BtcDecode(fr, pver, enc); err == nil {
 		t.Errorf("Did not received error when calling " +
@@ -241,9 +232,7 @@ func TestVersionWireErrors(t *testing.T) {
 	if err != nil {
 		t.Errorf("WriteVarInt: error %v", err)
 	}
-	// Make a new buffer big enough to hold the base version plus the new
-	// bytes for the bigger varint to hold the new size of the user agent
-	// and the new user agent string.  Then stich it all together.
+	// Make a new buffer big enough to hold the base version plus the new bytes for the bigger varint to hold the new size of the user agent and the new user agent string.  Then stich it all together.
 	newLen := len(baseVersionEncoded) - len(baseVersion.UserAgent)
 	newLen = newLen + len(newUAVarIntBuf.Bytes()) - 1 + len(newUA)
 	exceedUAVerEncoded := make([]byte, newLen)
@@ -278,8 +267,7 @@ func TestVersionWireErrors(t *testing.T) {
 		{baseVersion, baseVersionEncoded, pver, BaseEncoding, 82, io.ErrShortWrite, io.ErrUnexpectedEOF},
 		// Force error in last block.
 		{baseVersion, baseVersionEncoded, pver, BaseEncoding, 98, io.ErrShortWrite, io.ErrUnexpectedEOF},
-		// Force error in relay tx - no read error should happen since
-		// it's optional.
+		// Force error in relay tx - no read error should happen since it's optional.
 		{
 			baseVersionBIP0037, baseVersionBIP0037Encoded,
 			BIP0037Version, BaseEncoding, 101, io.ErrShortWrite, nil,
@@ -297,8 +285,7 @@ func TestVersionWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.writeErr {
 				t.Errorf("BtcEncode #%d wrong error got: %v, "+
@@ -315,8 +302,7 @@ func TestVersionWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.readErr {
 				t.Errorf("BtcDecode #%d wrong error got: %v, "+
@@ -326,11 +312,10 @@ func TestVersionWireErrors(t *testing.T) {
 		}
 	}
 }
-// TestVersionOptionalFields performs tests to ensure that an encoded version
-// messages that omit optional fields are handled correctly.
+
+// TestVersionOptionalFields performs tests to ensure that an encoded version messages that omit optional fields are handled correctly.
 func TestVersionOptionalFields(t *testing.T) {
-	// onlyRequiredVersion is a version message that only contains the
-	// required versions and all other values set to their default values.
+	// onlyRequiredVersion is a version message that only contains the required versions and all other values set to their default values.
 	onlyRequiredVersion := MsgVersion{
 		ProtocolVersion: 60002,
 		Services:        SFNodeNetwork,
@@ -344,8 +329,7 @@ func TestVersionOptionalFields(t *testing.T) {
 	}
 	onlyRequiredVersionEncoded := make([]byte, len(baseVersionEncoded)-55)
 	copy(onlyRequiredVersionEncoded, baseVersionEncoded)
-	// addrMeVersion is a version message that contains all fields through
-	// the AddrMe field.
+	// addrMeVersion is a version message that contains all fields through the AddrMe field.
 	addrMeVersion := onlyRequiredVersion
 	addrMeVersion.AddrMe = NetAddress{
 		Timestamp: time.Time{}, // Zero value -- no timestamp in version
@@ -355,20 +339,17 @@ func TestVersionOptionalFields(t *testing.T) {
 	}
 	addrMeVersionEncoded := make([]byte, len(baseVersionEncoded)-29)
 	copy(addrMeVersionEncoded, baseVersionEncoded)
-	// nonceVersion is a version message that contains all fields through
-	// the Nonce field.
+	// nonceVersion is a version message that contains all fields through the Nonce field.
 	nonceVersion := addrMeVersion
 	nonceVersion.Nonce = 123123 // 0x1e0f3
 	nonceVersionEncoded := make([]byte, len(baseVersionEncoded)-21)
 	copy(nonceVersionEncoded, baseVersionEncoded)
-	// uaVersion is a version message that contains all fields through
-	// the UserAgent field.
+	// uaVersion is a version message that contains all fields through the UserAgent field.
 	uaVersion := nonceVersion
 	uaVersion.UserAgent = "/podtest:0.0.1/"
 	uaVersionEncoded := make([]byte, len(baseVersionEncoded)-4)
 	copy(uaVersionEncoded, baseVersionEncoded)
-	// lastBlockVersion is a version message that contains all fields
-	// through the LastBlock field.
+	// lastBlockVersion is a version message that contains all fields through the LastBlock field.
 	lastBlockVersion := uaVersion
 	lastBlockVersion.LastBlock = 234234 // 0x392fa
 	lastBlockVersionEncoded := make([]byte, len(baseVersionEncoded))
@@ -426,6 +407,7 @@ func TestVersionOptionalFields(t *testing.T) {
 		}
 	}
 }
+
 // baseVersion is used in the various tests as a baseline MsgVersion.
 var baseVersion = &MsgVersion{
 	ProtocolVersion: 60002,
@@ -447,8 +429,8 @@ var baseVersion = &MsgVersion{
 	UserAgent: "/podtest:0.0.1/",
 	LastBlock: 234234, // 0x392fa
 }
-// baseVersionEncoded is the wire encoded bytes for baseVersion using protocol
-// version 60002 and is used in the various tests.
+
+// baseVersionEncoded is the wire encoded bytes for baseVersion using protocol version 60002 and is used in the various tests.
 var baseVersionEncoded = []byte{
 	0x62, 0xea, 0x00, 0x00, // Protocol version 60002
 	0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // SFNodeNetwork
@@ -469,8 +451,8 @@ var baseVersionEncoded = []byte{
 	0x74, 0x3a, 0x30, 0x2e, 0x30, 0x2e, 0x31, 0x2f, // User agent
 	0xfa, 0x92, 0x03, 0x00, // Last block
 }
-// baseVersionBIP0037 is used in the various tests as a baseline MsgVersion for
-// BIP0037.
+
+// baseVersionBIP0037 is used in the various tests as a baseline MsgVersion for BIP0037.
 var baseVersionBIP0037 = &MsgVersion{
 	ProtocolVersion: 70001,
 	Services:        SFNodeNetwork,
@@ -491,8 +473,8 @@ var baseVersionBIP0037 = &MsgVersion{
 	UserAgent: "/podtest:0.0.1/",
 	LastBlock: 234234, // 0x392fa
 }
-// baseVersionBIP0037Encoded is the wire encoded bytes for baseVersionBIP0037
-// using protocol version BIP0037Version and is used in the various tests.
+
+// baseVersionBIP0037Encoded is the wire encoded bytes for baseVersionBIP0037 using protocol version BIP0037Version and is used in the various tests.
 var baseVersionBIP0037Encoded = []byte{
 	0x71, 0x11, 0x01, 0x00, // Protocol version 70001
 	0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // SFNodeNetwork

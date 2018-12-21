@@ -22,9 +22,9 @@ Next generation full node for Parallelcoin, forked from [btcd](https://github.co
 
 ### Stochastic Binomial Filter Difficulty Adjustment
 
-After the upcoming hardfork, Parallelcoin will have the following features in its difficulty adjustment regime
+After the upcoming hardfork, Parallelcoin will have the following features in its difficulty adjustment regime:
 
-- 293 second blocks (7 seconds less than 5 minutes), 1439 block averaging window (about 4.8 days) - Prime numbers are used to reduce resonance due to common factors, and a rhythm that doesn't follow the quotidian cycle, as this would also exaggerate divergences in sync with the width of the window
+- 293 second blocks (7 seconds less than 5 minutes), 1439 block averaging window (about 4.8 days) that is varied by interpreting byte 0 of the sha256d hash of newest block hash as a signed 8 bit integer to further disturb any inherent rhythm. Prime numbers are used to reduce resonance due to common factors, and a rhythm that doesn't follow the quotidian cycle that could build resonance.
 
 - Exponential curve with power of 3 to respond gently the natural drift while moving the difficulty fast in below 10% of target and 10x target, to deal with recovering after a large increase in network hashpower
 

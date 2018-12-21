@@ -1,14 +1,15 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
 	"io"
 	"net"
 	"reflect"
 	"testing"
 	"time"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestNetAddress tests the NetAddress API.
 func TestNetAddress(t *testing.T) {
 	ip := net.ParseIP("127.0.0.1")
@@ -48,8 +49,7 @@ func TestNetAddress(t *testing.T) {
 			"protocol version %d - got %v, want %v", pver,
 			maxPayload, wantPayload)
 	}
-	// Protocol version before NetAddressTimeVersion when timestamp was
-	// added.  Ensure max payload is expected value for it.
+	// Protocol version before NetAddressTimeVersion when timestamp was added.  Ensure max payload is expected value for it.
 	pver = NetAddressTimeVersion - 1
 	wantPayload = 26
 	maxPayload = maxNetAddressPayload(pver)
@@ -59,8 +59,8 @@ func TestNetAddress(t *testing.T) {
 			maxPayload, wantPayload)
 	}
 }
-// TestNetAddressWire tests the NetAddress wire encode and decode for various
-// protocol versions and timestamp flag combinations.
+
+// TestNetAddressWire tests the NetAddress wire encode and decode for various protocol versions and timestamp flag combinations.
 func TestNetAddressWire(t *testing.T) {
 	// baseNetAddr is used in the various tests as a baseline NetAddress.
 	baseNetAddr := NetAddress{
@@ -135,10 +135,7 @@ func TestNetAddressWire(t *testing.T) {
 			baseNetAddrNoTSEncoded,
 			NetAddressTimeVersion - 1,
 		},
-		// Protocol version NetAddressTimeVersion-1 with timestamp.
-		// Even though the timestamp flag is set, this shouldn't have a
-		// timestamp since it is a protocol version before it was
-		// added.
+		// Protocol version NetAddressTimeVersion-1 with timestamp. Even though the timestamp flag is set, this shouldn't have a timestamp since it is a protocol version before it was added.
 		{
 			baseNetAddr,
 			baseNetAddrNoTS,
@@ -176,8 +173,8 @@ func TestNetAddressWire(t *testing.T) {
 		}
 	}
 }
-// TestNetAddressWireErrors performs negative tests against wire encode and
-// decode NetAddress to confirm error paths work correctly.
+
+// TestNetAddressWireErrors performs negative tests against wire encode and decode NetAddress to confirm error paths work correctly.
 func TestNetAddressWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	pverNAT := NetAddressTimeVersion - 1
@@ -197,9 +194,7 @@ func TestNetAddressWireErrors(t *testing.T) {
 		writeErr error       // Expected write error
 		readErr  error       // Expected read error
 	}{
-		// Latest protocol version with timestamp and intentional
-		// read/write errors.
-		// Force errors on timestamp.
+		// Latest protocol version with timestamp and intentional read/write errors. Force errors on timestamp.
 		{&baseNetAddr, []byte{}, pver, true, 0, io.ErrShortWrite, io.EOF},
 		// Force errors on services.
 		{&baseNetAddr, []byte{}, pver, true, 4, io.ErrShortWrite, io.EOF},
@@ -207,18 +202,13 @@ func TestNetAddressWireErrors(t *testing.T) {
 		{&baseNetAddr, []byte{}, pver, true, 12, io.ErrShortWrite, io.EOF},
 		// Force errors on port.
 		{&baseNetAddr, []byte{}, pver, true, 28, io.ErrShortWrite, io.EOF},
-		// Latest protocol version with no timestamp and intentional
-		// read/write errors.
-		// Force errors on services.
+		// Latest protocol version with no timestamp and intentional read/write errors. Force errors on services.
 		{&baseNetAddr, []byte{}, pver, false, 0, io.ErrShortWrite, io.EOF},
 		// Force errors on ip.
 		{&baseNetAddr, []byte{}, pver, false, 8, io.ErrShortWrite, io.EOF},
 		// Force errors on port.
 		{&baseNetAddr, []byte{}, pver, false, 24, io.ErrShortWrite, io.EOF},
-		// Protocol version before NetAddressTimeVersion with timestamp
-		// flag set (should not have timestamp due to old protocol
-		// version) and  intentional read/write errors.
-		// Force errors on services.
+		// Protocol version before NetAddressTimeVersion with timestamp flag set (should not have timestamp due to old protocol version) and  intentional read/write errors. Force errors on services.
 		{&baseNetAddr, []byte{}, pverNAT, true, 0, io.ErrShortWrite, io.EOF},
 		// Force errors on ip.
 		{&baseNetAddr, []byte{}, pverNAT, true, 8, io.ErrShortWrite, io.EOF},

@@ -1,11 +1,12 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
 	"reflect"
 	"testing"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestVerAck tests the MsgVerAck API.
 func TestVerAck(t *testing.T) {
 	pver := ProtocolVersion
@@ -25,8 +26,8 @@ func TestVerAck(t *testing.T) {
 			maxPayload, wantPayload)
 	}
 }
-// TestVerAckWire tests the MsgVerAck wire encode and decode for various
-// protocol versions.
+
+// TestVerAckWire tests the MsgVerAck wire encode and decode for various protocol versions.
 func TestVerAckWire(t *testing.T) {
 	msgVerAck := NewMsgVerAck()
 	msgVerAckEncoded := []byte{}

@@ -1,12 +1,12 @@
-
 package main
+
 import (
 	"fmt"
-	"os"
-	"path/filepath"
+	"github.com/jrick/logrotate/rotator"
 	"github.com/parallelcointeam/pod/addrmgr"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/blockchain/indexers"
+	"github.com/parallelcointeam/pod/btclog"
 	"github.com/parallelcointeam/pod/connmgr"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/mempool"
@@ -15,48 +15,42 @@ import (
 	"github.com/parallelcointeam/pod/netsync"
 	"github.com/parallelcointeam/pod/peer"
 	"github.com/parallelcointeam/pod/txscript"
-	"github.com/parallelcointeam/pod/btclog"
-	"github.com/jrick/logrotate/rotator"
+	"os"
+	"path/filepath"
 )
-// logWriter implements an io.Writer that outputs to both standard output and
-// the write-end pipe of an initialized log rotator.
+
+// logWriter implements an io.Writer that outputs to both standard output and the write-end pipe of an initialized log rotator.
 type logWriter struct{}
+
 func (logWriter) Write(p []byte) (n int, err error) {
 	os.Stdout.Write(p)
 	logRotator.Write(p)
 	return len(p), nil
 }
-// Loggers per subsystem.  A single backend logger is created and all subsytem
-// loggers created from it will write to the backend.  When adding new
-// subsystems, add the subsystem logger variable here and to the
-// subsystemLoggers map.
-// Loggers can not be used before the log rotator has been initialized with a
-// log file.  This must be performed early during application startup by calling
-// initLogRotator.
+
+// Loggers per subsystem.  A single backend logger is created and all subsytem loggers created from it will write to the backend.  When adding new subsystems, add the subsystem logger variable here and to the  subsystemLoggers map. Loggers can not be used before the log rotator has been initialized with a log file.  This must be performed early during application startup by calling initLogRotator.
 var (
-	// backendLog is the logging backend used to create all subsystem loggers.
-	// The backend must not be used before the log rotator has been initialized,
-	// or data races and/or nil pointer dereferences will occur.
+	// backendLog is the logging backend used to create all subsystem loggers. The backend must not be used before the log rotator has been initialized, or data races and/or nil pointer dereferences will occur.
 	backendLog = btclog.NewBackend(logWriter{})
-	// logRotator is one of the logging outputs.  It should be closed on
-	// application shutdown.
+	// logRotator is one of the logging outputs.  It should be closed on application shutdown.
 	logRotator *rotator.Rotator
-	adxrLog = backendLog.Logger("ADXR")
-	amgrLog = backendLog.Logger("AMGR")
-	cmgrLog = backendLog.Logger("CMGR")
-	bcdbLog = backendLog.Logger("BCDB")
-	podLog = backendLog.Logger("NODE")
-	chanLog = backendLog.Logger("CHAN")
-	discLog = backendLog.Logger("DISC")
-	indxLog = backendLog.Logger("INDX")
-	minrLog = backendLog.Logger("MINR")
-	peerLog = backendLog.Logger("PEER")
-	rpcsLog = backendLog.Logger("RPCS")
-	scrpLog = backendLog.Logger("SCRP")
-	srvrLog = backendLog.Logger("SRVR")
-	syncLog = backendLog.Logger("SYNC")
-	txmpLog = backendLog.Logger("TXMP")
+	adxrLog    = backendLog.Logger("ADXR")
+	amgrLog    = backendLog.Logger("AMGR")
+	cmgrLog    = backendLog.Logger("CMGR")
+	bcdbLog    = backendLog.Logger("BCDB")
+	podLog     = backendLog.Logger("NODE")
+	chanLog    = backendLog.Logger("CHAN")
+	discLog    = backendLog.Logger("DISC")
+	indxLog    = backendLog.Logger("INDX")
+	minrLog    = backendLog.Logger("MINR")
+	peerLog    = backendLog.Logger("PEER")
+	rpcsLog    = backendLog.Logger("RPCS")
+	scrpLog    = backendLog.Logger("SCRP")
+	srvrLog    = backendLog.Logger("SRVR")
+	syncLog    = backendLog.Logger("SYNC")
+	txmpLog    = backendLog.Logger("TXMP")
 )
+
 // Initialize package-global logger variables.
 func init() {
 	addrmgr.UseLogger(amgrLog)
@@ -71,6 +65,7 @@ func init() {
 	netsync.UseLogger(syncLog)
 	mempool.UseLogger(txmpLog)
 }
+
 // subsystemLoggers maps each subsystem identifier to its associated logger.
 var subsystemLoggers = map[string]btclog.Logger{
 	"ADXR": adxrLog,
@@ -89,9 +84,8 @@ var subsystemLoggers = map[string]btclog.Logger{
 	"SYNC": syncLog,
 	"TXMP": txmpLog,
 }
-// initLogRotator initializes the logging rotater to write logs to logFile and
-// create roll files in the same directory.  It must be called before the
-// package-global log rotater variables are used.
+
+// initLogRotator initializes the logging rotater to write logs to logFile and create roll files in the same directory.  It must be called before the package-global log rotater variables are used.
 func initLogRotator(logFile string) {
 	logDir, _ := filepath.Split(logFile)
 	err := os.MkdirAll(logDir, 0700)
@@ -106,9 +100,8 @@ func initLogRotator(logFile string) {
 	}
 	logRotator = r
 }
-// setLogLevel sets the logging level for provided subsystem.  Invalid
-// subsystems are ignored.  Uninitialized subsystems are dynamically created as
-// needed.
+
+// setLogLevel sets the logging level for provided subsystem.  Invalid subsystems are ignored.  Uninitialized subsystems are dynamically created as needed.
 func setLogLevel(subsystemID string, logLevel string) {
 	// Ignore invalid subsystems.
 	logger, ok := subsystemLoggers[subsystemID]
@@ -119,26 +112,24 @@ func setLogLevel(subsystemID string, logLevel string) {
 	level, _ := btclog.LevelFromString(logLevel)
 	logger.SetLevel(level)
 }
-// setLogLevels sets the log level for all subsystem loggers to the passed
-// level.  It also dynamically creates the subsystem loggers as needed, so it
-// can be used to initialize the logging system.
+
+// setLogLevels sets the log level for all subsystem loggers to the passed level.  It also dynamically creates the subsystem loggers as needed, so it can be used to initialize the logging system.
 func setLogLevels(logLevel string) {
-	// Configure all sub-systems with the new logging level.  Dynamically
-	// create loggers as needed.
+	// Configure all sub-systems with the new logging level.  Dynamically create loggers as needed.
 	for subsystemID := range subsystemLoggers {
 		setLogLevel(subsystemID, logLevel)
 	}
 }
-// directionString is a helper function that returns a string that represents
-// the direction of a connection (inbound or outbound).
+
+// directionString is a helper function that returns a string that represents the direction of a connection (inbound or outbound).
 func directionString(inbound bool) string {
 	if inbound {
 		return "inbound"
 	}
 	return "outbound"
 }
-// pickNoun returns the singular or plural form of a noun depending
-// on the count n.
+
+// pickNoun returns the singular or plural form of a noun depending on the count n.
 func pickNoun(n uint64, singular, plural string) string {
 	if n == 1 {
 		return singular

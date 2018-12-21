@@ -22,18 +22,15 @@ const (
 	csvKey = "csv"
 )
 
-// makeTestOutput creates an on-chain output paying to a freshly generated
-// p2pkh output with the specified amount.
+// makeTestOutput creates an on-chain output paying to a freshly generated p2pkh output with the specified amount.
 func makeTestOutput(r *rpctest.Harness, t *testing.T,
 	amt btcutil.Amount) (*btcec.PrivateKey, *wire.OutPoint, []byte, error) {
-	// Create a fresh key, then send some coins to an address spendable by
-	// that key.
+	// Create a fresh key, then send some coins to an address spendable by that key.
 	key, err := btcec.NewPrivateKey(btcec.S256())
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	// Using the key created above, generate a pkScript which it's able to
-	// spend.
+	// Using the key created above, generate a pkScript which it's able to spend.
 	a, err := btcutil.NewAddressPubKey(key.PubKey().SerializeCompressed(), r.ActiveNet)
 	if err != nil {
 		return nil, nil, nil, err
@@ -52,16 +49,13 @@ func makeTestOutput(r *rpctest.Harness, t *testing.T,
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	// The transaction created above should be included within the next
-	// generated block.
+	// The transaction created above should be included within the next generated block.
 	blockHash, err := r.Node.Generate(1)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 	assertTxInBlock(r, t, blockHash[0], txHash)
-	// Locate the output index of the coins spendable by the key we
-	// generated above, this is needed in order to create a proper utxo for
-	// this output.
+	// Locate the output index of the coins spendable by the key we generated above, this is needed in order to create a proper utxo for this output.
 	var outputIndex uint32
 	if bytes.Equal(fundTx.TxOut[0].PkScript, selfAddrScript) {
 		outputIndex = 0
@@ -75,23 +69,14 @@ func makeTestOutput(r *rpctest.Harness, t *testing.T,
 	return key, utxo, selfAddrScript, nil
 }
 
-// TestBIP0113Activation tests for proper adherence of the BIP 113 rule
-// constraint which requires all transaction finality tests to use the MTP of
-// the last 11 blocks, rather than the timestamp of the block which includes
-// them.
-//
+// TestBIP0113Activation tests for proper adherence of the BIP 113 rule constraint which requires all transaction finality tests to use the MTP of the last 11 blocks, rather than the timestamp of the block which includes them.
 // Overview:
 //  - Pre soft-fork:
-//    - Transactions with non-final lock-times from the PoV of MTP should be
-//      rejected from the mempool.
-//    - Transactions within non-final MTP based lock-times should be accepted
-//      in valid blocks.
-//
+//    - Transactions with non-final lock-times from the PoV of MTP should be rejected from the mempool.
+//    - Transactions within non-final MTP based lock-times should be accepted in valid blocks.
 //  - Post soft-fork:
-//    - Transactions with non-final lock-times from the PoV of MTP should be
-//      rejected from the mempool and when found within otherwise valid blocks.
-//    - Transactions with final lock-times from the PoV of MTP should be
-//      accepted to the mempool and mined in future block.
+//    - Transactions with non-final lock-times from the PoV of MTP should be rejected from the mempool and when found within otherwise valid blocks.
+//    - Transactions with final lock-times from the PoV of MTP should be accepted to the mempool and mined in future block.
 func TestBIP0113Activation(t *testing.T) {
 	t.Parallel()
 	podCfg := []string{"--rejectnonstd"}
@@ -110,8 +95,7 @@ func TestBIP0113Activation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unable to create test output: %v", err)
 	}
-	// Fetch a fresh address from the harness, we'll use this address to
-	// send funds back into the Harness.
+	// Fetch a fresh address from the harness, we'll use this address to send funds back into the Harness.
 	addr, err := r.NewAddress()
 	if err != nil {
 		t.Fatalf("unable to generate address: %v", err)
@@ -120,9 +104,7 @@ func TestBIP0113Activation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unable to generate addr script: %v", err)
 	}
-	// Now create a transaction with a lock time which is "final" according
-	// to the latest block, but not according to the current median time
-	// past.
+	// Now create a transaction with a lock time which is "final" according to the latest block, but not according to the current median time past.
 	tx := wire.NewMsgTx(1)
 	tx.AddTxIn(&wire.TxIn{
 		PreviousOutPoint: *testOutput,
@@ -131,8 +113,7 @@ func TestBIP0113Activation(t *testing.T) {
 		PkScript: addrScript,
 		Value:    outputValue - 1000,
 	})
-	// We set the lock-time of the transaction to just one minute after the
-	// current MTP of the chain.
+	// We set the lock-time of the transaction to just one minute after the current MTP of the chain.
 	chainInfo, err := r.Node.GetBlockChainInfo()
 	if err != nil {
 		t.Fatalf("unable to query for chain info: %v", err)
@@ -144,9 +125,7 @@ func TestBIP0113Activation(t *testing.T) {
 		t.Fatalf("unable to generate sig: %v", err)
 	}
 	tx.TxIn[0].SignatureScript = sigScript
-	// This transaction should be rejected from the mempool as using MTP
-	// for transactions finality is now a policy rule. Additionally, the
-	// exact error should be the rejection of a non-final transaction.
+	// This transaction should be rejected from the mempool as using MTP for transactions finality is now a policy rule. Additionally, the exact error should be the rejection of a non-final transaction.
 	_, err = r.Node.SendRawTransaction(tx, true)
 	if err == nil {
 		t.Fatalf("transaction accepted, but should be non-final")
@@ -154,8 +133,7 @@ func TestBIP0113Activation(t *testing.T) {
 		t.Fatalf("transaction should be rejected due to being "+
 			"non-final, instead: %v", err)
 	}
-	// However, since the block validation consensus rules haven't yet
-	// activated, a block including the transaction should be accepted.
+	// However, since the block validation consensus rules haven't yet activated, a block including the transaction should be accepted.
 	txns := []*btcutil.Tx{btcutil.NewTx(tx)}
 	block, err := r.GenerateAndSubmitBlock(txns, ^uint32(0), time.Time{})
 	if err != nil {
@@ -163,35 +141,18 @@ func TestBIP0113Activation(t *testing.T) {
 	}
 	txid := tx.TxHash()
 	assertTxInBlock(r, t, block.Hash(), &txid)
-	// At this point, the block height should be 103: we mined 101 blocks
-	// to create a single mature output, then an additional block to create
-	// a new output, and then mined a single block above to include our
-	// transaction.
+	// At this point, the block height should be 103: we mined 101 blocks to create a single mature output, then an additional block to create a new output, and then mined a single block above to include our transaction.
 	assertChainHeight(r, t, 103)
-	// Next, mine enough blocks to ensure that the soft-fork becomes
-	// activated. Assert that the block version of the second-to-last block
-	// in the final range is active.
-	// Next, mine ensure blocks to ensure that the soft-fork becomes
-	// active. We're at height 103 and we need 200 blocks to be mined after
-	// the genesis target period, so we mine 196 blocks. This'll put us at
-	// height 299. The getblockchaininfo call checks the state for the
-	// block AFTER the current height.
+	// Next, mine enough blocks to ensure that the soft-fork becomes activated. Assert that the block version of the second-to-last block in the final range is active.
+	// Next, mine ensure blocks to ensure that the soft-fork becomes active. We're at height 103 and we need 200 blocks to be mined after the genesis target period, so we mine 196 blocks. This'll put us at height 299. The getblockchaininfo call checks the state for the block AFTER the current height.
 	numBlocks := (r.ActiveNet.MinerConfirmationWindow * 2) - 4
 	if _, err := r.Node.Generate(numBlocks); err != nil {
 		t.Fatalf("unable to generate blocks: %v", err)
 	}
 	assertChainHeight(r, t, 299)
 	assertSoftForkStatus(r, t, csvKey, blockchain.ThresholdActive)
-	// The timeLockDeltas slice represents a series of deviations from the
-	// current MTP which will be used to test border conditions w.r.t
-	// transaction finality. -1 indicates 1 second prior to the MTP, 0
-	// indicates the current MTP, and 1 indicates 1 second after the
-	// current MTP.
-	//
-	// This time, all transactions which are final according to the MTP
-	// *should* be accepted to both the mempool and within a valid block.
-	// While transactions with lock-times *after* the current MTP should be
-	// rejected.
+	// The timeLockDeltas slice represents a series of deviations from the current MTP which will be used to test border conditions w.r.t transaction finality. -1 indicates 1 second prior to the MTP, 0 indicates the current MTP, and 1 indicates 1 second after the current MTP.
+	// This time, all transactions which are final according to the MTP *should* be accepted to both the mempool and within a valid block. While transactions with lock-times *after* the current MTP should be rejected.
 	timeLockDeltas := []int64{-1, 0, 1}
 	for _, timeLockDelta := range timeLockDeltas {
 		chainInfo, err = r.Node.GetBlockChainInfo()
