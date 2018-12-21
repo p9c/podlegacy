@@ -1,12 +1,12 @@
-
 package txscript
+
 import (
-	"testing"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
+	"testing"
 )
-// TestBadPC sets the pc to a deliberately bad result then confirms that Step()
-// and Disasm fail correctly.
+
+// TestBadPC sets the pc to a deliberately bad result then confirms that Step() and Disasm fail correctly.
 func TestBadPC(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -64,8 +64,8 @@ func TestBadPC(t *testing.T) {
 		}
 	}
 }
-// TestCheckErrorCondition tests the execute early test in CheckErrorCondition()
-// since most code paths are tested elsewhere.
+
+// TestCheckErrorCondition tests the execute early test in CheckErrorCondition() since most code paths are tested elsewhere.
 func TestCheckErrorCondition(t *testing.T) {
 	t.Parallel()
 	// tx with almost empty scripts.
@@ -126,8 +126,8 @@ func TestCheckErrorCondition(t *testing.T) {
 		t.Errorf("unexpected error %v on final check", err)
 	}
 }
-// TestInvalidFlagCombinations ensures the script engine returns the expected
-// error when disallowed flag combinations are specified.
+
+// TestInvalidFlagCombinations ensures the script engine returns the expected error when disallowed flag combinations are specified.
 func TestInvalidFlagCombinations(t *testing.T) {
 	t.Parallel()
 	tests := []ScriptFlags{
@@ -172,8 +172,8 @@ func TestInvalidFlagCombinations(t *testing.T) {
 		}
 	}
 }
-// TestCheckPubKeyEncoding ensures the internal checkPubKeyEncoding function
-// works as expected.
+
+// TestCheckPubKeyEncoding ensures the internal checkPubKeyEncoding function works as expected.
 func TestCheckPubKeyEncoding(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -228,8 +228,8 @@ func TestCheckPubKeyEncoding(t *testing.T) {
 		}
 	}
 }
-// TestCheckSignatureEncoding ensures the internal checkSignatureEncoding
-// function works as expected.
+
+// TestCheckSignatureEncoding ensures the internal checkSignatureEncoding function works as expected.
 func TestCheckSignatureEncoding(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

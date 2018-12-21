@@ -1,15 +1,15 @@
-
 package txscript
+
 import (
 	"bytes"
+	"github.com/parallelcointeam/pod/wire"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/wire"
 )
+
 // TestParseOpcode tests for opcode parsing with bad data templates.
 func TestParseOpcode(t *testing.T) {
-	// Deep copy the array and make one of the opcodes invalid by setting it
-	// to the wrong length.
+	// Deep copy the array and make one of the opcodes invalid by setting it to the wrong length.
 	fakeArray := opcodeArray
 	fakeArray[OP_PUSHDATA4] = opcode{value: OP_PUSHDATA4,
 		name: "OP_PUSHDATA4", length: -8, opfunc: opcodePushData}
@@ -20,8 +20,8 @@ func TestParseOpcode(t *testing.T) {
 		t.Errorf("no error with dodgy opcode array!")
 	}
 }
-// TestUnparsingInvalidOpcodes tests for errors when unparsing invalid parsed
-// opcodes.
+
+// TestUnparsingInvalidOpcodes tests for errors when unparsing invalid parsed opcodes.
 func TestUnparsingInvalidOpcodes(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -3669,8 +3669,8 @@ func TestUnparsingInvalidOpcodes(t *testing.T) {
 		}
 	}
 }
-// TestPushedData ensured the PushedData function extracts the expected data out
-// of various scripts.
+
+// TestPushedData ensured the PushedData function extracts the expected data out of various scripts.
 func TestPushedData(t *testing.T) {
 	t.Parallel()
 	var tests = []struct {
@@ -3727,6 +3727,7 @@ func TestPushedData(t *testing.T) {
 		}
 	}
 }
+
 // TestHasCanonicalPush ensures the canonicalPush function works as expected.
 func TestHasCanonicalPush(t *testing.T) {
 	t.Parallel()
@@ -3780,8 +3781,8 @@ func TestHasCanonicalPush(t *testing.T) {
 		}
 	}
 }
-// TestGetPreciseSigOps ensures the more precise signature operation counting
-// mechanism which includes signatures in P2SH scripts works as expected.
+
+// TestGetPreciseSigOps ensures the more precise signature operation counting mechanism which includes signatures in P2SH scripts works as expected.
 func TestGetPreciseSigOps(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -3814,9 +3815,7 @@ func TestGetPreciseSigOps(t *testing.T) {
 			scriptSig: mustParseShortForm("DATA_2 PUSHDATA1 0x02"),
 		},
 	}
-	// The signature in the p2sh script is nonsensical for the tests since
-	// this script will never be executed.  What matters is that it matches
-	// the right pattern.
+	// The signature in the p2sh script is nonsensical for the tests since this script will never be executed.  What matters is that it matches the right pattern.
 	pkScript := mustParseShortForm("HASH160 DATA_20 0x433ec2ac1ffa1b7b7d0" +
 		"27f564529c57197f9ae88 EQUAL")
 	for _, test := range tests {
@@ -3827,19 +3826,18 @@ func TestGetPreciseSigOps(t *testing.T) {
 		}
 	}
 }
-// TestGetWitnessSigOpCount tests that the sig op counting for p2wkh, p2wsh,
-// nested p2sh, and invalid variants are counted properly.
+
+// TestGetWitnessSigOpCount tests that the sig op counting for p2wkh, p2wsh, nested p2sh, and invalid variants are counted properly.
 func TestGetWitnessSigOpCount(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name      string
 		sigScript []byte
 		pkScript  []byte
 		witness   wire.TxWitness
 		numSigOps int
 	}{
-		// A regualr p2wkh witness program. The output being spent
-		// should only have a single sig-op counted.
+		// A regualr p2wkh witness program. The output being spent should only have a single sig-op counted.
 		{
 			name: "p2wkh",
 			pkScript: mustParseShortForm("OP_0 DATA_20 " +
@@ -3854,9 +3852,7 @@ func TestGetWitnessSigOpCount(t *testing.T) {
 			},
 			numSigOps: 1,
 		},
-		// A p2wkh witness program nested within a p2sh output script.
-		// The pattern should be recognized properly and attribute only
-		// a single sig op.
+		// A p2wkh witness program nested within a p2sh output script. The pattern should be recognized properly and attribute only a single sig op.
 		{
 			name: "nested p2sh",
 			sigScript: hexToBytes("160014ad0ffa2e387f07" +
@@ -3886,9 +3882,7 @@ func TestGetWitnessSigOpCount(t *testing.T) {
 					"3ca481d4d4eeae1b7970f51c78231207e52ae"),
 			},
 		},
-		// A p2wsh witness program. However, the witness script fails
-		// to parse after the valid portion of the script. As a result,
-		// the valid portion of the script should still be counted.
+		// A p2wsh witness program. However, the witness script fails to parse after the valid portion of the script. As a result, the valid portion of the script should still be counted.
 		{
 			name:      "witness script doesn't parse",
 			numSigOps: 1,
@@ -3910,8 +3904,8 @@ func TestGetWitnessSigOpCount(t *testing.T) {
 		}
 	}
 }
-// TestRemoveOpcodes ensures that removing opcodes from scripts behaves as
-// expected.
+
+// TestRemoveOpcodes ensures that removing opcodes from scripts behaves as expected.
 func TestRemoveOpcodes(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -3936,8 +3930,7 @@ func TestRemoveOpcodes(t *testing.T) {
 			after:  "NOP TRUE",
 		},
 		{
-			// The opcode in question is actually part of the data
-			// in a previous opcode.
+			// The opcode in question is actually part of the data in a previous opcode.
 			name:   "codeseparator by coincidence",
 			before: "NOP DATA_1 CODESEPARATOR TRUE",
 			remove: OP_CODESEPARATOR,
@@ -3962,9 +3955,7 @@ func TestRemoveOpcodes(t *testing.T) {
 			err:    scriptError(ErrMalformedPush, ""),
 		},
 	}
-	// tstRemoveOpcode is a convenience function to parse the provided
-	// raw script, remove the passed opcode, then unparse the result back
-	// into a raw script.
+	// tstRemoveOpcode is a convenience function to parse the provided raw script, remove the passed opcode, then unparse the result back into a raw script.
 	tstRemoveOpcode := func(script []byte, opcode byte) ([]byte, error) {
 		pops, err := parseScript(script)
 		if err != nil {
@@ -3987,8 +3978,8 @@ func TestRemoveOpcodes(t *testing.T) {
 		}
 	}
 }
-// TestRemoveOpcodeByData ensures that removing data carrying opcodes based on
-// the data they contain works as expected.
+
+// TestRemoveOpcodeByData ensures that removing data carrying opcodes based on the data they contain works as expected.
 func TestRemoveOpcodeByData(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -4108,9 +4099,7 @@ func TestRemoveOpcodeByData(t *testing.T) {
 			err:    scriptError(ErrMalformedPush, ""),
 		},
 	}
-	// tstRemoveOpcodeByData is a convenience function to parse the provided
-	// raw script, remove the passed data, then unparse the result back
-	// into a raw script.
+	// tstRemoveOpcodeByData is a convenience function to parse the provided raw script, remove the passed data, then unparse the result back into a raw script.
 	tstRemoveOpcodeByData := func(script []byte, data []byte) ([]byte, error) {
 		pops, err := parseScript(script)
 		if err != nil {
@@ -4131,8 +4120,8 @@ func TestRemoveOpcodeByData(t *testing.T) {
 		}
 	}
 }
-// TestIsPayToScriptHash ensures the IsPayToScriptHash function returns the
-// expected results for all the scripts in scriptClassTests.
+
+// TestIsPayToScriptHash ensures the IsPayToScriptHash function returns the expected results for all the scripts in scriptClassTests.
 func TestIsPayToScriptHash(t *testing.T) {
 	t.Parallel()
 	for _, test := range scriptClassTests {
@@ -4145,8 +4134,8 @@ func TestIsPayToScriptHash(t *testing.T) {
 		}
 	}
 }
-// TestIsPayToWitnessScriptHash ensures the IsPayToWitnessScriptHash function
-// returns the expected results for all the scripts in scriptClassTests.
+
+// TestIsPayToWitnessScriptHash ensures the IsPayToWitnessScriptHash function returns the expected results for all the scripts in scriptClassTests.
 func TestIsPayToWitnessScriptHash(t *testing.T) {
 	t.Parallel()
 	for _, test := range scriptClassTests {
@@ -4159,8 +4148,8 @@ func TestIsPayToWitnessScriptHash(t *testing.T) {
 		}
 	}
 }
-// TestIsPayToWitnessPubKeyHash ensures the IsPayToWitnessPubKeyHash function
-// returns the expected results for all the scripts in scriptClassTests.
+
+// TestIsPayToWitnessPubKeyHash ensures the IsPayToWitnessPubKeyHash function returns the expected results for all the scripts in scriptClassTests.
 func TestIsPayToWitnessPubKeyHash(t *testing.T) {
 	t.Parallel()
 	for _, test := range scriptClassTests {
@@ -4173,8 +4162,8 @@ func TestIsPayToWitnessPubKeyHash(t *testing.T) {
 		}
 	}
 }
-// TestHasCanonicalPushes ensures the canonicalPush function properly determines
-// what is considered a canonical push for the purposes of removeOpcodeByData.
+
+// TestHasCanonicalPushes ensures the canonicalPush function properly determines what is considered a canonical push for the purposes of removeOpcodeByData.
 func TestHasCanonicalPushes(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -4213,8 +4202,8 @@ func TestHasCanonicalPushes(t *testing.T) {
 		}
 	}
 }
-// TestIsPushOnlyScript ensures the IsPushOnlyScript function returns the
-// expected results.
+
+// TestIsPushOnlyScript ensures the IsPushOnlyScript function returns the expected results.
 func TestIsPushOnlyScript(t *testing.T) {
 	t.Parallel()
 	test := struct {
@@ -4232,8 +4221,8 @@ func TestIsPushOnlyScript(t *testing.T) {
 			"%v", test.name, true, test.expected)
 	}
 }
-// TestIsUnspendable ensures the IsUnspendable function returns the expected
-// results.
+
+// TestIsUnspendable ensures the IsUnspendable function returns the expected results.
 func TestIsUnspendable(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

@@ -1,12 +1,13 @@
-
 package txscript
+
 import (
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/wire"
 	"math/rand"
 	"testing"
 	"time"
-	"github.com/parallelcointeam/pod/wire"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // genTestTx creates a random transaction for uses within test cases.
 func genTestTx() (*wire.MsgTx, error) {
 	tx := wire.NewMsgTx(2)
@@ -38,17 +39,14 @@ func genTestTx() (*wire.MsgTx, error) {
 	}
 	return tx, nil
 }
-// TestHashCacheAddContainsHashes tests that after items have been added to the
-// hash cache, the ContainsHashes method returns true for all the items
-// inserted.  Conversely, ContainsHashes should return false for any items
-// _not_ in the hash cache.
+
+// TestHashCacheAddContainsHashes tests that after items have been added to the hash cache, the ContainsHashes method returns true for all the items inserted.  Conversely, ContainsHashes should return false for any items _not_ in the hash cache.
 func TestHashCacheAddContainsHashes(t *testing.T) {
 	t.Parallel()
 	rand.Seed(time.Now().Unix())
 	cache := NewHashCache(10)
 	var err error
-	// First, we'll generate 10 random transactions for use within our
-	// tests.
+	// First, we'll generate 10 random transactions for use within our tests.
 	const numTxns = 10
 	txns := make([]*wire.MsgTx, numTxns)
 	for i := 0; i < numTxns; i++ {
@@ -57,13 +55,11 @@ func TestHashCacheAddContainsHashes(t *testing.T) {
 			t.Fatalf("unable to generate test tx: %v", err)
 		}
 	}
-	// With the transactions generated, we'll add each of them to the hash
-	// cache.
+	// With the transactions generated, we'll add each of them to the hash cache.
 	for _, tx := range txns {
 		cache.AddSigHashes(tx)
 	}
-	// Next, we'll ensure that each of the transactions inserted into the
-	// cache are properly located by the ContainsHashes method.
+	// Next, we'll ensure that each of the transactions inserted into the cache are properly located by the ContainsHashes method.
 	for _, tx := range txns {
 		txid := tx.TxHash()
 		if ok := cache.ContainsHashes(&txid); !ok {
@@ -75,23 +71,20 @@ func TestHashCacheAddContainsHashes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unable to generate tx: %v", err)
 	}
-	// Finally, we'll assert that a transaction that wasn't added to the
-	// cache won't be reported as being present by the ContainsHashes
-	// method.
+	// Finally, we'll assert that a transaction that wasn't added to the cache won't be reported as being present by the ContainsHashes method.
 	randTxid := randTx.TxHash()
 	if ok := cache.ContainsHashes(&randTxid); ok {
 		t.Fatalf("txid %v wasn't inserted into cache but was found",
 			randTxid)
 	}
 }
-// TestHashCacheAddGet tests that the sighashes for a particular transaction
-// are properly retrieved by the GetSigHashes function.
+
+// TestHashCacheAddGet tests that the sighashes for a particular transaction are properly retrieved by the GetSigHashes function.
 func TestHashCacheAddGet(t *testing.T) {
 	t.Parallel()
 	rand.Seed(time.Now().Unix())
 	cache := NewHashCache(10)
-	// To start, we'll generate a random transaction and compute the set of
-	// sighashes for the transaction.
+	// To start, we'll generate a random transaction and compute the set of sighashes for the transaction.
 	randTx, err := genTestTx()
 	if err != nil {
 		t.Fatalf("unable to generate tx: %v", err)
@@ -105,15 +98,14 @@ func TestHashCacheAddGet(t *testing.T) {
 	if !ok {
 		t.Fatalf("tx %v wasn't found in cache", txid)
 	}
-	// Finally, the sighashes retrieved should exactly match the sighash
-	// originally inserted into the cache.
+	// Finally, the sighashes retrieved should exactly match the sighash originally inserted into the cache.
 	if *sigHashes != *cacheHashes {
 		t.Fatalf("sighashes don't match: expected %v, got %v",
 			spew.Sdump(sigHashes), spew.Sdump(cacheHashes))
 	}
 }
-// TestHashCachePurge tests that items are able to be properly removed from the
-// hash cache.
+
+// TestHashCachePurge tests that items are able to be properly removed from the hash cache.
 func TestHashCachePurge(t *testing.T) {
 	t.Parallel()
 	rand.Seed(time.Now().Unix())
@@ -131,14 +123,12 @@ func TestHashCachePurge(t *testing.T) {
 	for _, tx := range txns {
 		cache.AddSigHashes(tx)
 	}
-	// Once all the transactions have been inserted, we'll purge them from
-	// the hash cache.
+	// Once all the transactions have been inserted, we'll purge them from the hash cache.
 	for _, tx := range txns {
 		txid := tx.TxHash()
 		cache.PurgeSigHashes(&txid)
 	}
-	// At this point, none of the transactions inserted into the hash cache
-	// should be found within the cache.
+	// At this point, none of the transactions inserted into the hash cache should be found within the cache.
 	for _, tx := range txns {
 		txid := tx.TxHash()
 		if ok := cache.ContainsHashes(&txid); ok {

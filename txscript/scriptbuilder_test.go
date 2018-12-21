@@ -1,11 +1,11 @@
-
 package txscript
+
 import (
 	"bytes"
 	"testing"
 )
-// TestScriptBuilderAddOp tests that pushing opcodes to a script via the
-// ScriptBuilder API works as expected.
+
+// TestScriptBuilderAddOp tests that pushing opcodes to a script via the ScriptBuilder API works as expected.
 func TestScriptBuilderAddOp(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -68,8 +68,8 @@ func TestScriptBuilderAddOp(t *testing.T) {
 		}
 	}
 }
-// TestScriptBuilderAddInt64 tests that pushing signed integers to a script via
-// the ScriptBuilder API works as expected.
+
+// TestScriptBuilderAddInt64 tests that pushing signed integers to a script via the ScriptBuilder API works as expected.
 func TestScriptBuilderAddInt64(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -134,8 +134,8 @@ func TestScriptBuilderAddInt64(t *testing.T) {
 		}
 	}
 }
-// TestScriptBuilderAddData tests that pushing data to a script via the
-// ScriptBuilder API works as expected and conforms to BIP0062.
+
+// TestScriptBuilderAddData tests that pushing data to a script via the ScriptBuilder API works as expected and conforms to BIP0062.
 func TestScriptBuilderAddData(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -166,9 +166,7 @@ func TestScriptBuilderAddData(t *testing.T) {
 		{name: "push 1 byte 0x10", data: []byte{0x10}, expected: []byte{OP_16}},
 		// BIP0062: Pushing the byte 0x81 must use OP_1NEGATE.
 		{name: "push 1 byte 0x81", data: []byte{0x81}, expected: []byte{OP_1NEGATE}},
-		// BIP0062: Pushing any other byte sequence up to 75 bytes must
-		// use the normal data push (opcode byte n, with n the number of
-		// bytes, followed n bytes of data being pushed).
+		// BIP0062: Pushing any other byte sequence up to 75 bytes must use the normal data push (opcode byte n, with n the number of bytes, followed n bytes of data being pushed).
 		{name: "push 1 byte 0x11", data: []byte{0x11}, expected: []byte{OP_DATA_1, 0x11}},
 		{name: "push 1 byte 0x80", data: []byte{0x80}, expected: []byte{OP_DATA_1, 0x80}},
 		{name: "push 1 byte 0x82", data: []byte{0x82}, expected: []byte{OP_DATA_1, 0x82}},
@@ -205,9 +203,7 @@ func TestScriptBuilderAddData(t *testing.T) {
 			data:     bytes.Repeat([]byte{0x49}, 520),
 			expected: append([]byte{OP_PUSHDATA2, 0x08, 0x02}, bytes.Repeat([]byte{0x49}, 520)...),
 		},
-		// BIP0062: OP_PUSHDATA4 can never be used, as pushes over 520
-		// bytes are not allowed, and those below can be done using
-		// other operators.
+		// BIP0062: OP_PUSHDATA4 can never be used, as pushes over 520 bytes are not allowed, and those below can be done using other operators.
 		{
 			name:     "push data len 521",
 			data:     bytes.Repeat([]byte{0x49}, 521),
@@ -223,10 +219,7 @@ func TestScriptBuilderAddData(t *testing.T) {
 			data:     bytes.Repeat([]byte{0x49}, 65536),
 			expected: nil,
 		},
-		// Additional tests for the PushFullData function that
-		// intentionally allows data pushes to exceed the limit for
-		// regression testing purposes.
-		// 3-byte data push via OP_PUSHDATA_2.
+		// Additional tests for the PushFullData function that intentionally allows data pushes to exceed the limit for regression testing purposes. 3-byte data push via OP_PUSHDATA_2.
 		{
 			name:     "push data len 32767 (non-canonical)",
 			data:     bytes.Repeat([]byte{0x49}, 32767),
@@ -258,9 +251,8 @@ func TestScriptBuilderAddData(t *testing.T) {
 		}
 	}
 }
-// TestExceedMaxScriptSize ensures that all of the functions that can be used
-// to add data to a script don't allow the script to exceed the max allowed
-// size.
+
+// TestExceedMaxScriptSize ensures that all of the functions that can be used to add data to a script don't allow the script to exceed the max allowed size.
 func TestExceedMaxScriptSize(t *testing.T) {
 	t.Parallel()
 	// Start off by constructing a max size script.
@@ -270,8 +262,7 @@ func TestExceedMaxScriptSize(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected error for max size script: %v", err)
 	}
-	// Ensure adding data that would exceed the maximum size of the script
-	// does not add the data.
+	// Ensure adding data that would exceed the maximum size of the script does not add the data.
 	script, err := builder.AddData([]byte{0x00}).Script()
 	if _, ok := err.(ErrScriptNotCanonical); !ok || err == nil {
 		t.Fatalf("ScriptBuilder.AddData allowed exceeding max script "+
@@ -281,8 +272,7 @@ func TestExceedMaxScriptSize(t *testing.T) {
 		t.Fatalf("ScriptBuilder.AddData unexpected modified script - "+
 			"got len %d, want len %d", len(script), len(origScript))
 	}
-	// Ensure adding an opcode that would exceed the maximum size of the
-	// script does not add the data.
+	// Ensure adding an opcode that would exceed the maximum size of the script does not add the data.
 	builder.Reset().AddFullData(make([]byte, MaxScriptSize-3))
 	script, err = builder.AddOp(OP_0).Script()
 	if _, ok := err.(ErrScriptNotCanonical); !ok || err == nil {
@@ -293,8 +283,7 @@ func TestExceedMaxScriptSize(t *testing.T) {
 		t.Fatalf("ScriptBuilder.AddOp unexpected modified script - "+
 			"got len %d, want len %d", len(script), len(origScript))
 	}
-	// Ensure adding an integer that would exceed the maximum size of the
-	// script does not add the data.
+	// Ensure adding an integer that would exceed the maximum size of the script does not add the data.
 	builder.Reset().AddFullData(make([]byte, MaxScriptSize-3))
 	script, err = builder.AddInt64(0).Script()
 	if _, ok := err.(ErrScriptNotCanonical); !ok || err == nil {
@@ -306,13 +295,11 @@ func TestExceedMaxScriptSize(t *testing.T) {
 			"got len %d, want len %d", len(script), len(origScript))
 	}
 }
-// TestErroredScript ensures that all of the functions that can be used to add
-// data to a script don't modify the script once an error has happened.
+
+// TestErroredScript ensures that all of the functions that can be used to add data to a script don't modify the script once an error has happened.
 func TestErroredScript(t *testing.T) {
 	t.Parallel()
-	// Start off by constructing a near max size script that has enough
-	// space left to add each data type without an error and force an
-	// initial error condition.
+	// Start off by constructing a near max size script that has enough space left to add each data type without an error and force an initial error condition.
 	builder := NewScriptBuilder()
 	builder.Reset().AddFullData(make([]byte, MaxScriptSize-8))
 	origScript, err := builder.Script()
@@ -328,8 +315,7 @@ func TestErroredScript(t *testing.T) {
 		t.Fatalf("ScriptBuilder.AddData unexpected modified script - "+
 			"got len %d, want len %d", len(script), len(origScript))
 	}
-	// Ensure adding data, even using the non-canonical path, to a script
-	// that has errored doesn't succeed.
+	// Ensure adding data, even using the non-canonical path, to a script that has errored doesn't succeed.
 	script, err = builder.AddFullData([]byte{0x00}).Script()
 	if _, ok := err.(ErrScriptNotCanonical); !ok || err == nil {
 		t.Fatal("ScriptBuilder.AddFullData succeeded on errored script")
@@ -358,8 +344,7 @@ func TestErroredScript(t *testing.T) {
 		t.Fatalf("ScriptBuilder.AddOp unexpected modified script - "+
 			"got len %d, want len %d", len(script), len(origScript))
 	}
-	// Ensure adding an integer to a script that has errored doesn't
-	// succeed.
+	// Ensure adding an integer to a script that has errored doesn't succeed.
 	script, err = builder.AddInt64(0).Script()
 	if _, ok := err.(ErrScriptNotCanonical); !ok || err == nil {
 		t.Fatal("ScriptBuilder.AddInt64 succeeded on errored script")

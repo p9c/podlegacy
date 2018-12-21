@@ -1,5 +1,5 @@
-
 package txscript
+
 import (
 	"bytes"
 	"fmt"
@@ -7,9 +7,8 @@ import (
 	"strings"
 	"testing"
 )
-// TestOpcodeDisabled tests the opcodeDisabled function manually because all
-// disabled opcodes result in a script execution failure when executed normally,
-// so the function is not called under normal circumstances.
+
+// TestOpcodeDisabled tests the opcodeDisabled function manually because all disabled opcodes result in a script execution failure when executed normally, so the function is not called under normal circumstances.
 func TestOpcodeDisabled(t *testing.T) {
 	t.Parallel()
 	tests := []byte{OP_CAT, OP_SUBSTR, OP_LEFT, OP_RIGHT, OP_INVERT,
@@ -26,15 +25,11 @@ func TestOpcodeDisabled(t *testing.T) {
 		}
 	}
 }
-// TestOpcodeDisasm tests the print function for all opcodes in both the oneline
-// and full modes to ensure it provides the expected disassembly.
+
+// TestOpcodeDisasm tests the print function for all opcodes in both the oneline and full modes to ensure it provides the expected disassembly.
 func TestOpcodeDisasm(t *testing.T) {
 	t.Parallel()
-	// First, test the oneline disassembly.
-	// The expected strings for the data push opcodes are replaced in the
-	// test loops below since they involve repeating bytes.  Also, the
-	// OP_NOP# and OP_UNKNOWN# are replaced below too, since it's easier
-	// than manually listing them here.
+	// First, test the oneline disassembly. The expected strings for the data push opcodes are replaced in the test loops below since they involve repeating bytes.  Also, the OP_NOP# and OP_UNKNOWN# are replaced below too, since it's easier than manually listing them here.
 	oneBytes := []byte{0x01}
 	oneStr := "01"
 	expectedStrings := [256]string{0x00: "0", 0x4f: "-1",
@@ -126,8 +121,7 @@ func TestOpcodeDisasm(t *testing.T) {
 	for opcodeVal, expectedStr := range expectedStrings {
 		var data []byte
 		switch {
-		// OP_DATA_1 through OP_DATA_65 display the opcode followed by
-		// the pushed data.
+		// OP_DATA_1 through OP_DATA_65 display the opcode followed by the pushed data.
 		case opcodeVal >= 0x01 && opcodeVal < 0x4c:
 			data = bytes.Repeat(oneBytes, opcodeVal)
 			expectedStr = fmt.Sprintf("OP_DATA_%d 0x%s", opcodeVal,
