@@ -1,122 +1,136 @@
 ### Table of Contents
+
 1. [Overview](#Overview)<br />
+
 2. [HTTP POST Versus Websockets](#HttpPostVsWebsockets)<br />
+
 3. [Authentication](#Authentication)<br />
-3.1.  [Overview](#AuthenticationOverview)<br />
-3.2.  [HTTP Basic Access Authentication](#HTTPAuth)<br />
-3.3.  [JSON-RPC Authenticate Command (Websocket-specific)](#JSONAuth)<br />
+
+   3.1. [Overview](#AuthenticationOverview)<br />
+
+   3.2. [HTTP Basic Access Authentication](#HTTPAuth)<br />
+
+   3.3. [JSON-RPC Authenticate Command (Websocket-specific)](#JSONAuth)<br />
+
 4. [Command-line Utility](#CLIUtil)<br />
+
 5. [Standard Methods](#Methods)<br />
-5.1. [Method Overview](#MethodOverview)<br />
-5.2. [Method Details](#MethodDetails)<br />
+
+   5.1. [Method Overview](#MethodOverview)<br />
+
+   5.2. [Method Details](#MethodDetails)<br />
+
 6. [Extension Methods](#ExtensionMethods)<br />
-6.1. [Method Overview](#ExtMethodOverview)<br />
-6.2. [Method Details](#ExtMethodDetails)<br />
+
+   6.1. [Method Overview](#ExtMethodOverview)<br />
+
+   6.2. [Method Details](#ExtMethodDetails)<br />
+
 7. [Websocket Extension Methods (Websocket-specific)](#WSExtMethods)<br />
-7.1. [Method Overview](#WSExtMethodOverview)<br />
-7.2. [Method Details](#WSExtMethodDetails)<br />
+
+   7.1. [Method Overview](#WSExtMethodOverview)<br />
+
+   7.2. [Method Details](#WSExtMethodDetails)<br />
+
 8. [Notifications (Websocket-specific)](#Notifications)<br />
-8.1. [Notification Overview](#NotificationOverview)<br />
-8.2. [Notification Details](#NotificationDetails)<br />
+
+   8.1. [Notification Overview](#NotificationOverview)<br />
+
+   8.2. [Notification Details](#NotificationDetails)<br />
+
 9. [Example Code](#ExampleCode)<br />
-9.1. [Go](#ExampleGoApp)<br />
-9.2. [node.js](#ExampleNodeJsCode)<br />
-<a name="Overview" />
+
+   9.1. [Go](#ExampleGoApp)<br />
+
+   9.2. [node.js](#ExampleNodeJsCode)<br />
+   
+   <a name="Overview"></a>
+
 ### 1. Overview
-pod provides a [JSON-RPC](http://json-rpc.org/wiki/specification) API that is
-fully compatible with the original bitcoind/bitcoin-qt.  There are a few key
-differences between pod and bitcoind as far as how RPCs are serviced:
-* Unlike bitcoind that has the wallet and chain intermingled in the same process
-  which leads to several issues, pod intentionally splits the wallet and chain
-  services into independent processes.  See the blog post
-  [here](https://blog.conformal.com/pod-not-your-moms-bitcoin-daemon/) for
-  further details on why they were separated.  This means that if you are
-  talking directly to pod, only chain-related RPCs are available.  However both
-  chain-related and wallet-related RPCs are available via
-  [btcwallet](https://github.com/btcsuite/btcwallet).
-* pod is secure by default which means that the RPC connection is TLS-enabled
-  by default
-* pod provides access to the API through both
-  [HTTP POST](http://en.wikipedia.org/wiki/POST_%28HTTP%29) requests and
-  [Websockets](http://en.wikipedia.org/wiki/WebSocket)
-Websockets are the preferred transport for pod RPC and are used by applications
-such as [btcwallet](https://github.com/btcsuite/btcwallet) for inter-process
-communication with pod.  The websocket connection endpoint for pod is
-`wss://your_ip_or_domain:11048/ws`.
-In addition to the [standard API](#Methods), an [extension API](#WSExtMethods)
-has been developed that is exclusive to clients using Websockets. In its current
-state, this API attempts to cover features found missing in the standard API
-during the development of btcwallet.
-While the [standard API](#Methods) is stable, the
-[Websocket extension API](#WSExtMethods) should be considered a work in
-progress, incomplete, and susceptible to changes (both additions and removals).
-The original bitcoind/bitcoin-qt JSON-RPC API documentation is available at [https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_Calls_list](https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_Calls_list)
-<a name="HttpPostVsWebsockets" />
+
+pod provides a [JSON-RPC](http://json-rpc.org/wiki/specification) API that is fully compatible with the original bitcoind/bitcoin-qt. There are a few key differences between pod and bitcoind as far as how RPCs are serviced:
+
+- Unlike bitcoind that has the wallet and chain intermingled in the same process which leads to several issues, pod intentionally splits the wallet and chain services into independent processes. See the blog post [here](https://blog.conformal.com/pod-not-your-moms-bitcoin-daemon/) for further details on why they were separated. This means that if you aretalking directly to pod, only chain-related RPCs are available. However both chain-related and wallet-related RPCs are available via [mod](https://github.com/parallelcointeam/mod).
+
+- pod provides access to the API through both [HTTP POST](http://en.wikipedia.org/wiki/POST_%28HTTP%29) requests and
+  [Websockets](http://en.wikipedia.org/wiki/WebSocket) Websockets are the preferred transport for pod RPC and are used by applications such as [mod](https://github.com/parallelcointeam/mod) for inter-process communication with pod. The websocket connection endpoint for pod is `wss://your_ip_or_domain:11048/ws`.
+
+  In addition to the [standard API](#Methods), an [extension API](#WSExtMethods) has been developed that is exclusive to clients using Websockets. In its current state, this API attempts to cover features found missing in the standard API during the development of btcwallet.
+
+  While the [standard API](#Methods) is stable, the [Websocket extension API](#WSExtMethods) should be considered a work in progress, incomplete, and susceptible to changes (both additions and removals).
+
+  The original bitcoind/bitcoin-qt JSON-RPC API documentation is available at [https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_Calls_list](https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_Calls_list)
+  <a name="HttpPostVsWebsockets"></a>
+
 ### 2. HTTP POST Versus Websockets
-The pod RPC server supports both [HTTP POST](http://en.wikipedia.org/wiki/POST_%28HTTP%29)
-requests and the preferred [Websockets](http://en.wikipedia.org/wiki/WebSocket).
-All of the [standard](#Methods) and [extension](#ExtensionMethods) methods
-described in this documentation can be accessed through both.  As the name
-indicates, the [Websocket-specific extension](#WSExtMethods) methods can only be
-accessed when connected via Websockets.
-As mentioned in the [overview](#Overview), the websocket connection endpoint for
-pod is `wss://your_ip_or_domain:11048/ws`.
-The most important differences between the two transports as it pertains to the
-JSON-RPC API are:
-|   |HTTP POST Requests|Websockets|
-|---|------------------|----------|
-|Allows multiple requests across a single connection|No|Yes|
-|Supports asynchronous notifications|No|Yes|
-|Scales well with large numbers of requests|No|Yes|
-<a name="Authentication" />
+
+The pod RPC server supports both [HTTP POST](http://en.wikipedia.org/wiki/POST_%28HTTP%29) requests and the preferred [Websockets](http://en.wikipedia.org/wiki/WebSocket). All of the [standard](#Methods) and [extension](#ExtensionMethods) methods described in this documentation can be accessed through both. As the name indicates, the [Websocket-specific extension](#WSExtMethods) methods can only be accessed when connected via Websockets.
+
+As mentioned in the [overview](#Overview), the websocket connection endpoint for pod is `wss://your_ip_or_domain:11048/ws`. The most important differences between the two transports as it pertains to the JSON-RPC API are:
+
+|                                                     | HTTP POST Requests | Websockets |
+| --------------------------------------------------- | ------------------ | ---------- |
+| Allows multiple requests across a single connection | No                 | Yes        |
+| Supports asynchronous notifications                 | No                 | Yes        |
+| Scales well with large numbers of requests          | No                 | Yes        |
+
+<a name="Authentication" ></a>
+
 ### 3. Authentication
-<a name="AuthenticationOverview" />
+
+<a name="AuthenticationOverview"></a>
 **3.1 Authentication Overview**<br />
+
 The following authentication details are needed before establishing a connection
 to a pod RPC server:
-* **rpcuser** is the full-access username configured for the pod RPC server
-* **rpcpass** is the full-access password configured for the pod RPC server
-* **rpclimituser** is the limited username configured for the pod RPC server
-* **rpclimitpass** is the limited password configured for the pod RPC server
-* **rpccert** is the PEM-encoded X.509 certificate (public key) that the pod
-  server is configured with.  It is automatically generated by pod and placed
-  in the pod home directory (which is typically `%LOCALAPPDATA%\Pod` on
+
+- **rpcuser** is the full-access username configured for the pod RPC server
+
+- **rpcpass** is the full-access password configured for the pod RPC server
+
+- **rpclimituser** is the limited username configured for the pod RPC server
+
+- **rpclimitpass** is the limited password configured for the pod RPC server
+
+- **rpccert** is the PEM-encoded X.509 certificate (public key) that the pod server is configured with. It is automatically generated by pod and placed in the pod home directory (which is typically `%LOCALAPPDATA%\Pod` on
   Windows and `~/.pod` on POSIX-like OSes)
-**NOTE:** As mentioned above, pod is secure by default which means the RPC
-server is not running unless configured with a **rpcuser** and **rpcpass**
-and/or a **rpclimituser** and **rpclimitpass**, and uses TLS authentication for
-all connections.
+
 Depending on which connection transaction you are using, you can choose one of
 two, mutually exclusive, methods.
+
 - [Use HTTP Authorization Header](#HTTPAuth) - HTTP POST requests and Websockets
+
 - [Use the JSON-RPC "authenticate" command](#JSONAuth) - Websockets only
-<a name="HTTPAuth" />
+
+<a name="HTTPAuth"></a>
 **3.2 HTTP Basic Access Authentication**<br />
-The pod RPC server uses HTTP [basic access authentication](http://en.wikipedia.org/wiki/Basic_access_authentication) with the **rpcuser**
-and **rpcpass** detailed above.  If the supplied credentials are invalid, you
-will be disconnected immediately upon making the connection.
-<a name="JSONAuth" />
+
+The pod RPC server uses HTTP [basic access authentication](http://en.wikipedia.org/wiki/Basic_access_authentication) with the **rpcuser** and **rpcpass** detailed above. If the supplied credentials are invalid, you will be disconnected immediately upon making the connection.
+
+<a name="JSONAuth"></a>
+
 **3.3 JSON-RPC Authenticate Command (Websocket-specific)**<br />
-While the HTTP basic access authentication method is the preferred method, the
-ability to set HTTP headers from websockets is not always available.  In that
-case, you will need to use the [authenticate](#authenticate) JSON-RPC method.
-The [authenticate](#authenticate) command must be the first command sent after
-connecting to the websocket.  Sending any other commands before authenticating,
-supplying invalid credentials, or attempting to authenticate again when already
-authenticated will cause the websocket to be closed immediately.
-<a name="CLIUtil" />
+
+While the HTTP basic access authentication method is the preferred method, the ability to set HTTP headers from websockets is not always available. In that case, you will need to use the [authenticate](#authenticate) JSON-RPC method.
+
+The [authenticate](#authenticate) command must be the first command sent after connecting to the websocket. Sending any other commands before authenticating, supplying invalid credentials, or attempting to authenticate again when already authenticated will cause the websocket to be closed immediately.
+
+<a name="CLIUtil"></a>
+
 ### 4. Command-line Utility
-pod comes with a separate utility named `podctl` which can be used to issue
-these RPC commands via HTTP POST requests to pod after configuring it with the
-information in the [Authentication](#Authentication) section above.  It can also
-be used to communicate with any server/daemon/service which provides a JSON-RPC
-API compatible with the original bitcoind/bitcoin-qt client.
-<a name="Methods" />
+
+pod comes with a separate utility named `podctl` which can be used to issue these RPC commands via HTTP POST requests to pod after configuring it with the information in the [Authentication](#Authentication) section above. It can also be used to communicate with any server/daemon/service which provides a JSON-RPC API compatible with the original bitcoind/bitcoin-qt client.
+
+<a name="Methods"></a>
+
 ### 5. Standard Methods
-<a name="MethodOverview" />
+
+<a name="MethodOverview"></a>
+
 **5.1 Method Overview**<br />
-The following is an overview of the RPC methods and their current status.  Click
-the method name for further details such as parameter and return information.
+
+The following is an overview of the RPC methods and their current status. Click the method name for further details such as parameter and return information.
+
 |#|Method|Safe for limited user?|Description|
 |---|------|----------|-----------|
 |1|[addnode](#addnode)|N|Attempts to add or remove a persistent peer.|
@@ -147,20 +161,27 @@ the method name for further details such as parameter and return information.
 |26|[setgenerate](#setgenerate) |N|Set the server to generate coins (mine) or not.<br/>NOTE: Since pod does not have the wallet integrated to provide payment addresses, pod must be configured via the `--miningaddr` option to provide which payment addresses to pay created blocks to for this RPC to function.|
 |27|[stop](#stop)|N|Shutdown pod.|
 |28|[submitblock](#submitblock)|Y|Attempts to submit a new serialized, hex-encoded block to the network.|
-|29|[validateaddress](#validateaddress)|Y|Verifies the given address is valid.  NOTE: Since pod does not have a wallet integrated, pod will only return whether the address is valid or not.|
+|29|[validateaddress](#validateaddress)|Y|Verifies the given address is valid. NOTE: Since pod does not have a wallet integrated, pod will only return whether the address is valid or not.|
 |30|[verifychain](#verifychain)|N|Verifies the block chain database.|
-<a name="MethodDetails" />
+
+<a name="MethodDetails"></a>
+
 **5.2 Method Details**<br />
+
 <a name="addnode"/>
-|   |   |
+
+| | |
 |---|---|
 |Method|addnode|
 |Parameters|1. peer (string, required) - ip address and port of the peer to operate on<br />2. command (string, required) - `add` to add a persistent peer, `remove` to remove a persistent peer, or `onetry` to try a single connection to a peer|
 |Description|Attempts to add or remove a persistent peer.|
 |Returns|Nothing|
 [Return to Overview](#MethodOverview)<br />
-***
+
+---
+
 <a name="createrawtransaction"/>
+
 |   |   |
 |---|---|
 |Method|createrawtransaction|
@@ -169,9 +190,12 @@ the method name for further details such as parameter and return information.
 |Returns|`"transaction" (string) hex-encoded bytes of the serialized transaction`|
 |Example Parameters|1. transaction inputs `[{"txid":"e6da89de7a6b8508ce8f371a3d0535b04b5e108cb1a6e9284602d3bfd357c018","vout":1}]`<br />2. addresses and amounts `{"13cgrTP7wgbZYWrY9BZ22BV6p82QXQT3nY": 0.49213337}`<br />3. locktime `0`|
 |Example Return|`010000000118c057d3bfd3024628e9a6b18c105e4bb035053d1a378fce08856b7ade89dae6010000`<br />`0000ffffffff0199efee02000000001976a9141cb013db35ecccc156fdfd81d03a11c51998f99388`<br />`ac00000000`<br /><font color="orange">**Newlines added for display purposes.  The actual return does not contain newlines.**</font>|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
 <a name="decoderawtransaction"/>
+
 |   |   |
 |---|---|
 |Method|decoderawtransaction|
@@ -179,9 +203,13 @@ the method name for further details such as parameter and return information.
 |Description|Returns a JSON object representing the provided serialized, hex-encoded transaction.|
 |Returns|`{ (json object)`<br />&nbsp;&nbsp;`"txid": "hash",  (string) the hash of the transaction`<br />&nbsp;&nbsp;`"version": n,  (numeric) the transaction version`<br />&nbsp;&nbsp;`"locktime": n,  (numeric) the transaction lock time`<br />&nbsp;&nbsp;`"vin": [  (array of json objects) the transaction inputs as json objects`<br />&nbsp;&nbsp;<font color="orange">For coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"coinbase": "data",  (string) the hex-encoded bytes of the signature script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": n,  (numeric) the script sequence number`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;<font color="orange">For non-coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"txid": "hash", (string) the hash of the origin transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"vout": n, (numeric) the index of the output being redeemed from the origin transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptSig": { (json object) the signature script used to redeem the origin transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "asm", (string) disassembly of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "data",  (string) hex-encoded bytes of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": n,  (numeric) the script sequence number`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}, ...`<br />&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`"vout": [  (array of json objects) the transaction outputs as json objects`<br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"value": n, (numeric) the value in DUO`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"n": n, (numeric) the index of this transaction output`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptPubKey": { (json object) the public key script used to pay coins`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "asm",  (string) disassembly of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "data", (string) hex-encoded bytes of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"reqSigs": n,  (numeric) the number of required signatures`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"type": "scripttype" (string) the type of the script (e.g. 'pubkeyhash')`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"addresses": [ (json array of string) the bitcoin addresses associated with this output`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"bitcoinaddress",  (string) the bitcoin address`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`...`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}, ...`<br />&nbsp;&nbsp;`]`<br />`}`|
 |Example Return|`{`<br />&nbsp;&nbsp;`"txid": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",`<br />&nbsp;&nbsp;`"version": 1,`<br />&nbsp;&nbsp;`"locktime": 0,`<br />&nbsp;&nbsp;`"vin": [`<br />&nbsp;&nbsp;<font color="orange">For coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"coinbase": "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": 4294967295,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;<font color="orange">For non-coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"txid": "60ac4b057247b3d0b9a8173de56b5e1be8c1d1da970511c626ef53706c66be04",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"vout": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptSig": {`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "3046022100cb42f8df44eca83dd0a727988dcde9384953e830b1f8004d57485e2ede1b9c8f0...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "493046022100cb42f8df44eca83dd0a727988dcde9384953e830b1f8004d57485e2ede1b9c8...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": 4294967295,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`"vout": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"value": 50,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"n": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptPubKey": {`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4ce...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"reqSigs": 1,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"type": "pubkey"`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"addresses": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;`]`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="decodescript"/>
+
 |   |   |
 |---|---|
 |Method|decodescript|
@@ -189,9 +217,13 @@ the method name for further details such as parameter and return information.
 |Description|Returns a JSON object with information about the provided hex-encoded script.|
 |Returns|`{ (json object)`<br />&nbsp;&nbsp;`"asm": "asm",  (string) disassembly of the script`<br />&nbsp;&nbsp;`"reqSigs": n,  (numeric) the number of required signatures`<br />&nbsp;&nbsp;`"type": "scripttype",  (string) the type of the script (e.g. 'pubkeyhash')`<br />&nbsp;&nbsp;`"addresses": [ (json array of string) the bitcoin addresses associated with this script`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"bitcoinaddress",  (string) the bitcoin address`<br />&nbsp;&nbsp;&nbsp;&nbsp;`...`<br />&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`"p2sh": "scripthash",  (string) the script hash for use in pay-to-script-hash transactions`<br />`}`|
 |Example Return|`{`<br />&nbsp;&nbsp;`"asm": "OP_DUP OP_HASH160 b0a4d8a91981106e4ed85165a66748b19f7b7ad4 OP_EQUALVERIFY OP_CHECKSIG",`<br />&nbsp;&nbsp;`"reqSigs": 1,`<br />&nbsp;&nbsp;`"type": "pubkeyhash",`<br />&nbsp;&nbsp;`"addresses": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"1H71QVBpzuLTNUh5pewaH3UTLTo2vWgcRJ"`<br />&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`"p2sh": "359b84ff799f48231990ff0298206f54117b08b6"`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getaddednodeinfo"/>
+
 |   |   |
 |---|---|
 |Method|getaddednodeinfo|
@@ -201,9 +233,13 @@ the method name for further details such as parameter and return information.
 |Returns (dns=true)|`[ (json array of objects)`<br />&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"addednode": "ip_or_domain",  (string) the ip address or domain of the added peer`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"connected": true or false,  (boolean) whether or not the peer is currently connected`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"addresses": [  (json array or objects) DNS lookup and connection information about the peer`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"address": "ip",  (string) the ip address for this DNS entry`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"connected": "inbound/outbound/false"  (string) the connection 'direction' (if connected)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}, ...`<br />&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`}, ...`<br />`]`|
 |Example Return (dns=false)|`["192.168.0.10:11047", "mydomain.org:11047"]`|
 |Example Return (dns=true)|`[`<br />&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"addednode": "mydomain.org:11047",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"connected": true,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"addresses": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"address": "1.2.3.4",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"connected": "outbound"`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`},`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"address": "5.6.7.8",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"connected": "false"`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`}`<br />`]`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getbestblockhash"/>
+
 |   |   |
 |---|---|
 |Method|getbestblockhash|
@@ -211,9 +247,13 @@ the method name for further details such as parameter and return information.
 |Description|Returns the hash of the of the best (most recent) block in the longest block chain.|
 |Returns|string|
 |Example Return|`0000000000000001f356adc6b29ab42b59f913a396e170f80190dba615bd1e60`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getblock"/>
+
 |   |   |
 |---|---|
 |Method|getblock|
@@ -224,9 +264,13 @@ the method name for further details such as parameter and return information.
 |Returns (verbose=true, verbosetx=true)|`{ (json object)`<br />&nbsp;&nbsp;`"hash": "blockhash",  (string) the hash of the block (same as provided)`<br />&nbsp;&nbsp;`"confirmations": n,  (numeric) the number of confirmations`<br />&nbsp;&nbsp;`"strippedsize", n (numeric) the size of the block without witness data`<br />&nbsp;&nbsp;`"size": n,  (numeric) the size of the block`<br />&nbsp;&nbsp;`"weight": n, (numeric) value of the weight metric`<br />&nbsp;&nbsp;`"height": n,  (numeric) the height of the block in the block chain`<br />&nbsp;&nbsp;`"version": n,  (numeric) the block version`<br />&nbsp;&nbsp;`"merkleroot": "hash",  (string) root hash of the merkle tree`<br />&nbsp;&nbsp;`"rawtx": [ (array of json objects) the transactions as json objects`<br />&nbsp;&nbsp;&nbsp;&nbsp;`(see getrawtransaction json object details)`<br />&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`"time": n,  (numeric) the block time in seconds since 1 Jan 1970 GMT`<br />&nbsp;&nbsp;`"nonce": n,  (numeric) the block nonce`<br />&nbsp;&nbsp;`"bits", n,  (numeric) the bits which represent the block difficulty`<br />&nbsp;&nbsp;`difficulty: n.nn,  (numeric) the proof-of-work difficulty as a multiple of the minimum difficulty`<br />&nbsp;&nbsp;`"previousblockhash": "hash",  (string) the hash of the previous block`<br />&nbsp;&nbsp;`"nextblockhash": "hash",  (string) the hash of the next block`<br />`}`|
 |Example Return (verbose=false)|`"010000000000000000000000000000000000000000000000000000000000000000000000`<br />`3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49`<br />`ffff001d1dac2b7c01010000000100000000000000000000000000000000000000000000`<br />`00000000000000000000ffffffff4d04ffff001d0104455468652054696d65732030332f`<br />`4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f`<br />`6e64206261696c6f757420666f722062616e6b73ffffffff0100f2052a01000000434104`<br />`678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f`<br />`4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac00000000"`<br /><font color="orange">**Newlines added for display purposes.  The actual return does not contain newlines.**</font>|
 |Example Return (verbose=true, verbosetx=false)|`{`<br />&nbsp;&nbsp;`"hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",`<br />&nbsp;&nbsp;`"confirmations": 277113,`<br />&nbsp;&nbsp;`"size": 285,`<br />&nbsp;&nbsp;`"height": 0,`<br />&nbsp;&nbsp;`"version": 1,`<br />&nbsp;&nbsp;`"merkleroot": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",`<br />&nbsp;&nbsp;`"tx": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"`<br />&nbsp;&nbsp;`],`<br />&nbsp;&nbsp;`"time": 1231006505,`<br />&nbsp;&nbsp;`"nonce": 2083236893,`<br />&nbsp;&nbsp;`"bits": "1d00ffff",`<br />&nbsp;&nbsp;`"difficulty": 1,`<br />&nbsp;&nbsp;`"previousblockhash": "0000000000000000000000000000000000000000000000000000000000000000",`<br />&nbsp;&nbsp;`"nextblockhash": "00000000839a8e6886ab5951d76f411475428afc90947ee320161bbf18eb6048"`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getblockcount"/>
+
 |   |   |
 |---|---|
 |Method|getblockcount|
@@ -234,9 +278,13 @@ the method name for further details such as parameter and return information.
 |Description|Returns the number of blocks in the longest block chain.|
 |Returns|numeric|
 |Example Return|`276820`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getblockhash"/>
+
 |   |   |
 |---|---|
 |Method|getblockhash|
@@ -244,9 +292,13 @@ the method name for further details such as parameter and return information.
 |Description|Returns hash of the block in best block chain at the given height.|
 |Returns|string|
 |Example Return|`000000000000000096579458d1c0f1531fcfc58d57b4fce51eb177d8d10e784d`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getblockheader"/>
+
 |   |   |
 |---|---|
 |Method|getblockheader|
@@ -256,9 +308,13 @@ the method name for further details such as parameter and return information.
 |Returns (verbose=true)|`{ (json object)`<br />&nbsp;&nbsp;`"hash": "blockhash", (string) the hash of the block (same as provided)`<br />&nbsp;&nbsp;`"confirmations": n,  (numeric) the number of confirmations`<br />&nbsp;&nbsp;`"height": n, (numeric) the height of the block in the block chain`<br />&nbsp;&nbsp;`"version": n,  (numeric) the block version`<br />&nbsp;&nbsp;`"merkleroot": "hash",  (string) root hash of the merkle tree`<br />&nbsp;&nbsp;`"time": n,  (numeric) the block time in seconds since 1 Jan 1970 GMT`<br />&nbsp;&nbsp;`"nonce": n,  (numeric) the block nonce`<br />&nbsp;&nbsp;`"bits": n,  (numeric) the bits which represent the block difficulty`<br />&nbsp;&nbsp;`"difficulty": n.nn,  (numeric) the proof-of-work difficulty as a multiple of the minimum difficulty`<br />&nbsp;&nbsp;`"previousblockhash": "hash",  (string) the hash of the previous block`<br />&nbsp;&nbsp;`"nextblockhash": "hash",  (string) the hash of the next block (only if there is one)`<br />`}`|
 |Example Return (verbose=false)|`"0200000035ab154183570282ce9afc0b494c9fc6a3cfea05aa8c1add2ecc564900000000`<br />`38ba3d78e4500a5a7570dbe61960398add4410d278b21cd9708e6d9743f374d544fc0552`<br />`27f1001c29c1ea3b"`<br /><font color="orange">**Newlines added for display purposes.  The actual return does not contain newlines.**</font>|
 |Example Return (verbose=true)|`{`<br />&nbsp;&nbsp;`"hash": "00000000009e2958c15ff9290d571bf9459e93b19765c6801ddeccadbb160a1e",`<br />&nbsp;&nbsp;`"confirmations": 392076,`<br />&nbsp;&nbsp;`"height": 100000,`<br />&nbsp;&nbsp;`"version": 2,`<br />&nbsp;&nbsp;`"merkleroot": "d574f343976d8e70d91cb278d21044dd8a396019e6db70755a0a50e4783dba38",`<br />&nbsp;&nbsp;`"time": 1376123972,`<br />&nbsp;&nbsp;`"nonce": 1005240617,`<br />&nbsp;&nbsp;`"bits": "1c00f127",`<br />&nbsp;&nbsp;`"difficulty": 271.75767393,`<br />&nbsp;&nbsp;`"previousblockhash": "000000004956cc2edd1a8caa05eacfa3c69f4c490bfc9ace820257834115ab35",`<br />&nbsp;&nbsp;`"nextblockhash": "0000000000629d100db387f37d0f37c51118f250fb0946310a8c37316cbc4028"`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getconnectioncount"/>
+
 |   |   |
 |---|---|
 |Method|getconnectioncount|
@@ -266,9 +322,13 @@ the method name for further details such as parameter and return information.
 |Description|Returns the number of active connections to other peers|
 |Returns|numeric|
 |Example Return|`8`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getdifficulty"/>
+
 |   |   |
 |---|---|
 |Method|getdifficulty|
@@ -276,27 +336,39 @@ the method name for further details such as parameter and return information.
 |Description|Returns the proof-of-work difficulty as a multiple of the minimum difficulty.|
 |Returns|numeric|
 |Example Return|`1180923195.260000`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getgenerate"/>
+
 |   |   |
 |---|---|
 |Method|getgenerate|
 |Parameters|None|
 |Description|Return if the server is set to generate coins (mine) or not.|
 |Returns|`false` (boolean)|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="gethashespersec"/>
+
 |   |   |
 |---|---|
 |Method|gethashespersec|
 |Parameters|None|
 |Description|Returns a recent hashes per second performance measurement while generating coins (mining).|
 |Returns|`0` (numeric)|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getinfo"/>
+
 |   |   |
 |---|---|
 |Method|getinfo|
@@ -305,9 +377,13 @@ the method name for further details such as parameter and return information.
 |Notes|NOTE: Since pod does NOT contain wallet functionality, wallet-related fields are not returned.  See getinfo in btcwallet for a version which includes that information.|
 |Returns|`{ (json object)`<br />&nbsp;&nbsp;`"version": n,  (numeric) the version of the server`<br />&nbsp;&nbsp;`"protocolversion": n,  (numeric) the latest supported protocol version`<br />&nbsp;&nbsp;`"blocks": n,  (numeric) the number of blocks processed`<br />&nbsp;&nbsp;`"timeoffset": n,  (numeric) the time offset`<br />&nbsp;&nbsp;`"connections": n,  (numeric) the number of connected peers`<br />&nbsp;&nbsp;`"proxy": "host:port",  (string) the proxy used by the server`<br />&nbsp;&nbsp;`"difficulty": n.nn,  (numeric) the current target difficulty`<br />&nbsp;&nbsp;`"testnet": true or false,  (boolean) whether or not server is using testnet`<br />&nbsp;&nbsp;`"relayfee": n.nn,  (numeric) the minimum relay fee for non-free transactions in DUO/KB`<br />`}`|
 |Example Return|`{`<br />&nbsp;&nbsp;`"version": 70000`<br />&nbsp;&nbsp;`"protocolversion": 70001,  `<br />&nbsp;&nbsp;`"blocks": 298963,`<br />&nbsp;&nbsp;`"timeoffset": 0,`<br />&nbsp;&nbsp;`"connections": 17,`<br />&nbsp;&nbsp;`"proxy": "",`<br />&nbsp;&nbsp;`"difficulty": 8000872135.97,`<br />&nbsp;&nbsp;`"testnet": false,`<br />&nbsp;&nbsp;`"relayfee": 0.00001,`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getmempoolinfo"/>
+
 |   |   |
 |---|---|
 |Method|getmempoolinfo|
@@ -315,9 +391,13 @@ the method name for further details such as parameter and return information.
 |Description|Returns a JSON object containing mempool-related information.|
 |Returns|`{ (json object)`<br />&nbsp;&nbsp;`"bytes": n,  (numeric) size in bytes of the mempool`<br />&nbsp;&nbsp;`"size": n,  (numeric) number of transactions in the mempool`<br />`}`|
 Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size": 157,`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getmininginfo"/>
+
 |   |   |
 |---|---|
 |Method|getmininginfo|
@@ -325,9 +405,13 @@ Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size":
 |Description|Returns a JSON object containing mining-related information.|
 |Returns|`{ (json object)`<br />&nbsp;&nbsp;`"blocks": n,  (numeric) latest best block`<br />&nbsp;&nbsp;`"currentblocksize": n,  (numeric) size of the latest best block`<br />&nbsp;&nbsp;`"currentblockweight": n,  (numeric) weight of the latest best block`<br />&nbsp;&nbsp;`"currentblocktx": n,  (numeric) number of transactions in the latest best block`<br />&nbsp;&nbsp;`"difficulty": n.nn,  (numeric) current target difficulty`<br />&nbsp;&nbsp;`"errors": "errors",  (string) any current errors`<br />&nbsp;&nbsp;`"generate": true or false,  (boolean) whether or not server is set to generate coins`<br />&nbsp;&nbsp;`"genproclimit": n,  (numeric) number of processors to use for coin generation (-1 when disabled)`<br />&nbsp;&nbsp;`"hashespersec": n,  (numeric) recent hashes per second performance measurement while generating coins`<br />&nbsp;&nbsp;`"networkhashps": n,  (numeric) estimated network hashes per second for the most recent blocks`<br />&nbsp;&nbsp;`"pooledtx": n,  (numeric) number of transactions in the memory pool`<br />&nbsp;&nbsp;`"testnet": true or false,  (boolean) whether or not server is using testnet`<br />`}`|
 |Example Return|`{`<br />&nbsp;&nbsp;`"blocks": 236526,`<br />&nbsp;&nbsp;`"currentblocksize": 185,`<br />&nbsp;&nbsp;`"currentblockweight": 740,`<br />&nbsp;&nbsp;`"currentblocktx": 1,`<br />&nbsp;&nbsp;`"difficulty": 256,`<br />&nbsp;&nbsp;`"errors": "",`<br />&nbsp;&nbsp;`"generate": false,`<br />&nbsp;&nbsp;`"genproclimit": -1,`<br />&nbsp;&nbsp;`"hashespersec": 0,`<br />&nbsp;&nbsp;`"networkhashps": 33081554756,`<br />&nbsp;&nbsp;`"pooledtx": 8,`<br />&nbsp;&nbsp;`"testnet": true,`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getnettotals"/>
+
 |   |   |
 |---|---|
 |Method|getnettotals|
@@ -335,9 +419,13 @@ Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size":
 |Description|Returns a JSON object containing network traffic statistics.|
 |Returns|`{`<br />&nbsp;&nbsp;`"totalbytesrecv": n,  (numeric) total bytes received`<br />&nbsp;&nbsp;`"totalbytessent": n,  (numeric) total bytes sent`<br />&nbsp;&nbsp;`"timemillis": n  (numeric) number of milliseconds since 1 Jan 1970 GMT`<br />`}`|
 |Example Return|`{`<br />&nbsp;&nbsp;`"totalbytesrecv": 1150990,`<br />&nbsp;&nbsp;`"totalbytessent": 206739,`<br />&nbsp;&nbsp;`"timemillis": 1391626433845`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getnetworkhashps"/>
+
 |   |   |
 |---|---|
 |Method|getnetworkhashps|
@@ -345,9 +433,13 @@ Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size":
 |Description|Returns the estimated network hashes per second for the block heights provided by the parameters.|
 |Returns|numeric|
 |Example Return|`6573971939`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getpeerinfo"/>
+
 |   |   |
 |---|---|
 |Method|getpeerinfo|
@@ -355,9 +447,13 @@ Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size":
 |Description|Returns data about each connected network peer as an array of json objects.|
 |Returns|`[`<br />&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"addr": "host:port",  (string) the ip address and port of the peer`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"services": "00000001",  (string) the services supported by the peer`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"lastrecv": n,  (numeric) time the last message was received in seconds since 1 Jan 1970 GMT`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"lastsend": n,  (numeric) time the last message was sent in seconds since 1 Jan 1970 GMT`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"bytessent": n,  (numeric) total bytes sent`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"bytesrecv": n,  (numeric) total bytes received`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"conntime": n,  (numeric) time the connection was made in seconds since 1 Jan 1970 GMT`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"pingtime": n,  (numeric) number of microseconds the last ping took`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"pingwait": n,  (numeric) number of microseconds a queued ping has been waiting for a response`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"version": n,  (numeric) the protocol version of the peer`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"subver": "useragent",  (string) the user agent of the peer`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"inbound": true_or_false,  (boolean) whether or not the peer is an inbound connection`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"startingheight": n,  (numeric) the latest block height the peer knew about when the connection was established`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"currentheight": n,  (numeric) the latest block height the peer is known to have relayed since connected`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"syncnode": true_or_false,  (boolean) whether or not the peer is the sync peer`<br />&nbsp;&nbsp;`}, ...`<br />`]`|
 |Example Return|`[`<br />&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"addr": "178.172.xxx.xxx:11047",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"services": "00000001",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"lastrecv": 1388183523,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"lastsend": 1388185470,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"bytessent": 287592965,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"bytesrecv": 780340,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"conntime": 1388182973,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"pingtime": 405551,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"pingwait": 183023,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"version": 70001,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"subver": "/pod:0.4.0/",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"inbound": false,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"startingheight": 276921,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"currentheight": 276955,`<br/>&nbsp;&nbsp;&nbsp;&nbsp;`"syncnode": true,`<br />&nbsp;&nbsp;`}`<br />`]`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getrawtransaction"/>
+
 |   |   |
 |---|---|
 |Method|getrawtransaction|
@@ -367,9 +463,13 @@ Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size":
 |Returns (verbose=1)|`{ (json object)`<br />&nbsp;&nbsp;`"hex": "data",  (string) hex-encoded transaction`<br />&nbsp;&nbsp;`"txid": "hash",  (string) the hash of the transaction`<br />&nbsp;&nbsp;`"version": n,  (numeric) the transaction version`<br />&nbsp;&nbsp;`"locktime": n,  (numeric) the transaction lock time`<br />&nbsp;&nbsp;`"vin": [  (array of json objects) the transaction inputs as json objects`<br />&nbsp;&nbsp;<font color="orange">For coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"coinbase": "data",  (string) the hex-encoded bytes of the signature script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": n,  (numeric) the script sequence number`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"txinwitness": “data", (string) the witness stack for the input`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;<font color="orange">For non-coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"txid": "hash", (string) the hash of the origin transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"vout": n, (numeric) the index of the output being redeemed from the origin transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptSig": { (json object) the signature script used to redeem the origin transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "asm", (string) disassembly of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "data",  (string) hex-encoded bytes of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": n,  (numeric) the script sequence number`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"txinwitness": “data", (string) the witness stack for the input`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}, ...`<br />&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`"vout": [  (array of json objects) the transaction outputs as json objects`<br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"value": n, (numeric) the value in DUO`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"n": n, (numeric) the index of this transaction output`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptPubKey": { (json object) the public key script used to pay coins`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "asm",  (string) disassembly of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "data", (string) hex-encoded bytes of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"reqSigs": n,  (numeric) the number of required signatures`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"type": "scripttype" (string) the type of the script (e.g. 'pubkeyhash')`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"addresses": [ (json array of string) the bitcoin addresses associated with this output`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"bitcoinaddress",  (string) the bitcoin address`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`...`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}, ...`<br />&nbsp;&nbsp;`]`<br />`}`|
 |Example Return (verbose=0)|`"010000000104be666c7053ef26c6110597dad1c1e81b5e6be53d17a8b9d0b34772054bac60000000`<br />`008c493046022100cb42f8df44eca83dd0a727988dcde9384953e830b1f8004d57485e2ede1b9c8f`<br />`022100fbce8d84fcf2839127605818ac6c3e7a1531ebc69277c504599289fb1e9058df0141045a33`<br />`76eeb85e494330b03c1791619d53327441002832f4bd618fd9efa9e644d242d5e1145cb9c2f71965`<br />`656e276633d4ff1a6db5e7153a0a9042745178ebe0f5ffffffff0280841e00000000001976a91406`<br />`f1b6703d3f56427bfcfd372f952d50d04b64bd88ac4dd52700000000001976a9146b63f291c295ee`<br />`abd9aee6be193ab2d019e7ea7088ac00000000`<br /><font color="orange">**Newlines added for display purposes.  The actual return does not contain newlines.**</font>|
 |Example Return (verbose=1)|`{`<br />&nbsp;&nbsp;`"hex": "01000000010000000000000000000000000000000000000000000000000000000000000000f...",`<br />&nbsp;&nbsp;`"txid": "90743aad855880e517270550d2a881627d84db5265142fd1e7fb7add38b08be9",`<br />&nbsp;&nbsp;`"version": 1,`<br />&nbsp;&nbsp;`"locktime": 0,`<br />&nbsp;&nbsp;`"vin": [`<br />&nbsp;&nbsp;<font color="orange">For coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"coinbase": "03708203062f503253482f04066d605108f800080100000ea2122f6f7a636f696e4065757374726174756d2f",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;<font color="orange">For non-coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"txid": "60ac4b057247b3d0b9a8173de56b5e1be8c1d1da970511c626ef53706c66be04",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"vout": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptSig": {`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "3046022100cb42f8df44eca83dd0a727988dcde9384953e830b1f8004d57485e2ede1b9c8f0...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "493046022100cb42f8df44eca83dd0a727988dcde9384953e830b1f8004d57485e2ede1b9c8...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": 4294967295,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`"vout": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"value": 25.1394,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"n": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptPubKey": {`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "OP_DUP OP_HASH160 ea132286328cfc819457b9dec386c4b5c84faa5c OP_EQUALVERIFY OP_CHECKSIG",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "76a914ea132286328cfc819457b9dec386c4b5c84faa5c88ac",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"reqSigs": 1,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"type": "pubkeyhash"`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"addresses": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"1NLg3QJMsMQGM5KEUaEu5ADDmKQSLHwmyh",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;`]`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="help"/>
+
 |   |   |
 |---|---|
 |Method|help|
@@ -377,18 +477,26 @@ Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size":
 |Description|Returns a list of all commands or help for a specified command.<br />When no `command` parameter is specified, a list of avaialable commands is returned<br />When `command` is a valid method, the help text for that method is returned.|
 |Returns|string|
 |Example Return|getblockcount<br />Returns a numeric for the number of blocks in the longest block chain.|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="ping"/>
+
 |   |   |
 |---|---|
 |Method|ping|
 |Parameters|None|
 |Description|Queues a ping to be sent to each connected peer.<br />Ping times are provided by [getpeerinfo](#getpeerinfo) via the `pingtime` and `pingwait` fields.|
 |Returns|Nothing|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getrawmempool"/>
+
 |   |   |
 |---|---|
 |Method|getrawmempool|
@@ -399,9 +507,13 @@ Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size":
 |Returns (verbose=true)|`{ (json object)`<br />&nbsp;&nbsp;`"transactionhash": { (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"size": n, (numeric) transaction size in bytes`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"vsize": n, (numeric) transaction virtual size`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"fee" : n, (numeric) transaction fee in bitcoins`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"time": n, (numeric) local time transaction entered pool in seconds since 1 Jan 1970 GMT`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"height": n, (numeric) block height when transaction entered the pool`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"startingpriority": n, (numeric) priority when transaction entered the pool`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"currentpriority": n, (numeric) current priority`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"depends": [ (json array) unconfirmed transactions used as inputs for this transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"transactionhash", (string) hash of the parent transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`...`<br />&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`}, ...`<br />`}`|
 |Example Return (verbose=false)|`[`<br />&nbsp;&nbsp;`"3480058a397b6ffcc60f7e3345a61370fded1ca6bef4b58156ed17987f20d4e7",`<br />&nbsp;&nbsp;`"cbfe7c056a358c3a1dbced5a22b06d74b8650055d5195c1c2469e6b63a41514a"`<br />`]`|
 |Example Return (verbose=true)|`{`<br />&nbsp;&nbsp;`"1697a19cede08694278f19584e8dcc87945f40c6b59a942dd8906f133ad3f9cc": {`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"size": 226,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"fee" : 0.0001,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"time": 1387992789,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"height": 276836,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"startingpriority": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"currentpriority": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"depends": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"aa96f672fcc5a1ec6a08a94aa46d6b789799c87bd6542967da25a96b2dee0afb",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="setgenerate"/>
+
 |   |   |
 |---|---|
 |Method|setgenerate|
@@ -409,9 +521,13 @@ Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size":
 |Description|Set the server to generate coins (mine) or not.|
 |Notes|NOTE: Since pod does not have the wallet integrated to provide payment addresses, pod must be configured via the `--miningaddr` option to provide which payment addresses to pay created blocks to for this RPC to function.|
 |Returns|Nothing|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="sendrawtransaction"/>
+
 |   |   |
 |---|---|
 |Method|sendrawtransaction|
@@ -420,36 +536,52 @@ Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size":
 |Notes|<font color="orange">pod does not yet implement the `allowhighfees` parameter, so it has no effect</font>|
 |Returns|`"hash" (string) the hash of the transaction`|
 |Example Return|`"1697a19cede08694278f19584e8dcc87945f40c6b59a942dd8906f133ad3f9cc"`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="submitblock"/>
+
 |   |   |
 |---|---|
 |Method|submitblock|
 |Parameters|1. data (string, required) serialized, hex-encoded block<br />2. params (json object, optional, default=nil) this parameter is currently ignored|
 |Description|Attempts to submit a new serialized, hex-encoded block to the network.|
 |Returns (success)|Success: Nothing<br />Failure: `"rejected: reason"` (string)|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="stop"/>
+
 |   |   |
 |---|---|
 |Method|stop|
 |Parameters|None|
 |Description|Shutdown pod.|
 |Returns|`"pod stopping."` (string)|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="validateaddress"/>
+
 |   |   |
 |---|---|
 |Method|validateaddress|
 |Parameters|1. address (string, required) - bitcoin address|
 |Description|Verify an address is valid.|
 |Returns|`{ (json object)`<br />&nbsp;&nbsp;`"isvalid": true or false,  (bool) whether or not the address is valid.`<br />&nbsp;&nbsp;`"address": "bitcoinaddress", (string) the bitcoin address validated.`<br />}|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="verifychain"/>
+
 |   |   |
 |---|---|
 |Method|verifychain|
@@ -458,12 +590,19 @@ Example Return|`{`<br />&nbsp;&nbsp;`"bytes": 310768,`<br />&nbsp;&nbsp;`"size":
 |Notes|<font color="orange">Pod currently only supports `checklevel` 0 and 1, but the default is still 3 for compatibility.  Per the information in the Parameters section above, higher levels are automatically clamped to the highest supported level, so this means the default is effectively 1 for pod.</font>|
 |Returns|`true` or `false` (boolean)|
 |Example Return|`true`|
+
 [Return to Overview](#MethodOverview)<br />
-<a name="ExtensionMethods" />
+
+<a name="ExtensionMethods"></a>
+
 ### 6. Extension Methods
-<a name="ExtMethodOverview" />
+
+<a name="ExtMethodOverview"></a>
+
 **6.1 Method Overview**<br />
+
 The following is an overview of the RPC methods which are implemented by pod, but not the original bitcoind client. Click the method name for further details such as parameter and return information.
+
 |#|Method|Safe for limited user?|Description|
 |---|------|----------|-----------|
 |1|[debuglevel](#debuglevel)|N|Dynamically changes the debug logging level.|
@@ -474,9 +613,13 @@ The following is an overview of the RPC methods which are implemented by pod, bu
 |6|[generate](#generate)|N|When in simnet or regtest mode, generate a set number of blocks. |None|
 |7|[version](#version)|Y|Returns the JSON-RPC API version.|
 |8|[getheaders](#getheaders)|Y|Returns block headers starting with the first known block hash from the request.|
-<a name="ExtMethodDetails" />
+
+<a name="ExtMethodDetails"></a>
+
 **6.2 Method Details**<br />
+
 <a name="debuglevel"/>
+
 |   |   |
 |---|---|
 |Method|debuglevel|
@@ -485,18 +628,26 @@ The following is an overview of the RPC methods which are implemented by pod, bu
 |Returns|string|
 |Example Return|`Done.`|
 |Example `show` Return|`Supported subsystems [AMGR ADXR BCDB BMGR NODE CHAN DISC PEER RPCS SCRP SRVR TXMP]`|
+
 [Return to Overview](#ExtMethodOverview)<br />
+
 ***
+
 <a name="getbestblock"/>
+
 |   |   |
 |---|---|
 |Method|getbestblock|
 |Parameters|None|
 |Description|Get block height and hash of best block in the main chain.|
 |Returns|`{ (json object)`<br />&nbsp;`"hash": "data",  (string) the hex-encoded bytes of the best block hash`<br />&nbsp;`"height": n (numeric) the block height of the best block`<br />`}`|
+
 [Return to Overview](#ExtMethodOverview)<br />
+
 ***
+
 <a name="getcurrentnet"/>
+
 |   |   |
 |---|---|
 |Method|getcurrentnet|
@@ -504,9 +655,13 @@ The following is an overview of the RPC methods which are implemented by pod, bu
 |Description|Get bitcoin network pod is running on.|
 |Returns|numeric|
 |Example Return|`3652501241` (mainnet)<br />`118034699` (testnet3)|
+
 [Return to Overview](#ExtMethodOverview)<br />
+
 ***
+
 <a name="searchrawtransactions"/>
+
 |   |   |
 |---|---|
 |Method|searchrawtransactions|
@@ -514,27 +669,39 @@ The following is an overview of the RPC methods which are implemented by pod, bu
 |Description|Returns raw data for transactions involving the passed address. Returned transactions are pulled from both the database, and transactions currently in the mempool. Transactions pulled from the mempool will have the `"confirmations"` field set to 0. Usage of this RPC requires the optional `--addrindex` flag to be activated, otherwise all responses will simply return with an error stating the address index has not yet been built up. Similarly, until the address index has caught up with the current best height, all requests will return an error response in order to avoid serving stale data.|
 |Returns (verbose=0)|`[ (json array of strings)` <br/>&nbsp;&nbsp; `"serializedtx", ... hex-encoded bytes of the serialized transaction` <br/>`]` |
 |Returns (verbose=1)|`[ (array of json objects)` <br/> &nbsp;&nbsp; `{ (json object)`<br />&nbsp;&nbsp;`"hex": "data",  (string) hex-encoded transaction`<br />&nbsp;&nbsp;`"txid": "hash",  (string) the hash of the transaction`<br />&nbsp;&nbsp;`"version": n,  (numeric) the transaction version`<br />&nbsp;&nbsp;`"locktime": n,  (numeric) the transaction lock time`<br />&nbsp;&nbsp;`"vin": [  (array of json objects) the transaction inputs as json objects`<br />&nbsp;&nbsp;<font color="orange">For coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"coinbase": "data",  (string) the hex-encoded bytes of the signature script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"txinwitness": “data", (string) the witness stack for the input`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": n,  (numeric) the script sequence number`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;<font color="orange">For non-coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"txid": "hash", (string) the hash of the origin transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"vout": n, (numeric) the index of the output being redeemed from the origin transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptSig": { (json object) the signature script used to redeem the origin transaction`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "asm", (string) disassembly of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "data",  (string) hex-encoded bytes of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"prevOut": { (json object) Data from the origin transaction output with index vout.`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"addresses": ["value",...], (array of string) previous output addresses`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"value": n.nnn,             (numeric)         previous output value`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"txinwitness": “data", (string) the witness stack for the input`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": n,  (numeric) the script sequence number`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}, ...`<br />&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`"vout": [  (array of json objects) the transaction outputs as json objects`<br />&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"value": n, (numeric) the value in DUO`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"n": n, (numeric) the index of this transaction output`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptPubKey": { (json object) the public key script used to pay coins`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "asm",  (string) disassembly of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "data", (string) hex-encoded bytes of the script`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"reqSigs": n,  (numeric) the number of required signatures`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"type": "scripttype" (string) the type of the script (e.g. 'pubkeyhash')`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"addresses": [ (json array of string) the bitcoin addresses associated with this output`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"address",  (string) the bitcoin address`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`...`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;`}, ...`<br /> &nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp; `"blockhash":"hash" Hash of the block the transaction is part of.` <br /> &nbsp;&nbsp; `"confirmations":n,  Number of numeric confirmations of block.` <br /> &nbsp;&nbsp;&nbsp;`"time":t, Transaction time in seconds since the epoch.` <br /> &nbsp;&nbsp;&nbsp;`"blocktime":t, Block time in seconds since the epoch.`<br />`},...`<br/> `]`|
+
 [Return to Overview](#ExtMethodOverview)<br />
+
 ***
+
 <a name="node"/>
+
 |   |   |
 |---|---|
 |Method|node|
 |Parameters|1. command (string, required) - `connect` to add a peer (defaults to temporary), `remove` to remove a persistent peer, or `disconnect` to remove all matching non-persistent peers <br /> 2. peer (string, required) - ip address and port, or ID of the peer to operate on<br /> 3. connection type (string, optional) - `perm` indicates the peer should be added as a permanent peer, `temp` indicates a connection should only be attempted once. |
 |Description|Attempts to add or remove a peer.|
 |Returns|Nothing|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="generate"/>
+
 |   |   |
 |---|---|
 |Method|generate|
 |Parameters|1. numblocks (int, required) - The number of blocks to generate |
 |Description|When in simnet or regtest mode, generates `numblocks` blocks. If blocks arrive from elsewhere, they are built upon but don't count toward the number of blocks to generate. Only generated blocks are returned. This RPC call will exit with an error if the server is already CPU mining, and will prevent the server from CPU mining for another command while it runs. |
 |Returns|`[ (json array of strings)` <br/>&nbsp;&nbsp; `"blockhash", ... hash of the generated block` <br/>`]` |
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="version"/>
+
 |   |   |
 |---|---|
 |Method|version|
@@ -542,9 +709,13 @@ The following is an overview of the RPC methods which are implemented by pod, bu
 |Description|Returns the version of the JSON-RPC API built into this release of pod.|
 |Returns|`{ (json object)`<br />&nbsp;&nbsp;`"podjsonrpcapi": {`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"versionstring": "x.y.z",  (string) the version of the JSON-RPC API`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"major": x,  (numeric) the major version of the JSON-RPC API`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"minor": y,  (numeric) the minor version of the JSON-RPC API`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"patch": z,  (numeric) the patch version of the JSON-RPC API`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"prerelease": "",  (string) prerelease info for the JSON-RPC API`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"buildmetadata": ""  (string) metadata about the server build`<br />&nbsp;&nbsp;`}`<br />`}`|
 |Example Return|`{`<br />&nbsp;&nbsp;`"podjsonrpcapi": {`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"versionstring": "1.0.0",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"major": 1,  `<br />&nbsp;&nbsp;&nbsp;&nbsp;`"minor": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"patch": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"prerelease": "",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"buildmetadata": ""`<br />&nbsp;&nbsp;`}`<br />`}`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
+
 <a name="getheaders"/>
+
 |   |   |
 |---|---|
 |Method|getheaders|
@@ -552,12 +723,19 @@ The following is an overview of the RPC methods which are implemented by pod, bu
 |Description|Returns block headers starting with the first known block hash from the request.|
 |Returns|`[ (json array of strings)`<br />&nbsp;&nbsp;`"blockheader",`<br />&nbsp;&nbsp;`...`<br />`]`|
 |Example Return|`[`<br />&nbsp;&nbsp;`"0000002099417930b2ae09feda10e38b58c0f6bb44b4d60fa33f0e000000000000000000d53...",`<br />&nbsp;&nbsp;`"000000203ba25a173bfd24d09e0c76002a910b685ca297bd09a17b020000000000000000702..."`<br />`]`|
+
 [Return to Overview](#MethodOverview)<br />
+
 ***
-<a name="WSExtMethods" />
+
+<a name="WSExtMethods"></a>
+
 ### 7. Websocket Extension Methods (Websocket-specific)
-<a name="WSExtMethodOverview" />
+
+<a name="WSExtMethodOverview"></a>
+
 **7.1 Method Overview**<br />
+
 The following is an overview of the RPC method requests available exclusively to Websocket clients.  All of these RPC methods are available to the limited
 user.  Click the method name for further details such as parameter and return information.
 |#|Method|Description|Notifications|
@@ -575,18 +753,26 @@ user.  Click the method name for further details such as parameter and return in
 |11|[session](#session)|Return details regarding a websocket client's current connection.|None|
 |12|[loadtxfilter](#loadtxfilter)|Load, add to, or reload a websocket client's transaction filter for mempool transactions, new blocks and rescanblocks.|[relevanttxaccepted](#relevanttxaccepted)|
 |13|[rescanblocks](#rescanblocks)|Rescan blocks for transactions matching the loaded transaction filter.|None|
-<a name="WSExtMethodDetails" />
+
+<a name="WSExtMethodDetails"></a>
+
 **7.2 Method Details**<br />
+
 <a name="authenticate"/>
+
 |   |   |
 |---|---|
 |Method|authenticate|
 |Parameters|1. username (string, required)<br />2. passphrase (string, required)|
 |Description|Authenticate the connection against the username and password configured for the RPC server.<br />  Invoking any other method before authenticating with this command will close the connection.<br /><font color="orange">NOTE: This is only required if an HTTP Authorization header is not being used.</font>|
 |Returns|Success: Nothing<br />Failure: Nothing (websocket disconnected)|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="notifyblocks"/>
+
 |   |   |
 |---|---|
 |Method|notifyblocks|
@@ -594,9 +780,13 @@ user.  Click the method name for further details such as parameter and return in
 |Parameters|None|
 |Description|Request notifications for whenever a block is connected or disconnected from the main (best) chain.<br />NOTE: If a client subscribes to both block and transaction (recvtx and redeemingtx) notifications, the blockconnected notification will be sent after all transaction notifications have been sent.  This allows clients to know when all relevant transactions for a block have been received.|
 |Returns|Nothing|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="stopnotifyblocks"/>
+
 |   |   |
 |---|---|
 |Method|stopnotifyblocks|
@@ -604,9 +794,13 @@ user.  Click the method name for further details such as parameter and return in
 |Parameters|None|
 |Description|Cancel sending notifications for whenever a block is connected or disconnected from the main (best) chain.|
 |Returns|Nothing|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="notifyreceived"/>
+
 |   |   |
 |---|---|
 |Method|notifyreceived|
@@ -614,9 +808,13 @@ user.  Click the method name for further details such as parameter and return in
 |Parameters|1. Addresses (JSON array, required)<br />&nbsp;`[ (json array of strings)`<br />&nbsp;&nbsp;`"bitcoinaddress", (string) the bitcoin address`<br />&nbsp;&nbsp;`...`<br />&nbsp;`]`|
 |Description|*DEPRECATED, for similar functionality see [loadtxfilter](#loadtxfilter)*<br />Send a recvtx notification when a transaction added to mempool or appears in a newly-attached block contains a txout pkScript sending to any of the passed addresses.  Matching outpoints are automatically registered for redeemingtx notifications.|
 |Returns|Nothing|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="stopnotifyreceived"/>
+
 |   |   |
 |---|---|
 |Method|stopnotifyreceived|
@@ -624,9 +822,13 @@ user.  Click the method name for further details such as parameter and return in
 |Parameters|1. Addresses (JSON array, required)<br />&nbsp;`[ (json array of strings)`<br />&nbsp;&nbsp;`"bitcoinaddress", (string) the bitcoin address`<br />&nbsp;&nbsp;`...`<br />&nbsp;`]`|
 |Description|*DEPRECATED, for similar functionality see [loadtxfilter](#loadtxfilter)*<br />Cancel registered receive notifications for each passed address.|
 |Returns|Nothing|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="notifyspent"/>
+
 |   |   |
 |---|---|
 |Method|notifyspent|
@@ -634,9 +836,13 @@ user.  Click the method name for further details such as parameter and return in
 |Parameters|1. Outpoints (JSON array, required)<br />&nbsp;`[ (JSON array)`<br />&nbsp;&nbsp;`{ (JSON object)`<br />&nbsp;&nbsp;&nbsp;`"hash":"data", (string) the hex-encoded bytes of the outpoint hash`<br />&nbsp;&nbsp;&nbsp;`"index":n (numeric) the txout index of the outpoint`<br />&nbsp;&nbsp;`},`<br />&nbsp;&nbsp;`...`<br />&nbsp;`]`|
 |Description|*DEPRECATED, for similar functionality see [loadtxfilter](#loadtxfilter)*<br />Send a redeemingtx notification when a transaction spending an outpoint appears in mempool (if relayed to this pod instance) and when such a transaction first appears in a newly-attached block.|
 |Returns|Nothing|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="stopnotifyspent"/>
+
 |   |   |
 |---|---|
 |Method|stopnotifyspent|
@@ -644,9 +850,13 @@ user.  Click the method name for further details such as parameter and return in
 |Parameters|1. Outpoints (JSON array, required)<br />&nbsp;`[ (JSON array)`<br />&nbsp;&nbsp;`{ (JSON object)`<br />&nbsp;&nbsp;&nbsp;`"hash":"data", (string) the hex-encoded bytes of the outpoint hash`<br />&nbsp;&nbsp;&nbsp;`"index":n (numeric) the txout index of the outpoint`<br />&nbsp;&nbsp;`},`<br />&nbsp;&nbsp;`...`<br />&nbsp;`]`|
 |Description|*DEPRECATED, for similar functionality see [loadtxfilter](#loadtxfilter)*<br />Cancel registered spending notifications for each passed outpoint.|
 |Returns|Nothing|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="rescan"/>
+
 |   |   |
 |---|---|
 |Method|rescan|
@@ -654,9 +864,13 @@ user.  Click the method name for further details such as parameter and return in
 |Parameters|1. BeginBlock (string, required) block hash to begin rescanning from<br />2. Addresses (JSON array, required)<br />&nbsp;`[ (json array of strings)`<br />&nbsp;&nbsp;`"bitcoinaddress", (string) the bitcoin address`<br />&nbsp;&nbsp;`...` <br />&nbsp;`]`<br />3. Outpoints (JSON array, required)<br />&nbsp;`[ (JSON array)`<br />&nbsp;&nbsp;`{ (JSON object)`<br />&nbsp;&nbsp;&nbsp;`"hash":"data", (string) the hex-encoded bytes of the outpoint hash`<br />&nbsp;&nbsp;&nbsp;`"index":n (numeric) the txout index of the outpoint`<br />&nbsp;&nbsp;`},`<br />&nbsp;&nbsp;`...`<br />&nbsp;`]`<br />4. EndBlock (string, optional) hash of final block to rescan|
 |Description|*DEPRECATED, for similar functionality see [rescanblocks](#rescanblocks)*<br />Rescan block chain for transactions to addresses, starting at block BeginBlock and ending at EndBlock.  The current known UTXO set for all passed addresses at height BeginBlock should included in the Outpoints argument.  If EndBlock is omitted, the rescan continues through the best block in the main chain.  Additionally, if no EndBlock is provided, the client is automatically registered for transaction notifications for all rescanned addresses and the final UTXO set.  Rescan results are sent as recvtx and redeemingtx notifications.  This call returns once the rescan completes.|
 |Returns|Nothing|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="notifynewtransactions"/>
+
 |   |   |
 |---|---|
 |Method|notifynewtransactions|
@@ -664,9 +878,13 @@ user.  Click the method name for further details such as parameter and return in
 |Parameters|1. verbose (boolean, optional, default=false) - specifies which type of notification to receive.  If verbose is true, then the caller receives [txacceptedverbose](#txacceptedverbose), otherwise the caller receives [txaccepted](#txaccepted)|
 |Description|Send either a [txaccepted](#txaccepted) or a [txacceptedverbose](#txacceptedverbose) notification when a new transaction is accepted into the mempool.|
 |Returns|Nothing|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="stopnotifynewtransactions"/>
+
 |   |   |
 |---|---|
 |Method|stopnotifynewtransactions|
@@ -674,9 +892,13 @@ user.  Click the method name for further details such as parameter and return in
 |Parameters|None|
 |Description|Stop sending either a [txaccepted](#txaccepted) or a [txacceptedverbose](#txacceptedverbose) notification when a new transaction is accepted into the mempool.|
 |Returns|Nothing|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="session"/>
+
 |   |   |
 |---|---|
 |Method|session|
@@ -685,9 +907,13 @@ user.  Click the method name for further details such as parameter and return in
 |Description|Return a JSON object with details regarding a websocket client's current connection to the RPC server.  This currently only includes the session ID, a random unsigned 64-bit integer that is created for each newly connected client.  Session IDs may be used to verify that the current connection was not lost and subsequently reestablished.|
 |Returns|`{ (json object)`<br />&nbsp;&nbsp;`"sessionid": n  (numeric) the session ID`<br />`}`|
 |Example Return|`{`<br />&nbsp;&nbsp;`"sessionid": 67089679842`<br />`}`|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="loadtxfilter"/>
+
 |   |   |
 |---|---|
 |Method|loadtxfilter|
@@ -695,9 +921,13 @@ user.  Click the method name for further details such as parameter and return in
 |Parameters|1. Reload (boolean, required) - Load a new filter instead of adding data to an existing one<br />2. Addresses (JSON array, required) - Array of addresses to add to the transaction filter<br />3. Outpoints (JSON array, required) - Array of outpoints to add to the transaction filter|
 |Description|Load, add to, or reload a websocket client's transaction filter for mempool transactions, new blocks and [rescanblocks](#rescanblocks).|
 |Returns|Nothing|
+
 [Return to Overview](#WSExtMethodOverview)<br />
+
 ***
+
 <a name="rescanblocks"/>
+
 |   |   |
 |---|---|
 |Method|rescanblocks|
@@ -706,11 +936,17 @@ user.  Click the method name for further details such as parameter and return in
 |Description|Rescan blocks for transactions matching the loaded transaction filter.|
 |Returns|`[ (JSON array)`<br />&nbsp;&nbsp;`{ (JSON object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"hash": "data", (string) Hash of the matching block.`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"transactions": [ (JSON array) List of matching transactions, serialized and hex-encoded.`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"serializedtx" (string) Serialized and hex-encoded transaction.`<br />&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`}`<br />`]`|
 |Example Return|`[`<br />&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"hash": "0000002099417930b2ae09feda10e38b58c0f6bb44b4d60fa33f0e000000000000000000d53...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"transactions": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"493046022100cb42f8df44eca83dd0a727988dcde9384953e830b1f8004d57485e2ede1b9c8..."`<br />&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`}`<br />`]`|
-<a name="Notifications" />
+
+<a name="Notifications"></a>
+
 ### 8. Notifications (Websocket-specific)
+
 pod uses standard JSON-RPC notifications to notify clients of changes, rather than requiring clients to poll pod for updates.  JSON-RPC notifications are a subset of requests, but do not contain an ID.  The notification type is categorized by the `method` field and additional details are sent as a JSON array in the `params` field.
-<a name="NotificationOverview" />
+
+<a name="NotificationOverview"></a>
+
 **8.1 Notification Overview**<br />
+
 The following is an overview of the JSON-RPC notifications used for Websocket connections.  Click the method name for further details of the context(s) in which they are sent and their parameters.
 |#|Method|Description|Request|
 |---|------|-----------|-------|
@@ -725,9 +961,13 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |9|[relevanttxaccepted](#relevanttxaccepted)|A transaction matching the tx filter has been accepted into the mempool.|[loadtxfilter](#loadtxfilter)|
 |10|[filteredblockconnected](#filteredblockconnected)|Block connected to the main chain; contains any transactions that match the client's tx filter.|[notifyblocks](#notifyblocks), [loadtxfilter](#loadtxfilter)|
 |11|[filteredblockdisconnected](#filteredblockdisconnected)|Block disconnected from the main chain.|[notifyblocks](#notifyblocks), [loadtxfilter](#loadtxfilter)|
-<a name="NotificationDetails" />
+
+<a name="NotificationDetails"></a>
+
 **8.2 Notification Details**<br />
+
 <a name="blockconnected"/>
+
 |   |   |
 |---|---|
 |Method|blockconnected|
@@ -735,9 +975,13 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. BlockHash (string) hex-encoded bytes of the attached block hash<br />2. BlockHeight (numeric) height of the attached block<br />3. BlockTime (numeric) unix time of the attached block|
 |Description|*DEPRECATED, for similar functionality see [filteredblockconnected](#filteredblockconnected)*<br />Notifies when a block has been added to the main chain.  Notification is sent to all connected clients.|
 |Example|Example blockconnected notification for mainnet block 280330 (newlines added for readability):<br />`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "blockconnected",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`"000000000000000004cbdfe387f4df44b914e464ca79838a8ab777b3214dbffd",`<br />&nbsp;&nbsp;&nbsp;`280330,`<br />&nbsp;&nbsp;&nbsp;`1389636265`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 [Return to Overview](#NotificationOverview)<br />
+
 ***
+
 <a name="blockdisconnected"/>
+
 |   |   |
 |---|---|
 |Method|blockdisconnected|
@@ -745,9 +989,13 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. BlockHash (string) hex-encoded bytes of the disconnected block hash<br />2. BlockHeight (numeric) height of the disconnected block<br />3. BlockTime (numeric) unix time of the disconnected block|
 |Description|*DEPRECATED, for similar functionality see [filteredblockdisconnected](#filteredblockdisconnected)*<br />Notifies when a block has been removed from the main chain.  Notification is sent to all connected clients.|
 |Example|Example blockdisconnected notification for mainnet block 280330 (newlines added for readability):<br />`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "blockdisconnected",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`"000000000000000004cbdfe387f4df44b914e464ca79838a8ab777b3214dbffd",`<br />&nbsp;&nbsp;&nbsp;`280330,`<br />&nbsp;&nbsp;&nbsp;`1389636265`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 [Return to Overview](#NotificationOverview)<br />
+
 ***
+
 <a name="recvtx"/>
+
 |   |   |
 |---|---|
 |Method|recvtx|
@@ -755,9 +1003,13 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. Transaction (string) full transaction encoded as a hex string<br />2. Block details (object, optional) details about a block and the index of the transaction within a block, if the transaction is mined|
 |Description|*DEPRECATED, for similar functionality see [relevanttxaccepted](#relevanttxaccepted) and [filteredblockconnected](#filteredblockconnected)*<br />Notifies a client when a transaction is processed that contains at least a single output with a pkScript sending to a requested address.  If multiple outputs send to requested addresses, a single notification is sent.  If a mempool (unmined) transaction is processed, the block details object (second parameter) is excluded.|
 |Example|Example recvtx notification for mainnet transaction 61d3696de4c888730cbe06b0ad8ecb6d72d6108e893895aa9bc067bd7eba3fad when processed by mempool (newlines added for readability):<br />`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "recvtx",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`"010000000114d9ff358894c486b4ae11c2a8cf7851b1df64c53d2e511278eff17c22fb737300000000..."`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`<br />The recvtx notification for the same txout, after the transaction was mined into block 276425:<br />`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "recvtx",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`"010000000114d9ff358894c486b4ae11c2a8cf7851b1df64c53d2e511278eff17c22fb737300000000...",`<br />&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"height": 276425,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"hash": "000000000000000325474bb799b9e591f965ca4461b72cb7012b808db92bb2fc",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"index": 684,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"time": 1387737310`<br />&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 [Return to Overview](#NotificationOverview)<br />
+
 ***
+
 <a name="redeemingtx"/>
+
 |   |   |
 |---|---|
 |Method|redeemingtx|
@@ -765,9 +1017,13 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. Transaction (string) full transaction encoded as a hex string<br />2. Block details (object, optional) details about a block and the index of the transaction within a block, if the transaction is mined|
 |Description|*DEPRECATED, for similar functionality see [relevanttxaccepted](#relevanttxaccepted) and [filteredblockconnected](#filteredblockconnected)*<br />Notifies a client when an registered outpoint is spent by a transaction accepted to mempool and/or mined into a block.|
 |Example|Example redeemingtx notification for mainnet outpoint 61d3696de4c888730cbe06b0ad8ecb6d72d6108e893895aa9bc067bd7eba3fad:0 after being spent by transaction 4ad0c16ac973ff675dec1f3e5f1273f1c45be2a63554343f21b70240a1e43ece (newlines added for readability):<br />`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "redeemingtx",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`"0100000003ad3fba7ebd67c09baa9538898e10d6726dcb8eadb006be0c7388c8e46d69d3610000000..."`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`<br />The redeemingtx notification for the same txout, after the spending transaction was mined into block 279143:<br />`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "recvtx",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`"0100000003ad3fba7ebd67c09baa9538898e10d6726dcb8eadb006be0c7388c8e46d69d3610000000...",`<br />&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"height": 279143,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"hash": "00000000000000017188b968a371bab95aa43522665353b646e41865abae02a4",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"index": 6,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"time": 1389115004`<br />&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 [Return to Overview](#NotificationOverview)<br />
+
 ***
+
 <a name="txaccepted"/>
+
 |   |   |
 |---|---|
 |Method|txaccepted|
@@ -775,9 +1031,13 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. TxHash (string) hex-encoded bytes of the transaction hash<br />2. Amount (numeric) sum of the value of all the transaction outpoints|
 |Description|Notifies when a new transaction has been accepted and the client has requested standard transaction details.|
 |Example|Example txaccepted notification for mainnet transaction id "16c54c9d02fe570b9d41b518c0daefae81cc05c69bbe842058e84c6ed5826261" (newlines added for readability):<br />`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "txaccepted",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`"16c54c9d02fe570b9d41b518c0daefae81cc05c69bbe842058e84c6ed5826261",`<br />&nbsp;&nbsp;&nbsp;`55838384`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 [Return to Overview](#NotificationOverview)<br />
+
 ***
+
 <a name="txacceptedverbose"/>
+
 |   |   |
 |---|---|
 |Method|txacceptedverbose|
@@ -785,9 +1045,13 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. RawTx (json object) the transaction as a json object (see getrawtransaction json object details)|
 |Description|Notifies when a new transaction has been accepted and the client has requested verbose transaction details.|
 |Example|Example txacceptedverbose notification (newlines added for readability):<br />`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "txacceptedverbose",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "01000000010000000000000000000000000000000000000000000000000000000000000000f...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"txid": "90743aad855880e517270550d2a881627d84db5265142fd1e7fb7add38b08be9",`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"version": 1,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"locktime": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"vin": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;<font color="orange">For coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`{ (json object)`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"coinbase": "03708203062f503253482f04066d605108f800080100000ea2122f6f7a636f696e4065757374726174756d2f",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;<font color="orange">For non-coinbase transactions:</font><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"txid": "60ac4b057247b3d0b9a8173de56b5e1be8c1d1da970511c626ef53706c66be04",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"vout": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptSig": {`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "3046022100cb42f8df44eca83dd0a727988dcde9384953e830b1f8004d57485e2ede1b9c8f0...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "493046022100cb42f8df44eca83dd0a727988dcde9384953e830b1f8004d57485e2ede1b9c8...",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"sequence": 4294967295,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;`],`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"vout": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`{`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"value": 25.1394,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"n": 0,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"scriptPubKey": {`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"asm": "OP_DUP OP_HASH160 ea132286328cfc819457b9dec386c4b5c84faa5c OP_EQUALVERIFY OP_CHECKSIG",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"hex": "76a914ea132286328cfc819457b9dec386c4b5c84faa5c88ac",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"reqSigs": 1,`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"type": "pubkeyhash"`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"addresses": [`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`"1NLg3QJMsMQGM5KEUaEu5ADDmKQSLHwmyh",`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;&nbsp;`}`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 [Return to Overview](#NotificationOverview)<br />
+
 ***
+
 <a name="rescanprogress"/>
+
 |   |   |
 |---|---|
 |Method|rescanprogress|
@@ -795,9 +1059,13 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. Hash (string) hash of the last processed block<br />2. Height (numeric) height of the last processed block<br />3. Time (numeric) UNIX time of the last processed block|
 |Description|*DEPRECATED, notifications not used by [rescanblocks](#rescanblocks)*<br />Notifies a client with the current progress at periodic intervals when a long-running [rescan](#rescan) is underway.|
 |Example|`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "rescanprogress",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`"0000000000000ea86b49e11843b2ad937ac89ae74a963c7edd36e0147079b89d",`<br />&nbsp;&nbsp;&nbsp;`127213,`<br />&nbsp;&nbsp;&nbsp;`1306533807`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 [Return to Overview](#NotificationOverview)<br />
+
 ***
+
 <a name="rescanfinished"/>
+
 |   |   |
 |---|---|
 |Method|rescanfinished|
@@ -805,9 +1073,13 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. Hash (string) hash of the last rescanned block<br />2. Height (numeric) height of the last rescanned block<br />3. Time (numeric) UNIX time of the last rescanned block |
 |Description|*DEPRECATED, notifications not used by [rescanblocks](#rescanblocks)*<br />Notifies a client that the [rescan](#rescan) has completed and no further notifications will be sent.|
 |Example|`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "rescanfinished",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`"0000000000000ea86b49e11843b2ad937ac89ae74a963c7edd36e0147079b89d",`<br />&nbsp;&nbsp;&nbsp;`127213,`<br />&nbsp;&nbsp;&nbsp;`1306533807`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 [Return to Overview](#NotificationOverview)<br />
+
 ***
+
 <a name="relevanttxaccepted"/>
+
 |   |   |
 |---|---|
 |Method|relevanttxaccepted|
@@ -815,8 +1087,11 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. Transaction (string) hex-encoded serialized transaction matching the client's filter loaded ith [loadtxfilter](#loadtxfilter)|
 |Description|Notifies a client that a transaction matching the client's tx filter has been accepted into he mempool.|
 |Example|Example `relevanttxaccepted` notification (newlines added for readability):<br />`{`<br >&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "relevanttxaccepted",`<br />&nbsp;`"params": [`<br >&nbsp;&nbsp;`"01000000014221abdcca25c8a3b0c044034875dece048c77d567a806f0c2e7e0f5e25a8f100..."`<br >&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 ***
+
 <a name="filteredblockconnected"/>
+
 |   |   |
 |---|---|
 |Method|filteredblockconnected|
@@ -824,9 +1099,13 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. BlockHeight (numeric) height of the attached block<br />2. Header (string) hex-encoded serialized header of the attached block<br />3. Transactions (JSON array) hex-encoded serialized transactions matching the filter for the client connection loaded with [loadtxfilter](#loadtxfilter)|
 |Description|Notifies when a block has been added to the main chain.  Notification is sent to all connected clients.|
 |Example|Example filteredblockconnected notification for mainnet block 280330 (newlines added for readability):<br />`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "filteredblockconnected",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`280330,`<br />&nbsp;&nbsp;&nbsp;`"0200000052d1e8813f697293e41942aa230e7e4fcc44832d78a1372202000000000000006aa...",`<br />&nbsp;&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;&nbsp;`"01000000014221abdcca25c8a3b0c044034875dece048c77d567a806f0c2e7e0f5e25a8f100..."`<br />&nbsp;&nbsp;&nbsp;`]`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 [Return to Overview](#NotificationOverview)<br />
+
 ***
+
 <a name="filteredblockdisconnected"/>
+
 |   |   |
 |---|---|
 |Method|filteredblockdisconnected|
@@ -834,31 +1113,44 @@ The following is an overview of the JSON-RPC notifications used for Websocket co
 |Parameters|1. BlockHeight (numeric) height of the disconnected block<br />2. Header (string) hex-encoded serialized header of the disconnected block|
 |Description|Notifies when a block has been removed from the main chain.  Notification is sent to all connected clients.|
 |Example|Example blockdisconnected notification for mainnet block 280330 (newlines added for readability):<br />`{`<br />&nbsp;`"jsonrpc": "1.0",`<br />&nbsp;`"method": "blockdisconnected",`<br />&nbsp;`"params":`<br />&nbsp;&nbsp;`[`<br />&nbsp;&nbsp;&nbsp;`280330,`<br />&nbsp;&nbsp;&nbsp;`"0200000052d1e8813f697293e41942aa230e7e4fcc44832d78a1372202000000000000006aa..."`<br />&nbsp;&nbsp;`],`<br />&nbsp;`"id": null`<br />`}`|
+
 [Return to Overview](#NotificationOverview)<br />
-<a name="ExampleCode" />
+
+<a name="ExampleCode"></a>
+
 ### 9. Example Code
-This section provides example code for interacting with the JSON-RPC API in
-various languages.
+
+This section provides example code for interacting with the JSON-RPC API in various languages.
+
 * [Go](#ExampleGoApp)
+
 * [node.js](#ExampleNodeJsCode)
-<a name="ExampleGoApp" />
+
+<a name="ExampleGoApp"></a>
+
 **9.1 Go**
-This section provides examples of using the RPC interface using Go and the
-[btcrpcclient](https://github.com/btcsuite/btcrpcclient) package.
+
+ is section provides examples of using the RPC interface using Go and  he
+[ pcclient](https://github.com/parallelcointeam/pod/rpcclient) package.
+
+
 * [Using getblockcount to Retrieve the Current Block Height](#ExampleGetBlockCount)
+
 * [Using getblock to Retrieve the Genesis Block](#ExampleGetBlock)
+
 * [Using notifyblocks to Receive blockconnected and blockdisconnected Notifications (Websocket-specific)](#ExampleNotifyBlocks)
-<a name="ExampleGetBlockCount" />
+
+<a name="ExampleGetBlockCount"></a>
+
 **9.1.1 Using getblockcount to Retrieve the Current Block Height**<br />
-The following is an example Go application which uses the
-[btcrpcclient](https://github.com/btcsuite/btcrpcclient) package to connect with
-a pod instance via Websockets, issues [getblockcount](#getblockcount) to
-retrieve the current block height, and displays it.
+
+The following is an example Go application which uses the [rpcclient](https://github.com/parallelcointeam/pod/rpcclient) package to connect with a pod instance via Websockets, issues [getblockcount](#getblockcount) to retrieve the current block height, and displays it.
+
 ```Go
 package main
 import (
-	"github.com/btcsuite/btcrpcclient"
-	"github.com/parallelcointeam/btcutil"
+	"github.com/parallelcointeam/pod/rpcclient"
+	"github.com/parallelcointeam/pod/btcutil"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -874,17 +1166,16 @@ func main() {
 	}
 	// Create a new RPC client using websockets.  Since this example is
 	// not long-lived, the connection will be closed as soon as the program
-	// exits.
-	connCfg := &btcrpcclient.ConnConfig{
-		Host:         "localhost:11048",
+	// exits. 	connCfg :=  pcclient.ConnConfig{
+		Host:         "local ost:11048",
+
 		Endpoint:     "ws",
 		User:         "yourrpcuser",
 		Pass:         "yourrpcpass",
 		Certificates: certs,
-	}
-	client, err := btcrpcclient.New(connCfg, nil)
-	if err != nil {
-		log.Fatal(err)
+	} 	client, err := pcclient.New(connCfg, nil)
+	if err != nil { 		log.Fatal(err)
+
 	}
 	defer client.Shutdown()
 	// Query the RPC server for the current block count and display it.
@@ -895,22 +1186,24 @@ func main() {
 	log.Printf("Block count: %d", blockCount)
 }
 ```
+
 Which results in:
+
 ```bash
 Block count: 276978
 ```
-<a name="ExampleGetBlock" />
+
+<a name="ExampleGetBlock"></a>
+
 **9.1.2 Using getblock to Retrieve the Genesis Block**<br />
-The following is an example Go application which uses the
-[btcrpcclient](https://github.com/btcsuite/btcrpcclient) package to connect with
-a pod instance via Websockets, issues [getblock](#getblock) to retrieve
-information about the Genesis block, and display a few details about it.
+
+The following is an example Go application which uses the [rpcclient](https://github.com/parallelcointeam/pod/rpcclient) package to connect with a pod instance via Websockets, issues [getblock](#getblock) to retrieve information about the Genesis block, and display a few details about it.
+
 ```Go
 package main
 import (
-	"github.com/btcsuite/btcrpcclient"
-	"github.com/parallelcointeam/btcutil"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/rpcclient" 	"github.com/parallelcointeam/btcutil" 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+
 	"github.com/parallelcointeam/pod/wire"
 	"io/ioutil"
 	"log"
@@ -928,17 +1221,16 @@ func main() {
 	}
 	// Create a new RPC client using websockets.  Since this example is
 	// not long-lived, the connection will be closed as soon as the program
-	// exits.
-	connCfg := &btcrpcclient.ConnConfig{
-		Host:         "localhost:21048",
+	// exits. 	connCfg :=  pcclient.ConnConfig{
+		Host:         "local ost:21048",
+
 		Endpoint:     "ws",
 		User:         "yourrpcuser",
 		Pass:         "yourrpcpass",
 		Certificates: certs,
-	}
-	client, err := btcrpcclient.New(connCfg, nil)
-	if err != nil {
-		log.Fatal(err)
+	} 	client, err := pcclient.New(connCfg, nil)
+	if err != nil { 		log.Fatal(err)
+
 	}
 	defer client.Shutdown()
 	// Query the RPC server for the genesis block using the "getblock"
@@ -965,7 +1257,9 @@ func main() {
 	log.Printf("Num transactions: %v\n", len(block.Tx))
 }
 ```
+
 Which results in:
+
 ```bash
 Hash: 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
 Previous Block: 0000000000000000000000000000000000000000000000000000000000000000
@@ -977,21 +1271,20 @@ Difficulty: 1.000000
 Size (in bytes): 285
 Num transactions: 1
 ```
-<a name="ExampleNotifyBlocks" />
+
+<a name="ExampleNotifyBlocks"></a>
+
 **9.1.3 Using notifyblocks to Receive blockconnected and blockdisconnected
+
 Notifications (Websocket-specific)**<br />
-The following is an example Go application which uses the
-[btcrpcclient](https://github.com/btcsuite/btcrpcclient) package to connect with
-a pod instance via Websockets and registers for
-[blockconnected](#blockconnected) and [blockdisconnected](#blockdisconnected)
-notifications with [notifyblocks](#notifyblocks).  It also sets up handlers for
-the notifications.
+
+The following is an example Go application which uses the [rpcclient](https://github.com/parallelcointeam/pod/rpcclient) package to connect with a pod instance via Websockets and registers for [blockconnected](#blockconnected) and [blockdisconnected](#blockdisconnected) notifications with [notifyblocks](#notifyblocks).  It also sets up handlers for the notifications.
+
 ```Go
 package main
 import (
-	"github.com/btcsuite/btcrpcclient"
-	"github.com/parallelcointeam/btcutil"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/rpcclient" 	"github.com/parallelcointeam/btcutil" 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+
 	"github.com/parallelcointeam/pod/wire"
 	"io/ioutil"
 	"log"
@@ -1000,9 +1293,9 @@ import (
 )
 func main() {
 	// Setup handlers for blockconnected and blockdisconnected
-	// notifications.
-	ntfnHandlers := btcrpcclient.NotificationHandlers{
-		OnBlockConnected: func(hash *chainhash.Hash, height int32) {
+	// notifications. 	ntfnHandlers := rpcclient.NotificationHa lers{
+		OnBlockConnected: func(hash *chainhash.Hash, height int32  {
+
 			log.Printf("Block connected: %v (%d)", hash, height)
 		},
 		OnBlockDisconnected: func(hash *chainhash.Hash, height int32) {
@@ -1017,17 +1310,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Create a new RPC client using websockets.
-	connCfg := &btcrpcclient.ConnConfig{
-		Host:         "localhost:11048",
+	// Create a new RPC client using  eb ckets.
+	connCfg := &rpcclient.ConnConfig{ 		Host:         "localhost:11048",
+
 		Endpoint:     "ws",
 		User:         "yourrpcuser",
 		Pass:         "yourrpcpass",
 		Certificates: certs,
-	}
-	client, err := btcrpcclient.New(connCfg, &ntfnHandlers)
-	if err != nil {
-		log.Fatal(err)
+	} 	client, err := pcclient.New(connCfg, &ntfnHandlers)
+	if err != nil { 		log.Fatal(err)
+
 	}
 	// Register for blockconnected and blockdisconneted notifications.
 	if err := client.NotifyBlocks(); err != nil {
@@ -1048,22 +1340,26 @@ func main() {
 	client.WaitForShutdown()
 }
 ```
+
 Example output:
+
 ```
 2014/05/12 20:33:17 Client shutdown in 10 seconds...
 2014/05/12 20:33:19 Block connected: 000000000000000007dff1f95f7b3f5eac2892a4123069517caf34e2c417650d (300461)
 2014/05/12 20:33:27 Client shutting down...
 2014/05/12 20:31:27 Client shutdown complete.
 ```
-<a name="ExampleNodeJsCode" />
+
+<a name="ExampleNodeJsCode"></a>
+
 ### 9.2. Example node.js Code
-<a name="ExampleNotifyBlocks" />
+
+<a name="ExampleNotifyBlocks"></a>
+
 **9.2.1 Using notifyblocks to be Notified of Block Connects and Disconnects**<br />
-The following is example node.js code which uses [ws](https://github.com/einaros/ws)
-(can be installed with `npm install ws`) to connect with a pod instance,
-issues [notifyblocks](#notifyblocks) to register for
-[blockconnected](#blockconnected) and [blockdisconnected](#blockdisconnected)
-notifications, and displays all incoming messages.
+
+The following is example node.js code which uses [ws](https://github.com/einaros/ws) (can be installed with `npm install ws`) to connect with a pod instance, issues [notifyblocks](#notifyblocks) to register for [blockconnected](#blockconnected) and [blockdisconnected](#blockdisconnected) notifications, and displays all incoming messages.
+
 ```javascript
 var fs = require('fs');
 var WebSocket = require('ws');

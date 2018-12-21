@@ -16,7 +16,7 @@
    6.1. [Contribution Checklist](#Checklist)<br />
    6.2. [Licensing of Contributions](#Licensing)<br />
 
-<a name="Overview" />
+<a name="Overview"></a>
 
 ### 1. Overview
 
@@ -26,7 +26,7 @@ However, as exciting as it is, one must keep in mind that cryptocurrencies repre
 
 We highly encourage code contributions, however it is imperative that you adhere to the guidelines established on this page.
 
-<a name="MinSkillset" />
+<a name="MinSkillset"></a>
 
 ### 2. Minimum Recommended Skillset
 
@@ -46,7 +46,7 @@ The following list is a set of core competencies that we recommend you possess b
 
 Building on top of those core competencies, the recommended skill set largely depends on the specific areas you are looking to contribute to. For example, if you wish to contribute to the cryptography code, you should have a good understanding of the various aspects involved with cryptography such as the security and performance implications.
 
-<a name="ReqReading" />
+<a name="ReqReading"></a>
 
 ### 3. Required Reading
 
@@ -54,13 +54,13 @@ Building on top of those core competencies, the recommended skill set largely de
 
 - [Original Satoshi Whitepaper](http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCkQFjAA&url=http%3A%2F%2Fbitcoin.org%2Fbitcoin.pdf&ei=os3VUuH8G4SlsASV74GoAg&usg=AFQjCNEipPLigou_1MfB7DQjXCNdlylrBg&sig2=FaHDuT5z36GMWDEnybDJLg&bvm=bv.59378465,d.b2I) - This is the white paper that started it all. Having a solid foundation to build on will make the code much more comprehensible.
 
-<a name="DevelopmentPractices" />
+<a name="DevelopmentPractices"></a>
 
 ### 4. Development Practices
 
 Developers are expected to work in their own trees and submit pull requests when they feel their feature or bug fix is ready for integration into the master branch.
 
-<a name="ShareEarly" />
+<a name="ShareEarly"></a>
 
 ### 4.1 Share Early, Share Often
 
@@ -78,7 +78,7 @@ This approach has several benefits:
 
 - The quicker your changes are merged to master, the less time you will need to spend rebasing and otherwise trying to keep up with the main code base
 
-<a name="Testing" />
+<a name="Testing"></a>
 
 ### 4.2 Testing
 
@@ -94,7 +94,7 @@ A quick summary of test practices follows:
 
 - When you fix a bug, it should be accompanied by tests which exercise the bug to both prove it has been resolved and to prevent future regressions
 
-<a name="CodeDocumentation" />
+<a name="CodeDocumentation"></a>
 
 ### 4.3 Code Documentation and Commenting
 
@@ -124,7 +124,7 @@ Comments have a way of turning into lies during development, you should not expe
 
   - The best place for detailed information is a separate `doc.go` file, where the comment that appears before the package name appears at the very top in the Godoc output, and in the structure and type definitions for exported types. Functions should not be the place to put this, as it interferes with readability, and scatters the information, at the same time.
 
-<a name="ModelGitCommitMessages" />
+<a name="ModelGitCommitMessages"></a>
 
 ### 4.4 Model Git Commit Messages
 
@@ -157,13 +157,13 @@ Further paragraphs come after blank lines.
 
 Prefix the summary with the subsystem/package when possible. Many other projects make use of the code and this makes it easier for them to tell when something they're using has changed. Have a look at [past commits](https://github.com/parallelcointeam/pod/commits/master) for examples of commit messages.
 
-<a name="CodeApproval" />
+<a name="CodeApproval"></a>
 
 ### 5. Code Approval Process
 
 This section describes the code approval process that is used for code contributions. This is how to get your changes into pod.
 
-<a name="CodeReview" />
+<a name="CodeReview"></a>
 
 ### 5.1 Code Review
 
@@ -183,7 +183,7 @@ The review is mainly ensuring the code follows the [Development Practices](#Deve
 - The code is properly using existing APIs and generally fits well into the overall architecture
 - The change is not something which is deemed inappropriate by community consensus
 
-<a name="CodeRework" />
+<a name="CodeRework"></a>
 
 ### 5.2 Rework Code (if needed)
 
@@ -191,7 +191,7 @@ After the code review, the change will be accepted immediately if no issues are 
 
 This process will continue until the code is finally accepted.
 
-<a name="CodeAcceptance" />
+<a name="CodeAcceptance"></a>
 
 ### 5.3 Acceptance
 
@@ -199,11 +199,11 @@ Once your code is accepted, it will be integrated with the master branch. Typica
 
 Rejoice as you will now be listed as a [contributor](https://github.com/parallelcointeam/pod/graphs/contributors)!
 
-<a name="Standards" />
+<a name="Standards"></a>
 
 ### 6. Contribution Standards
 
-<a name="Checklist" />
+<a name="Checklist"></a>
 
 ### 6.1. Contribution Checklist
 
@@ -225,7 +225,7 @@ Rejoice as you will now be listed as a [contributor](https://github.com/parallel
 
 - [&nbsp;&nbsp;] Running [golint](https://github.com/golang/lint) does not report any **new** issues that did not already exist
 
-<a name="Licensing" />
+<a name="Licensing"></a>
 
 ### 6.2. Licensing of Contributions
 
