@@ -1,25 +1,27 @@
-
-// This file is ignored during the regular tests due to the following build tag.
 // +build rpctest
+
 package integration
+
 import (
 	"bytes"
-	"runtime"
-	"strings"
-	"testing"
-	"time"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/btcec"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/integration/rpctest"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
+	"runtime"
+	"strings"
+	"testing"
+	"time"
 )
+
 const (
 	csvKey = "csv"
 )
+
 // makeTestOutput creates an on-chain output paying to a freshly generated
 // p2pkh output with the specified amount.
 func makeTestOutput(r *rpctest.Harness, t *testing.T,
@@ -72,6 +74,7 @@ func makeTestOutput(r *rpctest.Harness, t *testing.T,
 	}
 	return key, utxo, selfAddrScript, nil
 }
+
 // TestBIP0113Activation tests for proper adherence of the BIP 113 rule
 // constraint which requires all transaction finality tests to use the MTP of
 // the last 11 blocks, rather than the timestamp of the block which includes
@@ -154,7 +157,7 @@ func TestBIP0113Activation(t *testing.T) {
 	// However, since the block validation consensus rules haven't yet
 	// activated, a block including the transaction should be accepted.
 	txns := []*btcutil.Tx{btcutil.NewTx(tx)}
-	block, err := r.GenerateAndSubmitBlock(txns, -1, time.Time{})
+	block, err := r.GenerateAndSubmitBlock(txns, ^uint32(0), time.Time{})
 	if err != nil {
 		t.Fatalf("unable to submit block: %v", err)
 	}
@@ -233,7 +236,7 @@ func TestBIP0113Activation(t *testing.T) {
 				"due to being  non-final, instead: %v", err)
 		}
 		txns = []*btcutil.Tx{btcutil.NewTx(tx)}
-		_, err := r.GenerateAndSubmitBlock(txns, -1, time.Time{})
+		_, err := r.GenerateAndSubmitBlock(txns, ^uint32(0), time.Time{})
 		if err == nil && timeLockDelta >= 0 {
 			t.Fatal("block should be rejected due to non-final " +
 				"txn, but was accepted")
@@ -243,6 +246,7 @@ func TestBIP0113Activation(t *testing.T) {
 		}
 	}
 }
+
 // createCSVOutput creates an output paying to a trivially redeemable CSV
 // pkScript with the specified time-lock.
 func createCSVOutput(r *rpctest.Harness, t *testing.T,
@@ -291,6 +295,7 @@ func createCSVOutput(r *rpctest.Harness, t *testing.T,
 	}
 	return csvScript, utxo, tx, nil
 }
+
 // spendCSVOutput spends an output previously created by the createCSVOutput
 // function. The sigScript is a trivial push of OP_TRUE followed by the
 // redeemScript to pass P2SH evaluation.
@@ -313,6 +318,7 @@ func spendCSVOutput(redeemScript []byte, csvUTXO *wire.OutPoint,
 	tx.TxIn[0].SignatureScript = sigScript
 	return tx, nil
 }
+
 // assertTxInBlock asserts a transaction with the specified txid is found
 // within the block with the passed block hash.
 func assertTxInBlock(r *rpctest.Harness, t *testing.T, blockHash *chainhash.Hash,
@@ -334,6 +340,7 @@ func assertTxInBlock(r *rpctest.Harness, t *testing.T, blockHash *chainhash.Hash
 	t.Fatalf("assertion failed at line %v: txid %v was not found in "+
 		"block %v", line, txid, blockHash)
 }
+
 // TestBIP0068AndBIP0112Activation tests for the proper adherence to the BIP
 // 112 and BIP 68 rule-set after the activation of the CSV-package soft-fork.
 //
@@ -416,7 +423,7 @@ func TestBIP0068AndBIP0112Activation(t *testing.T) {
 		// generated block as CSV validation for scripts within blocks
 		// shouldn't yet be active.
 		txns := []*btcutil.Tx{btcutil.NewTx(spendingTx)}
-		block, err := r.GenerateAndSubmitBlock(txns, -1, time.Time{})
+		block, err := r.GenerateAndSubmitBlock(txns, ^uint32(0), time.Time{})
 		if err != nil {
 			t.Fatalf("unable to submit block: %v", err)
 		}
@@ -485,7 +492,7 @@ func TestBIP0068AndBIP0112Activation(t *testing.T) {
 	}
 	for i := 0; i < relativeBlockLock; i++ {
 		timeStamp := prevBlock.Header.Timestamp.Add(time.Minute * 10)
-		b, err := r.GenerateAndSubmitBlock(nil, -1, timeStamp)
+		b, err := r.GenerateAndSubmitBlock(nil, ^uint32(0), timeStamp)
 		if err != nil {
 			t.Fatalf("unable to generate block: %v", err)
 		}
@@ -593,7 +600,7 @@ func TestBIP0068AndBIP0112Activation(t *testing.T) {
 		// with the non-final transaction. It should be rejected.
 		if !test.accept {
 			txns := []*btcutil.Tx{btcutil.NewTx(test.tx)}
-			_, err := r.GenerateAndSubmitBlock(txns, -1, time.Time{})
+			_, err := r.GenerateAndSubmitBlock(txns, ^uint32(0), time.Time{})
 			if err == nil {
 				t.Fatalf("test #%d, invalid block accepted", i)
 			}

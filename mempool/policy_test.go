@@ -1,16 +1,17 @@
-
 package mempool
+
 import (
 	"bytes"
-	"testing"
-	"time"
 	"github.com/parallelcointeam/pod/btcec"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/txscript"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
+	"testing"
+	"time"
 )
+
 // TestCalcMinRequiredTxRelayFee tests the calcMinRequiredTxRelayFee API.
 func TestCalcMinRequiredTxRelayFee(t *testing.T) {
 	tests := []struct {
@@ -20,8 +21,7 @@ func TestCalcMinRequiredTxRelayFee(t *testing.T) {
 		want     int64          // Expected fee.
 	}{
 		{
-			// Ensure combination of size and fee that are less than 1000
-			// produce a non-zero fee.
+			// Ensure combination of size and fee that are less than 1000 produce a non-zero fee.
 			"250 bytes with relay fee of 3",
 			250,
 			3,
@@ -86,6 +86,7 @@ func TestCalcMinRequiredTxRelayFee(t *testing.T) {
 		}
 	}
 }
+
 // TestCheckPkScriptStandard tests the checkPkScriptStandard API.
 func TestCheckPkScriptStandard(t *testing.T) {
 	var pubKeys [][]byte
@@ -192,6 +193,7 @@ func TestCheckPkScriptStandard(t *testing.T) {
 		}
 	}
 }
+
 // TestDust tests the isDust API.
 func TestDust(t *testing.T) {
 	pkScript := []byte{0x76, 0xa9, 0x21, 0x03, 0x2f, 0x7e, 0x43,
@@ -246,8 +248,7 @@ func TestDust(t *testing.T) {
 			true,
 		},
 		{
-			// Unspendable pkScript due to an invalid public key
-			// script.
+			// Unspendable pkScript due to an invalid public key script.
 			"unspendable pkScript",
 			wire.TxOut{Value: 5000, PkScript: []byte{0x01}},
 			0, // no relay fee
@@ -263,6 +264,7 @@ func TestDust(t *testing.T) {
 		}
 	}
 }
+
 // TestCheckTransactionStandard tests the checkTransactionStandard API.
 func TestCheckTransactionStandard(t *testing.T) {
 	// Create some dummy, but otherwise standard, data for transactions.
@@ -456,8 +458,7 @@ func TestCheckTransactionStandard(t *testing.T) {
 		err := checkTransactionStandard(btcutil.NewTx(&test.tx),
 			test.height, pastMedianTime, DefaultMinRelayTxFee, 1)
 		if err == nil && test.isStandard {
-			// Test passes since function returned standard for a
-			// transaction which is intended to be standard.
+			// Test passes since function returned standard for a transaction which is intended to be standard.
 			continue
 		}
 		if err == nil && !test.isStandard {

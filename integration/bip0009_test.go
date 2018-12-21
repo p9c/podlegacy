@@ -1,28 +1,26 @@
-
-// This file is ignored during the regular tests due to the following build tag.
 // +build rpctest
+
 package integration
+
 import (
 	"fmt"
-	"runtime"
-	"testing"
-	"time"
 	"github.com/parallelcointeam/pod/blockchain"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/integration/rpctest"
+	"runtime"
+	"testing"
+	"time"
 )
+
 const (
-	// vbLegacyBlockVersion is the highest legacy block version before the
-	// version bits scheme became active.
+	// vbLegacyBlockVersion is the highest legacy block version before the version bits scheme became active.
 	vbLegacyBlockVersion = 4
-	// vbTopBits defines the bits to set in the version to signal that the
-	// version bits scheme is being used.
+	// vbTopBits defines the bits to set in the version to signal that the version bits scheme is being used.
 	vbTopBits = 0x20000000
 )
-// assertVersionBit gets the passed block hash from the given test harness and
-// ensures its version either has the provided bit set or unset per the set
-// flag.
+
+// assertVersionBit gets the passed block hash from the given test harness and ensures its version either has the provided bit set or unset per the set flag.
 func assertVersionBit(r *rpctest.Harness, t *testing.T, hash *chainhash.Hash, bit uint8, set bool) {
 	block, err := r.Node.GetBlock(hash)
 	if err != nil {
@@ -40,8 +38,8 @@ func assertVersionBit(r *rpctest.Harness, t *testing.T, hash *chainhash.Hash, bi
 			"has bit %d set", line, hash, block.Header.Version, bit)
 	}
 }
-// assertChainHeight retrieves the current chain height from the given test
-// harness and ensures it matches the provided expected height.
+
+// assertChainHeight retrieves the current chain height from the given test harness and ensures it matches the provided expected height.
 func assertChainHeight(r *rpctest.Harness, t *testing.T, expectedHeight uint32) {
 	height, err := r.Node.GetBlockCount()
 	if err != nil {
@@ -53,8 +51,8 @@ func assertChainHeight(r *rpctest.Harness, t *testing.T, expectedHeight uint32) 
 			"is not the expected %d", line, height, expectedHeight)
 	}
 }
-// thresholdStateToStatus converts the passed threshold state to the equivalent
-// status string returned in the getblockchaininfo RPC.
+
+// thresholdStateToStatus converts the passed threshold state to the equivalent status string returned in the getblockchaininfo RPC.
 func thresholdStateToStatus(state blockchain.ThresholdState) (string, error) {
 	switch state {
 	case blockchain.ThresholdDefined:
@@ -70,12 +68,10 @@ func thresholdStateToStatus(state blockchain.ThresholdState) (string, error) {
 	}
 	return "", fmt.Errorf("unrecognized threshold state: %v", state)
 }
-// assertSoftForkStatus retrieves the current blockchain info from the given
-// test harness and ensures the provided soft fork key is both available and its
-// status is the equivalent of the passed state.
+
+// assertSoftForkStatus retrieves the current blockchain info from the given test harness and ensures the provided soft fork key is both available and its status is the equivalent of the passed state.
 func assertSoftForkStatus(r *rpctest.Harness, t *testing.T, forkKey string, state blockchain.ThresholdState) {
-	// Convert the expected threshold state into the equivalent
-	// getblockchaininfo RPC status string.
+	// Convert the expected threshold state into the equivalent getblockchaininfo RPC status string.
 	status, err := thresholdStateToStatus(state)
 	if err != nil {
 		_, _, line, _ := runtime.Caller(1)
@@ -101,6 +97,7 @@ func assertSoftForkStatus(r *rpctest.Harness, t *testing.T, forkKey string, stat
 			desc.Status, status)
 	}
 }
+
 // testBIP0009 ensures the BIP0009 soft fork mechanism follows the state
 // transition rules set forth by the BIP for the provided soft fork key.  It
 // uses the regression test network to signal support and advance through the
@@ -247,6 +244,7 @@ func testBIP0009(t *testing.T, forkKey string, deploymentID uint32) {
 	assertChainHeight(r, t, (confirmationWindow*4)-1)
 	assertSoftForkStatus(r, t, forkKey, blockchain.ThresholdActive)
 }
+
 // TestBIP0009 ensures the BIP0009 soft fork mechanism follows the state
 // transition rules set forth by the BIP for all soft forks.  It uses the
 // regression test network to signal support and advance through the various
@@ -275,6 +273,7 @@ func TestBIP0009(t *testing.T) {
 	testBIP0009(t, "dummy", chaincfg.DeploymentTestDummy)
 	testBIP0009(t, "segwit", chaincfg.DeploymentSegwit)
 }
+
 // TestBIP0009Mining ensures blocks built via pod's CPU miner follow the rules
 // set forth by BIP0009 by using the test dummy deployment.
 //

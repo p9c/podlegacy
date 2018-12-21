@@ -1,29 +1,23 @@
-
 package rpctest
+
 import (
-	"reflect"
-	"time"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/rpcclient"
+	"reflect"
+	"time"
 )
-// JoinType is an enum representing a particular type of "node join". A node
-// join is a synchronization tool used to wait until a subset of nodes have a
-// consistent state with respect to an attribute.
+
+// JoinType is an enum representing a particular type of "node join". A node join is a synchronization tool used to wait until a subset of nodes have a consistent state with respect to an attribute.
 type JoinType uint8
+
 const (
-	// Blocks is a JoinType which waits until all nodes share the same
-	// block height.
+	// Blocks is a JoinType which waits until all nodes share the same block height.
 	Blocks JoinType = iota
-	// Mempools is a JoinType which blocks until all nodes have identical
-	// mempool.
+	// Mempools is a JoinType which blocks until all nodes have identical mempool.
 	Mempools
 )
-// JoinNodes is a synchronization tool used to block until all passed nodes are
-// fully synced with respect to an attribute. This function will block for a
-// period of time, finally returning once all nodes are synced according to the
-// passed JoinType. This function be used to to ensure all active test
-// harnesses are at a consistent state before proceeding to an assertion or
-// check within rpc tests.
+
+// JoinNodes is a synchronization tool used to block until all passed nodes are fully synced with respect to an attribute. This function will block for a period of time, finally returning once all nodes are synced according to the passed JoinType. This function be used to to ensure all active test harnesses are at a consistent state before proceeding to an assertion or check within rpc tests.
 func JoinNodes(nodes []*Harness, joinType JoinType) error {
 	switch joinType {
 	case Blocks:
@@ -33,6 +27,7 @@ func JoinNodes(nodes []*Harness, joinType JoinType) error {
 	}
 	return nil
 }
+
 // syncMempools blocks until all nodes have identical mempools.
 func syncMempools(nodes []*Harness) error {
 	poolsMatch := false
@@ -42,9 +37,7 @@ retry:
 		if err != nil {
 			return err
 		}
-		// If all nodes have an identical mempool with respect to the
-		// first node, then we're done. Otherwise, drop back to the top
-		// of the loop and retry after a short wait period.
+		// If all nodes have an identical mempool with respect to the first node, then we're done. Otherwise, drop back to the top of the loop and retry after a short wait period.
 		for _, node := range nodes[1:] {
 			nodePool, err := node.Node.GetRawMempool()
 			if err != nil {
@@ -59,6 +52,7 @@ retry:
 	}
 	return nil
 }
+
 // syncBlocks blocks until all nodes report the same best chain.
 func syncBlocks(nodes []*Harness) error {
 	blocksMatch := false
@@ -82,10 +76,8 @@ retry:
 	}
 	return nil
 }
-// ConnectNode establishes a new peer-to-peer connection between the "from"
-// harness and the "to" harness.  The connection made is flagged as persistent,
-// therefore in the case of disconnects, "from" will attempt to reestablish a
-// connection to the "to" harness.
+
+// ConnectNode establishes a new peer-to-peer connection between the "from" harness and the "to" harness.  The connection made is flagged as persistent, therefore in the case of disconnects, "from" will attempt to reestablish a connection to the "to" harness.
 func ConnectNode(from *Harness, to *Harness) error {
 	peerInfo, err := from.Node.GetPeerInfo()
 	if err != nil {
@@ -109,6 +101,7 @@ func ConnectNode(from *Harness, to *Harness) error {
 	}
 	return nil
 }
+
 // TearDownAll tears down all active test harnesses.
 func TearDownAll() error {
 	harnessStateMtx.Lock()
@@ -120,9 +113,8 @@ func TearDownAll() error {
 	}
 	return nil
 }
-// ActiveHarnesses returns a slice of all currently active test harnesses. A
-// test harness if considered "active" if it has been created, but not yet torn
-// down.
+
+// ActiveHarnesses returns a slice of all currently active test harnesses. A test harness if considered "active" if it has been created, but not yet torn down.
 func ActiveHarnesses() []*Harness {
 	harnessStateMtx.RLock()
 	defer harnessStateMtx.RUnlock()

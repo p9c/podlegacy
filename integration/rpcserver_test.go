@@ -1,16 +1,17 @@
-
-// This file is ignored during the regular tests due to the following build tag.
 // +build rpctest
+
 package integration
+
 import (
 	"bytes"
 	"fmt"
+	"github.com/parallelcointeam/pod/chaincfg"
+	"github.com/parallelcointeam/pod/integration/rpctest"
 	"os"
 	"runtime/debug"
 	"testing"
-	"github.com/parallelcointeam/pod/chaincfg"
-	"github.com/parallelcointeam/pod/integration/rpctest"
 )
+
 func testGetBestBlock(r *rpctest.Harness, t *testing.T) {
 	_, prevbestHeight, err := r.Node.GetBestBlock()
 	if err != nil {
@@ -75,40 +76,32 @@ func testGetBlockHash(r *rpctest.Harness, t *testing.T) {
 			"hash %v", blockHash, generatedBlockHashes[0][:])
 	}
 }
+
 var rpcTestCases = []rpctest.HarnessTestCase{
 	testGetBestBlock,
 	testGetBlockCount,
 	testGetBlockHash,
 }
 var primaryHarness *rpctest.Harness
+
 func TestMain(m *testing.M) {
 	var err error
-	// In order to properly test scenarios on as if we were on mainnet,
-	// ensure that non-standard transactions aren't accepted into the
-	// mempool or relayed.
+	// In order to properly test scenarios on as if we were on mainnet, ensure that non-standard transactions aren't accepted into the mempool or relayed.
 	podCfg := []string{"--rejectnonstd"}
 	primaryHarness, err = rpctest.New(&chaincfg.SimNetParams, nil, podCfg)
 	if err != nil {
 		fmt.Println("unable to create primary harness: ", err)
 		os.Exit(1)
 	}
-	// Initialize the primary mining node with a chain of length 125,
-	// providing 25 mature coinbases to allow spending from for testing
-	// purposes.
+	// Initialize the primary mining node with a chain of length 125, providing 25 mature coinbases to allow spending from for testing purposes.
 	if err := primaryHarness.SetUp(true, 25); err != nil {
 		fmt.Println("unable to setup test chain: ", err)
-		// Even though the harness was not fully setup, it still needs
-		// to be torn down to ensure all resources such as temp
-		// directories are cleaned up.  The error is intentionally
-		// ignored since this is already an error path and nothing else
-		// could be done about it anyways.
+		// Even though the harness was not fully setup, it still needs to be torn down to ensure all resources such as temp directories are cleaned up.  The error is intentionally ignored since this is already an error path and nothing else could be done about it anyways.
 		_ = primaryHarness.TearDown()
 		os.Exit(1)
 	}
 	exitCode := m.Run()
-	// Clean up any active harnesses that are still currently running.This
-	// includes removing all temporary directories, and shutting down any
-	// created processes.
+	// Clean up any active harnesses that are still currently running.This includes removing all temporary directories, and shutting down any created processes.
 	if err := rpctest.TearDownAll(); err != nil {
 		fmt.Println("unable to tear down all harnesses: ", err)
 		os.Exit(1)
@@ -118,9 +111,7 @@ func TestMain(m *testing.M) {
 func TestRpcServer(t *testing.T) {
 	var currentTestNum int
 	defer func() {
-		// If one of the integration tests caused a panic within the main
-		// goroutine, then tear down all the harnesses in order to avoid
-		// any leaked pod processes.
+		// If one of the integration tests caused a panic within the main goroutine, then tear down all the harnesses in order to avoid any leaked pod processes.
 		if r := recover(); r != nil {
 			fmt.Println("recovering from test panic: ", r)
 			if err := rpctest.TearDownAll(); err != nil {
