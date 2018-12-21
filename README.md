@@ -64,6 +64,8 @@ go get github.com/parallelcointeam/pod/cmd/podctl
 
 #### Windows not available yet
 
+When it is, it will be available here:
+
 https://github.com/parallelcointeam/pod/releases
 
 #### Linux/BSD/MacOSX/POSIX - Build from Source
