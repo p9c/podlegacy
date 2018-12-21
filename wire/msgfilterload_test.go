@@ -1,13 +1,13 @@
-
 package wire
+
 import (
 	"bytes"
 	"io"
 	"reflect"
 	"testing"
 )
-// TestFilterCLearLatest tests the MsgFilterLoad API against the latest protocol
-// version.
+
+// TestFilterCLearLatest tests the MsgFilterLoad API against the latest protocol version.
 func TestFilterLoadLatest(t *testing.T) {
 	pver := ProtocolVersion
 	enc := BaseEncoding
@@ -40,8 +40,8 @@ func TestFilterLoadLatest(t *testing.T) {
 		t.Errorf("decode of MsgFilterLoad failed [%v] err <%v>", buf, err)
 	}
 }
-// TestFilterLoadCrossProtocol tests the MsgFilterLoad API when encoding with
-// the latest protocol version and decoding with BIP0031Version.
+
+// TestFilterLoadCrossProtocol tests the MsgFilterLoad API when encoding with the latest protocol version and decoding with BIP0031Version.
 func TestFilterLoadCrossProtocol(t *testing.T) {
 	data := []byte{0x01, 0x02}
 	msg := NewMsgFilterLoad(data, 10, 0, 0)
@@ -60,6 +60,7 @@ func TestFilterLoadCrossProtocol(t *testing.T) {
 			msg)
 	}
 }
+
 // TestFilterLoadMaxFilterSize tests the MsgFilterLoad API maximum filter size.
 func TestFilterLoadMaxFilterSize(t *testing.T) {
 	data := bytes.Repeat([]byte{0xff}, 36001)
@@ -79,6 +80,7 @@ func TestFilterLoadMaxFilterSize(t *testing.T) {
 			"have %v", msg)
 	}
 }
+
 // TestFilterLoadMaxHashFuncsSize tests the MsgFilterLoad API maximum hash functions.
 func TestFilterLoadMaxHashFuncsSize(t *testing.T) {
 	data := bytes.Repeat([]byte{0xff}, 10)
@@ -105,8 +107,8 @@ func TestFilterLoadMaxHashFuncsSize(t *testing.T) {
 			msg)
 	}
 }
-// TestFilterLoadWireErrors performs negative tests against wire encode and decode
-// of MsgFilterLoad to confirm error paths work correctly.
+
+// TestFilterLoadWireErrors performs negative tests against wire encode and decode of MsgFilterLoad to confirm error paths work correctly.
 func TestFilterLoadWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	pverNoFilterLoad := BIP0037Version - 1
@@ -127,8 +129,7 @@ func TestFilterLoadWireErrors(t *testing.T) {
 		writeErr error           // Expected write error
 		readErr  error           // Expected read error
 	}{
-		// Latest protocol version with intentional read/write errors.
-		// Force error in filter size.
+		// Latest protocol version with intentional read/write errors. Force error in filter size.
 		{
 			baseFilterLoad, baseFilterLoadEncoded, pver, BaseEncoding, 0,
 			io.ErrShortWrite, io.EOF,

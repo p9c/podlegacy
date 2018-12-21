@@ -1,29 +1,28 @@
 package wire
+
 import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"io"
-	"time"
 	"github.com/aead/skein/skein256"
 	whirl "github.com/balacode/zr-whirl"
 	x11 "github.com/bitbandi/go-x11"
 	"github.com/bitgoin/lyra2rev2"
 	"github.com/dchest/blake256"
 	"github.com/ebfe/keccak"
-	// "github.com/enceve/crypto/skein/skein256"
 	"github.com/jzelinskie/whirlpool"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/fork"
 	gost "github.com/programmer10110/gostreebog"
 	"golang.org/x/crypto/scrypt"
+	"io"
+	"time"
 )
-// MaxBlockHeaderPayload is the maximum number of bytes a block header can be.
-// Version 4 bytes + Timestamp 4 bytes + Bits 4 bytes + Nonce 4 bytes +
-// PrevBlock and MerkleRoot hashes.
+
+// MaxBlockHeaderPayload is the maximum number of bytes a block header can be. Version 4 bytes + Timestamp 4 bytes + Bits 4 bytes + Nonce 4 bytes + PrevBlock and MerkleRoot hashes.
 const MaxBlockHeaderPayload = 16 + (chainhash.HashSize * 2)
-// BlockHeader defines information about a block and is used in the bitcoin
-// block (MsgBlock) and headers (MsgHeaders) messages.
+
+// BlockHeader defines information about a block and is used in the bitcoin block (MsgBlock) and headers (MsgHeaders) messages.
 type BlockHeader struct {
 	// Version of the block.  This is not the same as the protocol version.
 	Version int32
@@ -31,17 +30,17 @@ type BlockHeader struct {
 	PrevBlock chainhash.Hash
 	// Merkle tree reference to hash of all transactions for the block.
 	MerkleRoot chainhash.Hash
-	// Time the block was created.  This is, unfortunately, encoded as a
-	// uint32 on the wire and therefore is limited to 2106.
+	// Time the block was created.  This is, unfortunately, encoded as a uint32 on the wire and therefore is limited to 2106.
 	Timestamp time.Time
 	// Difficulty target for the block.
 	Bits uint32
 	// Nonce used to generate the block.
 	Nonce uint32
 }
-// blockHeaderLen is a constant that represents the number of bytes for a block
-// header.
+
+// blockHeaderLen is a constant that represents the number of bytes for a block header.
 const blockHeaderLen = 80
+
 // BlockHash computes the block identifier hash for the given block header.
 func (h *BlockHeader) BlockHash() (out chainhash.Hash) {
 	// Encode the header and double sha256 everything prior to the number of transactions.  Ignore the error returns since there is no way the encode could fail except being out of memory which would cause a run-time panic.
@@ -50,6 +49,7 @@ func (h *BlockHeader) BlockHash() (out chainhash.Hash) {
 	out = chainhash.DoubleHashH(buf.Bytes())
 	return
 }
+
 // Hash computes the hash of bytes using the named hash
 func Hash(bytes []byte, name string) (out chainhash.Hash) {
 	switch name {
@@ -101,6 +101,7 @@ func Hash(bytes []byte, name string) (out chainhash.Hash) {
 	}
 	return
 }
+
 // BlockHashWithAlgos computes the block identifier hash for the given block header. This function is additional because the sync manager and the parallelcoin protocol only use SHA256D hashes for inventories and calculating the scrypt (or other) hash for these blocks when requested via that route causes an 'unrequested block' error.
 func (h *BlockHeader) BlockHashWithAlgos(height int32) (out chainhash.Hash) {
 	// Encode the header and double sha256 everything prior to the number of transactions.  Ignore the error returns since there is no way the encode could fail except being out of memory which would cause a run-time panic.
@@ -110,42 +111,33 @@ func (h *BlockHeader) BlockHashWithAlgos(height int32) (out chainhash.Hash) {
 	out = Hash(buf.Bytes(), fork.GetAlgoName(vers, height))
 	return
 }
+
 // BtcDecode decodes r using the bitcoin protocol encoding into the receiver. This is part of the Message interface implementation. See Deserialize for decoding block headers stored to disk, such as in a database, as opposed to decoding block headers from the wire.
 func (h *BlockHeader) BtcDecode(r io.Reader, pver uint32, enc MessageEncoding) error {
 	return readBlockHeader(r, pver, h)
 }
-// BtcEncode encodes the receiver to w using the bitcoin protocol encoding.
-// This is part of the Message interface implementation.
-// See Serialize for encoding block headers to be stored to disk, such as in a
-// database, as opposed to encoding block headers for the wire.
+
+// BtcEncode encodes the receiver to w using the bitcoin protocol encoding. This is part of the Message interface implementation. See Serialize for encoding block headers to be stored to disk, such as in a database, as opposed to encoding block headers for the wire.
 func (h *BlockHeader) BtcEncode(w io.Writer, pver uint32, enc MessageEncoding) error {
 	return writeBlockHeader(w, pver, h)
 }
-// Deserialize decodes a block header from r into the receiver using a format
-// that is suitable for long-term storage such as a database while respecting
-// the Version field.
+
+// Deserialize decodes a block header from r into the receiver using a format that is suitable for long-term storage such as a database while respecting the Version field.
 func (h *BlockHeader) Deserialize(r io.Reader) error {
-	// At the current time, there is no difference between the wire encoding
-	// at protocol version 0 and the stable long-term storage format.  As
-	// a result, make use of readBlockHeader.
+	// At the current time, there is no difference between the wire encoding at protocol version 0 and the stable long-term storage format.  As a result, make use of readBlockHeader.
 	return readBlockHeader(r, 0, h)
 }
-// Serialize encodes a block header from r into the receiver using a format
-// that is suitable for long-term storage such as a database while respecting
-// the Version field.
+
+// Serialize encodes a block header from r into the receiver using a format that is suitable for long-term storage such as a database while respecting the Version field.
 func (h *BlockHeader) Serialize(w io.Writer) error {
-	// At the current time, there is no difference between the wire encoding
-	// at protocol version 0 and the stable long-term storage format.  As
-	// a result, make use of writeBlockHeader.
+	// At the current time, there is no difference between the wire encoding at protocol version 0 and the stable long-term storage format.  As a result, make use of writeBlockHeader.
 	return writeBlockHeader(w, 0, h)
 }
-// NewBlockHeader returns a new BlockHeader using the provided version, previous
-// block hash, merkle root hash, difficulty bits, and nonce used to generate the
-// block with defaults for the remaining fields.
+
+// NewBlockHeader returns a new BlockHeader using the provided version, previous block hash, merkle root hash, difficulty bits, and nonce used to generate the block with defaults for the remaining fields.
 func NewBlockHeader(version int32, prevHash, merkleRootHash *chainhash.Hash,
 	bits uint32, nonce uint32) *BlockHeader {
-	// Limit the timestamp to one second precision since the protocol
-	// doesn't support better.
+	// Limit the timestamp to one second precision since the protocol doesn't support better.
 	return &BlockHeader{
 		Version:    version,
 		PrevBlock:  *prevHash,
@@ -155,16 +147,14 @@ func NewBlockHeader(version int32, prevHash, merkleRootHash *chainhash.Hash,
 		Nonce:      nonce,
 	}
 }
-// readBlockHeader reads a bitcoin block header from r.  See Deserialize for
-// decoding block headers stored to disk, such as in a database, as opposed to
-// decoding from the wire.
+
+// readBlockHeader reads a bitcoin block header from r.  See Deserialize for decoding block headers stored to disk, such as in a database, as opposed to decoding from the wire.
 func readBlockHeader(r io.Reader, pver uint32, bh *BlockHeader) error {
 	return readElements(r, &bh.Version, &bh.PrevBlock, &bh.MerkleRoot,
 		(*uint32Time)(&bh.Timestamp), &bh.Bits, &bh.Nonce)
 }
-// writeBlockHeader writes a bitcoin block header to w.  See Serialize for
-// encoding block headers to be stored to disk, such as in a database, as
-// opposed to encoding for the wire.
+
+// writeBlockHeader writes a bitcoin block header to w.  See Serialize for encoding block headers to be stored to disk, such as in a database, as opposed to encoding for the wire.
 func writeBlockHeader(w io.Writer, pver uint32, bh *BlockHeader) error {
 	sec := uint32(bh.Timestamp.Unix())
 	return writeElements(w, bh.Version, &bh.PrevBlock, &bh.MerkleRoot,

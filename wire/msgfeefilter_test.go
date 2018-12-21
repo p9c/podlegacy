@@ -1,13 +1,14 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
 	"io"
 	"math/rand"
 	"reflect"
 	"testing"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestFeeFilterLatest tests the MsgFeeFilter API against the latest protocol version.
 func TestFeeFilterLatest(t *testing.T) {
 	pver := ProtocolVersion
@@ -48,8 +49,8 @@ func TestFeeFilterLatest(t *testing.T) {
 		t.Errorf("Should get same minfee for protocol version %d", pver)
 	}
 }
-// TestFeeFilterWire tests the MsgFeeFilter wire encode and decode for various protocol
-// versions.
+
+// TestFeeFilterWire tests the MsgFeeFilter wire encode and decode for various protocol versions.
 func TestFeeFilterWire(t *testing.T) {
 	tests := []struct {
 		in   MsgFeeFilter // Message to encode
@@ -101,8 +102,8 @@ func TestFeeFilterWire(t *testing.T) {
 		}
 	}
 }
-// TestFeeFilterWireErrors performs negative tests against wire encode and decode
-// of MsgFeeFilter to confirm error paths work correctly.
+
+// TestFeeFilterWireErrors performs negative tests against wire encode and decode of MsgFeeFilter to confirm error paths work correctly.
 func TestFeeFilterWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	pverNoFeeFilter := FeeFilterVersion - 1

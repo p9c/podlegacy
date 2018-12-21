@@ -1,39 +1,39 @@
-
 package wire
+
 import (
 	"bytes"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"io"
 	"reflect"
 	"strings"
 	"testing"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/davecgh/go-spew/spew"
 )
-// mainNetGenesisHash is the hash of the first block in the block chain for the
-// main network (genesis block).
-var mainNetGenesisHash = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet happy.
+
+// mainNetGenesisHash is the hash of the first block in the block chain for the main network (genesis block).
+var mainNetGenesisHash = chainhash.Hash([chainhash.HashSize]byte{
 	0x6f, 0xe2, 0x8c, 0x0a, 0xb6, 0xf1, 0xb3, 0x72,
 	0xc1, 0xa6, 0xa2, 0x46, 0xae, 0x63, 0xf7, 0x4f,
 	0x93, 0x1e, 0x83, 0x65, 0xe1, 0x5a, 0x08, 0x9c,
 	0x68, 0xd6, 0x19, 0x00, 0x00, 0x00, 0x00, 0x00,
 })
-// mainNetGenesisMerkleRoot is the hash of the first transaction in the genesis
-// block for the main network.
-var mainNetGenesisMerkleRoot = chainhash.Hash([chainhash.HashSize]byte{ // Make go vet happy.
+
+// mainNetGenesisMerkleRoot is the hash of the first transaction in the genesis block for the main network.
+var mainNetGenesisMerkleRoot = chainhash.Hash([chainhash.HashSize]byte{
 	0x3b, 0xa3, 0xed, 0xfd, 0x7a, 0x7b, 0x12, 0xb2,
 	0x7a, 0xc7, 0x2c, 0x3e, 0x67, 0x76, 0x8f, 0x61,
 	0x7f, 0xc8, 0x1b, 0xc3, 0x88, 0x8a, 0x51, 0x32,
 	0x3a, 0x9f, 0xb8, 0xaa, 0x4b, 0x1e, 0x5e, 0x4a,
 })
-// fakeRandReader implements the io.Reader interface and is used to force
-// errors in the RandomUint64 function.
+
+// fakeRandReader implements the io.Reader interface and is used to force errors in the RandomUint64 function.
 type fakeRandReader struct {
 	n   int
 	err error
 }
-// Read returns the fake reader error and the lesser of the fake reader value
-// and the length of p.
+
+// Read returns the fake reader error and the lesser of the fake reader value and the length of p.
 func (r *fakeRandReader) Read(p []byte) (int, error) {
 	n := r.n
 	if n > len(p) {
@@ -41,9 +41,8 @@ func (r *fakeRandReader) Read(p []byte) (int, error) {
 	}
 	return n, r.err
 }
-// TestElementWire tests wire encode and decode for various element types.  This
-// is mainly to test the "fast" paths in readElement and writeElement which use
-// type assertions to avoid reflection when possible.
+
+// TestElementWire tests wire encode and decode for various element types.  This is mainly to test the "fast" paths in readElement and writeElement which use type assertions to avoid reflection when possible.
 func TestElementWire(t *testing.T) {
 	type writeElementReflect int32
 	tests := []struct {
@@ -93,7 +92,7 @@ func TestElementWire(t *testing.T) {
 			},
 		},
 		{
-			(*chainhash.Hash)(&[chainhash.HashSize]byte{ // Make go vet happy.
+			(*chainhash.Hash)(&[chainhash.HashSize]byte{
 				0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
 				0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
 				0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
@@ -160,8 +159,8 @@ func TestElementWire(t *testing.T) {
 		}
 	}
 }
-// TestElementWireErrors performs negative tests against wire encode and decode
-// of various element types to confirm error paths work correctly.
+
+// TestElementWireErrors performs negative tests against wire encode and decode of various element types to confirm error paths work correctly.
 func TestElementWireErrors(t *testing.T) {
 	tests := []struct {
 		in       interface{} // Value to encode
@@ -189,7 +188,7 @@ func TestElementWireErrors(t *testing.T) {
 			0, io.ErrShortWrite, io.EOF,
 		},
 		{
-			(*chainhash.Hash)(&[chainhash.HashSize]byte{ // Make go vet happy.
+			(*chainhash.Hash)(&[chainhash.HashSize]byte{
 				0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
 				0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
 				0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
@@ -225,6 +224,7 @@ func TestElementWireErrors(t *testing.T) {
 		}
 	}
 }
+
 // TestVarIntWire tests wire encode and decode for variable length integers.
 func TestVarIntWire(t *testing.T) {
 	pver := ProtocolVersion
@@ -288,8 +288,8 @@ func TestVarIntWire(t *testing.T) {
 		}
 	}
 }
-// TestVarIntWireErrors performs negative tests against wire encode and decode
-// of variable length integers to confirm error paths work correctly.
+
+// TestVarIntWireErrors performs negative tests against wire encode and decode of variable length integers to confirm error paths work correctly.
 func TestVarIntWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	tests := []struct {
@@ -329,8 +329,8 @@ func TestVarIntWireErrors(t *testing.T) {
 		}
 	}
 }
-// TestVarIntNonCanonical ensures variable length integers that are not encoded
-// canonically return the expected error.
+
+// TestVarIntNonCanonical ensures variable length integers that are not encoded canonically return the expected error.
 func TestVarIntNonCanonical(t *testing.T) {
 	pver := ProtocolVersion
 	tests := []struct {
@@ -382,6 +382,7 @@ func TestVarIntNonCanonical(t *testing.T) {
 		}
 	}
 }
+
 // TestVarIntWire tests the serialize size for variable length integers.
 func TestVarIntSerializeSize(t *testing.T) {
 	tests := []struct {
@@ -415,6 +416,7 @@ func TestVarIntSerializeSize(t *testing.T) {
 		}
 	}
 }
+
 // TestVarStringWire tests wire encode and decode for variable length strings.
 func TestVarStringWire(t *testing.T) {
 	pver := ProtocolVersion
@@ -462,8 +464,8 @@ func TestVarStringWire(t *testing.T) {
 		}
 	}
 }
-// TestVarStringWireErrors performs negative tests against wire encode and
-// decode of variable length strings to confirm error paths work correctly.
+
+// TestVarStringWireErrors performs negative tests against wire encode and decode of variable length strings to confirm error paths work correctly.
 func TestVarStringWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	// str256 is a string that takes a 2-byte varint to encode.
@@ -504,10 +506,8 @@ func TestVarStringWireErrors(t *testing.T) {
 		}
 	}
 }
-// TestVarStringOverflowErrors performs tests to ensure deserializing variable
-// length strings intentionally crafted to use large values for the string
-// length are handled properly.  This could otherwise potentially be used as an
-// attack vector.
+
+// TestVarStringOverflowErrors performs tests to ensure deserializing variable length strings intentionally crafted to use large values for the string length are handled properly.  This could otherwise potentially be used as an attack vector.
 func TestVarStringOverflowErrors(t *testing.T) {
 	pver := ProtocolVersion
 	tests := []struct {
@@ -532,6 +532,7 @@ func TestVarStringOverflowErrors(t *testing.T) {
 		}
 	}
 }
+
 // TestVarBytesWire tests wire encode and decode for variable length byte array.
 func TestVarBytesWire(t *testing.T) {
 	pver := ProtocolVersion
@@ -579,8 +580,8 @@ func TestVarBytesWire(t *testing.T) {
 		}
 	}
 }
-// TestVarBytesWireErrors performs negative tests against wire encode and
-// decode of variable length byte arrays to confirm error paths work correctly.
+
+// TestVarBytesWireErrors performs negative tests against wire encode and decode of variable length byte arrays to confirm error paths work correctly.
 func TestVarBytesWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	// bytes256 is a byte array that takes a 2-byte varint to encode.
@@ -622,10 +623,8 @@ func TestVarBytesWireErrors(t *testing.T) {
 		}
 	}
 }
-// TestVarBytesOverflowErrors performs tests to ensure deserializing variable
-// length byte arrays intentionally crafted to use large values for the array
-// length are handled properly.  This could otherwise potentially be used as an
-// attack vector.
+
+// TestVarBytesOverflowErrors performs tests to ensure deserializing variable length byte arrays intentionally crafted to use large values for the array length are handled properly.  This could otherwise potentially be used as an attack vector.
 func TestVarBytesOverflowErrors(t *testing.T) {
 	pver := ProtocolVersion
 	tests := []struct {
@@ -651,12 +650,8 @@ func TestVarBytesOverflowErrors(t *testing.T) {
 		}
 	}
 }
-// TestRandomUint64 exercises the randomness of the random number generator on
-// the system by ensuring the probability of the generated numbers.  If the RNG
-// is evenly distributed as a proper cryptographic RNG should be, there really
-// should only be 1 number < 2^56 in 2^8 tries for a 64-bit number.  However,
-// use a higher number of 5 to really ensure the test doesn't fail unless the
-// RNG is just horrendous.
+
+// TestRandomUint64 exercises the randomness of the random number generator on the system by ensuring the probability of the generated numbers.  If the RNG is evenly distributed as a proper cryptographic RNG should be, there really should only be 1 number < 2^56 in 2^8 tries for a 64-bit number.  However, use a higher number of 5 to really ensure the test doesn't fail unless the RNG is just horrendous.
 func TestRandomUint64(t *testing.T) {
 	tries := 1 << 8              // 2^8
 	watermark := uint64(1 << 56) // 2^56
@@ -683,8 +678,8 @@ func TestRandomUint64(t *testing.T) {
 		}
 	}
 }
-// TestRandomUint64Errors uses a fake reader to force error paths to be executed
-// and checks the results accordingly.
+
+// TestRandomUint64Errors uses a fake reader to force error paths to be executed and checks the results accordingly.
 func TestRandomUint64Errors(t *testing.T) {
 	// Test short reads.
 	fr := &fakeRandReader{n: 2, err: io.EOF}

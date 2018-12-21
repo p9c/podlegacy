@@ -1,14 +1,13 @@
-
 package txscript
+
 import (
 	"crypto/rand"
-	"testing"
 	"github.com/parallelcointeam/pod/btcec"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"testing"
 )
-// genRandomSig returns a random message, a signature of the message under the
-// public key and the public key. This function is used to generate randomized
-// test data.
+
+// genRandomSig returns a random message, a signature of the message under the public key and the public key. This function is used to generate randomized test data.
 func genRandomSig() (*chainhash.Hash, *btcec.Signature, *btcec.PublicKey, error) {
 	privKey, err := btcec.NewPrivateKey(btcec.S256())
 	if err != nil {
@@ -24,8 +23,8 @@ func genRandomSig() (*chainhash.Hash, *btcec.Signature, *btcec.PublicKey, error)
 	}
 	return &msgHash, sig, privKey.PubKey(), nil
 }
-// TestSigCacheAddExists tests the ability to add, and later check the
-// existence of a signature triplet in the signature cache.
+
+// TestSigCacheAddExists tests the ability to add, and later check the existence of a signature triplet in the signature cache.
 func TestSigCacheAddExists(t *testing.T) {
 	sigCache := NewSigCache(200)
 	// Generate a random sigCache entry triplet.
@@ -42,9 +41,8 @@ func TestSigCacheAddExists(t *testing.T) {
 		t.Errorf("previously added item not found in signature cache")
 	}
 }
-// TestSigCacheAddEvictEntry tests the eviction case where a new signature
-// triplet is added to a full signature cache which should trigger randomized
-// eviction, followed by adding the new element to the cache.
+
+// TestSigCacheAddEvictEntry tests the eviction case where a new signature triplet is added to a full signature cache which should trigger randomized eviction, followed by adding the new element to the cache.
 func TestSigCacheAddEvictEntry(t *testing.T) {
 	// Create a sigcache that can hold up to 100 entries.
 	sigCacheSize := uint(100)
@@ -68,8 +66,7 @@ func TestSigCacheAddEvictEntry(t *testing.T) {
 		t.Fatalf("sigcache should now have %v entries, instead it has %v",
 			sigCacheSize, len(sigCache.validSigs))
 	}
-	// Add a new entry, this should cause eviction of a randomly chosen
-	// previous entry.
+	// Add a new entry, this should cause eviction of a randomly chosen previous entry.
 	msgNew, sigNew, keyNew, err := genRandomSig()
 	if err != nil {
 		t.Fatalf("unable to generate random signature test data")
@@ -87,8 +84,8 @@ func TestSigCacheAddEvictEntry(t *testing.T) {
 		t.Fatalf("previously added item not found in signature cache")
 	}
 }
-// TestSigCacheAddMaxEntriesZeroOrNegative tests that if a sigCache is created
-// with a max size <= 0, then no entries are added to the sigcache at all.
+
+// TestSigCacheAddMaxEntriesZeroOrNegative tests that if a sigCache is created with a max size <= 0, then no entries are added to the sigcache at all.
 func TestSigCacheAddMaxEntriesZeroOrNegative(t *testing.T) {
 	// Create a sigcache that can hold up to 0 entries.
 	sigCache := NewSigCache(0)

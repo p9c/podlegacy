@@ -1,13 +1,13 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
 	"reflect"
 	"testing"
-	"github.com/davecgh/go-spew/spew"
 )
-// TestFilterCLearLatest tests the MsgFilterClear API against the latest
-// protocol version.
+
+// TestFilterCLearLatest tests the MsgFilterClear API against the latest protocol version.
 func TestFilterClearLatest(t *testing.T) {
 	pver := ProtocolVersion
 	msg := NewMsgFilterClear()
@@ -26,8 +26,8 @@ func TestFilterClearLatest(t *testing.T) {
 			maxPayload, wantPayload)
 	}
 }
-// TestFilterClearCrossProtocol tests the MsgFilterClear API when encoding with
-// the latest protocol version and decoding with BIP0031Version.
+
+// TestFilterClearCrossProtocol tests the MsgFilterClear API when encoding with the latest protocol version and decoding with BIP0031Version.
 func TestFilterClearCrossProtocol(t *testing.T) {
 	msg := NewMsgFilterClear()
 	// Encode with latest protocol version.
@@ -44,8 +44,8 @@ func TestFilterClearCrossProtocol(t *testing.T) {
 			"shouldn't have %v", msg)
 	}
 }
-// TestFilterClearWire tests the MsgFilterClear wire encode and decode for
-// various protocol versions.
+
+// TestFilterClearWire tests the MsgFilterClear wire encode and decode for various protocol versions.
 func TestFilterClearWire(t *testing.T) {
 	msgFilterClear := NewMsgFilterClear()
 	msgFilterClearEncoded := []byte{}
@@ -110,8 +110,8 @@ func TestFilterClearWire(t *testing.T) {
 		}
 	}
 }
-// TestFilterClearWireErrors performs negative tests against wire encode and
-// decode of MsgFilterClear to confirm error paths work correctly.
+
+// TestFilterClearWireErrors performs negative tests against wire encode and decode of MsgFilterClear to confirm error paths work correctly.
 func TestFilterClearWireErrors(t *testing.T) {
 	pverNoFilterClear := BIP0037Version - 1
 	wireErr := &MessageError{}

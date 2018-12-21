@@ -1,14 +1,15 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
 	"io"
 	"net"
 	"reflect"
 	"testing"
 	"time"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestAddr tests the MsgAddr API.
 func TestAddr(t *testing.T) {
 	pver := ProtocolVersion
@@ -19,8 +20,7 @@ func TestAddr(t *testing.T) {
 		t.Errorf("NewMsgAddr: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-	// Ensure max payload is expected value for latest protocol version.
-	// Num addresses (varInt) + max allowed addresses.
+	// Ensure max payload is expected value for latest protocol version. Num addresses (varInt) + max allowed addresses.
 	wantPayload := uint32(30009)
 	maxPayload := msg.MaxPayloadLength(pver)
 	if maxPayload != wantPayload {
@@ -46,8 +46,7 @@ func TestAddr(t *testing.T) {
 			"got %v [%v], want %v", len(msg.AddrList),
 			spew.Sprint(msg.AddrList[0]), 0)
 	}
-	// Ensure adding more than the max allowed addresses per message returns
-	// error.
+	// Ensure adding more than the max allowed addresses per message returns error.
 	for i := 0; i < MaxAddrPerMsg+1; i++ {
 		err = msg.AddAddress(na)
 	}
@@ -60,9 +59,7 @@ func TestAddr(t *testing.T) {
 		t.Errorf("AddAddresses: expected error on too many addresses " +
 			"not received")
 	}
-	// Ensure max payload is expected value for protocol versions before
-	// timestamp was added to NetAddress.
-	// Num addresses (varInt) + max allowed addresses.
+	// Ensure max payload is expected value for protocol versions before timestamp was added to NetAddress. Num addresses (varInt) + max allowed addresses.
 	pver = NetAddressTimeVersion - 1
 	wantPayload = uint32(26009)
 	maxPayload = msg.MaxPayloadLength(pver)
@@ -71,9 +68,7 @@ func TestAddr(t *testing.T) {
 			"protocol version %d - got %v, want %v", pver,
 			maxPayload, wantPayload)
 	}
-	// Ensure max payload is expected value for protocol versions before
-	// multiple addresses were allowed.
-	// Num addresses (varInt) + a single net addresses.
+	// Ensure max payload is expected value for protocol versions before multiple addresses were allowed. Num addresses (varInt) + a single net addresses.
 	pver = MultipleAddressVersion - 1
 	wantPayload = uint32(35)
 	maxPayload = msg.MaxPayloadLength(pver)
@@ -83,8 +78,8 @@ func TestAddr(t *testing.T) {
 			maxPayload, wantPayload)
 	}
 }
-// TestAddrWire tests the MsgAddr wire encode and decode for various numbers
-// of addresses and protocol versions.
+
+// TestAddrWire tests the MsgAddr wire encode and decode for various numbers of addresses and protocol versions.
 func TestAddrWire(t *testing.T) {
 	// A couple of NetAddresses to use for testing.
 	na := &NetAddress{
@@ -181,8 +176,8 @@ func TestAddrWire(t *testing.T) {
 		}
 	}
 }
-// TestAddrWireErrors performs negative tests against wire encode and decode
-// of MsgAddr to confirm error paths work correctly.
+
+// TestAddrWireErrors performs negative tests against wire encode and decode of MsgAddr to confirm error paths work correctly.
 func TestAddrWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	pverMA := MultipleAddressVersion
@@ -216,8 +211,7 @@ func TestAddrWireErrors(t *testing.T) {
 		0x00, 0x00, 0xff, 0xff, 0xc0, 0xa8, 0x00, 0x01, // IP 192.168.0.1
 		0x2b, 0x28, // Port 11048 in big-endian
 	}
-	// Message that forces an error by having more than the max allowed
-	// addresses.
+	// Message that forces an error by having more than the max allowed addresses.
 	maxAddr := NewMsgAddr()
 	for i := 0; i < MaxAddrPerMsg; i++ {
 		maxAddr.AddAddress(na)
@@ -242,8 +236,7 @@ func TestAddrWireErrors(t *testing.T) {
 		{baseAddr, baseAddrEncoded, pver, BaseEncoding, 1, io.ErrShortWrite, io.EOF},
 		// Force error with greater than max inventory vectors.
 		{maxAddr, maxAddrEncoded, pver, BaseEncoding, 3, wireErr, wireErr},
-		// Force error with greater than max inventory vectors for
-		// protocol versions before multiple addresses were allowed.
+		// Force error with greater than max inventory vectors for protocol versions before multiple addresses were allowed.
 		{maxAddr, maxAddrEncoded, pverMA - 1, BaseEncoding, 3, wireErr, wireErr},
 	}
 	t.Logf("Running %d tests", len(tests))
@@ -256,8 +249,7 @@ func TestAddrWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.writeErr {
 				t.Errorf("BtcEncode #%d wrong error got: %v, "+
@@ -274,8 +266,7 @@ func TestAddrWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.readErr {
 				t.Errorf("BtcDecode #%d wrong error got: %v, "+

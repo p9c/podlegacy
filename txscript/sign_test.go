@@ -1,19 +1,21 @@
-
 package txscript
+
 import (
 	"errors"
 	"fmt"
-	"testing"
 	"github.com/parallelcointeam/pod/btcec"
+	"github.com/parallelcointeam/pod/btcutil"
 	"github.com/parallelcointeam/pod/chaincfg"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btcutil"
+	"testing"
 )
+
 type addressToKey struct {
 	key        *btcec.PrivateKey
 	compressed bool
 }
+
 func mkGetKey(keys map[string]addressToKey) KeyDB {
 	if keys == nil {
 		return KeyClosure(func(addr btcutil.Address) (*btcec.PrivateKey,
@@ -189,8 +191,7 @@ func TestSignTxOutput(t *testing.T) {
 					err)
 				break
 			}
-			// by the above loop, this should be valid, now sign
-			// again and merge.
+			// by the above loop, this should be valid, now sign again and merge.
 			sigScript, err = SignTxOutput(&chaincfg.TestNet3Params,
 				tx, i, pkScript, hashType,
 				mkGetKey(map[string]addressToKey{
@@ -277,8 +278,7 @@ func TestSignTxOutput(t *testing.T) {
 					err)
 				break
 			}
-			// by the above loop, this should be valid, now sign
-			// again and merge.
+			// by the above loop, this should be valid, now sign again and merge.
 			sigScript, err = SignTxOutput(&chaincfg.TestNet3Params,
 				tx, i, pkScript, hashType,
 				mkGetKey(map[string]addressToKey{
@@ -366,8 +366,7 @@ func TestSignTxOutput(t *testing.T) {
 					err)
 				break
 			}
-			// by the above loop, this should be valid, now sign
-			// again and merge.
+			// by the above loop, this should be valid, now sign again and merge.
 			sigScript, err = SignTxOutput(&chaincfg.TestNet3Params,
 				tx, i, pkScript, hashType,
 				mkGetKey(map[string]addressToKey{
@@ -454,8 +453,7 @@ func TestSignTxOutput(t *testing.T) {
 					err)
 				break
 			}
-			// by the above loop, this should be valid, now sign
-			// again and merge.
+			// by the above loop, this should be valid, now sign again and merge.
 			sigScript, err = SignTxOutput(&chaincfg.TestNet3Params,
 				tx, i, pkScript, hashType,
 				mkGetKey(map[string]addressToKey{
@@ -475,8 +473,7 @@ func TestSignTxOutput(t *testing.T) {
 			}
 		}
 	}
-	// As before, but with p2sh now.
-	// Pay to Pubkey Hash (uncompressed)
+	// As before, but with p2sh now. Pay to Pubkey Hash (uncompressed)
 	for _, hashType := range hashTypes {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
@@ -578,8 +575,7 @@ func TestSignTxOutput(t *testing.T) {
 					err)
 				break
 			}
-			// by the above loop, this should be valid, now sign
-			// again and merge.
+			// by the above loop, this should be valid, now sign again and merge.
 			sigScript, err = SignTxOutput(&chaincfg.TestNet3Params,
 				tx, i, scriptPkScript, hashType,
 				mkGetKey(map[string]addressToKey{
@@ -701,8 +697,7 @@ func TestSignTxOutput(t *testing.T) {
 					err)
 				break
 			}
-			// by the above loop, this should be valid, now sign
-			// again and merge.
+			// by the above loop, this should be valid, now sign again and merge.
 			sigScript, err = SignTxOutput(&chaincfg.TestNet3Params,
 				tx, i, scriptPkScript, hashType,
 				mkGetKey(map[string]addressToKey{
@@ -823,8 +818,7 @@ func TestSignTxOutput(t *testing.T) {
 					err)
 				break
 			}
-			// by the above loop, this should be valid, now sign
-			// again and merge.
+			// by the above loop, this should be valid, now sign again and merge.
 			sigScript, err = SignTxOutput(&chaincfg.TestNet3Params,
 				tx, i, scriptPkScript, hashType,
 				mkGetKey(map[string]addressToKey{
@@ -944,8 +938,7 @@ func TestSignTxOutput(t *testing.T) {
 					err)
 				break
 			}
-			// by the above loop, this should be valid, now sign
-			// again and merge.
+			// by the above loop, this should be valid, now sign again and merge.
 			sigScript, err = SignTxOutput(&chaincfg.TestNet3Params,
 				tx, i, scriptPkScript, hashType,
 				mkGetKey(map[string]addressToKey{
@@ -1127,8 +1120,7 @@ func TestSignTxOutput(t *testing.T) {
 			}
 		}
 	}
-	// Two part multisig, sign with one key then both, check key dedup
-	// correctly.
+	// Two part multisig, sign with one key then both, check key dedup correctly.
 	for _, hashType := range hashTypes {
 		for i := range tx.TxIn {
 			msg := fmt.Sprintf("%d:%d", hashType, i)
@@ -1224,6 +1216,7 @@ func TestSignTxOutput(t *testing.T) {
 		}
 	}
 }
+
 type tstInput struct {
 	txout              *wire.TxOut
 	sigscriptGenerates bool
@@ -1237,11 +1230,12 @@ type tstSigScript struct {
 	compress           bool
 	scriptAtWrongIndex bool
 }
+
 var coinbaseOutPoint = &wire.OutPoint{
 	Index: (1 << 32) - 1,
 }
-// Pregenerated private key, with associated public key and pkScripts
-// for the uncompressed and compressed hash160.
+
+// Pregenerated private key, with associated public key and pkScripts for the uncompressed and compressed hash160.
 var (
 	privKeyD = []byte{0x6b, 0x0f, 0xd8, 0xda, 0x54, 0x22, 0xd0, 0xb7,
 		0xb4, 0xfc, 0x4e, 0x55, 0xd4, 0x88, 0x42, 0xb3, 0xa1, 0x65,
@@ -1267,9 +1261,11 @@ var (
 	uncompressedAddrStr = "1L6fd93zGmtzkK6CsZFVVoCwzZV3MUtJ4F"
 	compressedAddrStr   = "14apLppt9zTq6cNw8SDfiJhk9PhkZrQtYZ"
 )
+
 // Pretend output amounts.
 const coinbaseVal = 2500000000
 const fee = 5000000
+
 var sigScriptTests = []tstSigScript{
 	{
 		name: "one input uncompressed",
@@ -1463,11 +1459,8 @@ var sigScriptTests = []tstSigScript{
 		scriptAtWrongIndex: true,
 	},
 }
-// Test the sigscript generation for valid and invalid inputs, all
-// hashTypes, and with and without compression.  This test creates
-// sigscripts to spend fake coinbase inputs, as sigscripts cannot be
-// created for the MsgTxs in txTests, since they come from the blockchain
-// and we don't have the private keys.
+
+// Test the sigscript generation for valid and invalid inputs, all hashTypes, and with and without compression.  This test creates sigscripts to spend fake coinbase inputs, as sigscripts cannot be created for the MsgTxs in txTests, since they come from the blockchain and we don't have the private keys.
 func TestSignatureScript(t *testing.T) {
 	t.Parallel()
 	privKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), privKeyD)
@@ -1510,9 +1503,7 @@ nexttest:
 			}
 			tx.TxIn[j].SignatureScript = script
 		}
-		// If testing using a correct sigscript but for an incorrect
-		// index, use last input script for first input.  Requires > 0
-		// inputs for test.
+		// If testing using a correct sigscript but for an incorrect index, use last input script for first input.  Requires > 0 inputs for test.
 		if sigScriptTests[i].scriptAtWrongIndex {
 			tx.TxIn[0].SignatureScript = script
 			sigScriptTests[i].inputs[0].inputValidates = false

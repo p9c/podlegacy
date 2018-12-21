@@ -1,12 +1,13 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestInvVectStringer tests the stringized output for inventory vector types.
 func TestInvTypeStringer(t *testing.T) {
 	tests := []struct {
@@ -28,6 +29,7 @@ func TestInvTypeStringer(t *testing.T) {
 		}
 	}
 }
+
 // TestInvVect tests the InvVect API.
 func TestInvVect(t *testing.T) {
 	ivType := InvTypeBlock
@@ -43,8 +45,8 @@ func TestInvVect(t *testing.T) {
 			spew.Sdump(iv.Hash), spew.Sdump(hash))
 	}
 }
-// TestInvVectWire tests the InvVect wire encode and decode for various
-// protocol versions and supported inventory vector types.
+
+// TestInvVectWire tests the InvVect wire encode and decode for various protocol versions and supported inventory vector types.
 func TestInvVectWire(t *testing.T) {
 	// Block 203707 hash.
 	hashStr := "3264bc2ac36a60840790ba1d475d01367e7c723da941069e9dc"

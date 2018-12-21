@@ -1,5 +1,5 @@
-
 package txscript
+
 import (
 	"bytes"
 	"errors"
@@ -7,12 +7,10 @@ import (
 	"reflect"
 	"testing"
 )
-// tstCheckScriptError ensures the type of the two passed errors are of the
-// same type (either both nil or both of type Error) and their error codes
-// match when not nil.
+
+// tstCheckScriptError ensures the type of the two passed errors are of the same type (either both nil or both of type Error) and their error codes match when not nil.
 func tstCheckScriptError(gotErr, wantErr error) error {
-	// Ensure the error code is of the expected type and the error
-	// code matches the value specified in the test instance.
+	// Ensure the error code is of the expected type and the error code matches the value specified in the test instance.
 	if reflect.TypeOf(gotErr) != reflect.TypeOf(wantErr) {
 		return fmt.Errorf("wrong error - got %T (%[1]v), want %T",
 			gotErr, wantErr)
@@ -25,9 +23,7 @@ func tstCheckScriptError(gotErr, wantErr error) error {
 	if !ok {
 		return fmt.Errorf("unexpected test error type %T", wantErr)
 	}
-	// Ensure the error codes match.  It's safe to use a raw type assert
-	// here since the code above already proved they are the same type and
-	// the want error is a script error.
+	// Ensure the error codes match.  It's safe to use a raw type assert here since the code above already proved they are the same type and the want error is a script error.
 	gotErrorCode := gotErr.(Error).ErrorCode
 	if gotErrorCode != werr.ErrorCode {
 		return fmt.Errorf("mismatched error code - got %v (%v), want %v",
@@ -35,6 +31,7 @@ func tstCheckScriptError(gotErr, wantErr error) error {
 	}
 	return nil
 }
+
 // TestStack tests that all of the stack operations work as expected.
 func TestStack(t *testing.T) {
 	t.Parallel()
@@ -784,8 +781,7 @@ func TestStack(t *testing.T) {
 			"Peek bool",
 			[][]byte{{1}},
 			func(s *stack) error {
-				// Peek bool is otherwise pretty well tested,
-				// just check it works.
+				// Peek bool is otherwise pretty well tested, just check it works.
 				val, err := s.PeekBool(0)
 				if err != nil {
 					return err
@@ -802,8 +798,7 @@ func TestStack(t *testing.T) {
 			"Peek bool 2",
 			[][]byte{nil},
 			func(s *stack) error {
-				// Peek bool is otherwise pretty well tested,
-				// just check it works.
+				// Peek bool is otherwise pretty well tested, just check it works.
 				val, err := s.PeekBool(0)
 				if err != nil {
 					return err
@@ -820,8 +815,7 @@ func TestStack(t *testing.T) {
 			"Peek int",
 			[][]byte{{1}},
 			func(s *stack) error {
-				// Peek int is otherwise pretty well tested,
-				// just check it works.
+				// Peek int is otherwise pretty well tested, just check it works.
 				val, err := s.PeekInt(0)
 				if err != nil {
 					return err
@@ -838,8 +832,7 @@ func TestStack(t *testing.T) {
 			"Peek int 2",
 			[][]byte{{0}},
 			func(s *stack) error {
-				// Peek int is otherwise pretty well tested,
-				// just check it works.
+				// Peek int is otherwise pretty well tested, just check it works.
 				val, err := s.PeekInt(0)
 				if err != nil {
 					return err
@@ -857,8 +850,7 @@ func TestStack(t *testing.T) {
 			nil,
 			func(s *stack) error {
 				s.PushInt(scriptNum(1))
-				// Peek int is otherwise pretty well tested,
-				// just check it works.
+				// Peek int is otherwise pretty well tested, just check it works.
 				val, err := s.PopInt()
 				if err != nil {
 					return err
@@ -875,8 +867,7 @@ func TestStack(t *testing.T) {
 			"pop empty",
 			nil,
 			func(s *stack) error {
-				// Peek int is otherwise pretty well tested,
-				// just check it works.
+				// Peek int is otherwise pretty well tested, just check it works.
 				_, err := s.PopInt()
 				return err
 			},
@@ -891,8 +882,7 @@ func TestStack(t *testing.T) {
 			s.PushByteArray(test.before[i])
 		}
 		err := test.operation(&s)
-		// Ensure the error code is of the expected type and the error
-		// code matches the value specified in the test instance.
+		// Ensure the error code is of the expected type and the error code matches the value specified in the test instance.
 		if e := tstCheckScriptError(err, test.err); e != nil {
 			t.Errorf("%s: %v", test.name, e)
 			continue
@@ -907,8 +897,7 @@ func TestStack(t *testing.T) {
 				s.Depth())
 			continue
 		}
-		// Ensure all items of the resulting stack are the expected
-		// values.
+		// Ensure all items of the resulting stack are the expected values.
 		for i := range test.after {
 			val, err := s.PeekByteArray(s.Depth() - int32(i) - 1)
 			if err != nil {
