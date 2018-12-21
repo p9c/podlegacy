@@ -1,16 +1,16 @@
-
 package ffldb
+
 import (
 	"fmt"
-	"hash/crc32"
 	"github.com/parallelcointeam/pod/database"
+	"hash/crc32"
 )
+
 // The serialized write cursor location format is:
 //  [0:4]  Block file (4 bytes)
 //  [4:8]  File offset (4 bytes)
 //  [8:12] Castagnoli CRC-32 checksum (4 bytes)
-// serializeWriteRow serialize the current block file and offset where new
-// will be written into a format suitable for storage into the metadata.
+// serializeWriteRow serialize the current block file and offset where new will be written into a format suitable for storage into the metadata.
 func serializeWriteRow(curBlockFileNum, curFileOffset uint32) []byte {
 	var serializedRow [12]byte
 	byteOrder.PutUint32(serializedRow[0:4], curBlockFileNum)
@@ -19,8 +19,8 @@ func serializeWriteRow(curBlockFileNum, curFileOffset uint32) []byte {
 	byteOrder.PutUint32(serializedRow[8:12], checksum)
 	return serializedRow[:]
 }
-// deserializeWriteRow deserializes the write cursor location stored in the
-// metadata.  Returns ErrCorruption if the checksum of the entry doesn't match.
+
+// deserializeWriteRow deserializes the write cursor location stored in the metadata.  Returns ErrCorruption if the checksum of the entry doesn't match.
 func deserializeWriteRow(writeRow []byte) (uint32, uint32, error) {
 	// Ensure the checksum matches.  The checksum is at the end.
 	gotChecksum := crc32.Checksum(writeRow[:8], castagnoli)
@@ -36,11 +36,10 @@ func deserializeWriteRow(writeRow []byte) (uint32, uint32, error) {
 	fileOffset := byteOrder.Uint32(writeRow[4:8])
 	return fileNum, fileOffset, nil
 }
-// reconcileDB reconciles the metadata with the flat block files on disk.  It
-// will also initialize the underlying database if the create flag is set.
+
+// reconcileDB reconciles the metadata with the flat block files on disk.  It will also initialize the underlying database if the create flag is set.
 func reconcileDB(pdb *db, create bool) (database.DB, error) {
-	// Perform initial internal bucket and value creation during database
-	// creation.
+	// Perform initial internal bucket and value creation during database creation.
 	if create {
 		if err := initDB(pdb.cache.ldb); err != nil {
 			return nil, err
@@ -61,13 +60,7 @@ func reconcileDB(pdb *db, create bool) (database.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	// When the write cursor position found by scanning the block files on
-	// disk is AFTER the position the metadata believes to be true, truncate
-	// the files on disk to match the metadata.  This can be a fairly common
-	// occurrence in unclean shutdown scenarios while the block files are in
-	// the middle of being written.  Since the metadata isn't updated until
-	// after the block data is written, this is effectively just a rollback
-	// to the known good point before the unclean shutdown.
+	// When the write cursor position found by scanning the block files on disk is AFTER the position the metadata believes to be true, truncate the files on disk to match the metadata.  This can be a fairly common occurrence in unclean shutdown scenarios while the block files are in the middle of being written.  Since the metadata isn't updated until after the block data is written, this is effectively just a rollback to the known good point before the unclean shutdown.
 	wc := pdb.store.writeCursor
 	if wc.curFileNum > curFileNum || (wc.curFileNum == curFileNum &&
 		wc.curOffset > curOffset) {
@@ -78,15 +71,7 @@ func reconcileDB(pdb *db, create bool) (database.DB, error) {
 		pdb.store.handleRollback(curFileNum, curOffset)
 		log.Infof("Database sync complete")
 	}
-	// When the write cursor position found by scanning the block files on
-	// disk is BEFORE the position the metadata believes to be true, return
-	// a corruption error.  Since sync is called after each block is written
-	// and before the metadata is updated, this should only happen in the
-	// case of missing, deleted, or truncated block files, which generally
-	// is not an easily recoverable scenario.  In the future, it might be
-	// possible to rescan and rebuild the metadata from the block files,
-	// however, that would need to happen with coordination from a higher
-	// layer since it could invalidate other metadata.
+	// When the write cursor position found by scanning the block files on disk is BEFORE the position the metadata believes to be true, return a corruption error.  Since sync is called after each block is written and before the metadata is updated, this should only happen in the case of missing, deleted, or truncated block files, which generally is not an easily recoverable scenario.  In the future, it might be possible to rescan and rebuild the metadata from the block files, however, that would need to happen with coordination from a higher layer since it could invalidate other metadata.
 	if wc.curFileNum < curFileNum || (wc.curFileNum == curFileNum &&
 		wc.curOffset < curOffset) {
 		str := fmt.Sprintf("metadata claims file %d, offset %d, but "+

@@ -1,13 +1,12 @@
-
 package treap
+
 import (
 	"bytes"
 	"encoding/binary"
 	"testing"
 )
-// TestMutableIterator ensures that the general behavior of mutable treap
-// iterators is as expected including tests for first, last, ordered and reverse
-// ordered iteration, limiting the range, seeking, and initially unpositioned.
+
+// TestMutableIterator ensures that the general behavior of mutable treap iterators is as expected including tests for first, last, ordered and reverse ordered iteration, limiting the range, seeking, and initially unpositioned.
 func TestMutableIterator(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -242,6 +241,7 @@ testLoop:
 		}
 	}
 }
+
 // TestMutableEmptyIterator ensures that the various functions behave as
 // expected when a mutable treap is empty.
 func TestMutableEmptyIterator(t *testing.T) {
@@ -285,6 +285,7 @@ func TestMutableEmptyIterator(t *testing.T) {
 		t.Fatal("Prev: iterator should be exhausted")
 	}
 }
+
 // TestIteratorUpdates ensures that issuing a call to ForceReseek on an iterator
 // that had the underlying mutable treap updated works as expected.
 func TestIteratorUpdates(t *testing.T) {
@@ -366,6 +367,7 @@ func TestIteratorUpdates(t *testing.T) {
 			gotKey, wantKey)
 	}
 }
+
 // TestImmutableIterator ensures that the general behavior of immutable treap
 // iterators is as expected including tests for first, last, ordered and reverse
 // ordered iteration, limiting the range, seeking, and initially unpositioned.
@@ -603,6 +605,7 @@ testLoop:
 		}
 	}
 }
+
 // TestImmutableEmptyIterator ensures that the various functions behave as
 // expected when an immutable treap is empty.
 func TestImmutableEmptyIterator(t *testing.T) {

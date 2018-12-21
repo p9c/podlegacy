@@ -1,12 +1,12 @@
-
 package treap
+
 import (
 	"bytes"
 	"crypto/sha256"
 	"testing"
 )
-// TestImmutableEmpty ensures calling functions on an empty immutable treap
-// works as expected.
+
+// TestImmutableEmpty ensures calling functions on an empty immutable treap works as expected.
 func TestImmutableEmpty(t *testing.T) {
 	t.Parallel()
 	// Ensure the treap length is the expected value.
@@ -41,12 +41,11 @@ func TestImmutableEmpty(t *testing.T) {
 			numIterated)
 	}
 }
-// TestImmutableSequential ensures that putting keys into an immutable treap in
-// sequential order works as expected.
+
+// TestImmutableSequential ensures that putting keys into an immutable treap in sequential order works as expected.
 func TestImmutableSequential(t *testing.T) {
 	t.Parallel()
-	// Insert a bunch of sequential keys while checking several of the treap
-	// functions work as expected.
+	// Insert a bunch of sequential keys while checking several of the treap functions work as expected.
 	expectedSize := uint64(0)
 	numItems := 1000
 	testTreap := NewImmutable()
@@ -62,8 +61,7 @@ func TestImmutableSequential(t *testing.T) {
 		if !testTreap.Has(key) {
 			t.Fatalf("Has #%d: key %q is not in treap", i, key)
 		}
-		// Get the key from the treap and ensure it is the expected
-		// value.
+		// Get the key from the treap and ensure it is the expected value.
 		if gotVal := testTreap.Get(key); !bytes.Equal(gotVal, key) {
 			t.Fatalf("Get #%d: unexpected value - got %x, want %x",
 				i, gotVal, key)
@@ -97,8 +95,7 @@ func TestImmutableSequential(t *testing.T) {
 		t.Fatalf("ForEach: unexpected iterate count - got %d, want %d",
 			numIterated, numItems)
 	}
-	// Delete the keys one-by-one while checking several of the treap
-	// functions work as expected.
+	// Delete the keys one-by-one while checking several of the treap functions work as expected.
 	for i := 0; i < numItems; i++ {
 		key := serializeUint32(uint32(i))
 		testTreap = testTreap.Delete(key)
@@ -111,8 +108,7 @@ func TestImmutableSequential(t *testing.T) {
 		if testTreap.Has(key) {
 			t.Fatalf("Has #%d: key %q is in treap", i, key)
 		}
-		// Get the key that no longer exists from the treap and ensure
-		// it is nil.
+		// Get the key that no longer exists from the treap and ensure it is nil.
 		if gotVal := testTreap.Get(key); gotVal != nil {
 			t.Fatalf("Get #%d: unexpected value - got %x, want nil",
 				i, gotVal)
@@ -125,12 +121,11 @@ func TestImmutableSequential(t *testing.T) {
 		}
 	}
 }
-// TestImmutableReverseSequential ensures that putting keys into an immutable
-// treap in reverse sequential order works as expected.
+
+// TestImmutableReverseSequential ensures that putting keys into an immutable treap in reverse sequential order works as expected.
 func TestImmutableReverseSequential(t *testing.T) {
 	t.Parallel()
-	// Insert a bunch of sequential keys while checking several of the treap
-	// functions work as expected.
+	// Insert a bunch of sequential keys while checking several of the treap functions work as expected.
 	expectedSize := uint64(0)
 	numItems := 1000
 	testTreap := NewImmutable()
@@ -181,8 +176,7 @@ func TestImmutableReverseSequential(t *testing.T) {
 		t.Fatalf("ForEach: unexpected iterate count - got %d, want %d",
 			numIterated, numItems)
 	}
-	// Delete the keys one-by-one while checking several of the treap
-	// functions work as expected.
+	// Delete the keys one-by-one while checking several of the treap functions work as expected.
 	for i := 0; i < numItems; i++ {
 		// Intentionally use the reverse order they were inserted here.
 		key := serializeUint32(uint32(i))
@@ -210,12 +204,11 @@ func TestImmutableReverseSequential(t *testing.T) {
 		}
 	}
 }
-// TestImmutableUnordered ensures that putting keys into an immutable treap in
-// no paritcular order works as expected.
+
+// TestImmutableUnordered ensures that putting keys into an immutable treap in no paritcular order works as expected.
 func TestImmutableUnordered(t *testing.T) {
 	t.Parallel()
-	// Insert a bunch of out-of-order keys while checking several of the
-	// treap functions work as expected.
+	// Insert a bunch of out-of-order keys while checking several of the treap functions work as expected.
 	expectedSize := uint64(0)
 	numItems := 1000
 	testTreap := NewImmutable()
@@ -246,8 +239,7 @@ func TestImmutableUnordered(t *testing.T) {
 				"want %d", i, gotSize, expectedSize)
 		}
 	}
-	// Delete the keys one-by-one while checking several of the treap
-	// functions work as expected.
+	// Delete the keys one-by-one while checking several of the treap functions work as expected.
 	for i := 0; i < numItems; i++ {
 		// Hash the serialized int to generate out-of-order keys.
 		hash := sha256.Sum256(serializeUint32(uint32(i)))
@@ -276,8 +268,8 @@ func TestImmutableUnordered(t *testing.T) {
 		}
 	}
 }
-// TestImmutableDuplicatePut ensures that putting a duplicate key into an
-// immutable treap works as expected.
+
+// TestImmutableDuplicatePut ensures that putting a duplicate key into an immutable treap works as expected.
 func TestImmutableDuplicatePut(t *testing.T) {
 	t.Parallel()
 	expectedVal := []byte("testval")
@@ -308,8 +300,8 @@ func TestImmutableDuplicatePut(t *testing.T) {
 		}
 	}
 }
-// TestImmutableNilValue ensures that putting a nil value into an immutable
-// treap results in a key being added with an empty byte slice.
+
+// TestImmutableNilValue ensures that putting a nil value into an immutable treap results in a key being added with an empty byte slice.
 func TestImmutableNilValue(t *testing.T) {
 	t.Parallel()
 	key := serializeUint32(0)
@@ -328,8 +320,8 @@ func TestImmutableNilValue(t *testing.T) {
 			gotVal)
 	}
 }
-// TestImmutableForEachStopIterator ensures that returning false from the ForEach
-// callback on an immutable treap stops iteration early.
+
+// TestImmutableForEachStopIterator ensures that returning false from the ForEach callback on an immutable treap stops iteration early.
 func TestImmutableForEachStopIterator(t *testing.T) {
 	t.Parallel()
 	// Insert a few keys.
@@ -350,13 +342,11 @@ func TestImmutableForEachStopIterator(t *testing.T) {
 			numIterated, numItems/2)
 	}
 }
-// TestImmutableSnapshot ensures that immutable treaps are actually immutable by
-// keeping a reference to the previous treap, performing a mutation, and then
-// ensuring the referenced treap does not have the mutation applied.
+
+// TestImmutableSnapshot ensures that immutable treaps are actually immutable by keeping a reference to the previous treap, performing a mutation, and then ensuring the referenced treap does not have the mutation applied.
 func TestImmutableSnapshot(t *testing.T) {
 	t.Parallel()
-	// Insert a bunch of sequential keys while checking several of the treap
-	// functions work as expected.
+	// Insert a bunch of sequential keys while checking several of the treap functions work as expected.
 	expectedSize := uint64(0)
 	numItems := 1000
 	testTreap := NewImmutable()
@@ -387,14 +377,12 @@ func TestImmutableSnapshot(t *testing.T) {
 		}
 		expectedSize += (nodeFieldsSize + 8)
 	}
-	// Delete the keys one-by-one while checking several of the treap
-	// functions work as expected.
+	// Delete the keys one-by-one while checking several of the treap functions work as expected.
 	for i := 0; i < numItems; i++ {
 		treapSnap := testTreap
 		key := serializeUint32(uint32(i))
 		testTreap = testTreap.Delete(key)
-		// Ensure the length of the treap snapshot is the expected
-		// value.
+		// Ensure the length of the treap snapshot is the expected value.
 		if gotLen := treapSnap.Len(); gotLen != numItems-i {
 			t.Fatalf("Len #%d: unexpected length - got %d, want %d",
 				i, gotLen, numItems-i)
@@ -403,8 +391,7 @@ func TestImmutableSnapshot(t *testing.T) {
 		if !treapSnap.Has(key) {
 			t.Fatalf("Has #%d: key %q is not in treap", i, key)
 		}
-		// Get the key from the treap snapshot and ensure it is still
-		// the expected value.
+		// Get the key from the treap snapshot and ensure it is still the expected value.
 		if gotVal := treapSnap.Get(key); !bytes.Equal(gotVal, key) {
 			t.Fatalf("Get #%d: unexpected value - got %x, want %x",
 				i, gotVal, key)

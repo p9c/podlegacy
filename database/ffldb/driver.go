@@ -1,15 +1,18 @@
-
 package ffldb
+
 import (
 	"fmt"
+	"github.com/parallelcointeam/pod/btclog"
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/wire"
-	"github.com/parallelcointeam/pod/btclog"
 )
+
 var log = btclog.Disabled
+
 const (
 	dbType = "ffldb"
 )
+
 // parseArgs parses the arguments from the database Open/Create methods.
 func parseArgs(funcName string, args ...interface{}) (string, wire.BitcoinNet, error) {
 	if len(args) != 2 {
@@ -29,8 +32,8 @@ func parseArgs(funcName string, args ...interface{}) (string, wire.BitcoinNet, e
 	}
 	return dbPath, network, nil
 }
-// openDBDriver is the callback provided during driver registration that opens
-// an existing database for use.
+
+// openDBDriver is the callback provided during driver registration that opens an existing database for use.
 func openDBDriver(args ...interface{}) (database.DB, error) {
 	dbPath, network, err := parseArgs("Open", args...)
 	if err != nil {
@@ -38,8 +41,8 @@ func openDBDriver(args ...interface{}) (database.DB, error) {
 	}
 	return openDB(dbPath, network, false)
 }
-// createDBDriver is the callback provided during driver registration that
-// creates, initializes, and opens a database for use.
+
+// createDBDriver is the callback provided during driver registration that creates, initializes, and opens a database for use.
 func createDBDriver(args ...interface{}) (database.DB, error) {
 	dbPath, network, err := parseArgs("Create", args...)
 	if err != nil {
@@ -47,8 +50,8 @@ func createDBDriver(args ...interface{}) (database.DB, error) {
 	}
 	return openDB(dbPath, network, true)
 }
-// useLogger is the callback provided during driver registration that sets the
-// current logger to the provided one.
+
+// useLogger is the callback provided during driver registration that sets the current logger to the provided one.
 func useLogger(logger btclog.Logger) {
 	log = logger
 }
