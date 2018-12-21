@@ -1,13 +1,14 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"io"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestNotFound tests the MsgNotFound API.
 func TestNotFound(t *testing.T) {
 	pver := ProtocolVersion
@@ -18,8 +19,7 @@ func TestNotFound(t *testing.T) {
 		t.Errorf("NewMsgNotFound: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-	// Ensure max payload is expected value for latest protocol version.
-	// Num inventory vectors (varInt) + max allowed inventory vectors.
+	// Ensure max payload is expected value for latest protocol version. Num inventory vectors (varInt) + max allowed inventory vectors.
 	wantPayload := uint32(1800009)
 	maxPayload := msg.MaxPayloadLength(pver)
 	if maxPayload != wantPayload {
@@ -38,8 +38,7 @@ func TestNotFound(t *testing.T) {
 		t.Errorf("AddInvVect: wrong invvect added - got %v, want %v",
 			spew.Sprint(msg.InvList[0]), spew.Sprint(iv))
 	}
-	// Ensure adding more than the max allowed inventory vectors per
-	// message returns an error.
+	// Ensure adding more than the max allowed inventory vectors per message returns an error.
 	for i := 0; i < MaxInvPerMsg; i++ {
 		err = msg.AddInvVect(iv)
 	}
@@ -48,8 +47,8 @@ func TestNotFound(t *testing.T) {
 			"vectors not received")
 	}
 }
-// TestNotFoundWire tests the MsgNotFound wire encode and decode for various
-// numbers of inventory vectors and protocol versions.
+
+// TestNotFoundWire tests the MsgNotFound wire encode and decode for various numbers of inventory vectors and protocol versions.
 func TestNotFoundWire(t *testing.T) {
 	// Block 203707 hash.
 	hashStr := "3264bc2ac36a60840790ba1d475d01367e7c723da941069e9dc"
@@ -204,8 +203,8 @@ func TestNotFoundWire(t *testing.T) {
 		}
 	}
 }
-// TestNotFoundWireErrors performs negative tests against wire encode and decode
-// of MsgNotFound to confirm error paths work correctly.
+
+// TestNotFoundWireErrors performs negative tests against wire encode and decode of MsgNotFound to confirm error paths work correctly.
 func TestNotFoundWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	wireErr := &MessageError{}
@@ -227,8 +226,7 @@ func TestNotFoundWireErrors(t *testing.T) {
 		0x79, 0x40, 0x08, 0xa6, 0x36, 0xac, 0xc2, 0x4b,
 		0x26, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Block 203707 hash
 	}
-	// Message that forces an error by having more than the max allowed inv
-	// vectors.
+	// Message that forces an error by having more than the max allowed inv vectors.
 	maxNotFound := NewMsgNotFound()
 	for i := 0; i < MaxInvPerMsg; i++ {
 		maxNotFound.AddInvVect(iv)
@@ -263,8 +261,7 @@ func TestNotFoundWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.writeErr {
 				t.Errorf("BtcEncode #%d wrong error got: %v, "+
@@ -281,8 +278,7 @@ func TestNotFoundWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.readErr {
 				t.Errorf("BtcDecode #%d wrong error got: %v, "+

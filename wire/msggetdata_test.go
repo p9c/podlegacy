@@ -1,13 +1,14 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"io"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestGetData tests the MsgGetData API.
 func TestGetData(t *testing.T) {
 	pver := ProtocolVersion
@@ -18,8 +19,7 @@ func TestGetData(t *testing.T) {
 		t.Errorf("NewMsgGetData: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-	// Ensure max payload is expected value for latest protocol version.
-	// Num inventory vectors (varInt) + max allowed inventory vectors.
+	// Ensure max payload is expected value for latest protocol version. Num inventory vectors (varInt) + max allowed inventory vectors.
 	wantPayload := uint32(1800009)
 	maxPayload := msg.MaxPayloadLength(pver)
 	if maxPayload != wantPayload {
@@ -38,8 +38,7 @@ func TestGetData(t *testing.T) {
 		t.Errorf("AddInvVect: wrong invvect added - got %v, want %v",
 			spew.Sprint(msg.InvList[0]), spew.Sprint(iv))
 	}
-	// Ensure adding more than the max allowed inventory vectors per
-	// message returns an error.
+	// Ensure adding more than the max allowed inventory vectors per message returns an error.
 	for i := 0; i < MaxInvPerMsg; i++ {
 		err = msg.AddInvVect(iv)
 	}
@@ -47,8 +46,7 @@ func TestGetData(t *testing.T) {
 		t.Errorf("AddInvVect: expected error on too many inventory " +
 			"vectors not received")
 	}
-	// Ensure creating the message with a size hint larger than the max
-	// works as expected.
+	// Ensure creating the message with a size hint larger than the max works as expected.
 	msg = NewMsgGetDataSizeHint(MaxInvPerMsg + 1)
 	wantCap := MaxInvPerMsg
 	if cap(msg.InvList) != wantCap {
@@ -56,8 +54,8 @@ func TestGetData(t *testing.T) {
 			"got %v, want %v", cap(msg.InvList), wantCap)
 	}
 }
-// TestGetDataWire tests the MsgGetData wire encode and decode for various
-// numbers of inventory vectors and protocol versions.
+
+// TestGetDataWire tests the MsgGetData wire encode and decode for various numbers of inventory vectors and protocol versions.
 func TestGetDataWire(t *testing.T) {
 	// Block 203707 hash.
 	hashStr := "3264bc2ac36a60840790ba1d475d01367e7c723da941069e9dc"
@@ -212,8 +210,8 @@ func TestGetDataWire(t *testing.T) {
 		}
 	}
 }
-// TestGetDataWireErrors performs negative tests against wire encode and decode
-// of MsgGetData to confirm error paths work correctly.
+
+// TestGetDataWireErrors performs negative tests against wire encode and decode of MsgGetData to confirm error paths work correctly.
 func TestGetDataWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	wireErr := &MessageError{}
@@ -254,8 +252,7 @@ func TestGetDataWireErrors(t *testing.T) {
 		writeErr error           // Expected write error
 		readErr  error           // Expected read error
 	}{
-		// Latest protocol version with intentional read/write errors.
-		// Force error in inventory vector count
+		// Latest protocol version with intentional read/write errors. Force error in inventory vector count
 		{baseGetData, baseGetDataEncoded, pver, BaseEncoding, 0, io.ErrShortWrite, io.EOF},
 		// Force error in inventory list.
 		{baseGetData, baseGetDataEncoded, pver, BaseEncoding, 1, io.ErrShortWrite, io.EOF},
@@ -272,8 +269,7 @@ func TestGetDataWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.writeErr {
 				t.Errorf("BtcEncode #%d wrong error got: %v, "+
@@ -290,8 +286,7 @@ func TestGetDataWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.readErr {
 				t.Errorf("BtcDecode #%d wrong error got: %v, "+

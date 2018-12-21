@@ -120,8 +120,7 @@ func TestFeeFilterWireErrors(t *testing.T) {
 		writeErr error         // Expected write error
 		readErr  error         // Expected read error
 	}{
-		// Latest protocol version with intentional read/write errors.
-		// Force error in minfee.
+		// Latest protocol version with intentional read/write errors. Force error in minfee.
 		{baseFeeFilter, baseFeeFilterEncoded, pver, 0, io.ErrShortWrite, io.EOF},
 		// Force error due to unsupported protocol version.
 		{baseFeeFilter, baseFeeFilterEncoded, pverNoFeeFilter, 4, wireErr, wireErr},
@@ -136,8 +135,7 @@ func TestFeeFilterWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.writeErr {
 				t.Errorf("BtcEncode #%d wrong error got: %v, "+
@@ -154,8 +152,7 @@ func TestFeeFilterWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.readErr {
 				t.Errorf("BtcDecode #%d wrong error got: %v, "+

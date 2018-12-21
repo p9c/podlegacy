@@ -1,13 +1,14 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"io"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestGetBlocks tests the MsgGetBlocks API.
 func TestGetBlocks(t *testing.T) {
 	pver := ProtocolVersion
@@ -35,9 +36,7 @@ func TestGetBlocks(t *testing.T) {
 		t.Errorf("NewMsgGetBlocks: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-	// Ensure max payload is expected value for latest protocol version.
-	// Protocol version 4 bytes + num hashes (varInt) + max block locator
-	// hashes + hash stop.
+	// Ensure max payload is expected value for latest protocol version. Protocol version 4 bytes + num hashes (varInt) + max block locator hashes + hash stop.
 	wantPayload := uint32(16045)
 	maxPayload := msg.MaxPayloadLength(pver)
 	if maxPayload != wantPayload {
@@ -56,8 +55,7 @@ func TestGetBlocks(t *testing.T) {
 			spew.Sprint(msg.BlockLocatorHashes[0]),
 			spew.Sprint(locatorHash))
 	}
-	// Ensure adding more than the max allowed block locator hashes per
-	// message returns an error.
+	// Ensure adding more than the max allowed block locator hashes per message returns an error.
 	for i := 0; i < MaxBlockLocatorsPerMsg; i++ {
 		err = msg.AddBlockLocatorHash(locatorHash)
 	}
@@ -66,8 +64,8 @@ func TestGetBlocks(t *testing.T) {
 			"block locator hashes not received")
 	}
 }
-// TestGetBlocksWire tests the MsgGetBlocks wire encode and decode for various
-// numbers of block locator hashes and protocol versions.
+
+// TestGetBlocksWire tests the MsgGetBlocks wire encode and decode for various numbers of block locator hashes and protocol versions.
 func TestGetBlocksWire(t *testing.T) {
 	// Set protocol inside getblocks message.
 	pver := uint32(60002)
@@ -238,12 +236,10 @@ func TestGetBlocksWire(t *testing.T) {
 		}
 	}
 }
-// TestGetBlocksWireErrors performs negative tests against wire encode and
-// decode of MsgGetBlocks to confirm error paths work correctly.
+
+// TestGetBlocksWireErrors performs negative tests against wire encode and decode of MsgGetBlocks to confirm error paths work correctly.
 func TestGetBlocksWireErrors(t *testing.T) {
-	// Set protocol inside getheaders message.  Use protocol version 60002
-	// specifically here instead of the latest because the test data is
-	// using bytes encoded with that protocol version.
+	// Set protocol inside getheaders message.  Use protocol version 60002 specifically here instead of the latest because the test data is using bytes encoded with that protocol version.
 	pver := uint32(60002)
 	wireErr := &MessageError{}
 	// Block 99499 hash.
@@ -327,8 +323,7 @@ func TestGetBlocksWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.writeErr {
 				t.Errorf("BtcEncode #%d wrong error got: %v, "+
@@ -345,8 +340,7 @@ func TestGetBlocksWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.readErr {
 				t.Errorf("BtcDecode #%d wrong error got: %v, "+

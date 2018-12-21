@@ -1,15 +1,16 @@
-
 package wire
+
 import (
 	"bytes"
 	"crypto/rand"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"io"
 	"reflect"
 	"testing"
 	"time"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestMerkleBlock tests the MsgMerkleBlock API.
 func TestMerkleBlock(t *testing.T) {
 	pver := ProtocolVersion
@@ -27,8 +28,7 @@ func TestMerkleBlock(t *testing.T) {
 		t.Errorf("NewMsgBlock: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-	// Ensure max payload is expected value for latest protocol version.
-	// Num addresses (varInt) + max allowed addresses.
+	// Ensure max payload is expected value for latest protocol version. Num addresses (varInt) + max allowed addresses.
 	wantPayload := uint32(4000000)
 	maxPayload := msg.MaxPayloadLength(pver)
 	if maxPayload != wantPayload {
@@ -81,8 +81,7 @@ func TestMerkleBlock(t *testing.T) {
 			"tx hashes when it should have failed")
 		return
 	}
-	// Force too many flag bytes to test maxFlagsPerMerkleBlock.
-	// Reset the number of hashes back to a valid value.
+	// Force too many flag bytes to test maxFlagsPerMerkleBlock. Reset the number of hashes back to a valid value.
 	msg.Hashes = msg.Hashes[len(msg.Hashes)-1:]
 	msg.Flags = make([]byte, maxFlagsPerMerkleBlock+1)
 	err = msg.BtcEncode(&buf, pver, enc)
@@ -92,8 +91,8 @@ func TestMerkleBlock(t *testing.T) {
 		return
 	}
 }
-// TestMerkleBlockCrossProtocol tests the MsgMerkleBlock API when encoding with
-// the latest protocol version and decoding with BIP0031Version.
+
+// TestMerkleBlockCrossProtocol tests the MsgMerkleBlock API when encoding with the latest protocol version and decoding with BIP0031Version.
 func TestMerkleBlockCrossProtocol(t *testing.T) {
 	// Block 1 header.
 	prevHash := &blockOne.Header.PrevBlock
@@ -117,8 +116,8 @@ func TestMerkleBlockCrossProtocol(t *testing.T) {
 			msg)
 	}
 }
-// TestMerkleBlockWire tests the MsgMerkleBlock wire encode and decode for
-// various numbers of transaction hashes and protocol versions.
+
+// TestMerkleBlockWire tests the MsgMerkleBlock wire encode and decode for various numbers of transaction hashes and protocol versions.
 func TestMerkleBlockWire(t *testing.T) {
 	tests := []struct {
 		in   *MsgMerkleBlock // Message to encode
@@ -167,12 +166,10 @@ func TestMerkleBlockWire(t *testing.T) {
 		}
 	}
 }
-// TestMerkleBlockWireErrors performs negative tests against wire encode and
-// decode of MsgBlock to confirm error paths work correctly.
+
+// TestMerkleBlockWireErrors performs negative tests against wire encode and decode of MsgBlock to confirm error paths work correctly.
 func TestMerkleBlockWireErrors(t *testing.T) {
-	// Use protocol version 70001 specifically here instead of the latest
-	// because the test data is using bytes encoded with that protocol
-	// version.
+	// Use protocol version 70001 specifically here instead of the latest because the test data is using bytes encoded with that protocol version.
 	pver := uint32(70001)
 	pverNoMerkleBlock := BIP0037Version - 1
 	wireErr := &MessageError{}
@@ -256,8 +253,7 @@ func TestMerkleBlockWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.writeErr {
 				t.Errorf("BtcEncode #%d wrong error got: %v, "+
@@ -274,8 +270,7 @@ func TestMerkleBlockWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.readErr {
 				t.Errorf("BtcDecode #%d wrong error got: %v, "+
@@ -285,25 +280,19 @@ func TestMerkleBlockWireErrors(t *testing.T) {
 		}
 	}
 }
-// TestMerkleBlockOverflowErrors performs tests to ensure encoding and decoding
-// merkle blocks that are intentionally crafted to use large values for the
-// number of hashes and flags are handled properly.  This could otherwise
-// potentially be used as an attack vector.
+
+// TestMerkleBlockOverflowErrors performs tests to ensure encoding and decoding merkle blocks that are intentionally crafted to use large values for the number of hashes and flags are handled properly.  This could otherwise potentially be used as an attack vector.
 func TestMerkleBlockOverflowErrors(t *testing.T) {
-	// Use protocol version 70001 specifically here instead of the latest
-	// protocol version because the test data is using bytes encoded with
-	// that version.
+	// Use protocol version 70001 specifically here instead of the latest protocol version because the test data is using bytes encoded with that version.
 	pver := uint32(70001)
-	// Create bytes for a merkle block that claims to have more than the max
-	// allowed tx hashes.
+	// Create bytes for a merkle block that claims to have more than the max allowed tx hashes.
 	var buf bytes.Buffer
 	WriteVarInt(&buf, pver, maxTxPerBlock+1)
 	numHashesOffset := 84
 	exceedMaxHashes := make([]byte, numHashesOffset)
 	copy(exceedMaxHashes, merkleBlockOneBytes[:numHashesOffset])
 	exceedMaxHashes = append(exceedMaxHashes, buf.Bytes()...)
-	// Create bytes for a merkle block that claims to have more than the max
-	// allowed flag bytes.
+	// Create bytes for a merkle block that claims to have more than the max allowed flag bytes.
 	buf.Reset()
 	WriteVarInt(&buf, pver, maxFlagsPerMerkleBlock+1)
 	numFlagBytesOffset := 117
@@ -334,8 +323,8 @@ func TestMerkleBlockOverflowErrors(t *testing.T) {
 		}
 	}
 }
-// merkleBlockOne is a merkle block created from block one of the block chain
-// where the first transaction matches.
+
+// merkleBlockOne is a merkle block created from block one of the block chain where the first transaction matches.
 var merkleBlockOne = MsgMerkleBlock{
 	Header: BlockHeader{
 		Version: 1,
@@ -366,8 +355,8 @@ var merkleBlockOne = MsgMerkleBlock{
 	},
 	Flags: []byte{0x80},
 }
-// merkleBlockOneBytes is the serialized bytes for a merkle block created from
-// block one of the block chain where the first transaction matches.
+
+// merkleBlockOneBytes is the serialized bytes for a merkle block created from block one of the block chain where the first transaction matches.
 var merkleBlockOneBytes = []byte{
 	0x01, 0x00, 0x00, 0x00, // Version 1
 	0x6f, 0xe2, 0x8c, 0x0a, 0xb6, 0xf1, 0xb3, 0x72,

@@ -1,13 +1,14 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"io"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestGetHeaders tests the MsgGetHeader API.
 func TestGetHeaders(t *testing.T) {
 	pver := ProtocolVersion
@@ -24,9 +25,7 @@ func TestGetHeaders(t *testing.T) {
 		t.Errorf("NewMsgGetHeaders: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-	// Ensure max payload is expected value for latest protocol version.
-	// Protocol version 4 bytes + num hashes (varInt) + max block locator
-	// hashes + hash stop.
+	// Ensure max payload is expected value for latest protocol version. Protocol version 4 bytes + num hashes (varInt) + max block locator hashes + hash stop.
 	wantPayload := uint32(16045)
 	maxPayload := msg.MaxPayloadLength(pver)
 	if maxPayload != wantPayload {
@@ -45,8 +44,7 @@ func TestGetHeaders(t *testing.T) {
 			spew.Sprint(msg.BlockLocatorHashes[0]),
 			spew.Sprint(locatorHash))
 	}
-	// Ensure adding more than the max allowed block locator hashes per
-	// message returns an error.
+	// Ensure adding more than the max allowed block locator hashes per message returns an error.
 	for i := 0; i < MaxBlockLocatorsPerMsg; i++ {
 		err = msg.AddBlockLocatorHash(locatorHash)
 	}
@@ -55,12 +53,10 @@ func TestGetHeaders(t *testing.T) {
 			"block locator hashes not received")
 	}
 }
-// TestGetHeadersWire tests the MsgGetHeaders wire encode and decode for various
-// numbers of block locator hashes and protocol versions.
+
+// TestGetHeadersWire tests the MsgGetHeaders wire encode and decode for various numbers of block locator hashes and protocol versions.
 func TestGetHeadersWire(t *testing.T) {
-	// Set protocol inside getheaders message.  Use protocol version 60002
-	// specifically here instead of the latest because the test data is
-	// using bytes encoded with that protocol version.
+	// Set protocol inside getheaders message.  Use protocol version 60002 specifically here instead of the latest because the test data is using bytes encoded with that protocol version.
 	pver := uint32(60002)
 	// Block 99499 hash.
 	hashStr := "2710f40c87ec93d010a6fd95f42c59a2cbacc60b18cf6b7957535"
@@ -230,11 +226,10 @@ func TestGetHeadersWire(t *testing.T) {
 		}
 	}
 }
-// TestGetHeadersWireErrors performs negative tests against wire encode and
-// decode of MsgGetHeaders to confirm error paths work correctly.
+
+// TestGetHeadersWireErrors performs negative tests against wire encode and decode of MsgGetHeaders to confirm error paths work correctly.
 func TestGetHeadersWireErrors(t *testing.T) {
-	// Set protocol inside getheaders message.  Use protocol version 60002
-	// specifically here instead of the latest because the test data is
+	// Set protocol inside getheaders message.  Use protocol version 60002 specifically here instead of the latest because the test data is
 	// using bytes encoded with that protocol version.
 	pver := uint32(60002)
 	wireErr := &MessageError{}
@@ -320,8 +315,7 @@ func TestGetHeadersWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.writeErr {
 				t.Errorf("BtcEncode #%d wrong error got: %v, "+
@@ -338,8 +332,7 @@ func TestGetHeadersWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.readErr {
 				t.Errorf("BtcDecode #%d wrong error got: %v, "+

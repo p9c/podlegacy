@@ -1,14 +1,15 @@
-
 package wire
+
 import (
 	"bytes"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"io"
 	"reflect"
 	"testing"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestTx tests the MsgTx API.
 func TestTx(t *testing.T) {
 	pver := ProtocolVersion
@@ -33,9 +34,7 @@ func TestTx(t *testing.T) {
 			"protocol version %d - got %v, want %v", pver,
 			maxPayload, wantPayload)
 	}
-	// Ensure we get the same transaction output point data back out.
-	// NOTE: This is a block hash and made up index, but we're only
-	// testing package functionality.
+	// Ensure we get the same transaction output point data back out. NOTE: This is a block hash and made up index, but we're only testing package functionality.
 	prevOutIndex := uint32(1)
 	prevOut := NewOutPoint(hash, prevOutIndex)
 	if !prevOut.Hash.IsEqual(hash) {
@@ -117,6 +116,7 @@ func TestTx(t *testing.T) {
 			spew.Sdump(newMsg), spew.Sdump(msg))
 	}
 }
+
 // TestTxHash tests the ability to generate the hash of a transaction accurately.
 func TestTxHash(t *testing.T) {
 	// Hash of first transaction from block 113875.
@@ -162,8 +162,8 @@ func TestTxHash(t *testing.T) {
 			spew.Sprint(txHash), spew.Sprint(wantHash))
 	}
 }
-// TestTxSha tests the ability to generate the wtxid, and txid of a transaction
-// with witness inputs accurately.
+
+// TestTxSha tests the ability to generate the wtxid, and txid of a transaction with witness inputs accurately.
 func TestWTxSha(t *testing.T) {
 	hashStrTxid := "0f167d1385a84d1518cfee208b653fc9163b605ccf1b75347e2850b3e2eb19f3"
 	wantHashTxid, err := chainhash.NewHashFromStr(hashStrTxid)
@@ -236,8 +236,8 @@ func TestWTxSha(t *testing.T) {
 			spew.Sprint(wtxid), spew.Sprint(wantHashWTxid))
 	}
 }
-// TestTxWire tests the MsgTx wire encode and decode for various numbers
-// of transaction inputs and outputs and protocol versions.
+
+// TestTxWire tests the MsgTx wire encode and decode for various numbers of transaction inputs and outputs and protocol versions.
 func TestTxWire(t *testing.T) {
 	// Empty tx message.
 	noTx := NewMsgTx(1)
@@ -364,12 +364,10 @@ func TestTxWire(t *testing.T) {
 		}
 	}
 }
-// TestTxWireErrors performs negative tests against wire encode and decode
-// of MsgTx to confirm error paths work correctly.
+
+// TestTxWireErrors performs negative tests against wire encode and decode of MsgTx to confirm error paths work correctly.
 func TestTxWireErrors(t *testing.T) {
-	// Use protocol version 60002 specifically here instead of the latest
-	// because the test data is using bytes encoded with that protocol
-	// version.
+	// Use protocol version 60002 specifically here instead of the latest because the test data is using bytes encoded with that protocol version.
 	pver := uint32(60002)
 	tests := []struct {
 		in       *MsgTx          // Value to encode
@@ -426,6 +424,7 @@ func TestTxWireErrors(t *testing.T) {
 		}
 	}
 }
+
 // TestTxSerialize tests MsgTx serialize and deserialize.
 func TestTxSerialize(t *testing.T) {
 	noTx := NewMsgTx(1)
@@ -519,8 +518,8 @@ func TestTxSerialize(t *testing.T) {
 		}
 	}
 }
-// TestTxSerializeErrors performs negative tests against wire encode and decode
-// of MsgTx to confirm error paths work correctly.
+
+// TestTxSerializeErrors performs negative tests against wire encode and decode of MsgTx to confirm error paths work correctly.
 func TestTxSerializeErrors(t *testing.T) {
 	tests := []struct {
 		in       *MsgTx // Value to encode
@@ -575,14 +574,10 @@ func TestTxSerializeErrors(t *testing.T) {
 		}
 	}
 }
-// TestTxOverflowErrors performs tests to ensure deserializing transactions
-// which are intentionally crafted to use large values for the variable number
-// of inputs and outputs are handled properly.  This could otherwise potentially
-// be used as an attack vector.
+
+// TestTxOverflowErrors performs tests to ensure deserializing transactions which are intentionally crafted to use large values for the variable number of inputs and outputs are handled properly.  This could otherwise potentially be used as an attack vector.
 func TestTxOverflowErrors(t *testing.T) {
-	// Use protocol version 70001 and transaction version 1 specifically
-	// here instead of the latest values because the test data is using
-	// bytes encoded with those versions.
+	// Use protocol version 70001 and transaction version 1 specifically here instead of the latest values because the test data is using bytes encoded with those versions.
 	pver := uint32(70001)
 	txVer := uint32(1)
 	tests := []struct {
@@ -609,8 +604,7 @@ func TestTxOverflowErrors(t *testing.T) {
 				0xff, // Varint for number of output transactions
 			}, pver, BaseEncoding, txVer, &MessageError{},
 		},
-		// Transaction that has an input with a signature script that
-		// claims to have ~uint64(0) length.
+		// Transaction that has an input with a signature script that claims to have ~uint64(0) length.
 		{
 			[]byte{
 				0x00, 0x00, 0x00, 0x01, // Version
@@ -624,8 +618,7 @@ func TestTxOverflowErrors(t *testing.T) {
 				0xff, // Varint for length of signature script
 			}, pver, BaseEncoding, txVer, &MessageError{},
 		},
-		// Transaction that has an output with a public key script
-		// that claims to have ~uint64(0) length.
+		// Transaction that has an output with a public key script that claims to have ~uint64(0) length.
 		{
 			[]byte{
 				0x00, 0x00, 0x00, 0x01, // Version
@@ -665,8 +658,8 @@ func TestTxOverflowErrors(t *testing.T) {
 		}
 	}
 }
-// TestTxSerializeSizeStripped performs tests to ensure the serialize size for
-// various transactions is accurate.
+
+// TestTxSerializeSizeStripped performs tests to ensure the serialize size for various transactions is accurate.
 func TestTxSerializeSizeStripped(t *testing.T) {
 	// Empty tx message.
 	noTx := NewMsgTx(1)
@@ -679,9 +672,7 @@ func TestTxSerializeSizeStripped(t *testing.T) {
 		{noTx, 10},
 		// Transcaction with an input and an output.
 		{multiTx, 210},
-		// Transaction with an input which includes witness data, and
-		// one output. Note that this uses SerializeSizeStripped which
-		// excludes the additional bytes due to witness data encoding.
+		// Transaction with an input which includes witness data, and one output. Note that this uses SerializeSizeStripped which excludes the additional bytes due to witness data encoding.
 		{multiWitnessTx, 82},
 	}
 	t.Logf("Running %d tests", len(tests))
@@ -694,15 +685,14 @@ func TestTxSerializeSizeStripped(t *testing.T) {
 		}
 	}
 }
-// TestTxWitnessSize performs tests to ensure that the serialized size for
-// various types of transactions that include witness data is accurate.
+
+// TestTxWitnessSize performs tests to ensure that the serialized size for various types of transactions that include witness data is accurate.
 func TestTxWitnessSize(t *testing.T) {
 	tests := []struct {
 		in   *MsgTx // Tx to encode
 		size int    // Expected serialized size w/ witnesses
 	}{
-		// Transaction with an input which includes witness data, and
-		// one output.
+		// Transaction with an input which includes witness data, and one output.
 		{multiWitnessTx, 190},
 	}
 	t.Logf("Running %d tests", len(tests))
@@ -715,6 +705,7 @@ func TestTxWitnessSize(t *testing.T) {
 		}
 	}
 }
+
 // multiTx is a MsgTx with an input and output and used in various tests.
 var multiTx = &MsgTx{
 	Version: 1,
@@ -766,8 +757,8 @@ var multiTx = &MsgTx{
 	},
 	LockTime: 0,
 }
-// multiTxEncoded is the wire encoded bytes for multiTx using protocol version
-// 60002 and is used in the various tests.
+
+// multiTxEncoded is the wire encoded bytes for multiTx using protocol version 60002 and is used in the various tests.
 var multiTxEncoded = []byte{
 	0x01, 0x00, 0x00, 0x00, // Version
 	0x01, // Varint for number of input transactions
@@ -808,11 +799,11 @@ var multiTxEncoded = []byte{
 	0xac,                   // OP_CHECKSIG
 	0x00, 0x00, 0x00, 0x00, // Lock time
 }
-// multiTxPkScriptLocs is the location information for the public key scripts
-// located in multiTx.
+
+// multiTxPkScriptLocs is the location information for the public key scripts located in multiTx.
 var multiTxPkScriptLocs = []int{63, 139}
-// multiWitnessTx is a MsgTx with an input with witness data, and an
-// output used in various tests.
+
+// multiWitnessTx is a MsgTx with an input with witness data, and an output used in various tests.
 var multiWitnessTx = &MsgTx{
 	Version: 1,
 	TxIn: []*TxIn{
@@ -863,9 +854,8 @@ var multiWitnessTx = &MsgTx{
 		},
 	},
 }
-// multiWitnessTxEncoded is the wire encoded bytes for multiWitnessTx including inputs
-// with witness data using protocol version 70012 and is used in the various
-// tests.
+
+// multiWitnessTxEncoded is the wire encoded bytes for multiWitnessTx including inputs with witness data using protocol version 70012 and is used in the various tests.
 var multiWitnessTxEncoded = []byte{
 	0x1, 0x0, 0x0, 0x0, // Version
 	0x0, // Marker byte indicating 0 inputs, or a segwit encoded tx
@@ -905,9 +895,8 @@ var multiWitnessTxEncoded = []byte{
 	0x8f,
 	0x0, 0x0, 0x0, 0x0, // Lock time
 }
-// multiWitnessTxEncodedNonZeroFlag is an incorrect wire encoded bytes for
-// multiWitnessTx including inputs with witness data. Instead of the flag byte
-// being set to 0x01, the flag is 0x00, which should trigger a decoding error.
+
+// multiWitnessTxEncodedNonZeroFlag is an incorrect wire encoded bytes for multiWitnessTx including inputs with witness data. Instead of the flag byte being set to 0x01, the flag is 0x00, which should trigger a decoding error.
 var multiWitnessTxEncodedNonZeroFlag = []byte{
 	0x1, 0x0, 0x0, 0x0, // Version
 	0x0, // Marker byte indicating 0 inputs, or a segwit encoded tx
@@ -947,6 +936,6 @@ var multiWitnessTxEncodedNonZeroFlag = []byte{
 	0x8f,
 	0x0, 0x0, 0x0, 0x0, // Lock time
 }
-// multiTxPkScriptLocs is the location information for the public key scripts
-// located in multiWitnessTx.
+
+// multiTxPkScriptLocs is the location information for the public key scripts located in multiWitnessTx.
 var multiWitnessTxPkScriptLocs = []int{58}

@@ -1,12 +1,13 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
 	"io"
 	"reflect"
 	"testing"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestHeaders tests the MsgHeaders API.
 func TestHeaders(t *testing.T) {
 	pver := uint32(60002)
@@ -17,9 +18,7 @@ func TestHeaders(t *testing.T) {
 		t.Errorf("NewMsgHeaders: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-	// Ensure max payload is expected value for latest protocol version.
-	// Num headers (varInt) + max allowed headers (header length + 1 byte
-	// for the number of transactions which is always 0).
+	// Ensure max payload is expected value for latest protocol version. Num headers (varInt) + max allowed headers (header length + 1 byte for the number of transactions which is always 0).
 	wantPayload := uint32(162009)
 	maxPayload := msg.MaxPayloadLength(pver)
 	if maxPayload != wantPayload {
@@ -35,8 +34,7 @@ func TestHeaders(t *testing.T) {
 			spew.Sdump(msg.Headers),
 			spew.Sdump(bh))
 	}
-	// Ensure adding more than the max allowed headers per message returns
-	// error.
+	// Ensure adding more than the max allowed headers per message returns error.
 	var err error
 	for i := 0; i < MaxBlockHeadersPerMsg+1; i++ {
 		err = msg.AddBlockHeader(bh)
@@ -46,8 +44,8 @@ func TestHeaders(t *testing.T) {
 			"not received")
 	}
 }
-// TestHeadersWire tests the MsgHeaders wire encode and decode for various
-// numbers of headers and protocol versions.
+
+// TestHeadersWire tests the MsgHeaders wire encode and decode for various numbers of headers and protocol versions.
 func TestHeadersWire(t *testing.T) {
 	hash := mainNetGenesisHash
 	merkleHash := blockOne.Header.MerkleRoot
@@ -197,8 +195,8 @@ func TestHeadersWire(t *testing.T) {
 		}
 	}
 }
-// TestHeadersWireErrors performs negative tests against wire encode and decode
-// of MsgHeaders to confirm error paths work correctly.
+
+// TestHeadersWireErrors performs negative tests against wire encode and decode of MsgHeaders to confirm error paths work correctly.
 func TestHeadersWireErrors(t *testing.T) {
 	pver := ProtocolVersion
 	wireErr := &MessageError{}
@@ -228,8 +226,7 @@ func TestHeadersWireErrors(t *testing.T) {
 		0x01, 0xe3, 0x62, 0x99, // Nonce
 		0x00, // TxnCount (0 for headers message)
 	}
-	// Message that forces an error by having more than the max allowed
-	// headers.
+	// Message that forces an error by having more than the max allowed headers.
 	maxHeaders := NewMsgHeaders()
 	for i := 0; i < MaxBlockHeadersPerMsg; i++ {
 		maxHeaders.AddBlockHeader(bh)
@@ -238,8 +235,7 @@ func TestHeadersWireErrors(t *testing.T) {
 	maxHeadersEncoded := []byte{
 		0xfd, 0xd1, 0x07, // Varint for number of addresses (2001)7D1
 	}
-	// Intentionally invalid block header that has a transaction count used
-	// to force errors.
+	// Intentionally invalid block header that has a transaction count used to force errors.
 	bhTrans := NewBlockHeader(1, &hash, &merkleHash, bits, nonce)
 	bhTrans.Version = blockOne.Header.Version
 	bhTrans.Timestamp = blockOne.Header.Timestamp
@@ -270,8 +266,7 @@ func TestHeadersWireErrors(t *testing.T) {
 		writeErr error           // Expected write error
 		readErr  error           // Expected read error
 	}{
-		// Latest protocol version with intentional read/write errors.
-		// Force error in header count.
+		// Latest protocol version with intentional read/write errors. Force error in header count.
 		{oneHeader, oneHeaderEncoded, pver, BaseEncoding, 0, io.ErrShortWrite, io.EOF},
 		// Force error in block header.
 		{oneHeader, oneHeaderEncoded, pver, BaseEncoding, 5, io.ErrShortWrite, io.EOF},
@@ -292,8 +287,7 @@ func TestHeadersWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.writeErr {
 				t.Errorf("BtcEncode #%d wrong error got: %v, "+
@@ -310,8 +304,7 @@ func TestHeadersWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.readErr {
 				t.Errorf("BtcDecode #%d wrong error got: %v, "+

@@ -1,24 +1,22 @@
-
 package wire
+
 import (
 	"fmt"
-	"io"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"io"
 )
-// maxFlagsPerMerkleBlock is the maximum number of flag bytes that could
-// possibly fit into a merkle block.  Since each transaction is represented by
-// a single bit, this is the max number of transactions per block divided by
-// 8 bits per byte.  Then an extra one to cover partials.
+
+// maxFlagsPerMerkleBlock is the maximum number of flag bytes that could possibly fit into a merkle block.  Since each transaction is represented by a single bit, this is the max number of transactions per block divided by 8 bits per byte.  Then an extra one to cover partials.
 const maxFlagsPerMerkleBlock = maxTxPerBlock / 8
-// MsgMerkleBlock implements the Message interface and represents a bitcoin
-// merkleblock message which is used to reset a Bloom filter.
-// This message was not added until protocol version BIP0037Version.
+
+// MsgMerkleBlock implements the Message interface and represents a bitcoin merkleblock message which is used to reset a Bloom filter. This message was not added until protocol version BIP0037Version.
 type MsgMerkleBlock struct {
 	Header       BlockHeader
 	Transactions uint32
 	Hashes       []*chainhash.Hash
 	Flags        []byte
 }
+
 // AddTxHash adds a new transaction hash to the message.
 func (msg *MsgMerkleBlock) AddTxHash(hash *chainhash.Hash) error {
 	if len(msg.Hashes)+1 > maxTxPerBlock {
@@ -29,8 +27,8 @@ func (msg *MsgMerkleBlock) AddTxHash(hash *chainhash.Hash) error {
 	msg.Hashes = append(msg.Hashes, hash)
 	return nil
 }
-// BtcDecode decodes r using the bitcoin protocol encoding into the receiver.
-// This is part of the Message interface implementation.
+
+// BtcDecode decodes r using the bitcoin protocol encoding into the receiver. This is part of the Message interface implementation.
 func (msg *MsgMerkleBlock) BtcDecode(r io.Reader, pver uint32, enc MessageEncoding) error {
 	if pver < BIP0037Version {
 		str := fmt.Sprintf("merkleblock message invalid for protocol "+
@@ -55,8 +53,7 @@ func (msg *MsgMerkleBlock) BtcDecode(r io.Reader, pver uint32, enc MessageEncodi
 			"[count %v, max %v]", count, maxTxPerBlock)
 		return messageError("MsgMerkleBlock.BtcDecode", str)
 	}
-	// Create a contiguous slice of hashes to deserialize into in order to
-	// reduce the number of allocations.
+	// Create a contiguous slice of hashes to deserialize into in order to reduce the number of allocations.
 	hashes := make([]chainhash.Hash, count)
 	msg.Hashes = make([]*chainhash.Hash, 0, count)
 	for i := uint64(0); i < count; i++ {
@@ -71,8 +68,8 @@ func (msg *MsgMerkleBlock) BtcDecode(r io.Reader, pver uint32, enc MessageEncodi
 		"merkle block flags size")
 	return err
 }
-// BtcEncode encodes the receiver to w using the bitcoin protocol encoding.
-// This is part of the Message interface implementation.
+
+// BtcEncode encodes the receiver to w using the bitcoin protocol encoding. This is part of the Message interface implementation.
 func (msg *MsgMerkleBlock) BtcEncode(w io.Writer, pver uint32, enc MessageEncoding) error {
 	if pver < BIP0037Version {
 		str := fmt.Sprintf("merkleblock message invalid for protocol "+
@@ -112,18 +109,18 @@ func (msg *MsgMerkleBlock) BtcEncode(w io.Writer, pver uint32, enc MessageEncodi
 	}
 	return WriteVarBytes(w, pver, msg.Flags)
 }
-// Command returns the protocol command string for the message.  This is part
-// of the Message interface implementation.
+
+// Command returns the protocol command string for the message.  This is part of the Message interface implementation.
 func (msg *MsgMerkleBlock) Command() string {
 	return CmdMerkleBlock
 }
-// MaxPayloadLength returns the maximum length the payload can be for the
-// receiver.  This is part of the Message interface implementation.
+
+// MaxPayloadLength returns the maximum length the payload can be for the receiver.  This is part of the Message interface implementation.
 func (msg *MsgMerkleBlock) MaxPayloadLength(pver uint32) uint32 {
 	return MaxBlockPayload
 }
-// NewMsgMerkleBlock returns a new bitcoin merkleblock message that conforms to
-// the Message interface.  See MsgMerkleBlock for details.
+
+// NewMsgMerkleBlock returns a new bitcoin merkleblock message that conforms to the Message interface.  See MsgMerkleBlock for details.
 func NewMsgMerkleBlock(bh *BlockHeader) *MsgMerkleBlock {
 	return &MsgMerkleBlock{
 		Header:       *bh,

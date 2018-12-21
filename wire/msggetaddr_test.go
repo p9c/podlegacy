@@ -1,11 +1,12 @@
-
 package wire
+
 import (
 	"bytes"
+	"github.com/davecgh/go-spew/spew"
 	"reflect"
 	"testing"
-	"github.com/davecgh/go-spew/spew"
 )
+
 // TestGetAddr tests the MsgGetAddr API.
 func TestGetAddr(t *testing.T) {
 	pver := ProtocolVersion
@@ -16,8 +17,7 @@ func TestGetAddr(t *testing.T) {
 		t.Errorf("NewMsgGetAddr: wrong command - got %v want %v",
 			cmd, wantCmd)
 	}
-	// Ensure max payload is expected value for latest protocol version.
-	// Num addresses (varInt) + max allowed addresses.
+	// Ensure max payload is expected value for latest protocol version. Num addresses (varInt) + max allowed addresses.
 	wantPayload := uint32(0)
 	maxPayload := msg.MaxPayloadLength(pver)
 	if maxPayload != wantPayload {
@@ -26,8 +26,8 @@ func TestGetAddr(t *testing.T) {
 			maxPayload, wantPayload)
 	}
 }
-// TestGetAddrWire tests the MsgGetAddr wire encode and decode for various
-// protocol versions.
+
+// TestGetAddrWire tests the MsgGetAddr wire encode and decode for various protocol versions.
 func TestGetAddrWire(t *testing.T) {
 	msgGetAddr := NewMsgGetAddr()
 	msgGetAddrEncoded := []byte{}

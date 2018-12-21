@@ -61,8 +61,7 @@ func TestFilterAddCrossProtocol(t *testing.T) {
 		t.Errorf("decode of MsgFilterAdd succeeded when it shouldn't "+
 			"have %v", msg)
 	}
-	// Since one of the protocol versions doesn't support the filteradd
-	// message, make sure the data didn't get encoded and decoded back out.
+	// Since one of the protocol versions doesn't support the filteradd message, make sure the data didn't get encoded and decoded back out.
 	if bytes.Equal(msg.Data, readmsg.Data) {
 		t.Error("should not get same data for cross protocol")
 	}
@@ -105,8 +104,7 @@ func TestFilterAddWireErrors(t *testing.T) {
 		writeErr error           // Expected write error
 		readErr  error           // Expected read error
 	}{
-		// Latest protocol version with intentional read/write errors.
-		// Force error in data size.
+		// Latest protocol version with intentional read/write errors. Force error in data size.
 		{
 			baseFilterAdd, baseFilterAddEncoded, pver, BaseEncoding, 0,
 			io.ErrShortWrite, io.EOF,
@@ -132,8 +130,7 @@ func TestFilterAddWireErrors(t *testing.T) {
 				i, err, test.writeErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.writeErr {
 				t.Errorf("BtcEncode #%d wrong error got: %v, "+
@@ -150,8 +147,7 @@ func TestFilterAddWireErrors(t *testing.T) {
 				i, err, test.readErr)
 			continue
 		}
-		// For errors which are not of type MessageError, check them for
-		// equality.
+		// For errors which are not of type MessageError, check them for equality.
 		if _, ok := err.(*MessageError); !ok {
 			if err != test.readErr {
 				t.Errorf("BtcDecode #%d wrong error got: %v, "+
