@@ -121,7 +121,7 @@ func isBIP0030Node(node *blockNode) bool {
 }
 
 // CalcBlockSubsidy returns the subsidy amount a block at the provided height should have. This is mainly used for determining how much the coinbase for newly generated blocks awards as well as validating the coinbase for blocks has the expected value. The subsidy is halved every SubsidyReductionInterval blocks.  Mathematically this is: baseSubsidy / 2^(height/SubsidyReductionInterval) At the target block generation rate for the main network, this is approximately every 4 years.
-// TODO: Add an exponential decay that returns the point on a precise 1/x^2 curve that creates exactly 5% reward at 1 year (31536000 seconds) so that long range divergence does not change the time per additional proportion of reward. This necessarily means blocks are higher value the longer the gap. This is for HF1
+// TODO: Add an exponential decay that returns the point on a precise 1/x^2 curve that creates exactly 5% reward at 1 year (31536000 seconds)
 func CalcBlockSubsidy(height int32, chainParams *chaincfg.Params) int64 {
 	if chainParams.SubsidyReductionInterval == 0 {
 		return baseSubsidy

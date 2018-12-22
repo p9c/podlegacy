@@ -16,8 +16,8 @@ Next generation full node for Parallelcoin, forked from [btcd](https://github.co
 - Keccac (maxcoin, smartcash)
 - Scrypt (litecoin)
 - SHA256D (bitcoin)
-- Skein (myriadcoin)
-- Whirlpool \*
+- ~~Skein (myriadcoin)~~ HighwayHash \*
+- Whirlpool
 - X11 (dash)
 
 ### Stochastic Binomial Filter Difficulty Adjustment
@@ -40,7 +40,7 @@ The pod has no RPC wallet functionality, only core chain functions. It is fully 
 
 A Webview/Golang based GUI wallet will come a little later, following the release, and will be able to run on all platforms with with browser or supported built-in web application platforms, Blink and Webkit engines.
 
-\* At the time of release there will not be any GPU nor ASIC miners for the GOST Stribog (just stribog 256 bit hash, not combined) and whirlpool (only coin with this is long dead but it is a commonly used disk encryption hash function so possibly someone may make one in time for it).
+\* At the time of release there will not be any GPU nor ASIC miners for the GOST Stribog (just stribog 256 bit hash, not combined) and Highwayhash.
 
 ## Installation
 
