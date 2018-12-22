@@ -4,6 +4,7 @@ package fork
 
 import (
 	"encoding/hex"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"math/big"
 )
 
@@ -48,6 +49,13 @@ var (
 		return *big.NewInt(0).SetBytes(mplb)
 	}()
 	mainPowLimitBits = BigToCompact(&mainPowLimit)
+
+	p9PowLimit = func() big.Int {
+		mplb, _ := hex.DecodeString("0fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+		return *big.NewInt(0).SetBytes(mplb)
+	}()
+	p9PowLimitBits = BigToCompact(&p9PowLimit)
+
 	// Algos are the specifications identifying the algorithm used in the block proof
 	Algos = map[string]AlgoParams{
 		"sha256d": {2, mainPowLimitBits, 0},
@@ -55,15 +63,15 @@ var (
 	}
 	// P9Algos is the algorithm specifications after the hard fork
 	P9Algos = map[string]AlgoParams{
-		"blake14lr": {0, mainPowLimitBits, 0},
-		"gost":      {1, mainPowLimitBits, 1},
-		"keccak":    {2, mainPowLimitBits, 2},
-		"lyra2rev2": {3, mainPowLimitBits, 3},
-		"scrypt":    {4, mainPowLimitBits, 4},
-		"sha256d":   {5, mainPowLimitBits, 5},
-		"skein":     {6, mainPowLimitBits, 6},
-		"whirlpool": {7, mainPowLimitBits, 7},
-		"x11":       {8, mainPowLimitBits, 8},
+		"blake14lr":      {0, p9PowLimitBits, 0},
+		"cryptonight7v2": {1, p9PowLimitBits, 1},
+		"keccak":         {2, p9PowLimitBits, 2},
+		"lyra2rev2":      {3, p9PowLimitBits, 3},
+		"scrypt":         {4, p9PowLimitBits, 4},
+		"sha256d":        {5, p9PowLimitBits, 5},
+		"skein":          {6, p9PowLimitBits, 7},
+		"stribog":        {7, p9PowLimitBits, 6},
+		"x11":            {8, p9PowLimitBits, 8},
 	}
 	// AlgoVers is the lookup for pre hardfork
 	AlgoVers = map[int32]string{
@@ -73,16 +81,56 @@ var (
 	// P9AlgoVers is the lookup for after 1st hardfork
 	P9AlgoVers = map[int32]string{
 		0: "blake14lr",
-		1: "gost",
+		1: "cryptonight7v2",
 		2: "keccak",
 		3: "lyra2rev2",
 		4: "scrypt",
 		5: "sha256d",
 		6: "skein",
-		7: "whirlpool",
+		7: "stribog",
 		8: "x11",
 	}
 )
+
+const (
+	Blake14lrReps = 1
+	Lyra2rev2Reps = 1
+)
+
+// Hash computes the hash of bytes using the named hash
+func Hash(bytes []byte, name string, height int32) (out chainhash.Hash) {
+	switch name {
+	case "blake14lr":
+		out.SetBytes(Argon2i(Blake14lr(Cryptonight7v2(bytes))))
+	case "cryptonight7v2":
+		out.SetBytes(Argon2i(Cryptonight7v2(bytes)))
+	case "lyra2rev2":
+		out.SetBytes(Argon2i(Lyra2REv2(Cryptonight7v2(bytes))))
+	case "scrypt":
+		if GetCurrent(height) > 0 {
+			bytes = Argon2i(Scrypt(Cryptonight7v2(bytes)))
+		} else {
+			bytes = Scrypt(bytes)
+		}
+		out.SetBytes(bytes)
+	case "sha256d": // sha256d
+		if GetCurrent(height) > 0 {
+			bytes = Argon2i(chainhash.DoubleHashB(Cryptonight7v2(bytes)))
+		} else {
+			bytes = chainhash.DoubleHashB(bytes)
+		}
+		out.SetBytes(bytes)
+	case "stribog":
+		out.SetBytes(Argon2i(Stribog(Cryptonight7v2(bytes))))
+	case "skein":
+		out.SetBytes(Argon2i(Skein(Cryptonight7v2(bytes))))
+	case "x11":
+		out.SetBytes(Argon2i(X11(Cryptonight7v2(bytes))))
+	case "keccak":
+		out.SetBytes(Argon2i(Keccak(Cryptonight7v2(bytes))))
+	}
+	return
+}
 
 // GetAlgoVer returns the version number for a given algorithm (by string name) at a given height
 func GetAlgoVer(name string, height int32) (version int32) {
@@ -121,6 +169,7 @@ func GetAlgoID(algoname string, height int32) uint32 {
 // GetCurrent returns the hardfork number code
 func GetCurrent(height int32) (curr int) {
 	if IsTestnet {
+		// fmt.Println("getcurrent ", len(List)-1, List[1].Algos)
 		return len(List) - 1
 	}
 	for i := range List {

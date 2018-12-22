@@ -27,13 +27,13 @@ Application Options:
       --rpclimituser=         Username for limited RPC connections
       --rpclimitpass=         Password for limited RPC connections
       --rpclisten=            Add an interface/port to listen for RPC connections (default port: 11048, testnet: 21048) gives sha256d block templates
-      --scryptlisten=         Additional RPC port that delivers scrypt versioned block templates
       --blake14lrlisten=      Additional RPC port that delivers blake14lr versioned block templates
-      --gostlisten=           Additional RPC port that delivers gost versioned block templates
+      --cryptonight7v2=      Additional RPC port that delivers cryptonight7v2 versioned block templates
       --keccaklisten=         Additional RPC port that delivers keccak versioned block templates
       --lyra2rev2listen=      Additional RPC port that delivers lyra2rev2 versioned block templates
+      --scryptlisten=         Additional RPC port that delivers scrypt versioned block templates
+      --striboglisten=           Additional RPC port that delivers stribog versioned block templates
       --skeinlisten=          Additional RPC port that delivers skein versioned block templates
-      --whirlpoollisten=      Additional RPC port that delivers whirlpool versioned block templates
       --x11listen=            Additional RPC port that delivers x11 versioned block templates
       --rpccert=              File containing the certificate file (default: /home/loki/.pod/rpc.cert)
       --rpckey=               File containing the certificate key (default: /home/loki/.pod/rpc.key)
@@ -69,7 +69,7 @@ Application Options:
       --norelaypriority       Do not require free or low-fee transactions to have high priority for relaying
       --trickleinterval=      Minimum time between attempts to send new inventory to a connected peer (default: 10s)
       --maxorphantx=          Max number of orphan transactions to keep in memory (default: 100)
-      --algo=                 Sets the algorithm for the CPU miner ( blake14lr, blake2b, keccak, lyra2rev2, scrypt, skein, x11, x13, sha256d, scrypt default sha256d) (default: sha256d)
+      --algo=                 Sets the algorithm for the CPU miner ( blake14lr, cryptonight7v2, keccak, lyra2rev2, sha256d, scrypt, stribog, skein, x11,default sha256d) (default: sha256d)
       --generate              Generate (mine) bitcoins using the CPU
       --genthreads=           Number of CPU threads to use with CPU miner -1 = all cores (default: 1)
       --miningaddr=           Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set

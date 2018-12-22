@@ -1920,8 +1920,8 @@ func handleGetHeaders(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) 
 
 // handleGetInfo implements the getinfo command. We only return the fields that are not related to wallet functionality.
 func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (ret interface{}, err error) {
-	var Difficulty, dSHA256D, dScrypt, dBlake14lr, dWhirlpool, dLyra2rev2, dSkein, dX11, dGost, dKeccak float64
-	var lastbitsSHA256D, lastbitsScrypt, lastbitsBlake14lr, lastbitsWhirlpool, lastbitsLyra2rev2, lastbitsSkein, lastbitsX11, lastbitsGost, lastbitsKeccak uint32
+	var Difficulty, dSHA256D, dScrypt, dBlake14lr, dCryptonight7v2, dLyra2rev2, dSkein, dX11, dStribog, dKeccak float64
+	var lastbitsSHA256D, lastbitsScrypt, lastbitsBlake14lr, lastbitsCryptonight7v2, lastbitsLyra2rev2, lastbitsSkein, lastbitsX11, lastbitsStribog, lastbitsKeccak uint32
 	best := s.cfg.Chain.BestSnapshot()
 	v := s.cfg.Chain.Index.LookupNode(&best.Hash)
 	foundcount, height := 0, best.Height
@@ -1986,10 +1986,10 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 					dBlake14lr = getDifficultyRatio(lastbitsBlake14lr, s.cfg.ChainParams, v.Header().Version)
 				}
 			case "whirlpool":
-				if lastbitsWhirlpool == 0 {
+				if lastbitsCryptonight7v2 == 0 {
 					foundcount++
-					lastbitsWhirlpool = v.Header().Bits
-					dWhirlpool = getDifficultyRatio(lastbitsWhirlpool, s.cfg.ChainParams, v.Header().Version)
+					lastbitsCryptonight7v2 = v.Header().Bits
+					dCryptonight7v2 = getDifficultyRatio(lastbitsCryptonight7v2, s.cfg.ChainParams, v.Header().Version)
 				}
 			case "lyra2rev2":
 				if lastbitsLyra2rev2 == 0 {
@@ -2009,11 +2009,11 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 					lastbitsX11 = v.Header().Bits
 					dX11 = getDifficultyRatio(lastbitsX11, s.cfg.ChainParams, v.Header().Version)
 				}
-			case "gost":
-				if lastbitsGost == 0 {
+			case "stribog":
+				if lastbitsStribog == 0 {
 					foundcount++
-					lastbitsGost = v.Header().Bits
-					dGost = getDifficultyRatio(lastbitsGost, s.cfg.ChainParams, v.Header().Version)
+					lastbitsStribog = v.Header().Bits
+					dStribog = getDifficultyRatio(lastbitsStribog, s.cfg.ChainParams, v.Header().Version)
 				}
 			case "keccak":
 				if lastbitsKeccak == 0 {
@@ -2037,16 +2037,16 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 			Difficulty = dSHA256D
 		case "blake14lr":
 			Difficulty = dBlake14lr
-		case "whirlpool":
-			Difficulty = dWhirlpool
+		case "cryptonight7v2":
+			Difficulty = dCryptonight7v2
 		case "lyra2rev2":
 			Difficulty = dLyra2rev2
 		case "skein":
 			Difficulty = dSkein
 		case "x11":
 			Difficulty = dX11
-		case "gost":
-			Difficulty = dGost
+		case "stribog":
+			Difficulty = dStribog
 		case "keccak":
 			Difficulty = dKeccak
 		case "scrypt":
@@ -2054,26 +2054,26 @@ func handleGetInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (re
 		default:
 		}
 		ret = &btcjson.InfoChainResult{
-			Version:             int32(1000000*appMajor + 10000*appMinor + 100*appPatch),
-			ProtocolVersion:     int32(maxProtocolVersion),
-			Blocks:              best.Height,
-			TimeOffset:          int64(s.cfg.TimeSource.Offset().Seconds()),
-			Connections:         s.cfg.ConnMgr.ConnectedCount(),
-			Proxy:               cfg.Proxy,
-			PowAlgoID:           fork.GetAlgoID(s.cfg.Algo, height),
-			PowAlgo:             s.cfg.Algo,
-			Difficulty:          Difficulty,
-			DifficultySHA256D:   dSHA256D,
-			DifficultyScrypt:    dScrypt,
-			DifficultyBlake14lr: dBlake14lr,
-			DifficultyWhirlpool: dWhirlpool,
-			DifficultyLyra2rev2: dLyra2rev2,
-			DifficultySkein:     dSkein,
-			DifficultyX11:       dX11,
-			DifficultyGost:      dGost,
-			DifficultyKeccak:    dKeccak,
-			TestNet:             cfg.TestNet3,
-			RelayFee:            cfg.minRelayTxFee.ToDUO(),
+			Version:                  int32(1000000*appMajor + 10000*appMinor + 100*appPatch),
+			ProtocolVersion:          int32(maxProtocolVersion),
+			Blocks:                   best.Height,
+			TimeOffset:               int64(s.cfg.TimeSource.Offset().Seconds()),
+			Connections:              s.cfg.ConnMgr.ConnectedCount(),
+			Proxy:                    cfg.Proxy,
+			PowAlgoID:                fork.GetAlgoID(s.cfg.Algo, height),
+			PowAlgo:                  s.cfg.Algo,
+			Difficulty:               Difficulty,
+			DifficultyScrypt:         dScrypt,
+			DifficultyBlake14lr:      dBlake14lr,
+			DifficultyCryptonight7v2: dCryptonight7v2,
+			DifficultyLyra2rev2:      dLyra2rev2,
+			DifficultySkein:          dSkein,
+			DifficultySHA256D:        dSHA256D,
+			DifficultyX11:            dX11,
+			DifficultyStribog:        dStribog,
+			DifficultyKeccak:         dKeccak,
+			TestNet:                  cfg.TestNet3,
+			RelayFee:                 cfg.minRelayTxFee.ToDUO(),
 		}
 	}
 	return ret, nil
@@ -2108,8 +2108,8 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 			Message: "networkHashesPerSec is not an int64",
 		}
 	}
-	var Difficulty, dSHA256D, dScrypt, dBlake14lr, dWhirlpool, dLyra2rev2, dSkein, dX11, dGost, dKeccak float64
-	var lastbitsSHA256D, lastbitsScrypt, lastbitsBlake14lr, lastbitsWhirlpool, lastbitsLyra2rev2, lastbitsSkein, lastbitsX11, lastbitsGost, lastbitsKeccak uint32
+	var Difficulty, dSHA256D, dScrypt, dBlake14lr, dCryptonight7v2, dLyra2rev2, dSkein, dX11, dStribog, dKeccak float64
+	var lastbitsSHA256D, lastbitsScrypt, lastbitsBlake14lr, lastbitsCryptonight7v2, lastbitsLyra2rev2, lastbitsSkein, lastbitsX11, lastbitsStribog, lastbitsKeccak uint32
 	best := s.cfg.Chain.BestSnapshot()
 	v := s.cfg.Chain.Index.LookupNode(&best.Hash)
 	foundcount, height := 0, best.Height
@@ -2175,10 +2175,10 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 					dBlake14lr = getDifficultyRatio(lastbitsBlake14lr, s.cfg.ChainParams, v.Header().Version)
 				}
 			case "whirlpool":
-				if lastbitsWhirlpool == 0 {
+				if lastbitsCryptonight7v2 == 0 {
 					foundcount++
-					lastbitsWhirlpool = v.Header().Bits
-					dWhirlpool = getDifficultyRatio(lastbitsWhirlpool, s.cfg.ChainParams, v.Header().Version)
+					lastbitsCryptonight7v2 = v.Header().Bits
+					dCryptonight7v2 = getDifficultyRatio(lastbitsCryptonight7v2, s.cfg.ChainParams, v.Header().Version)
 				}
 			case "lyra2rev2":
 				if lastbitsLyra2rev2 == 0 {
@@ -2198,11 +2198,11 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 					lastbitsX11 = v.Header().Bits
 					dX11 = getDifficultyRatio(lastbitsX11, s.cfg.ChainParams, v.Header().Version)
 				}
-			case "gost":
-				if lastbitsGost == 0 {
+			case "stribog":
+				if lastbitsStribog == 0 {
 					foundcount++
-					lastbitsGost = v.Header().Bits
-					dGost = getDifficultyRatio(lastbitsGost, s.cfg.ChainParams, v.Header().Version)
+					lastbitsStribog = v.Header().Bits
+					dStribog = getDifficultyRatio(lastbitsStribog, s.cfg.ChainParams, v.Header().Version)
 				}
 			case "keccak":
 				if lastbitsKeccak == 0 {
@@ -2227,15 +2227,15 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 		case "blake14lr":
 			Difficulty = dBlake14lr
 		case "whirlpool":
-			Difficulty = dWhirlpool
+			Difficulty = dCryptonight7v2
 		case "lyra2rev2":
 			Difficulty = dLyra2rev2
 		case "skein":
 			Difficulty = dSkein
 		case "x11":
 			Difficulty = dX11
-		case "gost":
-			Difficulty = dGost
+		case "stribog":
+			Difficulty = dStribog
 		case "keccak":
 			Difficulty = dKeccak
 		case "scrypt":
@@ -2243,29 +2243,29 @@ func handleGetMiningInfo(s *rpcServer, cmd interface{}, closeChan <-chan struct{
 		default:
 		}
 		ret = &btcjson.GetMiningInfoResult{
-			Blocks:              int64(best.Height),
-			CurrentBlockSize:    best.BlockSize,
-			CurrentBlockWeight:  best.BlockWeight,
-			CurrentBlockTx:      best.NumTxns,
-			PowAlgoID:           fork.GetAlgoID(s.cfg.Algo, height),
-			PowAlgo:             s.cfg.Algo,
-			Difficulty:          Difficulty,
-			DifficultySHA256D:   dSHA256D,
-			DifficultyScrypt:    dScrypt,
-			DifficultyBlake14lr: dBlake14lr,
-			DifficultyWhirlpool: dWhirlpool,
-			DifficultyLyra2rev2: dLyra2rev2,
-			DifficultySkein:     dSkein,
-			DifficultyX11:       dX11,
-			DifficultyGost:      dGost,
-			DifficultyKeccak:    dKeccak,
-			Generate:            s.cfg.CPUMiner.IsMining(),
-			GenAlgo:             s.cfg.CPUMiner.GetAlgo(),
-			GenProcLimit:        s.cfg.CPUMiner.NumWorkers(),
-			HashesPerSec:        int64(s.cfg.CPUMiner.HashesPerSecond()),
-			NetworkHashPS:       networkHashesPerSec,
-			PooledTx:            uint64(s.cfg.TxMemPool.Count()),
-			TestNet:             cfg.TestNet3,
+			Blocks:                   int64(best.Height),
+			CurrentBlockSize:         best.BlockSize,
+			CurrentBlockWeight:       best.BlockWeight,
+			CurrentBlockTx:           best.NumTxns,
+			PowAlgoID:                fork.GetAlgoID(s.cfg.Algo, height),
+			PowAlgo:                  s.cfg.Algo,
+			Difficulty:               Difficulty,
+			DifficultySHA256D:        dSHA256D,
+			DifficultyScrypt:         dScrypt,
+			DifficultyBlake14lr:      dBlake14lr,
+			DifficultyCryptonight7v2: dCryptonight7v2,
+			DifficultyLyra2rev2:      dLyra2rev2,
+			DifficultySkein:          dSkein,
+			DifficultyX11:            dX11,
+			DifficultyStribog:        dStribog,
+			DifficultyKeccak:         dKeccak,
+			Generate:                 s.cfg.CPUMiner.IsMining(),
+			GenAlgo:                  s.cfg.CPUMiner.GetAlgo(),
+			GenProcLimit:             s.cfg.CPUMiner.NumWorkers(),
+			HashesPerSec:             int64(s.cfg.CPUMiner.HashesPerSecond()),
+			NetworkHashPS:            networkHashesPerSec,
+			PooledTx:                 uint64(s.cfg.TxMemPool.Count()),
+			TestNet:                  cfg.TestNet3,
 		}
 	}
 	return ret, nil

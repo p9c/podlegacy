@@ -1,15 +1,16 @@
-
 package chaincfg
+
 import (
 	"encoding/hex"
 	"errors"
+	"github.com/parallelcointeam/pod/chaincfg/chainhash"
+	"github.com/parallelcointeam/pod/wire"
 	"math"
 	"math/big"
 	"strings"
 	"time"
-	"github.com/parallelcointeam/pod/chaincfg/chainhash"
-	"github.com/parallelcointeam/pod/wire"
 )
+
 // These variables are the chain proof-of-work limit parameters for each default network.
 var (
 	// AllOnes is 32 bytes of 0xff, the maximum target
@@ -40,29 +41,31 @@ var (
 	testnetBits        = ScryptPowLimitBits
 	testNet3PowLimit   = ScryptPowLimit
 	// simNetPowLimit is the highest proof of work value a Bitcoin block can have for the simulation test network.  It is the value 2^255 - 1, all ones, 256 bits.
-	simNetPowLimit = &AllOnes
-	Interval                int64 = 100
-	MaxAdjustDown           int64 = 10
-	MaxAdjustUp             int64 = 20
-	TargetTimePerBlock      int64 = 300
-	AveragingInterval       int64 = 10
-	AveragingTargetTimespan       = TargetTimePerBlock * AveragingInterval
-	TargetTimespan                = Interval * TargetTimePerBlock
+	simNetPowLimit                         = &AllOnes
+	Interval                       int64   = 100
+	MaxAdjustDown                  int64   = 10
+	MaxAdjustUp                    int64   = 20
+	TargetTimePerBlock             int64   = 300
+	AveragingInterval              int64   = 10
+	AveragingTargetTimespan                = TargetTimePerBlock * AveragingInterval
+	TargetTimespan                         = Interval * TargetTimePerBlock
 	TestnetCoefficient             float64 = 0.12
 	TestnetInterval                int64   = 100
 	TestnetMaxAdjustDown           int64   = 10
 	TestnetMaxAdjustUp             int64   = 20
-	TestnetTargetTimePerBlock      int64   = 293
+	TestnetTargetTimePerBlock      int64   = 29 // 293
 	TestnetAveragingInterval       int64   = 1439
 	TestnetAveragingTargetTimespan         = TestnetTargetTimePerBlock * TestnetAveragingInterval
 	TestnetTargetTimespan                  = TestnetInterval * TestnetTargetTimePerBlock
 )
+
 // Checkpoint identifies a known good point in the block chain.  Using checkpoints allows a few optimizations for old blocks during initial download and also prevents forks from old blocks.
 // Each checkpoint is selected based upon several factors.  See the documentation for blockchain.IsCheckpointCandidate for details on the selection criteria.
 type Checkpoint struct {
 	Height int32
 	Hash   *chainhash.Hash
 }
+
 // DNSSeed identifies a DNS seed.
 type DNSSeed struct {
 	// Host defines the hostname of the seed.
@@ -70,6 +73,7 @@ type DNSSeed struct {
 	// HasFiltering defines whether the seed supports filtering by service flags (wire.ServiceFlag).
 	HasFiltering bool
 }
+
 // ConsensusDeployment defines details related to a specific consensus rule
 // change that is voted in.  This is part of BIP0009.
 type ConsensusDeployment struct {
@@ -83,6 +87,7 @@ type ConsensusDeployment struct {
 	// deployment expires.
 	ExpireTime uint64
 }
+
 // Constants that define the deployment offset in the deployments field of the
 // parameters for each deployment.  This is useful to be able to get the details
 // of a specific deployment by name.
@@ -103,6 +108,7 @@ const (
 	// DefinedDeployments is the number of currently defined deployments.
 	DefinedDeployments
 )
+
 // Params defines a Bitcoin network by its parameters.  These parameters may be
 // used by Bitcoin applications to differentiate networks as well as addresses
 // and keys for one network from those intended for use on another network.
@@ -210,6 +216,7 @@ type Params struct {
 	ScryptPowLimit     *big.Int
 	ScryptPowLimitBits uint32
 }
+
 // MainNetParams defines the network parameters for the main Bitcoin network.
 var MainNetParams = Params{
 	Name:        "mainnet",
@@ -294,6 +301,7 @@ var MainNetParams = Params{
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
+
 // RegressionNetParams defines the network parameters for the regression test
 // Bitcoin network.  Not to be confused with the test Bitcoin network (version
 // 3), this network is sometimes simply called "testnet".
@@ -370,6 +378,7 @@ var RegressionNetParams = Params{
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
+
 // TestNet3Params defines the network parameters for the test Bitcoin network
 // (version 3).  Not to be confused with the regression test network, this
 // network is sometimes simply called "testnet".
@@ -453,6 +462,7 @@ var TestNet3Params = Params{
 	ScryptPowLimit:          &scryptPowLimit,
 	ScryptPowLimitBits:      ScryptPowLimitBits,
 }
+
 // SimNetParams defines the network parameters for the simulation test Bitcoin
 // network.  This network is similar to the normal test network except it is
 // intended for private use within a group of individuals doing simulation
@@ -552,10 +562,12 @@ var (
 	bech32SegwitPrefixes = make(map[string]struct{})
 	hdPrivToPubKeyIDs    = make(map[[4]byte][]byte)
 )
+
 // String returns the hostname of the DNS seed in human-readable form.
 func (d DNSSeed) String() string {
 	return d.Host
 }
+
 // Register registers the network parameters for a Bitcoin network.  This may
 // error with ErrDuplicateNet if the network is already registered (either
 // due to a previous Register call, or the network being one of the default
@@ -577,6 +589,7 @@ func Register(params *Params) error {
 	bech32SegwitPrefixes[params.Bech32HRPSegwit+"1"] = struct{}{}
 	return nil
 }
+
 // mustRegister performs the same function as Register except it panics if there
 // is an error.  This should only be called from package init functions.
 func mustRegister(params *Params) {
@@ -584,6 +597,7 @@ func mustRegister(params *Params) {
 		panic("failed to register network: " + err.Error())
 	}
 }
+
 // IsPubKeyHashAddrID returns whether the id is an identifier known to prefix a
 // pay-to-pubkey-hash address on any default or registered network.  This is
 // used when decoding an address string into a specific address type.  It is up
@@ -594,6 +608,7 @@ func IsPubKeyHashAddrID(id byte) bool {
 	_, ok := pubKeyHashAddrIDs[id]
 	return ok
 }
+
 // IsScriptHashAddrID returns whether the id is an identifier known to prefix a
 // pay-to-script-hash address on any default or registered network.  This is
 // used when decoding an address string into a specific address type.  It is up
@@ -604,6 +619,7 @@ func IsScriptHashAddrID(id byte) bool {
 	_, ok := scriptHashAddrIDs[id]
 	return ok
 }
+
 // IsBech32SegwitPrefix returns whether the prefix is a known prefix for segwit
 // addresses on any default or registered network.  This is used when decoding
 // an address string into a specific address type.
@@ -612,6 +628,7 @@ func IsBech32SegwitPrefix(prefix string) bool {
 	_, ok := bech32SegwitPrefixes[prefix]
 	return ok
 }
+
 // HDPrivateKeyToPublicKeyID accepts a private hierarchical deterministic
 // extended key id and returns the associated public key id.  When the provided
 // id is not registered, the ErrUnknownHDKeyID error will be returned.
@@ -627,6 +644,7 @@ func HDPrivateKeyToPublicKeyID(id []byte) ([]byte, error) {
 	}
 	return pubBytes, nil
 }
+
 // newHashFromStr converts the passed big-endian hex string into a
 // chainhash.Hash.  It only differs from the one available in chainhash in that
 // it panics on an error since it will only (and must only) be called with
@@ -652,6 +670,7 @@ func init() {
 	mustRegister(&RegressionNetParams)
 	mustRegister(&SimNetParams)
 }
+
 // CompactToBig converts a compact representation of a whole number N to an
 // unsigned 32-bit number.  The representation is similar to IEEE754 floating
 // point numbers.
@@ -694,6 +713,7 @@ func CompactToBig(compact uint32) *big.Int {
 	}
 	return bn
 }
+
 // BigToCompact converts a whole number N to a compact representation using
 // an unsigned 32-bit number.  The compact representation only provides 23 bits
 // of precision, so values larger than (2^23 - 1) only encode the most

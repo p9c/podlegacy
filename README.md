@@ -11,13 +11,13 @@ Next generation full node for Parallelcoin, forked from [btcd](https://github.co
 9 algorithms can be used when mining:
 
 - Blake14lr (decred)
-- GOST Stribog \*
+- ~~Skein (myriadcoin)~~ Cryptonote7v2
 - Lyra2REv2 (sia)
 - Keccac (maxcoin, smartcash)
 - Scrypt (litecoin)
 - SHA256D (bitcoin)
-- ~~Skein (myriadcoin)~~ HighwayHash \*
-- Whirlpool
+- GOST Stribog \*
+- Skein
 - X11 (dash)
 
 ### Stochastic Binomial Filter Difficulty Adjustment

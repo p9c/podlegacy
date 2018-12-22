@@ -2235,15 +2235,15 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		/*	Setup listeners for the configured RPC listen addresses and
 			TLS settings. */
 		listeners := map[string][]string{
-			"sha256d":   cfg.RPCListeners,
-			"scrypt":    cfg.ScryptListeners,
-			"blake14lr": cfg.Blake14lrListeners,
-			"gost":      cfg.GostListeners,
-			"keccak":    cfg.KeccakListeners,
-			"lyra2rev2": cfg.Lyra2rev2Listeners,
-			"skein":     cfg.SkeinListeners,
-			"whirlpool": cfg.WhirlpoolListeners,
-			"x11":       cfg.X11Listeners,
+			"blake14lr":      cfg.Blake14lrListeners,
+			"cryptonight7v2": cfg.Cryptonight7v2Listeners,
+			"keccak":         cfg.KeccakListeners,
+			"lyra2rev2":      cfg.Lyra2rev2Listeners,
+			"scrypt":         cfg.ScryptListeners,
+			"sha256d":        cfg.RPCListeners,
+			"stribog":        cfg.StribogListeners,
+			"skein":          cfg.SkeinListeners,
+			"x11":            cfg.X11Listeners,
 		}
 		for l := range listeners {
 			rpcListeners, err := setupRPCListeners(listeners[l])

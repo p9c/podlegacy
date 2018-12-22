@@ -102,8 +102,7 @@ out:
 			hashesPerSec = (hashesPerSec + curHashesPerSec) / 2
 			totalHashes = 0
 			if hashesPerSec != 0 {
-				log.Debugf("Hash speed: %6.0f kilohashes/s",
-					hashesPerSec/1000)
+				log.Debugf("%s Hash speed: %6.4f Kh/s %0.2f h/s", m.cfg.Algo, hashesPerSec/1000, hashesPerSec)
 			}
 		// Request for the number of hashes per second.
 		case m.queryHashesPerSec <- hashesPerSec:
@@ -145,8 +144,8 @@ func (m *CPUMiner) submitBlock(block *btcutil.Block) bool {
 	}
 	// The block was accepted.
 	coinbaseTx := block.MsgBlock().Transactions[0].TxOut[0]
-	log.Infof("Block submitted via CPU miner accepted (hash %s, "+
-		"amount %v)", block.Hash(), btcutil.Amount(coinbaseTx.Value))
+	log.Infof("Block submitted via CPU miner accepted (algo %s, hash %s, amount %v)", fork.GetAlgoName(block.MsgBlock().Header.Version, block.Height()), block.MsgBlock().BlockHashWithAlgos(block.Height()), btcutil.Amount(coinbaseTx.Value))
+
 	return true
 }
 
@@ -193,8 +192,13 @@ func (m *CPUMiner) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32, testne
 			}
 			var incr uint64
 			incr = 1
-			if fork.GetAlgoName(header.Version, blockHeight) == "sha256d" {
+			switch fork.GetAlgoName(header.Version, blockHeight) {
+			case "sha256d":
 				incr = 2
+			case "blake14lr":
+				incr = fork.Blake14lrReps
+			case "lyra2rev2":
+				incr = fork.Lyra2rev2Reps
 			}
 			header.Nonce = i
 			hash := header.BlockHashWithAlgos(int32(fork.GetCurrent(blockHeight)))

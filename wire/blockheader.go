@@ -2,19 +2,8 @@ package wire
 
 import (
 	"bytes"
-	"encoding/hex"
-	"fmt"
-	"github.com/aead/skein/skein256"
-	whirl "github.com/balacode/zr-whirl"
-	x11 "github.com/bitbandi/go-x11"
-	"github.com/bitgoin/lyra2rev2"
-	"github.com/dchest/blake256"
-	"github.com/ebfe/keccak"
-	"github.com/jzelinskie/whirlpool"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/fork"
-	gost "github.com/programmer10110/gostreebog"
-	"golang.org/x/crypto/scrypt"
 	"io"
 	"time"
 )
@@ -50,65 +39,13 @@ func (h *BlockHeader) BlockHash() (out chainhash.Hash) {
 	return
 }
 
-// Hash computes the hash of bytes using the named hash
-func Hash(bytes []byte, name string) (out chainhash.Hash) {
-	switch name {
-	case "blake14lr":
-		a := blake256.New()
-		a.Write(bytes)
-		out.SetBytes(a.Sum(nil))
-	case "whirlpool":
-		wp := whirlpool.New()
-		io.WriteString(wp, hex.EncodeToString(bytes))
-		o := whirl.Sum512(bytes)
-		out.SetBytes(o[:32])
-	case "lyra2rev2":
-		o, _ := lyra2rev2.Sum(bytes)
-		out.SetBytes(o)
-	case "skein":
-		in := bytes
-		var o [32]byte
-		skein256.Sum256(&o, in, nil)
-		out.SetBytes(o[:])
-	case "x11":
-		o := [32]byte{}
-		x := x11.New()
-		x.Hash(bytes, o[:])
-		out.SetBytes(o[:])
-	case "gost":
-		o := gost.Hash(bytes, "256")
-		out.SetBytes(o)
-	case "keccak":
-		k := keccak.New256()
-		k.Reset()
-		k.Write(bytes)
-		out.SetBytes(k.Sum(nil))
-	case "scrypt":
-		b := bytes
-		c := make([]byte, len(b))
-		copy(c, b[:])
-		dk, err := scrypt.Key(c, c, 1024, 1, 1, 32)
-		if err != nil {
-			fmt.Println(fmt.Errorf("Unable to generate scrypt key: %s", err))
-			return
-		}
-		for i := range dk {
-			out[i] = dk[len(dk)-1-i]
-		}
-		copy(out[:], dk)
-	case "sha256d": // sha256d
-		out.SetBytes(chainhash.DoubleHashB(bytes))
-	}
-	return
-}
-
 // BlockHashWithAlgos computes the block identifier hash for the given block header. This function is additional because the sync manager and the parallelcoin protocol only use SHA256D hashes for inventories and calculating the scrypt (or other) hash for these blocks when requested via that route causes an 'unrequested block' error.
 func (h *BlockHeader) BlockHashWithAlgos(height int32) (out chainhash.Hash) {
 	// Encode the header and double sha256 everything prior to the number of transactions.  Ignore the error returns since there is no way the encode could fail except being out of memory which would cause a run-time panic.
 	buf := bytes.NewBuffer(make([]byte, 0, MaxBlockHeaderPayload))
 	_ = writeBlockHeader(buf, 0, h)
 	vers := h.Version
-	out = Hash(buf.Bytes(), fork.GetAlgoName(vers, height))
+	out = fork.Hash(buf.Bytes(), fork.GetAlgoName(vers, height), height)
 	return
 }
 
