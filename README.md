@@ -24,15 +24,17 @@ Next generation full node for Parallelcoin, forked from [btcd](https://github.co
 
 After the upcoming hardfork, Parallelcoin will have the following features in its difficulty adjustment regime:
 
-- 293 second blocks (7 seconds less than 5 minutes), 1439 block averaging window (about 4.8 days) that is varied by interpreting byte 0 of the sha256d hash of newest block hash as a signed 8 bit integer to further disturb any inherent rhythm. Prime numbers are used to reduce resonance due to common factors, and a rhythm that doesn't follow the quotidian cycle that could build resonance.
-
 - Exponential curve with power of 3 to respond gently the natural drift while moving the difficulty fast in below 10% of target and 10x target, to deal with recovering after a large increase in network hashpower
+
+- 293 second blocks (7 seconds less than 5 minutes), 1439 block averaging window (about 4.8 days) that is varied by interpreting byte 0 of the sha256d hash of newest block hash as a signed 8 bit integer to further disturb any inherent rhythm. Prime numbers are used to reduce resonance due to common factors, and a rhythm that doesn't follow the quotidian cycle that could build resonance.
 
 - Difficulty adjustments are based on a window ending at the previous block of each algorithm, meaning sharp rises from one algorithm do not immediately affect the other algorithms, allowing a smoother recovery from a sudden drop in hashrate, soaking up energetic movements more robustly and resiliently, and reducing vulnerability to time distortion attacks.
 
 - Deterministic noise is added to the difficulty adjustment in a similar way as is done with digital audio and images to improve the effective resolution of the signal by reducing unwanted artifacts caused by the sampling process. Miners are random generators, and a block time is like a tuning filter, so the same principles apply.
 
 - Rewards will be computed according to a much smoother, satoshi-precision exponential decay curve that will produce a flat annual 5% supply expansion. Increasing the precision of the denomination is planned for the next release cycle, at 0.00000001 as the minimum denomination, there may be issues as userbase increases.
+
+- Fair Hardfork - Rewards will slowly rise from the initial hard fork at an inverse exponential rate to bring the block reward from 0.02 up to 2 in 2000 blocks, as the adjustment to network capacity takes time, so rewards will closely match the time interval they relate to until it starts faster from the minimum target stabilises in response to what miners create.
 
 ### Wallet
 
