@@ -38,7 +38,7 @@ After the upcoming hardfork, Parallelcoin will have the following features in it
 
 ### Wallet
 
-The pod has no RPC wallet functionality, only core chain functions. It is fully compliant with the original [parallelcoind](https://github.com/marcetin/parallelcoin) but will be switching over to its first Hard Fork at a future appointed block height in the official release. For the wallet server, which works also with the CLI controller `podctl`, it will be possible to send commands to both mod (wallet) and pod full node using the command line.
+The pod has no RPC wallet functionality, only core chain functions. It is fully compliant with the original [parallelcoind](https://github.com/marcetin/parallelcoin) but will be switching over to its first Hard Fork at a future appointed block height in the official release. For the wallet server, [mod](https://github.com/parallelcointeam/mod), which works also with the CLI controller `podctl`, it will be possible to send commands to both mod (wallet) and pod full node using the command line.
 
 A Webview/Golang based GUI wallet will come a little later, following the release, and will be able to run on all platforms with with browser or supported built-in web application platforms, Blink and Webkit engines.
 
