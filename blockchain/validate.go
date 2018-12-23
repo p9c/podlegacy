@@ -122,12 +122,19 @@ func isBIP0030Node(node *blockNode) bool {
 
 // CalcBlockSubsidy returns the subsidy amount a block at the provided height should have. This is mainly used for determining how much the coinbase for newly generated blocks awards as well as validating the coinbase for blocks has the expected value. The subsidy is halved every SubsidyReductionInterval blocks.  Mathematically this is: baseSubsidy / 2^(height/SubsidyReductionInterval) At the target block generation rate for the main network, this is approximately every 4 years.
 // TODO: Add an exponential decay that returns the point on a precise 1/x^2 curve that creates exactly 5% reward at 1 year (31536000 seconds)
-func CalcBlockSubsidy(height int32, chainParams *chaincfg.Params) int64 {
+func CalcBlockSubsidy(height int32, chainParams *chaincfg.Params) (r int64) {
 	if chainParams.SubsidyReductionInterval == 0 {
 		return baseSubsidy
 	}
 	// Equivalent to: baseSubsidy / 2^(height/subsidyHalvingInterval)
-	return baseSubsidy >> uint(height/chainParams.SubsidyReductionInterval)
+	switch fork.GetCurrent(height) {
+	case 0:
+		return baseSubsidy >> uint(height/chainParams.SubsidyReductionInterval)
+	case 1:
+		// Plan 9 hard fork prescribes a smooth supply curve made using an exponential decay formula adjusted to fit the previous halving cycle
+		r = int64(2.7 * (math.Pow(2.7, -float64(height*1000)/375000.0)) * 100000000)
+	}
+	return
 }
 
 // CheckTransactionSanity performs some preliminary checks on a transaction to ensure it is sane.  These checks are context free.
