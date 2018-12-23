@@ -146,7 +146,7 @@ type config struct {
 	NoRelayPriority         bool          `long:"norelaypriority" description:"Do not require free or low-fee transactions to have high priority for relaying"`
 	TrickleInterval         time.Duration `long:"trickleinterval" description:"Minimum time between attempts to send new inventory to a connected peer"`
 	MaxOrphanTxs            int           `long:"maxorphantx" description:"Max number of orphan transactions to keep in memory"`
-	Algo                    string        `long:"algo" description:"Sets the algorithm for the CPU miner ( blake14lr, cryptonight7v2, keccak, lyra2rev2, scrypt, sha256d, stribog, skein, x11 default sha256d)"`
+	Algo                    string        `long:"algo" description:"Sets the algorithm for the CPU miner ( blake14lr, cryptonight7v2, keccak, lyra2rev2, scrypt, sha256d, stribog, skein, x11 default is 'random')"`
 	Generate                bool          `long:"generate" description:"Generate (mine) bitcoins using the CPU"`
 	GenThreads              int32         `long:"genthreads" description:"Number of CPU threads to use with CPU miner -1 = all cores"`
 	MiningAddrs             []string      `long:"miningaddr" description:"Add the specified payment address to the list of addresses to use for generated blocks -- At least one address is required if the generate option is set"`
@@ -513,7 +513,7 @@ func loadConfig() (*config, []string, error) {
 	}
 	// Set the mining algorithm correctly, default to sha256d if unrecognised
 	switch cfg.Algo {
-	case "blake14lr", "cryptonight7v2", "keccak", "lyra2rev2", "scrypt", "skein", "x11", "gost":
+	case "blake14lr", "cryptonight7v2", "keccak", "lyra2rev2", "scrypt", "skein", "x11", "stribog", "random":
 	default:
 		cfg.Algo = "sha256d"
 	}

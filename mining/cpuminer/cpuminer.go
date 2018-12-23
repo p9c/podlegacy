@@ -245,6 +245,7 @@ out:
 		rand.Seed(time.Now().UnixNano())
 		payToAddr := m.cfg.MiningAddrs[rand.Intn(len(m.cfg.MiningAddrs))]
 		// Create a new block template using the available transactions in the memory pool as a source of transactions to potentially include in the block.
+		//// fmt.Println("generateBlocks algo:", m.cfg.Algo)
 		template, err := m.g.NewBlockTemplate(payToAddr, m.cfg.Algo)
 		m.submitBlockLock.Unlock()
 		if err != nil {

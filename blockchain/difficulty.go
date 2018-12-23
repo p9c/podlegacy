@@ -218,11 +218,13 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		interval := float64(lasttime - firsttime)
 		avblocktime := interval / float64(numblocks)
 		divergence := avblocktime / float64(b.chainParams.TargetTimePerBlock)
-		adjustment := 1 + (divergence-1)*(divergence-1)*(divergence-1)
+		// adjustment := 1 + (divergence-1)*(divergence-1)*(divergence-1)
+		d := divergence - 1
+		adjustment := 1 + d + d*d + d*d*d
 		if adjustment < 0.0 {
 			adjustment *= -1
 		}
-		log.Debugf("algo %s divergence %.7f adjustment %.7f numblocks %d interval %.0f avblocktime %.7f", fork.AlgoVers[algo], divergence, adjustment, numblocks, interval, avblocktime)
+		log.Infof("algo %s divergence %.7f adjustment %.7f numblocks %d interval %.0f avblocktime %.7f", fork.P9AlgoVers[algo], divergence, adjustment, numblocks, interval, avblocktime)
 		bigadjustment := big.NewFloat(adjustment)
 		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
 		bigfnewtarget := big.NewFloat(0.0).Mul(bigadjustment, bigoldtarget)

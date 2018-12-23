@@ -3,6 +3,7 @@
 package fork
 
 import (
+	"crypto/rand"
 	"encoding/hex"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"math/big"
@@ -132,14 +133,38 @@ func Hash(bytes []byte, name string, height int32) (out chainhash.Hash) {
 	return
 }
 
-// GetAlgoVer returns the version number for a given algorithm (by string name) at a given height
+// GetAlgoVer returns the version number for a given algorithm (by string name) at a given height. If "random" is given, a random number is taken from the system secure random source (for randomised cpu mining)
 func GetAlgoVer(name string, height int32) (version int32) {
+	n := "sha256d"
+	hf := GetCurrent(height)
+	if name == "random" {
+		rn, _ := rand.Int(rand.Reader, big.NewInt(8))
+		randomalgover := int32(rn.Uint64())
+		//// fmt.Println("Selected algo", randomalgover)
+		//// fmt.Println(List[0].AlgoVers[randomalgover&1])
+		//// fmt.Println(List[1].AlgoVers[randomalgover])
+		//// fmt.Println(List[0].AlgoVers, List[1].AlgoVers)
+		switch hf {
+		case 0:
+			rndalgo := List[0].AlgoVers[randomalgover&1]
+			algo := List[0].Algos[rndalgo].Version
+			//// fmt.Println("GetAlgoVer", rndalgo, algo)
+			return algo
+		case 1:
+			rndalgo := List[1].AlgoVers[randomalgover]
+			algo := List[1].Algos[rndalgo].Version
+			//// fmt.Println("GetAlgoVer", rndalgo, algo)
+			return algo
+		}
+	} else {
+		n = name
+	}
 	if IsTestnet {
-		return List[len(List)-1].Algos[name].Version
+		return List[len(List)-1].Algos[n].Version
 	}
 	for i := range List {
 		if height > List[i].ActivationHeight {
-			version = List[i].Algos[name].Version
+			version = List[i].Algos[n].Version
 		}
 	}
 	return
