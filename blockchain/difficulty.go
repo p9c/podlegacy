@@ -191,8 +191,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			return newTargetBits, nil
 		}
 		if last.version != algo {
-			last = last.GetPrevWithAlgo(algo)
-			if last == nil {
+			lb := last.GetPrevWithAlgo(algo)
+			if lb == nil {
 				return newTargetBits, nil
 			}
 		}
@@ -202,9 +202,6 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if firstheight < 1 {
 			firstheight = 1
 			if lastheight == firstheight {
-				return bits, nil
-			}
-			if firstheight == 0 {
 				return bits, nil
 			}
 		}
@@ -232,7 +229,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if newtarget.Cmp(CompactToBig(newTargetBits)) < 0 {
 			newTargetBits = BigToCompact(newtarget)
 		}
-		newTargetBits ^= 0x00000003
+		// newTargetBits ^= 0x00000003
 		log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, last.bits, newTargetBits)
 		return newTargetBits, nil
 	}

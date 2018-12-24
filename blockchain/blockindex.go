@@ -258,21 +258,22 @@ func (node *blockNode) GetPrevWithAlgo(algo int32) (prev *blockNode) {
 	if node.GetAlgo() == algo {
 		return node
 	}
-	prev = node.RelativeAncestor(1)
-	if prev == nil {
-		return
-	}
 	// Until HF1, 514 = scrypt and anything else is sha256d ver 2
 	if fork.GetCurrent(node.height) == 0 {
 		if algo != 514 {
 			algo = 2
 		}
 	}
+	prev = node.RelativeAncestor(1)
+	if prev == nil {
+		return node
+	}
 	for algo != prev.version {
-		prev = prev.RelativeAncestor(1)
-		if prev == nil {
-			return
+		p := prev.RelativeAncestor(1)
+		if p == nil {
+			return prev
 		}
+		prev = p
 	}
 	return
 }
