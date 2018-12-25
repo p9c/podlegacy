@@ -52,10 +52,16 @@ var (
 	mainPowLimitBits = BigToCompact(&mainPowLimit)
 
 	p9PowLimit = func() big.Int {
-		mplb, _ := hex.DecodeString("0fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+		mplb, _ := hex.DecodeString("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
 		return *big.NewInt(0).SetBytes(mplb)
 	}()
 	p9PowLimitBits = BigToCompact(&p9PowLimit)
+
+	MinPowLimit = func() big.Int {
+		mplb, _ := hex.DecodeString("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+		return *big.NewInt(0).SetBytes(mplb)
+	}()
+	MinPowLimitBits = BigToCompact(&MinPowLimit)
 
 	// Algos are the specifications identifying the algorithm used in the block proof
 	Algos = map[string]AlgoParams{

@@ -20,10 +20,10 @@ connect=127.0.0.1:2089
 rpcuser=user
 rpcpass=pa55word
 debuglevel=critical
-debuglevel=RPCS=trace
+;debuglevel=RPCS=trace
 debuglevel=MINR=trace
 debuglevel=SYNC=critical
-algo=cryptonight7v2
+algo=random
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
 generate=1

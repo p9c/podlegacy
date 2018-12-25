@@ -3058,6 +3058,7 @@ func handleSendRawTransaction(s *rpcServer, cmd interface{}, closeChan <-chan st
 func handleSetGenerate(s *rpcServer, cmd interface{}, closeChan <-chan struct{}) (interface{}, error) {
 	c := cmd.(*btcjson.SetGenerateCmd)
 	// Disable generation regardless of the provided generate flag if the maximum number of threads (goroutines for our purposes) is 0. Otherwise enable or disable it depending on the provided flag.
+	fmt.Println(*c.GenProcLimit, c.Generate)
 	generate := c.Generate
 	genProcLimit := -1
 	if c.GenProcLimit != nil {
@@ -3067,10 +3068,10 @@ func handleSetGenerate(s *rpcServer, cmd interface{}, closeChan <-chan struct{})
 		generate = false
 	}
 	if s.cfg.CPUMiner.IsMining() {
-		if s.cfg.CPUMiner.GetAlgo() != s.cfg.Algo {
-			s.cfg.CPUMiner.Stop()
-			generate = true
-		}
+		// if s.cfg.CPUMiner.GetAlgo() != s.cfg.Algo {
+		s.cfg.CPUMiner.Stop()
+		generate = true
+		// }
 	}
 	if !generate {
 		s.cfg.CPUMiner.Stop()
@@ -3083,7 +3084,8 @@ func handleSetGenerate(s *rpcServer, cmd interface{}, closeChan <-chan struct{})
 					"via --miningaddr",
 			}
 		}
-		s.cfg.CPUMiner.SetAlgo(s.cfg.Algo)
+		// fmt.Println("generating with algo", s.cfg.Algo)
+		// s.cfg.CPUMiner.SetAlgo(s.cfg.Algo)
 		// It's safe to call start even if it's already started.
 		s.cfg.CPUMiner.SetNumWorkers(int32(genProcLimit))
 		s.cfg.CPUMiner.Start()

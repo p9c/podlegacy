@@ -19,7 +19,7 @@ var (
 	// the number of retries that have been done.
 	maxRetryDuration = time.Minute * 5
 	// defaultRetryDuration is the default duration of time for retrying persistent connections.
-	defaultRetryDuration = time.Second * 5
+	defaultRetryDuration = time.Second * 1
 	// defaultTargetOutbound is the default number of outbound connections to maintain.
 	defaultTargetOutbound = uint32(8)
 )

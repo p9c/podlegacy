@@ -23,7 +23,7 @@ debuglevel=critical
 debuglevel=RPCS=trace
 debuglevel=MINR=trace
 debuglevel=SYNC=critical
-algo=x11
+algo=random
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
 generate=1

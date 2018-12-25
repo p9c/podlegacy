@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/fork"
+	"math"
 	"math/big"
 	"time"
 )
@@ -187,41 +188,17 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		return newTargetBits, nil
 	case 1: // Plan 9 from Crypto Space
 		last := lastNode
-		if last.height == 0 {
-			return newTargetBits, nil
-		}
-		if last.version != algo {
-			lb := last.GetPrevWithAlgo(algo)
-			if lb == nil {
-				return newTargetBits, nil
-			}
-		}
-		lastheight := last.height
-		firstheight := lastheight - int32(b.chainParams.AveragingInterval)
-		bits := last.bits
-		if firstheight < 1 {
-			firstheight = 1
-			if lastheight == firstheight {
-				return bits, nil
-			}
-		}
-		first, _ := b.BlockByHeight(firstheight)
-		if first == nil {
-			return bits, nil
-		}
-		lasttime := last.timestamp
-		firsttime := first.MsgBlock().Header.Timestamp.Unix()
-		numblocks := lastheight - firstheight
-		interval := float64(lasttime - firsttime)
-		avblocktime := interval / float64(numblocks)
-		divergence := avblocktime / float64(b.chainParams.TargetTimePerBlock)
-		// adjustment := 1 + (divergence-1)*(divergence-1)*(divergence-1)
+		counter := 0
+
+		// for counter < b.chainParams.AveragingInterval {
+
+		// }
+		divergence := 1.0
 		d := divergence - 1
 		adjustment := 1 + d + d*d + d*d*d
-		if adjustment < 0.0 {
-			adjustment *= -1
+		if math.IsNaN(adjustment) {
+			return newTargetBits, nil
 		}
-		log.Infof("algo %s divergence %.7f adjustment %.7f numblocks %d interval %.0f avblocktime %.7f", fork.P9AlgoVers[algo], divergence, adjustment, numblocks, interval, avblocktime)
 		bigadjustment := big.NewFloat(adjustment)
 		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
 		bigfnewtarget := big.NewFloat(0.0).Mul(bigadjustment, bigoldtarget)
@@ -229,8 +206,10 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if newtarget.Cmp(CompactToBig(newTargetBits)) < 0 {
 			newTargetBits = BigToCompact(newtarget)
 		}
-		// newTargetBits ^= 0x00000003
-		log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, last.bits, newTargetBits)
+		// avblocktime := divergence * float64(b.chainParams.TargetTimePerBlock)
+		// log.Infof("algo %s divergence %.7f adjustment %.7f numblocks %d avblocktime %.7f old %08x new %08x", fork.P9AlgoVers[algo], divergence, adjustment, len(blocktimes), avblocktime, last.bits, newTargetBits)
+		// // newTargetBits ^= 0x00000003
+		// log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, last.bits, newTargetBits)
 		return newTargetBits, nil
 	}
 	return newTargetBits, nil
