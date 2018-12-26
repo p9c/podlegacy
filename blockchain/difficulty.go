@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"encoding/hex"
+	"fmt"
 	"github.com/parallelcointeam/pod/chaincfg/chainhash"
 	"github.com/parallelcointeam/pod/fork"
 	"math"
@@ -146,11 +147,11 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 
 // calcNextRequiredDifficulty calculates the required difficulty for the block after the passed previous block node based on the difficulty retarget rules. This function differs from the exported  CalcNextRequiredDifficulty in that the exported version uses the current best chain as the previous block node while this function accepts any block node.
 func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algoname string) (newTargetBits uint32, err error) {
-	nH := lastNode.height + 1
-	algo := fork.GetAlgoVer(algoname, nH)
-	newTargetBits = fork.GetMinBits(algoname, nH)
-	switch fork.GetCurrent(nH) {
+	switch fork.GetCurrent(lastNode.height + 1) {
 	case 0:
+		nH := lastNode.height + 1
+		algo := fork.GetAlgoVer(algoname, nH)
+		newTargetBits = fork.GetMinBits(algoname, nH)
 		if lastNode == nil {
 			return newTargetBits, nil
 		}
@@ -186,33 +187,149 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			adjustedTimespan,
 			b.chainParams.AveragingTargetTimespan)
 		return newTargetBits, nil
+
 	case 1: // Plan 9 from Crypto Space
-		last := lastNode
-		counter := 0
-
-		// for counter < b.chainParams.AveragingInterval {
-
-		// }
-		divergence := 1.0
-		d := divergence - 1
-		adjustment := 1 + d + d*d + d*d*d
-		if math.IsNaN(adjustment) {
+		nH := lastNode.height + 1
+		algo := fork.GetAlgoVer(algoname, nH)
+		newTargetBits = fork.GetMinBits(algoname, nH)
+		// fmt.Println("algo", fork.List[1].AlgoVers[algo])
+		// fmt.Print(" ", 1)
+		if lastNode == nil {
+			// fmt.Println("this should not happen")
 			return newTargetBits, nil
 		}
+		// fmt.Print(" ", 2)
+		if lastNode.height == 1 {
+			// fmt.Println("first block")
+			return newTargetBits, nil
+		}
+		last := lastNode
+		// find the most recent block of the same algo
+		// fmt.Print(" ", 2)
+		if last.version != algo {
+			// fmt.Print(" ", 3)
+			l := last.GetPrevWithAlgo(algo)
+			// fmt.Print(" ", 4)
+			if l == nil {
+				// fmt.Println("no previous of same algo found")
+				return newTargetBits, nil
+			}
+			// ignore the first block as its time is not a normal timestamp
+			// fmt.Print(" ", 5)
+			if l.height != 0 {
+				// fmt.Print(" ", 6)
+				// return newTargetBits, nil
+			}
+			last = l
+		}
+		// fmt.Print(" ", 7)
+		counter := 1
+		var timestamps []float64
+		timestamps = append(timestamps, float64(last.timestamp))
+		pb := last
+		// collect the timestamps of all the blocks of the same algo until we pass genesis block or get AveragingInterval blocks
+		// fmt.Print(" ", 8)
+		for ; counter < int(b.chainParams.AveragingInterval) && pb.height > 1; counter++ {
+			// fmt.Print(" ", 9)
+			p := pb.RelativeAncestor(1)
+			// fmt.Print(" ", 10)
+			if p != nil {
+				// fmt.Print(" ", 11)
+				if p.height == 0 {
+					// fmt.Println("not counting genesis block")
+					break
+				}
+				// fmt.Print(" ", 12)
+				pb = p.GetPrevWithAlgo(algo)
+				// fmt.Print(" ", 13)
+			} else {
+				// fmt.Print(" ", 14)
+				break
+			}
+			if pb != nil && pb.height > 1 {
+				// fmt.Print(" ", 15)
+				// only add the timestamp if is the same as the previous
+				if float64(pb.timestamp) != timestamps[len(timestamps)-1] {
+					timestamps = append(timestamps, float64(pb.timestamp))
+				}
+			} else {
+				break
+			}
+		}
+		// fmt.Print(" ", 16)
+		if len(timestamps) == 1 {
+			// fmt.Print(" ", 17)
+			return newTargetBits, nil
+		}
+		// fmt.Println("number of timestamps", len(timestamps))
+		for i := range timestamps {
+			// fmt.Printf("%0.f", timestamps[i])
+			if i != len(timestamps)-1 {
+				// fmt.Printf(", ")
+			}
+		}
+		// fmt.Print(" ", 18)
+		var adjusted, targetAdjusted, adjustment float64
+		numalgos := int64(len(fork.List[1].Algos))
+		target := b.chainParams.TargetTimePerBlock * numalgos
+		// fmt.Print(" ", 19)
+		adjustment = 1.0
+		counter = 0
+		for i := 0; i < len(timestamps)-1; i++ {
+			factor := 0.99
+			f := factor
+			// fmt.Println("factor", factor)
+			for j := 0; j < i; j++ {
+				f = f * factor
+			}
+			factor = f
+			// fmt.Printf("power of %d %0.5f\n", i+1, factor)
+			adjustment = timestamps[i] - timestamps[i+1]
+			adjustment = adjustment * factor
+			switch {
+			case math.IsNaN(adjustment):
+				// fmt.Print(" ", 20)
+				break
+			case adjustment == 0.0:
+				// fmt.Print(" ", 21)
+				break
+			}
+			adjusted += adjustment
+			targetAdjusted += float64(target) * factor
+			counter++
+		}
+		// TODO: do we want to bias this with the polynomial?
+		adjustment = adjusted / targetAdjusted
+		average := adjustment * float64(b.chainParams.TargetTimePerBlock)
+		// fmt.Printf("%0.5f / %0.5f = %0.5f\n", adjusted, targetAdjusted, adjustment)
+		d := adjustment - 1.0
+		adjustment = 1.0 + d + d*d + d*d*d
+		// fmt.Printf("after filter %0.5f\n", adjusted, targetAdjusted, adjustment)
+		if math.IsNaN(adjustment) {
+			// fmt.Print(" ", 22)
+			return lastNode.bits, nil
+		}
 		bigadjustment := big.NewFloat(adjustment)
-		bigoldtarget := big.NewFloat(0.0).SetInt(CompactToBig(last.bits))
-		bigfnewtarget := big.NewFloat(0.0).Mul(bigadjustment, bigoldtarget)
+		bigoldtarget := big.NewFloat(1.0).SetInt(CompactToBig(lastNode.bits))
+		bigfnewtarget := big.NewFloat(1.0).Mul(bigadjustment, bigoldtarget)
+		// fmt.Printf("%0.5f * %0.5f = %0.5f\n", bigadjustment, bigoldtarget, bigfnewtarget)
 		newtarget, _ := bigfnewtarget.Int(nil)
-		if newtarget.Cmp(CompactToBig(newTargetBits)) < 0 {
+		// fmt.Printf("%064x\n", CompactToBig(lastNode.bits))
+		if newtarget == nil {
+			return newTargetBits, nil
+		}
+		mintarget := CompactToBig(newTargetBits)
+		// fmt.Printf("new %064x\n", newtarget)
+		// fmt.Printf("min %064x\n", mintarget)
+		if newtarget.Cmp(mintarget) < 0 {
+			fmt.Printf("Difficulty retarget at block height %d, old %08x adjustment %0.9f new %08x av time %s: %0.4f blocks in window: %d\n", lastNode.height+1, lastNode.bits, adjustment, newTargetBits, fork.List[1].AlgoVers[algo], average, counter)
 			newTargetBits = BigToCompact(newtarget)
 		}
-		// avblocktime := divergence * float64(b.chainParams.TargetTimePerBlock)
-		// log.Infof("algo %s divergence %.7f adjustment %.7f numblocks %d avblocktime %.7f old %08x new %08x", fork.P9AlgoVers[algo], divergence, adjustment, len(blocktimes), avblocktime, last.bits, newTargetBits)
-		// // newTargetBits ^= 0x00000003
-		// log.Debugf("Difficulty retarget at block height %d, old %08x new %08x", lastNode.height+1, last.bits, newTargetBits)
 		return newTargetBits, nil
 	}
-	return newTargetBits, nil
+	nH := lastNode.height + 1
+	// algo := fork.GetAlgoVer(algoname, nH)
+	return fork.GetMinBits(algoname, nH), nil
 }
 
 // CalcNextRequiredDifficulty calculates the required difficulty for the block after the end of the current best chain based on the difficulty retarget rules. This function is safe for concurrent access.

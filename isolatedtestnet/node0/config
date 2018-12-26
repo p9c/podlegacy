@@ -19,10 +19,10 @@ connect=127.0.0.1:2079
 connect=127.0.0.1:2089
 rpcuser=user
 rpcpass=pa55word
-debuglevel=critical
+debuglevel=debug
 ;debuglevel=RPCS=trace
-debuglevel=MINR=trace
-debuglevel=SYNC=critical
+;debuglevel=MINR=trace
+;debuglevel=SYNC=critical
 algo=random
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE

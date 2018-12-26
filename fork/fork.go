@@ -52,7 +52,7 @@ var (
 	mainPowLimitBits = BigToCompact(&mainPowLimit)
 
 	p9PowLimit = func() big.Int {
-		mplb, _ := hex.DecodeString("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+		mplb, _ := hex.DecodeString("0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
 		return *big.NewInt(0).SetBytes(mplb)
 	}()
 	p9PowLimitBits = BigToCompact(&p9PowLimit)
