@@ -52,16 +52,22 @@ var (
 	mainPowLimitBits = BigToCompact(&mainPowLimit)
 
 	p9PowLimit = func() big.Int {
-		mplb, _ := hex.DecodeString("0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+		mplb, _ := hex.DecodeString("000ffffff0000000000000000000000000000000000000000000000000000000")
 		return *big.NewInt(0).SetBytes(mplb)
 	}()
 	p9PowLimitBits = BigToCompact(&p9PowLimit)
 
 	MinPowLimit = func() big.Int {
-		mplb, _ := hex.DecodeString("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+		mplb, _ := hex.DecodeString("ffffffff00000000000000000000000000000000000000000000000000000000")
 		return *big.NewInt(0).SetBytes(mplb)
 	}()
 	MinPowLimitBits = BigToCompact(&MinPowLimit)
+
+	FirstPowLimit = func() big.Int {
+		mplb, _ := hex.DecodeString("004fffff00000000000000000000000000000000000000000000000000000000")
+		return *big.NewInt(0).SetBytes(mplb)
+	}()
+	FirstPowLimitBits = BigToCompact(&FirstPowLimit)
 
 	// Algos are the specifications identifying the algorithm used in the block proof
 	Algos = map[string]AlgoParams{
@@ -70,15 +76,15 @@ var (
 	}
 	// P9Algos is the algorithm specifications after the hard fork
 	P9Algos = map[string]AlgoParams{
-		"blake14lr":      {0, p9PowLimitBits, 0},
-		"cryptonight7v2": {1, p9PowLimitBits, 1},
-		"keccak":         {2, p9PowLimitBits, 2},
-		"lyra2rev2":      {3, p9PowLimitBits, 3},
-		"scrypt":         {4, p9PowLimitBits, 4},
-		"sha256d":        {5, p9PowLimitBits, 5},
-		"skein":          {6, p9PowLimitBits, 7},
-		"stribog":        {7, p9PowLimitBits, 6},
-		"x11":            {8, p9PowLimitBits, 8},
+		"blake14lr":      {0, MinPowLimitBits, 0},
+		"cryptonight7v2": {1, MinPowLimitBits, 1},
+		"keccak":         {2, MinPowLimitBits, 2},
+		"lyra2rev2":      {3, MinPowLimitBits, 3},
+		"scrypt":         {4, MinPowLimitBits, 4},
+		"sha256d":        {5, MinPowLimitBits, 5},
+		"skein":          {6, MinPowLimitBits, 7},
+		"stribog":        {7, MinPowLimitBits, 6},
+		"x11":            {8, MinPowLimitBits, 8},
 	}
 	// AlgoVers is the lookup for pre hardfork
 	AlgoVers = map[int32]string{

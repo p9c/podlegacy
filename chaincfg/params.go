@@ -31,7 +31,7 @@ var (
 	MainPowLimit     = mainPowLimit
 	MainPowLimitBits = BigToCompact(&MainPowLimit)
 	scryptPowLimit   = func() big.Int {
-		mplb, _ := hex.DecodeString("00000fffff000000000000000000000000000000000000000000000000000000")
+		mplb, _ := hex.DecodeString("0000fffff0000000000000000000000000000000000000000000000000000000")
 		return *big.NewInt(0).SetBytes(mplb) //AllOnes.Rsh(&AllOnes, 0)
 	}()
 	ScryptPowLimit     = scryptPowLimit
@@ -53,7 +53,7 @@ var (
 	TestnetInterval                int64   = 100
 	TestnetMaxAdjustDown           int64   = 10
 	TestnetMaxAdjustUp             int64   = 20
-	TestnetTargetTimePerBlock      int64   = 30
+	TestnetTargetTimePerBlock      int64   = 99
 	TestnetAveragingInterval       int64   = 199
 	TestnetAveragingTargetTimespan         = TestnetTargetTimePerBlock * TestnetAveragingInterval
 	TestnetTargetTimespan                  = TestnetInterval * TestnetTargetTimePerBlock
