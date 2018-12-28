@@ -290,9 +290,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		allTimeDivergence := allTimeAverage / ttpb
 		halfTimeDivergence := halfTimeAverage / ttpb
 		weighted := adjusted / targetAdjusted
-		adjustment = weighted + allTimeDivergence + halfTimeDivergence
-		adjustment /= 3.0
-		if adjustment < 1 {
+		adjustment = (weighted + allTimeDivergence + halfTimeDivergence) / 3.0
+		if adjustment < 0 {
 			fmt.Println("negative weight adjustment")
 			adjustment = allTimeDivergence
 		}
@@ -311,7 +310,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		mintarget := CompactToBig(newTargetBits)
 		if newtarget.Cmp(mintarget) < 0 {
 			newTargetBits = BigToCompact(newtarget)
-			fmt.Printf("height %d, old %08x new %08x average %0.2f half %0.2f weighted %0.3f blocks in window: %d adjustment %0.9f algo %s \n", lastNode.height+1, lastNode.bits, newTargetBits, allTimeAverage, halfTimeAverage, weighted*ttpb, counter, adjustment, fork.List[1].AlgoVers[algo])
+			fmt.Printf("height %8d, old %08x new %08x average %3.3f half %3.3f weighted %3.3f blocks in window: %d adjustment %0.9f algo %s \n", lastNode.height+1, lastNode.bits, newTargetBits, allTimeAverage, halfTimeAverage, weighted*ttpb, counter, adjustment, fork.List[1].AlgoVers[algo])
 		}
 		return newTargetBits, nil
 	}
