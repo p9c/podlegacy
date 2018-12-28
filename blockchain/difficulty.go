@@ -233,16 +233,22 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 				break
 			}
 		}
-		var allTimeAverage float64
-		startBlock := fork.List[1].ActivationHeight
+		allTimeAverage, halfTimeAverage := float64(b.chainParams.TargetTimePerBlock), float64(b.chainParams.TargetTimePerBlock)
+		startHeight := fork.List[1].ActivationHeight
 		if b.chainParams.Name == "testnet" {
-			startBlock = 1
+			startHeight = 1
 		}
-		firstBlock, _ := b.BlockByHeight(startBlock)
+		halfHeight := lastNode.height - (lastNode.height-startHeight)/2
+		firstBlock, _ := b.BlockByHeight(startHeight)
+		halfBlock, _ := b.BlockByHeight(halfHeight)
+		lastTime := lastNode.timestamp
 		if firstBlock != nil {
 			firstTime := firstBlock.MsgBlock().Header.Timestamp.Unix()
-			lastTime := lastNode.timestamp
 			allTimeAverage = (float64(lastTime) - float64(firstTime)) / (float64(lastNode.height) - float64(firstBlock.Height()))
+		}
+		if halfBlock != nil {
+			halfTime := halfBlock.MsgBlock().Header.Timestamp.Unix()
+			halfTimeAverage = (float64(lastTime) - float64(halfTime)) / (float64(lastNode.height) - float64(halfBlock.Height()))
 		}
 		if len(timestamps) < 2 {
 			return fork.SecondPowLimitBits, nil
@@ -282,8 +288,10 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		}
 		ttpb := float64(b.chainParams.TargetTimePerBlock)
 		allTimeDivergence := allTimeAverage / ttpb
+		halfTimeDivergence := halfTimeAverage / ttpb
 		weighted := adjusted / targetAdjusted
-		adjustment = weighted * allTimeDivergence
+		adjustment = weighted + allTimeDivergence + halfTimeDivergence
+		adjustment /= 3.0
 		if adjustment < 1 {
 			fmt.Println("negative weight adjustment")
 			adjustment = allTimeDivergence
@@ -303,8 +311,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		mintarget := CompactToBig(newTargetBits)
 		if newtarget.Cmp(mintarget) < 0 {
 			newTargetBits = BigToCompact(newtarget)
-			fmt.Printf("retarget: %s height %d, old %08x new %08x average %0.2f weighted %0.3f blocks in window: %d adjustment %0.9f\n",
-				fork.List[1].AlgoVers[algo], lastNode.height+1, lastNode.bits, newTargetBits, allTimeAverage, weighted*ttpb, counter, adjustment)
+			fmt.Printf("retarget: %s height %d, old %08x new %08x average %0.2f half %0.2f weighted %0.3f blocks in window: %d adjustment %0.9f\n",
+				fork.List[1].AlgoVers[algo], lastNode.height+1, lastNode.bits, newTargetBits, allTimeAverage, halfTimeAverage, weighted*ttpb, counter, adjustment)
 		}
 		return newTargetBits, nil
 	}
