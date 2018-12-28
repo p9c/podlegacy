@@ -311,8 +311,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		mintarget := CompactToBig(newTargetBits)
 		if newtarget.Cmp(mintarget) < 0 {
 			newTargetBits = BigToCompact(newtarget)
-			fmt.Printf("retarget: %s height %d, old %08x new %08x average %0.2f half %0.2f weighted %0.3f blocks in window: %d adjustment %0.9f\n",
-				fork.List[1].AlgoVers[algo], lastNode.height+1, lastNode.bits, newTargetBits, allTimeAverage, halfTimeAverage, weighted*ttpb, counter, adjustment)
+			fmt.Printf("height %d, old %08x new %08x average %0.2f half %0.2f weighted %0.3f blocks in window: %d adjustment %0.9f algo %s \n", lastNode.height+1, lastNode.bits, newTargetBits, allTimeAverage, halfTimeAverage, weighted*ttpb, counter, adjustment, fork.List[1].AlgoVers[algo])
 		}
 		return newTargetBits, nil
 	}
