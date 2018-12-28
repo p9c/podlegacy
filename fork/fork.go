@@ -57,14 +57,14 @@ var (
 	}()
 	p9PowLimitBits = BigToCompact(&p9PowLimit)
 
-	MinPowLimit = func() big.Int {
-		mplb, _ := hex.DecodeString("7fffffff00000000000000000000000000000000000000000000000000000000")
+	SecondPowLimit = func() big.Int {
+		mplb, _ := hex.DecodeString("013fffffff000000000000000000000000000000000000000000000000000000")
 		return *big.NewInt(0).SetBytes(mplb)
 	}()
-	MinPowLimitBits = BigToCompact(&MinPowLimit)
+	SecondPowLimitBits = BigToCompact(&SecondPowLimit)
 
 	FirstPowLimit = func() big.Int {
-		mplb, _ := hex.DecodeString("004fffff00000000000000000000000000000000000000000000000000000000")
+		mplb, _ := hex.DecodeString("023ffff000000000000000000000000000000000000000000000000000000000")
 		return *big.NewInt(0).SetBytes(mplb)
 	}()
 	FirstPowLimitBits = BigToCompact(&FirstPowLimit)
@@ -76,15 +76,15 @@ var (
 	}
 	// P9Algos is the algorithm specifications after the hard fork
 	P9Algos = map[string]AlgoParams{
-		"blake14lr":      {0, MinPowLimitBits, 0},
-		"cryptonight7v2": {1, MinPowLimitBits, 1},
-		"keccak":         {2, MinPowLimitBits, 2},
-		"lyra2rev2":      {3, MinPowLimitBits, 3},
-		"scrypt":         {4, MinPowLimitBits, 4},
-		"sha256d":        {5, MinPowLimitBits, 5},
-		"skein":          {6, MinPowLimitBits, 7},
-		"stribog":        {7, MinPowLimitBits, 6},
-		"x11":            {8, MinPowLimitBits, 8},
+		"blake14lr":      {0, FirstPowLimitBits, 0},
+		"cryptonight7v2": {1, FirstPowLimitBits, 1},
+		"keccak":         {2, FirstPowLimitBits, 2},
+		"lyra2rev2":      {3, FirstPowLimitBits, 3},
+		"scrypt":         {4, FirstPowLimitBits, 4},
+		"sha256d":        {5, FirstPowLimitBits, 5},
+		"skein":          {6, FirstPowLimitBits, 7},
+		"stribog":        {7, FirstPowLimitBits, 6},
+		"x11":            {8, FirstPowLimitBits, 8},
 	}
 	// AlgoVers is the lookup for pre hardfork
 	AlgoVers = map[int32]string{

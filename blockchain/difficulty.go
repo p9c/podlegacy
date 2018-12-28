@@ -190,7 +190,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 
 	case 1: // Plan 9 from Crypto Space
 		if lastNode.height == 0 {
-			return fork.MinPowLimitBits, nil
+			return fork.FirstPowLimitBits, nil
 		}
 		nH := lastNode.height + 1
 		algo := fork.GetAlgoVer(algoname, nH)
@@ -218,7 +218,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			p := pb.RelativeAncestor(1)
 			if p != nil {
 				if p.height == 0 {
-					return fork.MinPowLimitBits, nil
+					return fork.SecondPowLimitBits, nil
 				}
 				pb = p.GetPrevWithAlgo(algo)
 			} else {
@@ -244,44 +244,52 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			lastTime := lastNode.timestamp
 			allTimeAverage = (float64(lastTime) - float64(firstTime)) / (float64(lastNode.height) - float64(firstBlock.Height()))
 		}
-		if len(timestamps) < 1 {
-			return fork.MinPowLimitBits, nil
-		}
 		if len(timestamps) < 2 {
-			return fork.FirstPowLimitBits, nil
+			return fork.SecondPowLimitBits, nil
 		}
 		var adjusted, targetAdjusted, adjustment float64
-		numalgos := int64(len(fork.List[1].Algos))
-		target := b.chainParams.TargetTimePerBlock * numalgos
-		adjustment = 1.0
-		counter = 0
-		for i := 0; i < len(timestamps)-1; i++ {
-			factor := 0.75
-			f := factor
-			for j := 0; j < i; j++ {
-				f = f * factor
+		if len(timestamps) > 1 {
+			numalgos := int64(len(fork.List[1].Algos))
+			target := b.chainParams.TargetTimePerBlock * numalgos
+			adjustment = 1.0
+			counter = 0
+			for i := 0; i < len(timestamps)-1; i++ {
+				factor := 0.9
+				if i == 0 {
+					f := factor
+					for j := 0; j < i; j++ {
+						f = f * factor
+					}
+					factor = f
+				} else {
+					factor = 1.0
+				}
+				adjustment = timestamps[i] - timestamps[i+1]
+				adjustment = adjustment * factor
+				switch {
+				case math.IsNaN(adjustment):
+					break
+				case adjustment == 0.0:
+					break
+				}
+				adjusted += adjustment
+				targetAdjusted += float64(target) * factor
+				counter++
 			}
-			factor = f
-			adjustment = timestamps[i] - timestamps[i+1]
-			adjustment = adjustment * factor
-			switch {
-			case math.IsNaN(adjustment):
-				break
-			case adjustment == 0.0:
-				break
-			}
-			adjusted += adjustment
-			targetAdjusted += float64(target) * factor
-			counter++
+		} else {
+			targetAdjusted = 100
+			adjusted = 100
 		}
 		ttpb := float64(b.chainParams.TargetTimePerBlock)
 		allTimeDivergence := allTimeAverage / ttpb
 		weighted := adjusted / targetAdjusted
-		// if lastNode.height < 10 {
 		adjustment = weighted * allTimeDivergence
-		// }
+		if adjustment < 1 {
+			fmt.Println("negative weight adjustment")
+			adjustment = allTimeDivergence
+		}
 		// d := adjustment - 1.0
-		// adjustment = 1.0 + d*d*d //+ d + d*d +
+		// adjustment = 1.0 + (d*d*d+d+d*d)
 		if math.IsNaN(adjustment) {
 			return lastNode.bits, nil
 		}
@@ -296,7 +304,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if newtarget.Cmp(mintarget) < 0 {
 			newTargetBits = BigToCompact(newtarget)
 			fmt.Printf("retarget: %s height %d, old %08x new %08x average %0.2f weighted %0.3f blocks in window: %d adjustment %0.9f\n",
-				fork.List[1].AlgoVers[algo], lastNode.height+1, lastNode.bits, newTargetBits, allTimeAverage, weighted, counter, adjustment)
+				fork.List[1].AlgoVers[algo], lastNode.height+1, lastNode.bits, newTargetBits, allTimeAverage, weighted*ttpb, counter, adjustment)
 		}
 		return newTargetBits, nil
 	}

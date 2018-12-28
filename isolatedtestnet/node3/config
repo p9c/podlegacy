@@ -18,15 +18,9 @@ connect=127.0.0.1:2079
 connect=127.0.0.1:2089
 rpcuser=user
 rpcpass=pa55word
-debuglevel=MINR=trace
-debuglevel=SYNC=critical
-debuglevel=CHAN=critical
-debuglevel=AMGR=critical
-debuglevel=RPCS=critical
+debuglevel=debug
 algo=lyra2rev2
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
 generate=1
 genthreads=1
-;txindex=1
-;addrindex=1
