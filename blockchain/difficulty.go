@@ -189,6 +189,9 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		return newTargetBits, nil
 
 	case 1: // Plan 9 from Crypto Space
+		if lastNode.height == 0 {
+			return fork.MinPowLimitBits, nil
+		}
 		nH := lastNode.height + 1
 		algo := fork.GetAlgoVer(algoname, nH)
 		newTargetBits = fork.GetMinBits(algoname, nH)
@@ -196,10 +199,9 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		// find the most recent block of the same algo
 		if last.version != algo {
 			l := last.RelativeAncestor(1)
-			if l == nil {
-				fmt.Println("l == nil")
-				return fork.MinPowLimitBits, nil
-			}
+			// if l == nil {
+			// 	return fork.MinPowLimitBits, nil
+			// }
 			l = l.GetPrevWithAlgo(algo)
 			// ignore the first block as its time is not a normal timestamp
 			if l.height < 1 {
@@ -231,6 +233,17 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 				break
 			}
 		}
+		var allTimeAverage float64
+		startBlock := fork.List[1].ActivationHeight
+		if b.chainParams.Name == "testnet" {
+			startBlock = 1
+		}
+		firstBlock, _ := b.BlockByHeight(startBlock)
+		if firstBlock != nil {
+			firstTime := firstBlock.MsgBlock().Header.Timestamp.Unix()
+			lastTime := lastNode.timestamp
+			allTimeAverage = (float64(lastTime) - float64(firstTime)) / (float64(lastNode.height) - float64(firstBlock.Height()))
+		}
 		if len(timestamps) < 1 {
 			return fork.MinPowLimitBits, nil
 		}
@@ -243,7 +256,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		adjustment = 1.0
 		counter = 0
 		for i := 0; i < len(timestamps)-1; i++ {
-			factor := 0.5
+			factor := 0.75
 			f := factor
 			for j := 0; j < i; j++ {
 				f = f * factor
@@ -261,11 +274,14 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			targetAdjusted += float64(target) * factor
 			counter++
 		}
-		// TODO: do we want to bias this with the polynomial?
-		adjustment = adjusted / targetAdjusted
-		average := adjustment * float64(b.chainParams.TargetTimePerBlock)
-		d := adjustment - 1.0
-		adjustment = 1.0 + d*d*d //+ d + d*d +
+		ttpb := float64(b.chainParams.TargetTimePerBlock)
+		allTimeDivergence := allTimeAverage / ttpb
+		weighted := adjusted / targetAdjusted
+		// if lastNode.height < 10 {
+		adjustment = weighted * allTimeDivergence
+		// }
+		// d := adjustment - 1.0
+		// adjustment = 1.0 + d*d*d //+ d + d*d +
 		if math.IsNaN(adjustment) {
 			return lastNode.bits, nil
 		}
@@ -279,7 +295,8 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		mintarget := CompactToBig(newTargetBits)
 		if newtarget.Cmp(mintarget) < 0 {
 			newTargetBits = BigToCompact(newtarget)
-			fmt.Printf("Difficulty retarget at block height %d, old %08x adjustment %0.9f new %08x av time %s: %0.4f blocks in window: %d\n", lastNode.height+1, lastNode.bits, adjustment, newTargetBits, fork.List[1].AlgoVers[algo], average, counter)
+			fmt.Printf("retarget: %s height %d, old %08x new %08x average %0.2f weighted %0.3f blocks in window: %d adjustment %0.9f\n",
+				fork.List[1].AlgoVers[algo], lastNode.height+1, lastNode.bits, newTargetBits, allTimeAverage, weighted, counter, adjustment)
 		}
 		return newTargetBits, nil
 	}

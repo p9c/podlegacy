@@ -58,7 +58,7 @@ var (
 	p9PowLimitBits = BigToCompact(&p9PowLimit)
 
 	MinPowLimit = func() big.Int {
-		mplb, _ := hex.DecodeString("ffffffff00000000000000000000000000000000000000000000000000000000")
+		mplb, _ := hex.DecodeString("7fffffff00000000000000000000000000000000000000000000000000000000")
 		return *big.NewInt(0).SetBytes(mplb)
 	}()
 	MinPowLimitBits = BigToCompact(&MinPowLimit)
@@ -152,20 +152,14 @@ func GetAlgoVer(name string, height int32) (version int32) {
 	if name == "random" {
 		rn, _ := rand.Int(rand.Reader, big.NewInt(8))
 		randomalgover := int32(rn.Uint64())
-		//// fmt.Println("Selected algo", randomalgover)
-		//// fmt.Println(List[0].AlgoVers[randomalgover&1])
-		//// fmt.Println(List[1].AlgoVers[randomalgover])
-		//// fmt.Println(List[0].AlgoVers, List[1].AlgoVers)
 		switch hf {
 		case 0:
 			rndalgo := List[0].AlgoVers[randomalgover&1]
 			algo := List[0].Algos[rndalgo].Version
-			//// fmt.Println("GetAlgoVer", rndalgo, algo)
 			return algo
 		case 1:
 			rndalgo := List[1].AlgoVers[randomalgover]
 			algo := List[1].Algos[rndalgo].Version
-			//// fmt.Println("GetAlgoVer", rndalgo, algo)
 			return algo
 		}
 	} else {
@@ -206,7 +200,6 @@ func GetAlgoID(algoname string, height int32) uint32 {
 // GetCurrent returns the hardfork number code
 func GetCurrent(height int32) (curr int) {
 	if IsTestnet {
-		// fmt.Println("getcurrent ", len(List)-1, List[1].Algos)
 		return len(List) - 1
 	}
 	for i := range List {

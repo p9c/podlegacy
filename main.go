@@ -115,7 +115,6 @@ func podMain(serverChan chan<- *server) error {
 	}
 	// Create server and start it.
 	server, err := newServer(cfg.Listeners, db, activeNetParams.Params, interrupt, cfg.Algo)
-	fmt.Println("setting mining algo to", cfg.Algo)
 	if err != nil {
 		// TODO: this logging could do with some beautifying.
 		podLog.Errorf("Unable to start server on %v: %v",
