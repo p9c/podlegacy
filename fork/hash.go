@@ -17,7 +17,7 @@ import (
 // Argon2i takes bytes, generates a stribog hash as salt, generates an argon2i key, and hashes it with keccak
 func Argon2i(bytes []byte) []byte {
 	salt := Stribog(bytes)
-	return Keccak(argon2.IDKey(bytes, salt, 1, 64*1024, 1, 32))
+	return Keccak(argon2.IDKey(bytes, salt, 1, 4*1024, 1, 32))
 }
 
 // Blake14lr takes bytes and returns a blake14lr 256 bit hash

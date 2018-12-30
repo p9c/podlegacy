@@ -24,7 +24,7 @@ const (
 	// hpsUpdateSecs is the number of seconds to wait in between each update to the hashes per second monitor.
 	hpsUpdateSecs = 10
 	// hashUpdateSec is the number of seconds each worker waits in between notifying the speed monitor with how many hashes have been completed while they are actively searching for a solution.  This is done to reduce the amount of syncs between the workers that must be done to keep track of the hashes per second.
-	hashUpdateSecs = 15
+	hashUpdateSecs = 1
 )
 
 var (
@@ -144,6 +144,13 @@ func (m *CPUMiner) submitBlock(block *btcutil.Block) bool {
 	}
 	// The block was accepted.
 	coinbaseTx := block.MsgBlock().Transactions[0].TxOut[0]
+	fmt.Printf("new block height %d %s %10d %08x %v %s\n",
+		block.Height(),
+		block.MsgBlock().BlockHashWithAlgos(block.Height()),
+		block.MsgBlock().Header.Timestamp.Unix(),
+		block.MsgBlock().Header.Bits,
+		btcutil.Amount(coinbaseTx.Value),
+		fork.GetAlgoName(block.MsgBlock().Header.Version, block.Height()))
 	log.Infof("Block submitted via CPU miner accepted (algo %s, hash %s, amount %v)", fork.GetAlgoName(block.MsgBlock().Header.Version, block.Height()), block.MsgBlock().BlockHashWithAlgos(block.Height()), btcutil.Amount(coinbaseTx.Value))
 
 	return true

@@ -24,7 +24,7 @@ const (
 	// MaxProtocolVersion is the max protocol version the peer supports.
 	MaxProtocolVersion = wire.FeeFilterVersion
 	// DefaultTrickleInterval is the min time between attempts to send an inv message to a peer.
-	DefaultTrickleInterval = 10 * time.Second
+	DefaultTrickleInterval = time.Second
 	// MinAcceptableProtocolVersion is the lowest protocol version that a connected peer may support.
 	MinAcceptableProtocolVersion = wire.MultipleAddressVersion
 	// outputBufferSize is the number of elements the output channels use.
@@ -38,9 +38,9 @@ const (
 	// negotiateTimeout is the duration of inactivity before we timeout a peer that hasn't completed the initial version negotiation.
 	negotiateTimeout = 30 * time.Second
 	// idleTimeout is the duration of inactivity before we time out a peer.
-	idleTimeout = 5 * time.Minute
+	idleTimeout = 60 * time.Minute
 	// stallTickInterval is the interval of time between each check for stalled peers.
-	stallTickInterval = 15 * time.Second
+	stallTickInterval = 60 * time.Second
 	// stallResponseTimeout is the base maximum amount of time messages that expect a response will wait before disconnecting the peer for stalling.  The deadlines are adjusted for callback running times and checked on each stall tick interval.
 	stallResponseTimeout = 30 * time.Second
 )

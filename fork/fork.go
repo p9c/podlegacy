@@ -58,13 +58,13 @@ var (
 	p9PowLimitBits = BigToCompact(&p9PowLimit)
 
 	SecondPowLimit = func() big.Int {
-		mplb, _ := hex.DecodeString("013fffffff000000000000000000000000000000000000000000000000000000")
+		mplb, _ := hex.DecodeString("07fffffff0000000000000000000000000000000000000000000000000000000")
 		return *big.NewInt(0).SetBytes(mplb)
 	}()
 	SecondPowLimitBits = BigToCompact(&SecondPowLimit)
 
 	FirstPowLimit = func() big.Int {
-		mplb, _ := hex.DecodeString("023ffff000000000000000000000000000000000000000000000000000000000")
+		mplb, _ := hex.DecodeString("0fffffff00000000000000000000000000000000000000000000000000000000")
 		return *big.NewInt(0).SetBytes(mplb)
 	}()
 	FirstPowLimitBits = BigToCompact(&FirstPowLimit)

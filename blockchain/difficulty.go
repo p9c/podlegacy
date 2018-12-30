@@ -146,7 +146,7 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 }
 
 // calcNextRequiredDifficulty calculates the required difficulty for the block after the passed previous block node based on the difficulty retarget rules. This function differs from the exported  CalcNextRequiredDifficulty in that the exported version uses the current best chain as the previous block node while this function accepts any block node.
-func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algoname string) (newTargetBits uint32, err error) {
+func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTime time.Time, algoname string, l bool) (newTargetBits uint32, err error) {
 	switch fork.GetCurrent(lastNode.height + 1) {
 	case 0:
 		nH := lastNode.height + 1
@@ -233,14 +233,19 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 				break
 			}
 		}
-		allTimeAverage, halfTimeAverage := float64(b.chainParams.TargetTimePerBlock), float64(b.chainParams.TargetTimePerBlock)
+		allTimeAverage, halfTimeAverage, trailTimeAverage := float64(b.chainParams.TargetTimePerBlock), float64(b.chainParams.TargetTimePerBlock), float64(b.chainParams.TargetTimePerBlock)
 		startHeight := fork.List[1].ActivationHeight
 		if b.chainParams.Name == "testnet" {
 			startHeight = 1
 		}
 		halfHeight := lastNode.height - (lastNode.height-startHeight)/2
+		trailHeight := int32(int64(lastNode.height) - b.chainParams.AveragingInterval)
+		if trailHeight < 0 {
+			trailHeight = 1
+		}
 		firstBlock, _ := b.BlockByHeight(startHeight)
 		halfBlock, _ := b.BlockByHeight(halfHeight)
+		trailBlock, _ := b.BlockByHeight(trailHeight)
 		lastTime := lastNode.timestamp
 		if firstBlock != nil {
 			firstTime := firstBlock.MsgBlock().Header.Timestamp.Unix()
@@ -249,6 +254,10 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if halfBlock != nil {
 			halfTime := halfBlock.MsgBlock().Header.Timestamp.Unix()
 			halfTimeAverage = (float64(lastTime) - float64(halfTime)) / (float64(lastNode.height) - float64(halfBlock.Height()))
+		}
+		if trailBlock != nil {
+			trailTime := trailBlock.MsgBlock().Header.Timestamp.Unix()
+			trailTimeAverage = (float64(lastTime) - float64(trailTime)) / (float64(lastNode.height) - float64(trailBlock.Height()))
 		}
 		if len(timestamps) < 2 {
 			return fork.SecondPowLimitBits, nil
@@ -289,8 +298,9 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		ttpb := float64(b.chainParams.TargetTimePerBlock)
 		allTimeDivergence := allTimeAverage / ttpb
 		halfTimeDivergence := halfTimeAverage / ttpb
+		trailTimeDivergence := trailTimeAverage / ttpb
 		weighted := adjusted / targetAdjusted
-		adjustment = (weighted + allTimeDivergence + halfTimeDivergence) / 3.0
+		adjustment = (weighted*weighted*weighted + allTimeDivergence + halfTimeDivergence + trailTimeDivergence*trailTimeDivergence*trailTimeDivergence) / 4.0
 		if adjustment < 0 {
 			fmt.Println("negative weight adjustment")
 			adjustment = allTimeDivergence
@@ -301,7 +311,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			return lastNode.bits, nil
 		}
 		bigadjustment := big.NewFloat(adjustment)
-		bigoldtarget := big.NewFloat(1.0).SetInt(CompactToBig(lastNode.bits))
+		bigoldtarget := big.NewFloat(1.0).SetInt(CompactToBig(last.bits))
 		bigfnewtarget := big.NewFloat(1.0).Mul(bigadjustment, bigoldtarget)
 		newtarget, _ := bigfnewtarget.Int(nil)
 		if newtarget == nil {
@@ -310,7 +320,10 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		mintarget := CompactToBig(newTargetBits)
 		if newtarget.Cmp(mintarget) < 0 {
 			newTargetBits = BigToCompact(newtarget)
-			fmt.Printf("height %8d, old %08x new %08x average %3.3f half %3.3f weighted %3.3f blocks in window: %d adjustment %0.9f algo %s \n", lastNode.height+1, lastNode.bits, newTargetBits, allTimeAverage, halfTimeAverage, weighted*ttpb, counter, adjustment, fork.List[1].AlgoVers[algo])
+			if l {
+				fmt.Printf("mining %8d, old %08x new %08x average %3.2f half %3.2f trail %3.2f weighted %3.2f blocks in window: %d adjustment %0.1f%% algo %s\n",
+					lastNode.height+1, last.bits, newTargetBits, allTimeAverage, halfTimeAverage, trailTimeAverage, weighted*ttpb, counter, -(1-adjustment)*100, fork.List[1].AlgoVers[algo])
+			}
 		}
 		return newTargetBits, nil
 	}
@@ -322,7 +335,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 // CalcNextRequiredDifficulty calculates the required difficulty for the block after the end of the current best chain based on the difficulty retarget rules. This function is safe for concurrent access.
 func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time, algo string) (difficulty uint32, err error) {
 	b.chainLock.Lock()
-	difficulty, err = b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, algo)
+	difficulty, err = b.calcNextRequiredDifficulty(b.bestChain.Tip(), timestamp, algo, true)
 	b.chainLock.Unlock()
 	return
 }

@@ -486,7 +486,7 @@ func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode 
 	if !fastAdd {
 		// Ensure the difficulty specified in the block header matches the calculated difficulty based on the previous block and difficulty retarget rules.
 		expectedDifficulty, err := b.calcNextRequiredDifficulty(prevNode,
-			header.Timestamp, fork.GetAlgoName(header.Version, prevNode.height+1))
+			header.Timestamp, fork.GetAlgoName(header.Version, prevNode.height+1), false)
 		if err != nil {
 			return err
 		}
