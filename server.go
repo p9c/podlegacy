@@ -2150,6 +2150,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		s.chainParams, s.txMemPool, s.chain, s.timeSource,
 		s.sigCache, s.hashCache, s.algo)
 	s.cpuMiner = cpuminer.New(&cpuminer.Config{
+		Blockchain:             s.chain,
 		ChainParams:            chainParams,
 		BlockTemplateGenerator: blockTemplateGenerator,
 		MiningAddrs:            cfg.miningAddrs,

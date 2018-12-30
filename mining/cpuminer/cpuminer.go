@@ -34,6 +34,8 @@ var (
 
 // Config is a descriptor containing the cpu miner configuration.
 type Config struct {
+	// Blockchain gives access for the miner to information about the chain
+	Blockchain *blockchain.BlockChain
 	// ChainParams identifies which chain parameters the cpu miner is associated with.
 	ChainParams *chaincfg.Params
 	// BlockTemplateGenerator identifies the instance to use in order to generate block templates that the miner will attempt to solve.
@@ -55,6 +57,7 @@ type Config struct {
 // CPUMiner provides facilities for solving blocks (mining) using the CPU in a concurrency-safe manner.  It consists of two main goroutines -- a speed monitor and a controller for worker goroutines which generate and solve blocks.  The number of goroutines can be set via the SetMaxGoRoutines function, but the default is based on the number of processor cores in the system which is typically sufficient.
 type CPUMiner struct {
 	sync.Mutex
+	b                 *blockchain.BlockChain
 	g                 *mining.BlkTmplGenerator
 	cfg               Config
 	numWorkers        uint32
@@ -144,13 +147,27 @@ func (m *CPUMiner) submitBlock(block *btcutil.Block) bool {
 	}
 	// The block was accepted.
 	coinbaseTx := block.MsgBlock().Transactions[0].TxOut[0]
-	fmt.Printf("new block height %d %s %10d %08x %v %s\n",
+	prevHeight := block.Height() - 1
+	prevBlock, _ := m.b.BlockByHeight(prevHeight)
+	prevTime := prevBlock.MsgBlock().Header.Timestamp.Unix()
+	since := block.MsgBlock().Header.Timestamp.Unix() - prevTime
+	delaytext := ""
+	if m.cfg.ChainParams.Name == "testnet" {
+		delay := uint16(rand.Int()) >> 6
+		time.Sleep(time.Millisecond * time.Duration(delay))
+		delaytext = fmt.Sprintf("testnet delay %dms", delay)
+	}
+	fmt.Printf("%s new block height %d %s %10d %08x %v %s %ds since prev %s\n",
+		time.Now().Format("2006-01-02 15:04:05.000000"),
 		block.Height(),
 		block.MsgBlock().BlockHashWithAlgos(block.Height()),
 		block.MsgBlock().Header.Timestamp.Unix(),
 		block.MsgBlock().Header.Bits,
 		btcutil.Amount(coinbaseTx.Value),
-		fork.GetAlgoName(block.MsgBlock().Header.Version, block.Height()))
+		fork.GetAlgoName(block.MsgBlock().Header.Version, block.Height()),
+		since,
+		delaytext)
+
 	log.Infof("Block submitted via CPU miner accepted (algo %s, hash %s, amount %v)", fork.GetAlgoName(block.MsgBlock().Header.Version, block.Height()), block.MsgBlock().BlockHashWithAlgos(block.Height()), btcutil.Amount(coinbaseTx.Value))
 
 	return true
@@ -464,6 +481,7 @@ func (m *CPUMiner) GenerateNBlocks(n uint32, algo string) ([]*chainhash.Hash, er
 // New returns a new instance of a CPU miner for the provided configuration. Use Start to begin the mining process.  See the documentation for CPUMiner type for more details.
 func New(cfg *Config) *CPUMiner {
 	return &CPUMiner{
+		b:                 cfg.Blockchain,
 		g:                 cfg.BlockTemplateGenerator,
 		cfg:               *cfg,
 		numWorkers:        cfg.NumThreads,

@@ -189,9 +189,6 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		return newTargetBits, nil
 
 	case 1: // Plan 9 from Crypto Space
-		if b.chainParams.Name == "testnet" && int64(lastNode.height) < b.chainParams.TargetTimePerBlock+1 && lastNode.height > 0 {
-			time.Sleep(time.Second * time.Duration(b.chainParams.TargetTimePerBlock))
-		}
 		if lastNode.height == 0 {
 			return fork.FirstPowLimitBits, nil
 		}
@@ -202,9 +199,6 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		// find the most recent block of the same algo
 		if last.version != algo {
 			l := last.RelativeAncestor(1)
-			// if l == nil {
-			// 	return fork.MinPowLimitBits, nil
-			// }
 			l = l.GetPrevWithAlgo(algo)
 			// ignore the first block as its time is not a normal timestamp
 			if l.height < 1 {
@@ -296,7 +290,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		allTimeDivergence := allTimeAverage / ttpb
 		trailTimeDivergence := trailTimeAverage / ttpb
 		weighted := adjusted / targetAdjusted
-		adjustment = (weighted*weighted*weighted + allTimeDivergence + trailTimeDivergence) / 4.0
+		adjustment = (weighted*weighted*weighted + allTimeDivergence + trailTimeDivergence) / 3.0
 		if adjustment < 0 {
 			fmt.Println("negative weight adjustment")
 			adjustment = allTimeDivergence
@@ -317,8 +311,12 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 		if newtarget.Cmp(mintarget) < 0 {
 			newTargetBits = BigToCompact(newtarget)
 			if l {
-				fmt.Printf("mining %8d, old %08x new %08x average %3.2f trail %3.2f weighted %3.2f blocks in window: %d adjustment %0.1f%% algo %s\n",
+				fmt.Printf("%s mining %8d, old %08x new %08x average %3.2f trail %3.2f weighted %3.2f blocks in window: %d adjustment %0.1f%% algo %s\n",
+					time.Now().Format("2006-01-02 15:04:05.000000"),
 					lastNode.height+1, last.bits, newTargetBits, allTimeAverage, trailTimeAverage, weighted*ttpb, counter, -(1-adjustment)*100, fork.List[1].AlgoVers[algo])
+				if b.chainParams.Name == "testnet" && int64(lastNode.height) < b.chainParams.TargetTimePerBlock+1 && lastNode.height > 0 {
+					time.Sleep(time.Second * time.Duration(b.chainParams.TargetTimePerBlock))
+				}
 			}
 		}
 		return newTargetBits, nil
