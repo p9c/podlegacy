@@ -17,6 +17,6 @@ algo=random
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE
 generate=1
-genthreads=4
+genthreads=2
 txindex=1
 addrindex=1
