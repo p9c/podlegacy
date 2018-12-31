@@ -5,6 +5,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"github.com/parallelcointeam/pod/btcjson"
 	"github.com/parallelcointeam/pod/btcutil"
+	"github.com/parallelcointeam/pod/fork"
 	"io/ioutil"
 	"net"
 	"os"
@@ -84,7 +85,7 @@ func cleanAndExpandPath(path string) string {
 // 	3) Load configuration file overwriting defaults with any specified options
 // 	4) Parse CLI options and overwrite/add any specified options
 // The above results in functioning properly without any config settings while still allowing the user to override settings with config files and command line options.  Command line options always take precedence.
-func loadConfig() (*config, []string, error) {
+func LoadConfig() (*config, []string, error) {
 	// Default config.
 	cfg := config{
 		ConfigFile: defaultConfigFile,
@@ -147,6 +148,7 @@ func loadConfig() (*config, []string, error) {
 	numNets := 0
 	if cfg.TestNet3 {
 		numNets++
+		fork.IsTestnet = true
 	}
 	if cfg.SimNet {
 		numNets++

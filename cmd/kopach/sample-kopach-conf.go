@@ -1,6 +1,6 @@
 package main
 
-var sampleKopachConf = `;;;  Directory to store data (default: ~/.pod/data)
+var sampleKopachConf = `
 ;rpcuser=      ;;; RPC username
 ;rpcpass=      ;;; RPC password
 ;rpcserver=    ;;; RPC server to connect to (default: localhost)
