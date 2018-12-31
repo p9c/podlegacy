@@ -53,8 +53,8 @@ var (
 	TestnetInterval                int64   = 100
 	TestnetMaxAdjustDown           int64   = 10
 	TestnetMaxAdjustUp             int64   = 20
-	TestnetTargetTimePerBlock      int64   = 15
-	TestnetAveragingInterval       int64   = 640
+	TestnetTargetTimePerBlock      int64   = 9
+	TestnetAveragingInterval       int64   = 1600
 	TestnetAveragingTargetTimespan         = TestnetTargetTimePerBlock * TestnetAveragingInterval
 	TestnetTargetTimespan                  = TestnetInterval * TestnetTargetTimePerBlock
 )
@@ -74,17 +74,13 @@ type DNSSeed struct {
 	HasFiltering bool
 }
 
-// ConsensusDeployment defines details related to a specific consensus rule
-// change that is voted in.  This is part of BIP0009.
+// ConsensusDeployment defines details related to a specific consensus rule change that is voted in.  This is part of BIP0009.
 type ConsensusDeployment struct {
-	// BitNumber defines the specific bit number within the block version
-	// this particular soft-fork deployment refers to.
+	// BitNumber defines the specific bit number within the block version this particular soft-fork deployment refers to.
 	BitNumber uint8
-	// StartTime is the median block time after which voting on the
-	// deployment starts.
+	// StartTime is the median block time after which voting on the deployment starts.
 	StartTime uint64
-	// ExpireTime is the median block time after which the attempted
-	// deployment expires.
+	// ExpireTime is the median block time after which the attempted deployment expires.
 	ExpireTime uint64
 }
 

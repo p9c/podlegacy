@@ -151,13 +151,8 @@ func (m *CPUMiner) submitBlock(block *btcutil.Block) bool {
 	prevBlock, _ := m.b.BlockByHeight(prevHeight)
 	prevTime := prevBlock.MsgBlock().Header.Timestamp.Unix()
 	since := block.MsgBlock().Header.Timestamp.Unix() - prevTime
-	delaytext := ""
-	if m.cfg.ChainParams.Name == "testnet" {
-		delay := uint16(rand.Int()) >> 6
-		time.Sleep(time.Millisecond * time.Duration(delay))
-		delaytext = fmt.Sprintf("testnet delay %dms", delay)
-	}
-	fmt.Printf("%s new block height %d %s %10d %08x %v %s %ds since prev %s\n",
+
+	fmt.Printf("%s new block height %d %s %10d %08x %v %s %ds since prev\n",
 		time.Now().Format("2006-01-02 15:04:05.000000"),
 		block.Height(),
 		block.MsgBlock().BlockHashWithAlgos(block.Height()),
@@ -165,8 +160,7 @@ func (m *CPUMiner) submitBlock(block *btcutil.Block) bool {
 		block.MsgBlock().Header.Bits,
 		btcutil.Amount(coinbaseTx.Value),
 		fork.GetAlgoName(block.MsgBlock().Header.Version, block.Height()),
-		since,
-		delaytext)
+		since)
 
 	log.Infof("Block submitted via CPU miner accepted (algo %s, hash %s, amount %v)", fork.GetAlgoName(block.MsgBlock().Header.Version, block.Height()), block.MsgBlock().BlockHashWithAlgos(block.Height()), btcutil.Amount(coinbaseTx.Value))
 
@@ -281,6 +275,11 @@ out:
 		// Attempt to solve the block.  The function will exit early with false when conditions that trigger a stale block, so a new block template can be generated.  When the return is true a solution was found, so submit the solved block.
 		if m.solveBlock(template.Block, curHeight+1, m.cfg.ChainParams.Name == "testnet", ticker, quit) {
 			block := btcutil.NewBlock(template.Block)
+			if m.cfg.ChainParams.Name == "testnet" {
+				delay := uint16(rand.Int())>>4 + 256
+				fmt.Printf("%s testnet delay %dms algo %s\n", time.Now().Format("2006-01-02 15:04:05.000000"), delay, fork.List[fork.GetCurrent(curHeight+1)].AlgoVers[block.MsgBlock().Header.Version])
+				time.Sleep(time.Millisecond * time.Duration(delay))
+			}
 			m.submitBlock(block)
 		}
 	}

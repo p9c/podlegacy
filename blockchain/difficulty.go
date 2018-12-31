@@ -313,7 +313,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			if l {
 				fmt.Printf("%s mining %8d, old %08x new %08x average %3.2f trail %3.2f weighted %3.2f blocks in window: %d adjustment %0.1f%% algo %s\n",
 					time.Now().Format("2006-01-02 15:04:05.000000"),
-					lastNode.height+1, last.bits, newTargetBits, allTimeAverage, trailTimeAverage, weighted*ttpb, counter, -(1-adjustment)*100, fork.List[1].AlgoVers[algo])
+					lastNode.height+1, last.bits, newTargetBits, allTimeAverage, trailTimeAverage, weighted*ttpb, counter, (1-adjustment)*100, fork.List[1].AlgoVers[algo])
 				if b.chainParams.Name == "testnet" && int64(lastNode.height) < b.chainParams.TargetTimePerBlock+1 && lastNode.height > 0 {
 					time.Sleep(time.Second * time.Duration(b.chainParams.TargetTimePerBlock))
 				}
