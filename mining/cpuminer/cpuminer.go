@@ -276,8 +276,9 @@ out:
 		if m.solveBlock(template.Block, curHeight+1, m.cfg.ChainParams.Name == "testnet", ticker, quit) {
 			block := btcutil.NewBlock(template.Block)
 			if m.cfg.ChainParams.Name == "testnet" {
-				delay := uint16(rand.Int())>>4 + 256
-				fmt.Printf("%s testnet delay %dms algo %s\n", time.Now().Format("2006-01-02 15:04:05.000000"), delay, fork.List[fork.GetCurrent(curHeight+1)].AlgoVers[block.MsgBlock().Header.Version])
+				rand.Seed(time.Now().UnixNano())
+				delay := uint16(rand.Int())>>6 + 256
+				// fmt.Printf("%s testnet delay %dms algo %s\n", time.Now().Format("2006-01-02 15:04:05.000000"), delay, fork.List[fork.GetCurrent(curHeight+1)].AlgoVers[block.MsgBlock().Header.Version])
 				time.Sleep(time.Millisecond * time.Duration(delay))
 			}
 			m.submitBlock(block)

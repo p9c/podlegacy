@@ -7,6 +7,7 @@ import (
 	"github.com/parallelcointeam/pod/fork"
 	"math"
 	"math/big"
+	"math/rand"
 	"time"
 )
 
@@ -313,12 +314,19 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			return newTargetBits, nil
 		}
 		mintarget := CompactToBig(newTargetBits)
+		var delay uint16
 		if newtarget.Cmp(mintarget) < 0 {
 			newTargetBits = BigToCompact(newtarget)
+			if b.chainParams.Name == "testnet" {
+				rand.Seed(time.Now().UnixNano())
+				delay = uint16(rand.Int())>>7 + 256
+				// fmt.Printf("%s testnet delay %dms algo %s\n", time.Now().Format("2006-01-02 15:04:05.000000"), delay, algoname)
+				time.Sleep(time.Millisecond * time.Duration(delay))
+			}
 			if l {
-				fmt.Printf("%s mining %8d, old %08x new %08x average %3.2f trail %3.2f weighted %3.2f blocks in window: %d adjustment %0.1f%% algo %s\n",
+				fmt.Printf("%s mining %8d, old %08x new %08x average %3.2f trail %3.2f weighted %3.2f blocks in window: %d adjustment %0.1f%% algo %s delayed %dms\n",
 					time.Now().Format("2006-01-02 15:04:05.000000"),
-					lastNode.height+1, last.bits, newTargetBits, allTimeAverage, trailTimeAverage, weighted*ttpb, counter, (1-adjustment)*100, fork.List[1].AlgoVers[algo])
+					lastNode.height+1, last.bits, newTargetBits, allTimeAverage, trailTimeAverage, weighted*ttpb, counter, (1-adjustment)*100, fork.List[1].AlgoVers[algo], delay)
 				if b.chainParams.Name == "testnet" && int64(lastNode.height) < b.chainParams.TargetTimePerBlock+1 && lastNode.height > 0 {
 					time.Sleep(time.Second * time.Duration(b.chainParams.TargetTimePerBlock))
 				}
