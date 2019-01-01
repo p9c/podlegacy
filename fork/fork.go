@@ -23,6 +23,7 @@ type AlgoParams struct {
 	Version int32
 	MinBits uint32
 	AlgoID  uint32
+	NSperOp int64
 }
 
 var (
@@ -71,20 +72,20 @@ var (
 
 	// Algos are the specifications identifying the algorithm used in the block proof
 	Algos = map[string]AlgoParams{
-		"sha256d": {2, mainPowLimitBits, 0},
-		"scrypt":  {514, mainPowLimitBits, 1},
+		"sha256d": {2, mainPowLimitBits, 0, 1},   //824 ns/op
+		"scrypt":  {514, mainPowLimitBits, 1, 1}, //740839 ns/op
 	}
 	// P9Algos is the algorithm specifications after the hard fork
 	P9Algos = map[string]AlgoParams{
-		"blake14lr":      {0, FirstPowLimitBits, 0},
-		"cryptonight7v2": {1, FirstPowLimitBits, 1},
-		"keccak":         {2, FirstPowLimitBits, 2},
-		"lyra2rev2":      {3, FirstPowLimitBits, 3},
-		"scrypt":         {4, FirstPowLimitBits, 4},
-		"sha256d":        {5, FirstPowLimitBits, 5},
-		"skein":          {6, FirstPowLimitBits, 7},
-		"stribog":        {7, FirstPowLimitBits, 6},
-		"x11":            {8, FirstPowLimitBits, 8},
+		"blake14lr":      {0, FirstPowLimitBits, 0, 43935943},
+		"cryptonight7v2": {1, FirstPowLimitBits, 1, 44195890},
+		"keccak":         {2, FirstPowLimitBits, 2, 42804256},
+		"lyra2rev2":      {3, FirstPowLimitBits, 3, 76719207},
+		"scrypt":         {4, FirstPowLimitBits, 4, 43898224},
+		"sha256d":        {5, FirstPowLimitBits, 5, 43418857},
+		"skein":          {6, FirstPowLimitBits, 7, 44523156},
+		"stribog":        {7, FirstPowLimitBits, 6, 46297969},
+		"x11":            {8, FirstPowLimitBits, 8, 44318830},
 	}
 	// AlgoVers is the lookup for pre hardfork
 	AlgoVers = map[int32]string{

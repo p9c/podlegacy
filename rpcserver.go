@@ -2335,7 +2335,7 @@ func handleGetNetworkHashPS(s *rpcServer, cmd interface{}, closeChan <-chan stru
 			minTimestamp = header.Timestamp
 			maxTimestamp = minTimestamp
 		} else {
-			totalWork.Add(totalWork, blockchain.CalcWork(header.Bits))
+			totalWork.Add(totalWork, blockchain.CalcWork(header.Bits, best.Height+1, header.Version))
 			if minTimestamp.After(header.Timestamp) {
 				minTimestamp = header.Timestamp
 			}

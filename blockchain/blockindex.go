@@ -72,7 +72,6 @@ func initBlockNode(node *blockNode, blockHeader *wire.BlockHeader, parent *block
 	// log.Debugf("initBlockNode %08x %064x", blockHeader.Bits, CalcWork(blockHeader.Bits))
 	*node = blockNode{
 		hash:       blockHeader.BlockHash(),
-		workSum:    CalcWork(blockHeader.Bits),
 		version:    blockHeader.Version,
 		bits:       blockHeader.Bits,
 		nonce:      blockHeader.Nonce,
@@ -82,6 +81,8 @@ func initBlockNode(node *blockNode, blockHeader *wire.BlockHeader, parent *block
 	if parent != nil {
 		node.parent = parent
 		node.height = parent.height + 1
+		node.workSum = CalcWork(blockHeader.Bits, node.height, node.version)
+		parent.workSum = CalcWork(parent.bits, parent.height, parent.version)
 		node.workSum = node.workSum.Add(parent.workSum, node.workSum)
 	}
 }

@@ -802,6 +802,7 @@ func (b *BlockChain) createChainState() error {
 			return err
 		}
 		// Store the current best chain state into the database.
+		node.workSum = CalcWork(node.bits, node.height, node.version)
 		err = dbPutBestState(dbTx, b.stateSnapshot, node.workSum)
 		if err != nil {
 			return err

@@ -12,7 +12,6 @@ connect=127.0.0.1:11447
 connect=127.0.0.1:11547
 rpcuser=user
 rpcpass=pa55word
-debuglevel=critical
 algo=random
 testnet=1
 miningaddr=8YmWdnZUgzC5qa8y7tuPAsyYbnsF738oPE

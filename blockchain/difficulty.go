@@ -100,9 +100,13 @@ func BigToCompact(n *big.Int) uint32 {
 }
 
 // CalcWork calculates a work value from difficulty bits.  Bitcoin increases the difficulty for generating a block by decreasing the value which the generated hash must be less than.  This difficulty target is stored in each block header using a compact representation as described in the documentation for CompactToBig. The main chain is selected by choosing the chain that has the most proof of work (highest difficulty). Since a lower target difficulty value equates to higher actual difficulty, the work value which will be accumulated must be the inverse of the difficulty.  Also, in order to avoid potential division by zero and really small floating point numbers, the result adds 1 to the denominator and multiplies the numerator by 2^256.
-func CalcWork(bits uint32) *big.Int {
+func CalcWork(bits uint32, height int32, algover int32) *big.Int {
 	// Return a work value of zero if the passed difficulty bits represent a negative number. Note this should not happen in practice with valid blocks, but an invalid block could trigger it.
 	difficultyNum := CompactToBig(bits)
+	// To make the difficulty values correlate to number of hash operations, multiply this difficulty base by the nanoseconds/hash figures in the fork algorithms list
+	current := fork.GetCurrent(height)
+	algoname := fork.List[current].AlgoVers[algover]
+	difficultyNum = new(big.Int).Mul(difficultyNum, big.NewInt(fork.List[current].Algos[algoname].NSperOp))
 	if difficultyNum.Sign() <= 0 {
 		return big.NewInt(0)
 	}
