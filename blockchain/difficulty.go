@@ -107,6 +107,7 @@ func CalcWork(bits uint32, height int32, algover int32) *big.Int {
 	current := fork.GetCurrent(height)
 	algoname := fork.List[current].AlgoVers[algover]
 	difficultyNum = new(big.Int).Mul(difficultyNum, big.NewInt(fork.List[current].Algos[algoname].NSperOp))
+	difficultyNum = new(big.Int).Quo(difficultyNum, big.NewInt(fork.List[current].WorkBase))
 	if difficultyNum.Sign() <= 0 {
 		return big.NewInt(0)
 	}

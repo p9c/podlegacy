@@ -776,18 +776,19 @@ func (b *BlockChain) connectBestChain(node *blockNode, block *btcutil.Block, fla
 		log.Warnf("fastAdd set in the side chain case? %v\n",
 			block.Hash())
 	}
+	node.workSum = CalcWork(node.bits, node.height, node.version)
 	// We're extending (or creating) a side chain, but the cumulative work for this new side chain is not enough to make it the new chain.
 	if node.workSum.Cmp(b.bestChain.Tip().workSum) <= 0 {
 		// Log information about how the block is forking the chain.
-		fork := b.bestChain.FindFork(node)
-		if fork.hash.IsEqual(parentHash) {
+		f := b.bestChain.FindFork(node)
+		if f.hash.IsEqual(parentHash) {
 			log.Infof("FORK: Block %v forks the chain at height %d"+
-				"/block %v, but does not cause a reorganize",
-				node.hash, fork.height, fork.hash)
+				"/block %v, but does not cause a reorganize. workSum=%d",
+				node.hash, f.height, f.hash, f.workSum)
 		} else {
 			log.Infof("EXTEND FORK: Block %v extends a side chain "+
-				"which forks the chain at height %d/block %v",
-				node.hash, fork.height, fork.hash)
+				"which forks the chain at height %d/block %v. workSum=%d",
+				node.hash, f.height, f.hash, f.workSum)
 		}
 		return false, nil
 	}

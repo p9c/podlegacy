@@ -16,6 +16,7 @@ type HardForks struct {
 	ActivationHeight int32
 	Algos            map[string]AlgoParams
 	AlgoVers         map[int32]string
+	WorkBase         int64
 }
 
 // AlgoParams are the identifying block version number and their minimum target bits
@@ -37,6 +38,7 @@ var (
 			ActivationHeight: 0, // Approximately 18 Jan 2019
 			Algos:            Algos,
 			AlgoVers:         AlgoVers,
+			WorkBase:         1,
 		},
 		{
 			Number:           1,
@@ -44,6 +46,13 @@ var (
 			ActivationHeight: 185463,
 			Algos:            P9Algos,
 			AlgoVers:         P9AlgoVers,
+			WorkBase: func() (out int64) {
+				for i := range P9Algos {
+					out += P9Algos[i].NSperOp
+				}
+				out /= int64(len(P9Algos))
+				return
+			}(),
 		},
 	}
 	mainPowLimit = func() big.Int {
