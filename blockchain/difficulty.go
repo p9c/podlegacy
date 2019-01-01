@@ -319,7 +319,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(lastNode *blockNode, newBlockTim
 			newTargetBits = BigToCompact(newtarget)
 			if b.chainParams.Name == "testnet" {
 				rand.Seed(time.Now().UnixNano())
-				delay = uint16(rand.Int())>>7 + 256
+				delay = uint16(rand.Int()) >> 6
 				// fmt.Printf("%s testnet delay %dms algo %s\n", time.Now().Format("2006-01-02 15:04:05.000000"), delay, algoname)
 				time.Sleep(time.Millisecond * time.Duration(delay))
 			}
