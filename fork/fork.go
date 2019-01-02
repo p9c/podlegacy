@@ -43,7 +43,7 @@ var (
 		{
 			Number:           1,
 			Name:             "Plan 9 from Crypto Space",
-			ActivationHeight: 185463,
+			ActivationHeight: 199999,
 			Algos:            P9Algos,
 			AlgoVers:         P9AlgoVers,
 			WorkBase: func() (out int64) {
