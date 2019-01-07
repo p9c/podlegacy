@@ -1,4 +1,4 @@
-package cpuminer
+package controller
 
 import (
 	"github.com/parallelcointeam/pod/btclog"

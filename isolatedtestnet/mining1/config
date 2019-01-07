@@ -1,13 +1,5 @@
 listen=127.0.0.1:11447
 rpclisten=127.0.0.1:11448
-blake14lrlisten=127.0.0.1:11449
-cryptonight7v2listen=127.0.0.1:11450
-keccaklisten=127.0.0.1:11451
-lyra2rev2listen=127.0.0.1:11452
-scryptlisten=127.0.0.1:11453
-skeinlisten=127.0.0.1:11454
-striboglisten=127.0.0.1:11455
-x11listen=127.0.0.1:11456
 connect=127.0.0.1:11347
 connect=127.0.0.1:11547
 rpcuser=user

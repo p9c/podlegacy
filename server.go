@@ -18,6 +18,7 @@ import (
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/mining"
+	"github.com/parallelcointeam/pod/mining/controller"
 	"github.com/parallelcointeam/pod/mining/cpuminer"
 	"github.com/parallelcointeam/pod/netsync"
 	"github.com/parallelcointeam/pod/peer"
@@ -175,6 +176,7 @@ type server struct {
 	chain                *blockchain.BlockChain
 	txMemPool            *mempool.TxPool
 	cpuMiner             *cpuminer.CPUMiner
+	minerController      *controller.Controller
 	modifyRebroadcastInv chan interface{}
 	newPeers             chan *serverPeer
 	donePeers            chan *serverPeer
@@ -1781,6 +1783,9 @@ func (s *server) Start() {
 	if cfg.Generate {
 		s.cpuMiner.Start()
 	}
+	if cfg.MinerController {
+		s.minerController.Start()
+	}
 }
 
 // Stop gracefully shuts down the server by stopping and disconnecting all peers and the main listener.
@@ -1793,6 +1798,8 @@ func (s *server) Stop() error {
 	srvrLog.Warnf("Server shutting down")
 	// Stop the CPU miner if needed
 	s.cpuMiner.Stop()
+	// Stop miner controller if needed
+	s.minerController.Stop()
 	// Shutdown the RPC server if it's not disabled.
 	if !cfg.DisableRPC {
 		for i := range s.rpcServers {
@@ -2160,6 +2167,17 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		NumThreads:             s.numthreads,
 		Algo:                   s.algo,
 	})
+	s.minerController = controller.New(&controller.Config{
+		Blockchain:             s.chain,
+		ChainParams:            chainParams,
+		BlockTemplateGenerator: blockTemplateGenerator,
+		MiningAddrs:            cfg.miningAddrs,
+		ProcessBlock:           s.syncManager.ProcessBlock,
+		MinerPort:              cfg.MinerPort,
+		MinerKey:               cfg.minerKey,
+		ConnectedCount:         s.ConnectedCount,
+		IsCurrent:              s.syncManager.IsCurrent,
+	})
 	/*	Only setup a function to return new addresses to connect to when
 		not running in connect-only mode.  The simulation network is always
 		in connect-only mode since it is only intended to connect to
@@ -2236,15 +2254,7 @@ func newServer(listenAddrs []string, db database.DB, chainParams *chaincfg.Param
 		/*	Setup listeners for the configured RPC listen addresses and
 			TLS settings. */
 		listeners := map[string][]string{
-			"blake14lr":      cfg.Blake14lrListeners,
-			"cryptonight7v2": cfg.Cryptonight7v2Listeners,
-			"keccak":         cfg.KeccakListeners,
-			"lyra2rev2":      cfg.Lyra2rev2Listeners,
-			"scrypt":         cfg.ScryptListeners,
-			"sha256d":        cfg.RPCListeners,
-			"stribog":        cfg.StribogListeners,
-			"skein":          cfg.SkeinListeners,
-			"x11":            cfg.X11Listeners,
+			"sha256d": cfg.RPCListeners,
 		}
 		for l := range listeners {
 			rpcListeners, err := setupRPCListeners(listeners[l])

@@ -295,7 +295,9 @@ func NewBlkTmplGenerator(policy *Policy, params *chaincfg.Params,
 //  |  <= policy.BlockMinSize)          |   |
 //   -----------------------------------  --
 func (g *BlkTmplGenerator) NewBlockTemplate(payToAddress btcutil.Address, algo string) (*BlockTemplate, error) {
-	//// fmt.Println("NewBlockTemplate algo:", algo)
+	if algo == "" {
+		algo = "sha256d"
+	}
 	if algo == "random" {
 		h := g.BestSnapshot().Height
 		v := fork.GetAlgoVer(algo, h)

@@ -11,6 +11,7 @@ import (
 	"github.com/parallelcointeam/pod/database"
 	"github.com/parallelcointeam/pod/mempool"
 	"github.com/parallelcointeam/pod/mining"
+	"github.com/parallelcointeam/pod/mining/controller"
 	"github.com/parallelcointeam/pod/mining/cpuminer"
 	"github.com/parallelcointeam/pod/netsync"
 	"github.com/parallelcointeam/pod/peer"
@@ -60,6 +61,7 @@ func init() {
 	indexers.UseLogger(indxLog)
 	mining.UseLogger(minrLog)
 	cpuminer.UseLogger(minrLog)
+	controller.UseLogger(minrLog)
 	peer.UseLogger(peerLog)
 	txscript.UseLogger(scrpLog)
 	netsync.UseLogger(syncLog)

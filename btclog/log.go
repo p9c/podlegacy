@@ -1,26 +1,5 @@
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//    * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//    * Redistributions in binary form must reproduce the above
-// in the documentation and/or other materials provided with the
-// distribution.
-//    * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package btclog
+
 import (
 	"bytes"
 	"fmt"
@@ -33,10 +12,12 @@ import (
 	"sync/atomic"
 	"time"
 )
+
 // defaultFlags specifies changes to the default logger behavior.  It is set
 // during package init and configured using the LOGFLAGS environment variable.
 // New logger backends can override these default flags using WithFlags.
 var defaultFlags uint32
+
 // Flags to modify Backend's behavior.
 const (
 	// Llongfile modifies the logger output to include full path and line number
@@ -46,6 +27,26 @@ const (
 	// of the logging callsite, e.g. main.go:123.  Overrides Llongfile.
 	Lshortfile
 )
+
+var (
+	colorOff     = []byte("\033[0m")
+	colorRed     = []byte("\033[0;31m")
+	colorRedB    = []byte("\033[0;31;1m")
+	colorGreen   = []byte("\033[0;32m")
+	colorGreenB  = []byte("\033[0;32;1m")
+	colorOrange  = []byte("\033[0;33m")
+	colorOrangeB = []byte("\033[0;33;1m")
+	colorBlue    = []byte("\033[0;34m")
+	colorBlueB   = []byte("\033[0;34;1m")
+	colorPurple  = []byte("\033[0;35m")
+	colorPurpleB = []byte("\033[0;35;1m")
+	colorCyan    = []byte("\033[0;36m")
+	colorCyanB   = []byte("\033[0;36;1m")
+	colorGray    = []byte("\033[0;37m")
+	colorGrayB   = []byte("\033[0;37;1m")
+	styleBold    = []byte("\033[1m")
+)
+
 // Read logger flags from the LOGFLAGS environment variable.  Multiple flags can
 // be set at once, separated by commas.
 func init() {
@@ -58,9 +59,11 @@ func init() {
 		}
 	}
 }
+
 // Level is the level at which a logger is configured.  All messages sent
 // to a level which is below the current level are filtered.
 type Level uint32
+
 // Level constants.
 const (
 	LevelTrace Level = iota
@@ -71,8 +74,10 @@ const (
 	LevelCritical
 	LevelOff
 )
+
 // levelStrs defines the human-readable names for each logging level.
 var levelStrs = [...]string{"TRC", "DBG", "INF", "WRN", "ERR", "CRT", "OFF"}
+
 // LevelFromString returns a level based on the input string s.  If the input
 // can't be interpreted as a valid log level, the info level and false is
 // returned.
@@ -96,6 +101,7 @@ func LevelFromString(s string) (l Level, ok bool) {
 		return LevelInfo, false
 	}
 }
+
 // String returns the tag of the logger used in log messages, or "OFF" if
 // the level will not produce any log output.
 func (l Level) String() string {
@@ -104,6 +110,7 @@ func (l Level) String() string {
 	}
 	return levelStrs[l]
 }
+
 // NewBackend creates a logger backend from a Writer.
 func NewBackend(w io.Writer, opts ...BackendOption) *Backend {
 	b := &Backend{w: w, flag: defaultFlags}
@@ -112,6 +119,7 @@ func NewBackend(w io.Writer, opts ...BackendOption) *Backend {
 	}
 	return b
 }
+
 // Backend is a logging backend.  Subsystems created from the backend write to
 // the backend's Writer.  Backend provides atomic writes to the Writer from all
 // subsystems.
@@ -120,8 +128,10 @@ type Backend struct {
 	mu   sync.Mutex // ensures atomic writes
 	flag uint32
 }
+
 // BackendOption is a function used to modify the behavior of a Backend.
 type BackendOption func(b *Backend)
+
 // WithFlags configures a Backend to use the specified flags rather than using
 // the package's defaults as determined through the LOGFLAGS environment
 // variable.
@@ -130,6 +140,7 @@ func WithFlags(flags uint32) BackendOption {
 		b.flag = flags
 	}
 }
+
 // bufferPool defines a concurrent safe free list of byte slices used to provide
 // temporary buffers for formatting log messages prior to outputting them.
 var bufferPool = sync.Pool{
@@ -138,6 +149,7 @@ var bufferPool = sync.Pool{
 		return &b // pointer to slice to avoid boxing alloc
 	},
 }
+
 // buffer returns a byte slice from the free list.  A new buffer is allocated if
 // there are not any available on the free list.  The returned byte slice should
 // be returned to the fee list by using the recycleBuffer function when the
@@ -145,12 +157,14 @@ var bufferPool = sync.Pool{
 func buffer() *[]byte {
 	return bufferPool.Get().(*[]byte)
 }
+
 // recycleBuffer puts the provided byte slice, which should have been obtain via
 // the buffer function, back on the free list.
 func recycleBuffer(b *[]byte) {
 	*b = (*b)[:0]
 	bufferPool.Put(b)
 }
+
 // From stdlib log package.
 // Cheap integer to fixed-width decimal ASCII.  Give a negative width to avoid
 // zero-padding.
@@ -169,6 +183,7 @@ func itoa(buf *[]byte, i int, wid int) {
 	b[bp] = byte('0' + i)
 	*buf = append(*buf, b[bp:]...)
 }
+
 // Appends a header in the default format 'YYYY-MM-DD hh:mm:ss.sss [LVL] TAG: '.
 // If either of the Lshortfile or Llongfile flags are specified, the file named
 // and line number are included after the tag and before the final colon.
@@ -176,22 +191,40 @@ func formatHeader(buf *[]byte, t time.Time, lvl, tag string, file string, line i
 	year, month, day := t.Date()
 	hour, min, sec := t.Clock()
 	ms := t.Nanosecond() / 1e6
-	itoa(buf, year, 4)
-	*buf = append(*buf, '-')
+	*buf = append(*buf, colorGrayB...)
+	itoa(buf, year-2000, 2)
+	*buf = append(*buf, colorOff...)
 	itoa(buf, int(month), 2)
-	*buf = append(*buf, '-')
+	*buf = append(*buf, colorGray...)
 	itoa(buf, day, 2)
-	*buf = append(*buf, ' ')
+	*buf = append(*buf, colorGrayB...)
 	itoa(buf, hour, 2)
-	*buf = append(*buf, ':')
+	*buf = append(*buf, colorOff...)
 	itoa(buf, min, 2)
-	*buf = append(*buf, ':')
+	*buf = append(*buf, colorGray...)
 	itoa(buf, sec, 2)
-	*buf = append(*buf, '.')
+	*buf = append(*buf, colorOff...)
 	itoa(buf, ms, 3)
-	*buf = append(*buf, " ["...)
+	tagC := colorGray
+	switch lvl {
+	case "TRC":
+		tagC = colorBlueB
+	case "DBG":
+		tagC = colorGreenB
+	case "INF":
+		tagC = colorCyanB
+	case "WRN":
+		tagC = colorOrangeB
+	case "ERR":
+		tagC = colorRedB
+	case "CRT":
+		tagC = colorPurpleB
+	case "OFF":
+		tagC = colorOff
+	}
+	*buf = append(*buf, tagC...)
 	*buf = append(*buf, lvl...)
-	*buf = append(*buf, "] "...)
+	*buf = append(*buf, colorGray...)
 	*buf = append(*buf, tag...)
 	if file != "" {
 		*buf = append(*buf, ' ')
@@ -199,13 +232,16 @@ func formatHeader(buf *[]byte, t time.Time, lvl, tag string, file string, line i
 		*buf = append(*buf, ':')
 		itoa(buf, line, -1)
 	}
-	*buf = append(*buf, ": "...)
+	*buf = append(*buf, colorOff...)
+	*buf = append(*buf, ' ')
 }
+
 // calldepth is the call depth of the callsite function relative to the
 // caller of the subsystem logger.  It is used to recover the filename and line
 // number of the logging call if either the short or long file flags are
 // specified.
 const calldepth = 3
+
 // callsite returns the file name and line number of the callsite to the
 // subsystem logger.
 func callsite(flag uint32) (string, int) {
@@ -225,6 +261,7 @@ func callsite(flag uint32) (string, int) {
 	}
 	return file, line
 }
+
 // print outputs a log message to the writer associated with the backend after
 // creating a prefix for the given level and tag according to the formatHeader
 // function and formatting the provided arguments using the default formatting
@@ -238,6 +275,7 @@ func (b *Backend) print(lvl, tag string, args ...interface{}) {
 		file, line = callsite(b.flag)
 	}
 	formatHeader(bytebuf, t, lvl, tag, file, line)
+	*bytebuf = append(*bytebuf, colorOff...)
 	buf := bytes.NewBuffer(*bytebuf)
 	fmt.Fprintln(buf, args...)
 	*bytebuf = buf.Bytes()
@@ -246,6 +284,7 @@ func (b *Backend) print(lvl, tag string, args ...interface{}) {
 	b.mu.Unlock()
 	recycleBuffer(bytebuf)
 }
+
 // printf outputs a log message to the writer associated with the backend after
 // creating a prefix for the given level and tag according to the formatHeader
 // function and formatting the provided arguments according to the given format
@@ -267,18 +306,21 @@ func (b *Backend) printf(lvl, tag string, format string, args ...interface{}) {
 	b.mu.Unlock()
 	recycleBuffer(bytebuf)
 }
+
 // Logger returns a new logger for a particular subsystem that writes to the
 // Backend b.  A tag describes the subsystem and is included in all log
 // messages.  The logger uses the info verbosity level by default.
 func (b *Backend) Logger(subsystemTag string) Logger {
 	return &slog{LevelInfo, subsystemTag, b}
 }
+
 // slog is a subsystem logger for a Backend.  Implements the Logger interface.
 type slog struct {
 	lvl Level // atomic
 	tag string
 	b   *Backend
 }
+
 // Trace formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelTrace.
 // This is part of the Logger interface implementation.
@@ -288,6 +330,7 @@ func (l *slog) Trace(args ...interface{}) {
 		l.b.print("TRC", l.tag, args...)
 	}
 }
+
 // Tracef formats message according to format specifier, prepends the prefix as
 // necessary, and writes to log with LevelTrace.
 // This is part of the Logger interface implementation.
@@ -297,6 +340,7 @@ func (l *slog) Tracef(format string, args ...interface{}) {
 		l.b.printf("TRC", l.tag, format, args...)
 	}
 }
+
 // Debug formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelDebug.
 // This is part of the Logger interface implementation.
@@ -306,6 +350,7 @@ func (l *slog) Debug(args ...interface{}) {
 		l.b.print("DBG", l.tag, args...)
 	}
 }
+
 // Debugf formats message according to format specifier, prepends the prefix as
 // necessary, and writes to log with LevelDebug.
 // This is part of the Logger interface implementation.
@@ -315,6 +360,7 @@ func (l *slog) Debugf(format string, args ...interface{}) {
 		l.b.printf("DBG", l.tag, format, args...)
 	}
 }
+
 // Info formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelInfo.
 // This is part of the Logger interface implementation.
@@ -324,6 +370,7 @@ func (l *slog) Info(args ...interface{}) {
 		l.b.print("INF", l.tag, args...)
 	}
 }
+
 // Infof formats message according to format specifier, prepends the prefix as
 // necessary, and writes to log with LevelInfo.
 // This is part of the Logger interface implementation.
@@ -333,6 +380,7 @@ func (l *slog) Infof(format string, args ...interface{}) {
 		l.b.printf("INF", l.tag, format, args...)
 	}
 }
+
 // Warn formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelWarn.
 // This is part of the Logger interface implementation.
@@ -342,6 +390,7 @@ func (l *slog) Warn(args ...interface{}) {
 		l.b.print("WRN", l.tag, args...)
 	}
 }
+
 // Warnf formats message according to format specifier, prepends the prefix as
 // necessary, and writes to log with LevelWarn.
 // This is part of the Logger interface implementation.
@@ -351,6 +400,7 @@ func (l *slog) Warnf(format string, args ...interface{}) {
 		l.b.printf("WRN", l.tag, format, args...)
 	}
 }
+
 // Error formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelError.
 // This is part of the Logger interface implementation.
@@ -360,6 +410,7 @@ func (l *slog) Error(args ...interface{}) {
 		l.b.print("ERR", l.tag, args...)
 	}
 }
+
 // Errorf formats message according to format specifier, prepends the prefix as
 // necessary, and writes to log with LevelError.
 // This is part of the Logger interface implementation.
@@ -369,6 +420,7 @@ func (l *slog) Errorf(format string, args ...interface{}) {
 		l.b.printf("ERR", l.tag, format, args...)
 	}
 }
+
 // Critical formats message using the default formats for its operands, prepends
 // the prefix as necessary, and writes to log with LevelCritical.
 // This is part of the Logger interface implementation.
@@ -378,6 +430,7 @@ func (l *slog) Critical(args ...interface{}) {
 		l.b.print("CRT", l.tag, args...)
 	}
 }
+
 // Criticalf formats message according to format specifier, prepends the prefix
 // as necessary, and writes to log with LevelCritical.
 // This is part of the Logger interface implementation.
@@ -387,18 +440,22 @@ func (l *slog) Criticalf(format string, args ...interface{}) {
 		l.b.printf("CRT", l.tag, format, args...)
 	}
 }
+
 // Level returns the current logging level
 // This is part of the Logger interface implementation.
 func (l *slog) Level() Level {
 	return Level(atomic.LoadUint32((*uint32)(&l.lvl)))
 }
+
 // SetLevel changes the logging level to the passed level.
 // This is part of the Logger interface implementation.
 func (l *slog) SetLevel(level Level) {
 	atomic.StoreUint32((*uint32)(&l.lvl), uint32(level))
 }
+
 // Disabled is a Logger that will never output anything.
 var Disabled Logger
+
 func init() {
 	Disabled = &slog{lvl: LevelOff, b: NewBackend(ioutil.Discard)}
 }
