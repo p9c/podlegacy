@@ -72,7 +72,7 @@ func (c *Controller) submitBlock(block *btcutil.Block) bool {
 	if err != nil {
 		// Anything other than a rule violation is an unexpected error, so log that error as an internal error.
 		if _, ok := err.(blockchain.RuleError); !ok {
-			log.Errorf("Unexpected error while processing block submitted via CPU miner: %v", err)
+			log.Errorf("Unexpected error while processing block submitted via miner worker: %v", err)
 			return false
 		}
 		log.Debugf("Block submitted via miner rejected: %v", err)
@@ -172,7 +172,7 @@ out:
 			time.Sleep(time.Second)
 			continue
 		}
-		// Choose a payment address at randoc.
+		// Choose a payment address at random
 		rand.Seed(time.Now().UnixNano())
 		payToAddr := c.cfg.MiningAddrs[rand.Intn(len(c.cfg.MiningAddrs))]
 		// Create a new block template using the available transactions in the memory pool as a source of transactions to potentially include in the block.
@@ -186,19 +186,15 @@ out:
 		// Attempt to solve the block.  The function will exit early with false when conditions that trigger a stale block, so a new block template can be generated.  When the return is true a solution was found, so submit the solved block.
 		if c.solveBlock(template.Block, curHeight+1, c.cfg.ChainParams.Name == "testnet", ticker, quit) {
 			block := btcutil.NewBlock(template.Block)
-			if c.cfg.ChainParams.Name == "testnet" {
-				rand.Seed(time.Now().UnixNano())
-				delay := uint16(rand.Int()) >> 6
-				log.Debugf("testnet delay %dms algo %s",
-					delay,
-					fork.List[fork.GetCurrent(curHeight+1)].AlgoVers[block.MsgBlock().Header.Version])
-				time.Sleep(time.Millisecond * time.Duration(delay))
-			}
 			c.submitBlock(block)
 		}
 	}
 	c.workerWg.Done()
 	log.Tracef("Generate blocks worker done")
+}
+
+func (c *Controller) createListener() {
+
 }
 
 func (c *Controller) minerController() {
