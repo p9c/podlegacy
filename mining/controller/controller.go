@@ -8,6 +8,7 @@ import (
 	"github.com/parallelcointeam/pod/fork"
 	"github.com/parallelcointeam/pod/mining"
 	"github.com/parallelcointeam/pod/wire"
+	"github.com/xtaci/kcp-go"
 	"math/rand"
 	"sync"
 	"time"
@@ -54,7 +55,8 @@ type Controller struct {
 	workerWg         sync.WaitGroup
 	updateNumWorkers chan struct{}
 	quit             chan struct{}
-	workers          []string
+	listener         *kcp.Listener
+	workers          []*kcp.UDPSession
 }
 
 // submitBlock submits the passed block to network after ensuring it passes all of the consensus validation rules.
@@ -101,7 +103,7 @@ func (c *Controller) submitBlock(block *btcutil.Block) bool {
 }
 
 // solveBlock attempts to find some combination of a nonce, extra nonce, and current timestamp which makes the passed block hash to a value less than the target difficulty.  The timestamp is updated periodically and the passed block is modified with all tweaks during this process.  This means that when the function returns true, the block is ready for submission. This function will return early with false when conditions that trigger a stale block such as a new block showing up or periodically when there are new transactions and enough time has elapsed without finding a solution.
-func (c *Controller) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32, testnet bool, ticker *time.Ticker, quit chan struct{}) bool {
+func (c *Controller) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32, testnet bool, ticker *time.Ticker, submissionReceived chan *wire.MsgBlock, quit chan struct{}) bool {
 	// Choose a random extra nonce offset for this block template and worker.
 	enOffset, err := wire.RandomUint64()
 	if err != nil {
@@ -133,8 +135,12 @@ func (c *Controller) solveBlock(msgBlock *wire.MsgBlock, blockHeight int32, test
 					return false
 				}
 				c.g.UpdateBlockTime(msgBlock)
+			case <-submissionReceived:
+				// Here we will send out the updated block to subscribed client workers
 			default:
 			}
+			// Instead of directly attempting to solve blocks, here we send out the new block data to subscribed miner clients and process submissions they return when they find a solution
+
 			header.Nonce = i
 			hash := header.BlockHashWithAlgos(int32(fork.GetCurrent(blockHeight)))
 			// The block is solved when the new block hash is less than the target difficulty.  Yay!
@@ -152,6 +158,8 @@ func (c *Controller) generateBlocks(quit chan struct{}) {
 	// Start a ticker which is used to signal checks for stale work and updates to the speed monitor.
 	ticker := time.NewTicker(time.Second / 2)
 	defer ticker.Stop()
+	// Create a channel to receive block submissions
+	var submission chan *wire.MsgBlock
 out:
 	for {
 		select {
@@ -184,7 +192,7 @@ out:
 			continue
 		}
 		// Attempt to solve the block.  The function will exit early with false when conditions that trigger a stale block, so a new block template can be generated.  When the return is true a solution was found, so submit the solved block.
-		if c.solveBlock(template.Block, curHeight+1, c.cfg.ChainParams.Name == "testnet", ticker, quit) {
+		if c.solveBlock(template.Block, curHeight+1, c.cfg.ChainParams.Name == "testnet", ticker, submission, quit) {
 			block := btcutil.NewBlock(template.Block)
 			c.submitBlock(block)
 		}
@@ -193,12 +201,7 @@ out:
 	log.Tracef("Generate blocks worker done")
 }
 
-func (c *Controller) createListener() {
-
-}
-
 func (c *Controller) minerController() {
-	log.Info("Starting miner controller thread")
 	c.workerWg.Add(1)
 	quit := make(chan struct{})
 	go c.generateBlocks(quit)
@@ -219,6 +222,7 @@ func (c *Controller) Start() {
 	if c.started {
 		return
 	}
+
 	c.quit = make(chan struct{})
 	c.wg.Add(1)
 	go c.minerController()
